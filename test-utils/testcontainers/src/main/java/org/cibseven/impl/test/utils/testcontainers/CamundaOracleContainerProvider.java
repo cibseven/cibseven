@@ -8,7 +8,7 @@ import org.testcontainers.utility.DockerImageName;
 
 public class CamundaOracleContainerProvider extends OracleContainerProvider {
 
-  private static final String NAME = "camoracle";
+  private static final String NAME = "ciboracle";
 
   @Override
   public boolean supports(String databaseType) {

@@ -39,13 +39,24 @@ public class DatabaseContainerProviderTest {
 
   static Stream<Arguments> scenarios() throws ParseException {
     return Stream.of(
-      Arguments.of("jdbc:tc:campostgresql:13.2:///process-engine", "SELECT version();", "13.2"),
-      Arguments.of("jdbc:tc:cammariadb:10.0://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "10.0"),
-      Arguments.of("jdbc:tc:cammysql:5.7://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "5.7"),
-      Arguments.of("jdbc:tc:cammysql:8.0://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "8.0"),
-      Arguments.of("jdbc:tc:camsqlserver:2017:///process-engine", "SELECT @@VERSION", "2017"),
-      Arguments.of("jdbc:tc:camsqlserver:2019:///process-engine", "SELECT @@VERSION", "2019")
-      // DB2 and Oracle commented out as before
+      Arguments.of("jdbc:tc:cibpostgresql:15:///process-engine", "SELECT version();", "15."),
+      Arguments.of("jdbc:tc:cibpostgresql:16:///process-engine", "SELECT version();", "16."),
+      Arguments.of("jdbc:tc:cibpostgresql:17:///process-engine", "SELECT version();", "17."),
+      Arguments.of("jdbc:tc:cibpostgresql:18:///process-engine", "SELECT version();", "18."),
+      Arguments.of("jdbc:tc:cibmariadb:10.11://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "10.11"),
+      Arguments.of("jdbc:tc:cibmariadb:11.4://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "11.4"),
+      Arguments.of("jdbc:tc:cibmariadb:11.8://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "11.8"),
+      Arguments.of("jdbc:tc:cibmariadb:12.3://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "12.3"),
+      Arguments.of("jdbc:tc:cibmysql:8.4://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "8.4"),
+      Arguments.of("jdbc:tc:cibmysql:9.7://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "9.7"),
+      Arguments.of("jdbc:tc:cibsqlserver:2017-latest:///process-engine", "SELECT @@VERSION", "2017"),
+      Arguments.of("jdbc:tc:cibsqlserver:2019-latest:///process-engine", "SELECT @@VERSION", "2019"),
+      Arguments.of("jdbc:tc:cibsqlserver:2022-latest:///process-engine", "SELECT @@VERSION", "2022"),
+      Arguments.of("jdbc:tc:cibsqlserver:2025-latest:///process-engine", "SELECT @@VERSION", "2025"),
+      Arguments.of("jdbc:tc:cibdb2:11.5.9.0:///engine", "SELECT service_level FROM TABLE (sysproc.env_get_inst_info())", "v11.5"),
+      Arguments.of("jdbc:tc:cibdb2:12.1.5.0:///engine", "SELECT service_level FROM TABLE (sysproc.env_get_inst_info())", "v12.1"),
+      Arguments.of("jdbc:tc:ciboracle19:19.3.0.0://localhost:1521", "SELECT banner_full FROM v$version", "19."),
+      Arguments.of("jdbc:tc:ciboraclefree:23.26.3-slim-faststart://localhost:1521", "SELECT banner_full FROM v$version", "26ai")
     );
   }
 

@@ -23,7 +23,7 @@ import org.testcontainers.utility.DockerImageName;
 
 public class CamundaMariaDBContainerProvider extends MariaDBContainerProvider {
 
-  private static final String NAME = "cammariadb";
+  private static final String NAME = "cibmariadb";
 
   @Override
   public boolean supports(String databaseType) {

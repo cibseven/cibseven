@@ -4,3 +4,5 @@ org.cibseven.impl.test.utils.testcontainers.CamundaMySqlContainerProvider
 org.cibseven.impl.test.utils.testcontainers.CamundaMSSQLContainerProvider
 org.cibseven.impl.test.utils.testcontainers.CamundaDb2ContainerProvider
 org.cibseven.impl.test.utils.testcontainers.CamundaOracleContainerProvider
+org.cibseven.impl.test.utils.testcontainers.CamundaOracleFreeContainerProvider
+org.cibseven.impl.test.utils.testcontainers.CamundaOracle19ContainerProvider

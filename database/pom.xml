@@ -117,7 +117,7 @@
         <database.name>engine</database.name>
         <database.port>50000</database.port>
 
-        <database.tc.url>camdb2:11.5.0.0</database.tc.url>
+        <database.tc.url>cibdb2:11.5.9.0</database.tc.url>
         <database.tc.params>/${database.name}?TC_DAEMON=true</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
 
@@ -272,7 +272,7 @@
         <database.type>mariadb</database.type>
         <database.driver>org.mariadb.jdbc.Driver</database.driver>
         <database.datasource.class>org.mariadb.jdbc.MySQLDataSource</database.datasource.class>
-        <database.tc.url>cammariadb:11.4</database.tc.url>
+        <database.tc.url>cibmariadb:11.8</database.tc.url>
         <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
@@ -316,7 +316,7 @@
         <database.type>mysql</database.type>
         <database.driver>com.mysql.cj.jdbc.Driver</database.driver>
         <database.datasource.class>com.mysql.cj.jdbc.MysqlDataSource</database.datasource.class>
-        <database.tc.url>cammysql:8.0</database.tc.url>
+        <database.tc.url>cibmysql:8.4</database.tc.url>
         <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}&amp;amp;sendFractionalSeconds=false</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
@@ -359,7 +359,7 @@
         <database.type>oracle</database.type>
         <database.driver>oracle.jdbc.OracleDriver</database.driver>
         <database.datasource.class>oracle.jdbc.pool.OracleDataSource</database.datasource.class>
-        <database.tc.url>camoracle:21-slim-faststart</database.tc.url>
+        <database.tc.url>ciboraclefree:23.26.3-slim-faststart</database.tc.url>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
       <dependencies>
@@ -404,7 +404,7 @@
         <database.datasource.class>org.postgresql.ds.PGSimpleDataSource</database.datasource.class>
         <jboss.datasource.filename>postgresql-ds.xml</jboss.datasource.filename>
         <hibernate.dialect>org.hibernate.dialect.PostgreSQLDialect</hibernate.dialect>
-        <database.tc.url>campostgresql:13.2</database.tc.url>
+        <database.tc.url>cibpostgresql:17</database.tc.url>
         <database.tc.params>TC_DAEMON=true</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}:///${database.name}/${database.tc.params}</database.url>
       </properties>
@@ -455,7 +455,7 @@
         <database.type>mssql</database.type>
         <database.driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</database.driver>
         <database.datasource.class>com.microsoft.sqlserver.jdbc.SQLServerDataSource</database.datasource.class>
-        <database.tc.url>camsqlserver:2019-latest</database.tc.url>
+        <database.tc.url>cibsqlserver:2022-latest</database.tc.url>
         <database.tc.params>;databaseName=${database.name};user=${database.username};password=${database.password}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
@@ -488,7 +488,73 @@
     <profile>
       <id>sqlserver-2017</id>
       <properties>
-        <database.tc.url>camsqlserver:2017</database.tc.url>
+        <database.tc.url>cibsqlserver:2017-latest</database.tc.url>
+      </properties>
+    </profile>
+    <profile>
+      <id>sqlserver-2019</id>
+      <properties>
+        <database.tc.url>cibsqlserver:2019-latest</database.tc.url>
+      </properties>
+    </profile>
+    <profile>
+      <id>oracle-19</id>
+      <properties>
+        <database.tc.url>ciboracle19:19.3.0.0</database.tc.url>
+      </properties>
+    </profile>
+    <profile>
+      <id>postgresql-15</id>
+      <properties>
+        <database.tc.url>cibpostgresql:15</database.tc.url>
+      </properties>
+    </profile>
+    <profile>
+      <id>postgresql-16</id>
+      <properties>
+        <database.tc.url>cibpostgresql:16</database.tc.url>
+      </properties>
+    </profile>
+    <profile>
+      <id>postgresql-18</id>
+      <properties>
+        <database.tc.url>cibpostgresql:18</database.tc.url>
+      </properties>
+    </profile>
+    <profile>
+      <id>mariadb-1011</id>
+      <properties>
+        <database.tc.url>cibmariadb:10.11</database.tc.url>
+      </properties>
+    </profile>
+    <profile>
+      <id>mariadb-114</id>
+      <properties>
+        <database.tc.url>cibmariadb:11.4</database.tc.url>
+      </properties>
+    </profile>
+    <profile>
+      <id>mariadb-123</id>
+      <properties>
+        <database.tc.url>cibmariadb:12.3</database.tc.url>
+      </properties>
+    </profile>
+    <profile>
+      <id>mysql-97</id>
+      <properties>
+        <database.tc.url>cibmysql:9.7</database.tc.url>
+      </properties>
+    </profile>
+    <profile>
+      <id>sqlserver-2025</id>
+      <properties>
+        <database.tc.url>cibsqlserver:2025-latest</database.tc.url>
+      </properties>
+    </profile>
+    <profile>
+      <id>db2-121</id>
+      <properties>
+        <database.tc.url>cibdb2:12.1.5.0</database.tc.url>
       </properties>
     </profile>
 

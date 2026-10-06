@@ -23,7 +23,7 @@ import org.testcontainers.utility.DockerImageName;
 
 public class CamundaMySqlContainerProvider extends MySQLContainerProvider {
 
-  private static final String NAME = "cammysql";
+  private static final String NAME = "cibmysql";
 
   @Override
   public boolean supports(String databaseType) {

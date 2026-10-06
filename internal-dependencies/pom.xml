@@ -421,6 +421,11 @@
         <artifactId>testcontainers-oracle-xe</artifactId>
         <version>${version.testcontainers}</version>
       </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers-oracle-free</artifactId>
+        <version>${version.testcontainers}</version>
+      </dependency>
       
       <!-- Jakarta EL implementation for test environments -->
       <dependency>

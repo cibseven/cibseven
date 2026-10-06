@@ -8,7 +8,7 @@ import org.testcontainers.utility.DockerImageName;
 
 public class CamundaDb2ContainerProvider extends Db2ContainerProvider {
 
-  private static final String NAME = "camdb2";
+  private static final String NAME = "cibdb2";
 
   @Override
   public boolean supports(String databaseType) {
@@ -19,7 +19,7 @@ public class CamundaDb2ContainerProvider extends Db2ContainerProvider {
   public JdbcDatabaseContainer newInstance(String tag) {
   
   DockerImageName dockerImageName = TestcontainersHelper
-      .resolveDockerImageName("ibmdb2", tag, "ibmcom/db2");
+      .resolveDockerImageName("db2", tag, "icr.io/db2_community/db2");
 
     Db2Container db2Container = new Db2Container(dockerImageName);
     db2Container.acceptLicense();
