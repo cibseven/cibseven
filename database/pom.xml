@@ -274,7 +274,8 @@
         <database.driver>org.mariadb.jdbc.Driver</database.driver>
         <database.datasource.class>org.mariadb.jdbc.MySQLDataSource</database.datasource.class>
         <database.tc.url>cibmariadb:11.8</database.tc.url>
-        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}</database.tc.params>
+        <!-- the data directory in memory (tmpfs): MariaDB/MySQL tests are I/O bound, about 30 % faster (measured 2026-10-06) -->
+        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}&amp;amp;TC_TMPFS=/var/lib/mysql:rw</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
 
@@ -318,7 +319,8 @@
         <database.driver>com.mysql.cj.jdbc.Driver</database.driver>
         <database.datasource.class>com.mysql.cj.jdbc.MysqlDataSource</database.datasource.class>
         <database.tc.url>cibmysql:8.4</database.tc.url>
-        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}&amp;amp;sendFractionalSeconds=false</database.tc.params>
+        <!-- the data directory in memory (tmpfs): MariaDB/MySQL tests are I/O bound, about 30 % faster (measured 2026-10-06) -->
+        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}&amp;amp;sendFractionalSeconds=false&amp;amp;TC_TMPFS=/var/lib/mysql:rw</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
       </properties>
 
