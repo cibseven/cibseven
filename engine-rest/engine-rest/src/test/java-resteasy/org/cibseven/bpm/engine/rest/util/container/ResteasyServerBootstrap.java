@@ -30,7 +30,9 @@ public class ResteasyServerBootstrap extends EmbeddedServerBootstrap {
 
   @Override
   public void stop() {
-    server.stop();
+    if (server != null) {
+      server.stop();
+    }
   }
 
   @Override
