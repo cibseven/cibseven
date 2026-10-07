@@ -274,6 +274,7 @@ pipeline {
                     steps {
                         script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Ptomcat,h2,engine-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly,h2,engine-integration" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly-domain,h2,engine-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly,wildfly-servlet,h2,engine-integration" }}
                         // fails since junit 5 migration script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly28,h2,engine-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly28-domain,h2,engine-integration" }}
