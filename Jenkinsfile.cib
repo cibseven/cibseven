@@ -246,22 +246,6 @@ pipeline {
                 stage('webapp-UNIT-database-table-prefix') {
                     steps { script { withMaven { sh "mvn -f webapps/assembly/pom.xml test -Pdb-table-prefix -Dskip.frontend.build=true" }}}
                 }
-                stage('engine-IT-wildfly') {
-                    when {
-                        expression { params.VERIFY != params.VERIFY } // just disable this stage temporary
-                    }
-                    stages {
-                        stage('engine-IT-wildfly-domain') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean verify -Pwildfly-domain,h2,engine-integration" }}}
-                        }
-                        stage('engine-IT-wildfly-servlet') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean verify -Pwildfly,wildfly-servlet,h2,engine-integration" }}}
-                        }
-                        stage('engine-IT-wildfly28-domain') {
-                            steps { script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean verify -Pwildfly28-domain,h2,engine-integration" }}}
-                        }
-                    }
-                }
                 stage("quarkus") {
                     stages {
                         stage('quarkus-extension') {
@@ -291,6 +275,7 @@ pipeline {
                         script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Ptomcat,h2,engine-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly,h2,engine-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly-domain,h2,engine-integration" }}
+                        script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly,wildfly-servlet,h2,engine-integration" }}
                         // fails since junit 5 migration script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly28,h2,engine-integration" }}
                         script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly28-domain,h2,engine-integration" }}
                     }
