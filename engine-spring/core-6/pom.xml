@@ -268,52 +268,6 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.eclipse.transformer</groupId>
-        <artifactId>transformer-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>transform-java-sources</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>transform</goal>
-            </goals>
-            <configuration>
-              <transformDirectory>${project.build.directory}/generated-sources/java</transformDirectory>
-            </configuration>
-          </execution>
-          <execution>
-            <id>transform-resources</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>transform</goal>
-            </goals>
-            <configuration>
-              <transformDirectory>${project.build.directory}/generated-resources/java</transformDirectory>
-            </configuration>
-          </execution>
-          <execution>
-            <id>transform-java-test-sources</id>
-            <phase>generate-test-sources</phase>
-            <goals>
-              <goal>transform</goal>
-            </goals>
-            <configuration>
-              <transformDirectory>${project.build.directory}/generated-test-sources/java</transformDirectory>
-            </configuration>
-          </execution>
-          <execution>
-            <id>transform-test-resources</id>
-            <phase>generate-test-resources</phase>
-            <goals>
-              <goal>transform</goal>
-            </goals>
-            <configuration>
-              <transformDirectory>${project.build.directory}/generated-test-resources/java</transformDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>

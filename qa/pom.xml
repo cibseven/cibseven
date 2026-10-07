@@ -45,7 +45,6 @@
     <tomcat.server.port>48005</tomcat.server.port>
 
     <tomcat.runtime.location>../tomcat-runtime/target/server/apache-tomcat-${version.tomcat}</tomcat.runtime.location>
-    <tomcat9.runtime.location>../tomcat9-runtime/target/server/apache-tomcat-${version.tomcat9}</tomcat9.runtime.location>
     <tomcat10.runtime.location>../tomcat10-runtime/target/server/apache-tomcat-${version.tomcat10}</tomcat10.runtime.location>
 
   </properties>
@@ -95,7 +94,6 @@
       <modules>
         <module>wildfly-runtime</module>
         <module>tomcat-runtime</module>
-        <module>tomcat9-runtime</module>
         <module>tomcat10-runtime</module>
         <module>integration-tests-webapps</module>
         <module>integration-tests-engine</module>
@@ -136,13 +134,6 @@
       </modules>
     </profile>
     
-    <profile>
-      <id>tomcat9</id>
-      <modules>
-        <module>tomcat9-runtime</module>
-      </modules>
-    </profile>
-
     <profile>
       <id>tomcat</id>
       <modules>

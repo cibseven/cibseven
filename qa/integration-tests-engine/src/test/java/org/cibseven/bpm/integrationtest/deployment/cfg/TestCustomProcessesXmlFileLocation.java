@@ -27,7 +27,6 @@ import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -37,8 +36,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * @author Daniel Meyer
  *
  */
-//TODO restore: this test is failing after migrating to JUnit5
-@Disabled("Fails since the JUnit5 migration")
 @ExtendWith(ArquillianExtension.class)
 public class TestCustomProcessesXmlFileLocation extends AbstractFoxPlatformIntegrationTest {
 
@@ -53,7 +50,7 @@ public class TestCustomProcessesXmlFileLocation extends AbstractFoxPlatformInteg
         .addClass(CustomProcessApplication.class)
         .addAsResource("org/cibseven/bpm/integrationtest/deployment/cfg/invoice-it.bpmn20.xml");
 
-    TestContainer.addContainerSpecificResources(archive);
+    TestContainer.addContainerSpecificResourcesForNonPa(archive);
     return archive;
     
   }

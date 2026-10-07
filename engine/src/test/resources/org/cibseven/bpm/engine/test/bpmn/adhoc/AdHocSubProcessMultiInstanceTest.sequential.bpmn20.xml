@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             targetNamespace="http://cibseven.org/adhoc-multi-instance">
+  <process id="adHocMisequential" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="scope" />
+    <adHocSubProcess id="scope">
+      <multiInstanceLoopCharacteristics isSequential="true"
+          camunda:collection="items" camunda:elementVariable="item" />
+      <userTask id="taskA" name="Task A" />
+      <userTask id="taskB" name="Task B" />
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="scope" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

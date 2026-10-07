@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="adHocBoundary" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc" name="Ad Hoc Scope">
+      <userTask id="taskA" name="Task A" />
+      <userTask id="taskB" name="Task B" />
+    </adHocSubProcess>
+    <boundaryEvent id="timeout" attachedToRef="adHoc" cancelActivity="true">
+      <timerEventDefinition>
+        <timeDuration xsi:type="tFormalExpression"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">PT1H</timeDuration>
+      </timerEventDefinition>
+    </boundaryEvent>
+    <sequenceFlow id="f3" sourceRef="timeout" targetRef="escalated" />
+    <userTask id="escalated" name="Escalated" />
+    <sequenceFlow id="f4" sourceRef="escalated" targetRef="end2" />
+    <endEvent id="end2" />
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

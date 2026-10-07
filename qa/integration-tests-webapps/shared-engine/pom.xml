@@ -326,13 +326,6 @@
       </properties>
       <dependencies>
         <dependency>
-          <!-- make sure it comes after assembly in the build -->
-          <groupId>org.cibseven.bpm.qa</groupId>
-          <artifactId>cibseven-qa-tomcat9-runtime</artifactId>
-          <version>${project.version}</version>
-          <type>pom</type>
-        </dependency>
-        <dependency>
           <groupId>org.cibseven.bpm.webapp</groupId>
           <artifactId>cibseven-webapp-tomcat</artifactId>
           <version>${project.version}</version>
