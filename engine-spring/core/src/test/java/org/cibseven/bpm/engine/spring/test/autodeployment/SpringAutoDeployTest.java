@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.spring.test.autodeployment;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.impl.test.PvmTestCase;
 import org.cibseven.bpm.engine.repository.CaseDefinition;
@@ -75,7 +76,6 @@ public class SpringAutoDeployTest extends PvmTestCase {
     this.applicationContext.close();
     this.applicationContext = null;
     this.repositoryService = null;
-    super.tearDown();
   }
 
   public void testBasicActivitiSpringIntegration() {

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Every kind of child the scope may legally hold: Activities of several types, plus a data object
+     and an intermediate catch event, which are permitted inside but are not Activities. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="adHocMixedChildren" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <userTask id="aUserTask" />
+      <serviceTask id="aServiceTask" camunda:expression="${true}" />
+      <subProcess id="anEmbeddedSubProcess">
+        <startEvent id="innerStart" />
+        <sequenceFlow id="if1" sourceRef="innerStart" targetRef="innerTask" />
+        <userTask id="innerTask" />
+        <sequenceFlow id="if2" sourceRef="innerTask" targetRef="innerEnd" />
+        <endEvent id="innerEnd" />
+      </subProcess>
+      <adHocSubProcess id="aNestedAdHocScope">
+        <userTask id="grandchild" />
+      </adHocSubProcess>
+      <userTask id="aMultiInstanceTask">
+        <multiInstanceLoopCharacteristics isSequential="false">
+          <loopCardinality>2</loopCardinality>
+        </multiInstanceLoopCharacteristics>
+      </userTask>
+      <!-- Reached by compensation being thrown, never by being started. -->
+      <serviceTask id="aCompensationHandler" isForCompensation="true" camunda:expression="${true}" />
+      <!-- Reached by its own start event firing, never by being started. -->
+      <subProcess id="anEventSubProcess" triggeredByEvent="true">
+        <startEvent id="eventStart">
+          <messageEventDefinition messageRef="theMessage" />
+        </startEvent>
+        <sequenceFlow id="ef1" sourceRef="eventStart" targetRef="handled" />
+        <userTask id="handled" />
+      </subProcess>
+      <dataObject id="aDataObject" />
+      <intermediateCatchEvent id="aCatchEvent">
+        <messageEventDefinition messageRef="theMessage" />
+      </intermediateCatchEvent>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+  <message id="theMessage" name="theMessage" />
+</definitions>

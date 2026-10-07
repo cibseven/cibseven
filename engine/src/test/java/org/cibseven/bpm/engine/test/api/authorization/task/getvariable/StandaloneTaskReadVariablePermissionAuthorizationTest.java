@@ -25,20 +25,15 @@ import java.util.Collection;
 
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author Yana.Vasileva
  *
  */
-@RunWith(Parameterized.class)
 public class StandaloneTaskReadVariablePermissionAuthorizationTest extends StandaloneTaskAuthorizationTest{
 
-  @Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
       scenario()
@@ -55,7 +50,7 @@ public class StandaloneTaskReadVariablePermissionAuthorizationTest extends Stand
       );
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     super.setUp();
     ensureSpecificVariablePermission = processEngineConfiguration.isEnforceSpecificVariablePermission();
@@ -63,7 +58,7 @@ public class StandaloneTaskReadVariablePermissionAuthorizationTest extends Stand
     processEngineConfiguration.setEnforceSpecificVariablePermission(true);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     super.tearDown();
     processEngineConfiguration.setEnforceSpecificVariablePermission(ensureSpecificVariablePermission);

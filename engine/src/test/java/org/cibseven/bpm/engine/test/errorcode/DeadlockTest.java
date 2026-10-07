@@ -21,11 +21,12 @@ import org.cibseven.bpm.engine.impl.util.ExceptionUtil;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -48,15 +49,14 @@ import static org.cibseven.bpm.engine.impl.util.ExceptionUtil.DEADLOCK_CODES.POS
  */
 public class DeadlockTest {
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected SQLException sqlException;
 
-  @Before
+  @BeforeEach
   public void createTestTables() throws SQLException {
     Connection conn = engineRule.getProcessEngineConfiguration().getDataSource().getConnection();
 
@@ -73,7 +73,7 @@ public class DeadlockTest {
     sqlException = null;
   }
 
-  @After
+  @AfterEach
   public void cleanTables() throws SQLException {
     Connection conn = engineRule.getProcessEngineConfiguration().getDataSource().getConnection();
 

@@ -45,7 +45,6 @@
     <tomcat.server.port>48005</tomcat.server.port>
 
     <tomcat.runtime.location>../tomcat-runtime/target/server/apache-tomcat-${version.tomcat}</tomcat.runtime.location>
-    <tomcat9.runtime.location>../tomcat9-runtime/target/server/apache-tomcat-${version.tomcat9}</tomcat9.runtime.location>
     <tomcat10.runtime.location>../tomcat10-runtime/target/server/apache-tomcat-${version.tomcat10}</tomcat10.runtime.location>
 
   </properties>
@@ -58,6 +57,24 @@
         <version>${project.version}</version>
         <scope>import</scope>
         <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-api</artifactId>
+        <version>${version.junit5}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-params</artifactId>
+        <version>${version.junit5}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-engine</artifactId>
+        <version>${version.junit5}</version>
+        <scope>test</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -77,7 +94,6 @@
       <modules>
         <module>wildfly-runtime</module>
         <module>tomcat-runtime</module>
-        <module>tomcat9-runtime</module>
         <module>tomcat10-runtime</module>
         <module>integration-tests-webapps</module>
         <module>integration-tests-engine</module>
@@ -87,7 +103,6 @@
         <module>test-old-engine</module>
         <module>performance-tests-engine</module>
         <module>large-data-tests</module>
-        <module>integration-tests-engine-jakarta</module>
       </modules>
     </profile>
 
@@ -120,13 +135,6 @@
     </profile>
     
     <profile>
-      <id>tomcat9</id>
-      <modules>
-        <module>tomcat9-runtime</module>
-      </modules>
-    </profile>
-
-    <profile>
       <id>tomcat</id>
       <modules>
         <module>tomcat-runtime</module>
@@ -156,13 +164,6 @@
       </modules>
     </profile>
     
-    <profile>
-      <id>engine-integration-jakarta</id>
-      <modules>
-        <module>integration-tests-engine-jakarta</module>
-      </modules>
-    </profile>
-
     <profile>
       <id>instance-migration</id>
       <modules>

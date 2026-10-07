@@ -31,10 +31,10 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -75,7 +75,7 @@ public class ProcessVariableChatMemoryStoreEngineTest {
    */
   private static final ProcessEngine ENGINE = buildInMemoryEngine();
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProcessEngineRule(ENGINE);
 
   private static ProcessEngine buildInMemoryEngine() {
@@ -88,7 +88,7 @@ public class ProcessVariableChatMemoryStoreEngineTest {
     return configuration.buildProcessEngine();
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     readBack = null;
     deployProcess();
@@ -99,7 +99,7 @@ public class ProcessVariableChatMemoryStoreEngineTest {
    * deployment — cascading, which takes the process instances, variables and
    * history with it — instead of relying on {@code ensureCleanAfterTest}.
    */
-  @After
+  @AfterEach
   public void tearDown() {
     readBack = null;
     engineRule.getRepositoryService().createDeploymentQuery().list()

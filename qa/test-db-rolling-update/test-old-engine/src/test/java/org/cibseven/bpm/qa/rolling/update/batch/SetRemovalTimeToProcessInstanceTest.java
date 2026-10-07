@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.qa.rolling.update.batch;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 import java.util.List;
@@ -28,8 +28,9 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.qa.rolling.update.AbstractRollingUpdateTestCase;
 import org.cibseven.bpm.qa.rolling.update.RollingUpdateConstants;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @ScenarioUnderTest("SetRemovalTimeToProcessInstanceScenario")
 public class SetRemovalTimeToProcessInstanceTest extends AbstractRollingUpdateTestCase {
@@ -37,15 +38,17 @@ public class SetRemovalTimeToProcessInstanceTest extends AbstractRollingUpdateTe
   protected ManagementService managementService;
   protected RuntimeService runtimeService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     managementService = rule.getManagementService();
     runtimeService = rule.getRuntimeService();
   }
 
-  @Test
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
   @ScenarioUnderTest("createSetRemovalTimeToProcessInstanceBatch.1")
-  public void shouldCompleteBatch() {
+  public void shouldCompleteBatch(String tag) {
+    init(tag);
     if (RollingUpdateConstants.OLD_ENGINE_TAG.equals(rule.getTag())) { // test cleanup with old engine
       Date removalTime = new Date(1363609000000L);
 
@@ -74,9 +77,11 @@ public class SetRemovalTimeToProcessInstanceTest extends AbstractRollingUpdateTe
     }
   }
 
-  @Test
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("data")
   @ScenarioUnderTest("createSetRemovalTimeToProcessInstanceBatchJob.1")
-  public void testCompleteBatchKJob() {
+  public void testCompleteBatchKJob(String tag) {
+    init(tag);
     if (RollingUpdateConstants.OLD_ENGINE_TAG.equals(rule.getTag())) { // test cleanup with old engine
       Date removalTime = new Date(1363609000000L);
 

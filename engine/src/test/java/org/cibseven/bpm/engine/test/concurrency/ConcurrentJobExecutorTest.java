@@ -17,10 +17,10 @@
 package org.cibseven.bpm.engine.test.concurrency;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -54,11 +54,11 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.slf4j.Logger;
 
 /**
@@ -69,11 +69,10 @@ public class ConcurrentJobExecutorTest {
 
   private static Logger LOG = ProcessEngineLogger.TEST_LOGGER.getLogger();
 
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(7) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected RuntimeService runtimeService;
   protected RepositoryService repositoryService;
@@ -90,7 +89,7 @@ public class ConcurrentJobExecutorTest {
       .endEvent()
       .done();
 
-  @Before
+  @BeforeEach
   public void initServices() {
     runtimeService = engineRule.getRuntimeService();
     repositoryService = engineRule.getRepositoryService();
@@ -98,7 +97,7 @@ public class ConcurrentJobExecutorTest {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ClockUtil.reset();
     for(final Job job : managementService.createJobQuery().list()) {

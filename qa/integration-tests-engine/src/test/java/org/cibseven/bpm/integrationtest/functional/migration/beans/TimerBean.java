@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.migration.beans;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 /**
  * @author Thorben Lindhauer

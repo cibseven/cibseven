@@ -24,30 +24,29 @@ import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_INSTANCE;
 import static org.cibseven.bpm.engine.authorization.Resources.TASK;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
-import org.cibseven.bpm.engine.AuthorizationException;
-import org.cibseven.bpm.engine.form.StartFormData;
-import org.cibseven.bpm.engine.form.TaskFormData;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
+import org.cibseven.bpm.engine.test.Deployment;
+import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstanceQuery;
-import org.cibseven.bpm.engine.task.Task;
-import org.cibseven.bpm.engine.test.Deployment;
-import org.cibseven.bpm.engine.test.api.authorization.service.ExecuteCommandDelegate;
-import org.cibseven.bpm.engine.test.api.authorization.service.ExecuteCommandListener;
-import org.cibseven.bpm.engine.test.api.authorization.service.ExecuteCommandTaskListener;
-import org.cibseven.bpm.engine.test.api.authorization.service.ExecuteQueryDelegate;
-import org.cibseven.bpm.engine.test.api.authorization.service.ExecuteQueryListener;
-import org.cibseven.bpm.engine.test.api.authorization.service.ExecuteQueryTaskListener;
+import org.cibseven.bpm.engine.form.StartFormData;
+import org.cibseven.bpm.engine.form.TaskFormData;
+import org.cibseven.bpm.engine.AuthorizationException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.cibseven.bpm.engine.test.api.authorization.service.MyDelegationService;
-import org.cibseven.bpm.engine.test.api.authorization.service.MyFormFieldValidator;
-import org.cibseven.bpm.engine.test.api.authorization.service.MyServiceTaskActivityBehaviorExecuteCommand;
+import org.cibseven.bpm.engine.test.api.authorization.service.ExecuteQueryDelegate;
+import org.cibseven.bpm.engine.test.api.authorization.service.ExecuteCommandDelegate;
 import org.cibseven.bpm.engine.test.api.authorization.service.MyServiceTaskActivityBehaviorExecuteQuery;
+import org.cibseven.bpm.engine.test.api.authorization.service.MyServiceTaskActivityBehaviorExecuteCommand;
+import org.cibseven.bpm.engine.test.api.authorization.service.ExecuteQueryListener;
+import org.cibseven.bpm.engine.test.api.authorization.service.ExecuteCommandListener;
+import org.cibseven.bpm.engine.test.api.authorization.service.ExecuteQueryTaskListener;
+import org.cibseven.bpm.engine.test.api.authorization.service.ExecuteCommandTaskListener;
 import org.cibseven.bpm.engine.test.api.authorization.service.MyTaskService;
-import org.junit.Before;
-import org.junit.Test;
+import org.cibseven.bpm.engine.test.api.authorization.service.MyFormFieldValidator;
 
 /**
  * @author Roman Smirnov
@@ -57,7 +56,7 @@ public class DelegationAuthorizationTest extends AuthorizationTest {
 
   public static final String DEFAULT_PROCESS_KEY = "process";
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     MyDelegationService.clearProperties();
     processEngineConfiguration.setAuthorizationEnabledForCustomCode(false);

@@ -22,7 +22,7 @@ import org.cibseven.bpm.engine.rest.exception.RestException;
 import org.cibseven.bpm.engine.rest.sub.VariableResource;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 import java.util.Map;
 
 /**

@@ -17,9 +17,9 @@
 package org.cibseven.bpm.engine.test.bpmn.event.timer;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -36,7 +36,7 @@ import org.cibseven.bpm.engine.runtime.ProcessInstanceWithVariables;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.joda.time.LocalDateTime;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 
 public class IntermediateTimerEventTest extends PluggableProcessEngineTest {

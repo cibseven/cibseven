@@ -20,14 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.connect.Connectors;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class SoapHttpRequestTest {
 
   private SoapHttpConnector connector;
 
-  @Before
+  @BeforeEach
   public void createRequest() {
     connector = Connectors.getConnector(SoapHttpConnector.ID);
   }

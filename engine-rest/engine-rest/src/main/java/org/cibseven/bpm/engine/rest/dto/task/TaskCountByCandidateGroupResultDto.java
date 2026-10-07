@@ -22,7 +22,7 @@ import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.task.TaskCountByCandidateGroupResult;
 import org.cibseven.bpm.engine.task.TaskReport;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import java.util.List;
 
 /**

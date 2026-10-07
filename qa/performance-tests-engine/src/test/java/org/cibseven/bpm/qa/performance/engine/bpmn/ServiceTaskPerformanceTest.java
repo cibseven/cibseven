@@ -25,7 +25,7 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.qa.performance.engine.bpmn.delegate.NoopDelegate;
 import org.cibseven.bpm.qa.performance.engine.junit.ProcessEnginePerformanceTestCase;
 import org.cibseven.bpm.qa.performance.engine.steps.StartProcessInstanceStep;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer

@@ -27,18 +27,13 @@ import java.util.Collection;
 
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationScenario;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 
 /**
  * @author Yana.Vasileva
  *
  */
-@RunWith(Parameterized.class)
 public class ProcessTaskReadPermissionAuthorizationTest extends ProcessTaskAuthorizationTest {
 
-  @Parameters(name = "Scenario {index}")
   public static Collection<AuthorizationScenario[]> scenarios() {
     return AuthorizationTestRule.asParameters(
       scenario()

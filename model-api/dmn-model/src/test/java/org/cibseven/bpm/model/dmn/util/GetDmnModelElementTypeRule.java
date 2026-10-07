@@ -24,19 +24,19 @@ import org.cibseven.bpm.model.xml.ModelInstance;
 import org.cibseven.bpm.model.xml.instance.ModelElementInstance;
 import org.cibseven.bpm.model.xml.test.GetModelElementTypeRule;
 import org.cibseven.bpm.model.xml.type.ModelElementType;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
-public class GetDmnModelElementTypeRule extends TestWatcher implements GetModelElementTypeRule {
+public class GetDmnModelElementTypeRule implements GetModelElementTypeRule, BeforeAllCallback {
 
   private ModelInstance modelInstance;
   private Model model;
   private ModelElementType modelElementType;
 
-  @Override
   @SuppressWarnings("unchecked")
-  protected void starting(Description description) {
-    String className = description.getClassName();
+  @Override
+  public void beforeAll(ExtensionContext context) throws Exception {
+    String className = context.getTestClass().get().getName();
     assertThat(className).endsWith("Test");
     className = className.substring(0, className.length() - "Test".length());
     Class<? extends ModelElementInstance> instanceClass;
@@ -61,4 +61,5 @@ public class GetDmnModelElementTypeRule extends TestWatcher implements GetModelE
   public ModelElementType getModelElementType() {
     return modelElementType;
   }
+
 }

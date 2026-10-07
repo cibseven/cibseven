@@ -33,27 +33,23 @@ import static org.cibseven.bpm.engine.variable.type.ValueType.INTEGER;
 import static org.cibseven.bpm.engine.variable.type.ValueType.NULL;
 import static org.cibseven.bpm.engine.variable.type.ValueType.SHORT;
 import static org.cibseven.bpm.engine.variable.type.ValueType.STRING;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
+import java.util.stream.Stream;
 
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.impl.value.NullValueImpl;
 import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Philipp Ossler *
  */
-@RunWith(Parameterized.class)
 public class PrimitiveValueTest {
 
   protected static final Date DATE_VALUE = new Date();
@@ -62,9 +58,8 @@ public class PrimitiveValueTest {
   protected static final String PERIOD_VALUE = "P14D";
   protected static final byte[] BYTES_VALUE = "a".getBytes();
 
-  @Parameters(name = "{index}: {0} = {1}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {
+  static Stream<Object[]> data() {
+    return Arrays.stream(new Object[][] {
         { STRING, "someString", stringValue("someString"), stringValue(null) },
         { INTEGER, 1, integerValue(1), integerValue(null) },
         { BOOLEAN, true, booleanValue(true), booleanValue(null) },
@@ -76,63 +71,43 @@ public class PrimitiveValueTest {
       });
   }
 
-  @Parameter(0)
-  public ValueType valueType;
-
-  @Parameter(1)
-  public Object value;
-
-  @Parameter(2)
-  public TypedValue typedValue;
-
-  @Parameter(3)
-  public TypedValue nullValue;
-
   protected String variableName = "variable";
 
-  @Test
-  public void testCreatePrimitiveVariableUntyped() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testCreatePrimitiveVariableUntyped(ValueType valueType, Object value, TypedValue typedValue, TypedValue nullValue) {
     VariableMap variables = createVariables().putValue(variableName, value);
 
     assertEquals(value, variables.get(variableName));
     assertEquals(value, variables.getValueTyped(variableName).getValue());
 
-    // no type information present
-    TypedValue typedValue = variables.getValueTyped(variableName);
-    if (!(typedValue instanceof NullValueImpl)) {
-      assertNull(typedValue.getType());
-      assertEquals(variables.get(variableName), typedValue.getValue());
+    TypedValue tv = variables.getValueTyped(variableName);
+    if (!(tv instanceof NullValueImpl)) {
+      assertNull(tv.getType());
+      assertEquals(variables.get(variableName), tv.getValue());
     } else {
-      assertEquals(NULL, typedValue.getType());
+      assertEquals(NULL, tv.getType());
     }
   }
 
-  @Test
-  public void testCreatePrimitiveVariableTyped() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testCreatePrimitiveVariableTyped(ValueType valueType, Object value, TypedValue typedValue, TypedValue nullValue) {
     VariableMap variables = createVariables().putValue(variableName, typedValue);
 
-    // get return value
     assertEquals(value, variables.get(variableName));
-
-    // type is not lost
     assertEquals(valueType, variables.getValueTyped(variableName).getType());
-
-    // get wrapper
     Object stringValue = variables.getValueTyped(variableName).getValue();
     assertEquals(value, stringValue);
   }
 
-  @Test
-  public void testCreatePrimitiveVariableNull() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testCreatePrimitiveVariableNull(ValueType valueType, Object value, TypedValue typedValue, TypedValue nullValue) {
     VariableMap variables = createVariables().putValue(variableName, nullValue);
 
-    // get return value
     assertEquals(null, variables.get(variableName));
-
-    // type is not lost
     assertEquals(valueType, variables.getValueTyped(variableName).getType());
-
-    // get wrapper
     Object stringValue = variables.getValueTyped(variableName).getValue();
     assertEquals(null, stringValue);
   }

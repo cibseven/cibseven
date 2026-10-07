@@ -18,8 +18,8 @@ package org.cibseven.bpm.engine.test.jobexecutor;
 
 import static org.cibseven.bpm.engine.test.util.JobExecutorWaitUtils.waitForJobExecutionRunnablesToFinish;
 import static org.cibseven.bpm.engine.test.util.JobExecutorWaitUtils.waitForJobExecutorToProcessAllJobs;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.text.DateFormat.Field;
 import java.util.ArrayList;
@@ -33,8 +33,8 @@ import org.cibseven.bpm.engine.impl.cfg.StandaloneProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.jobexecutor.DefaultJobExecutor;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
@@ -51,17 +51,17 @@ public class SequentialJobAcquisitionTest {
   private JobExecutor jobExecutor = new DefaultJobExecutor();
   private List<ProcessEngine> createdProcessEngines = new ArrayList<>();
 
-  @After
+  @AfterEach
   public void stopJobExecutor() {
     jobExecutor.shutdown();
   }
 
-  @After
+  @AfterEach
   public void resetClock() {
     ClockUtil.reset();
   }
 
-  @After
+  @AfterEach
   public void closeProcessEngines() {
     Iterator<ProcessEngine> iterator = createdProcessEngines.iterator();
     while (iterator.hasNext()) {

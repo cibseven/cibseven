@@ -32,18 +32,19 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 public class UserAuthenticationResourceLoggingTest {
 
-  @Rule
-  public ProcessEngineRule processEngineRule = new ProcessEngineRule("camunda-test-engine.cfg.xml");
-  @Rule
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().watch("org.cibseven.bpm.webapp")
+  @RegisterExtension
+  @Order(1)public ProcessEngineRule processEngineRule = new ProcessEngineRule("camunda-test-engine.cfg.xml");
+  @RegisterExtension
+  @Order(2) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().watch("org.cibseven.bpm.webapp")
       .level(Level.INFO);
 
   protected ProcessEngine processEngine;
@@ -54,7 +55,7 @@ public class UserAuthenticationResourceLoggingTest {
   protected boolean authorizationEnabledInitialValue;
   protected boolean webappsAuthenticationLoggingEnabledInitialValue;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     this.processEngine = processEngineRule.getProcessEngine();
     this.processEngineConfiguration = (ProcessEngineConfigurationImpl) processEngine.getProcessEngineConfiguration();
@@ -65,7 +66,7 @@ public class UserAuthenticationResourceLoggingTest {
     webappsAuthenticationLoggingEnabledInitialValue = processEngineConfiguration.isWebappsAuthenticationLoggingEnabled();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ClockUtil.reset();
     processEngineConfiguration.setAuthorizationEnabled(authorizationEnabledInitialValue);

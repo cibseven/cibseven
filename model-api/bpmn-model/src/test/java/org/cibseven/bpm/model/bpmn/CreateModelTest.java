@@ -18,9 +18,9 @@ package org.cibseven.bpm.model.bpmn;
 
 import org.cibseven.bpm.model.bpmn.instance.*;
 import org.cibseven.bpm.model.bpmn.instance.Process;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Sebastian Menski
@@ -31,7 +31,7 @@ public class CreateModelTest {
   public Definitions definitions;
   public Process process;
 
-  @Before
+  @BeforeEach
   public void createEmptyModel() {
     modelInstance = Bpmn.createEmptyModel();
     definitions = modelInstance.newInstance(Definitions.class);
@@ -93,7 +93,7 @@ public class CreateModelTest {
     createSequenceFlow(process, join, endEvent);
   }
 
-  @After
+  @AfterEach
   public void validateModel() {
     Bpmn.validateModel(modelInstance);
   }

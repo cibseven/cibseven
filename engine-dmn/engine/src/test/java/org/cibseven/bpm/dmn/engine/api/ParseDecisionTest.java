@@ -32,7 +32,7 @@ import org.cibseven.bpm.model.dmn.DmnModelException;
 import org.cibseven.bpm.model.dmn.DmnModelInstance;
 import org.cibseven.bpm.model.xml.ModelException;
 import org.cibseven.commons.utils.IoUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ParseDecisionTest extends DmnEngineTest {
 

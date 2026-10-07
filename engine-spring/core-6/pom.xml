@@ -86,8 +86,13 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -163,6 +168,14 @@
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-bpm-archunit</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Jakarta EL implementation needed for JUEL script execution in tests -->
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>jakarta.el</artifactId>
+      <version>4.0.2</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -251,52 +264,6 @@
             <goals>
               <goal>properties</goal>
             </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.eclipse.transformer</groupId>
-        <artifactId>transformer-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>transform-java-sources</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>transform</goal>
-            </goals>
-            <configuration>
-              <transformDirectory>${project.build.directory}/generated-sources/java</transformDirectory>
-            </configuration>
-          </execution>
-          <execution>
-            <id>transform-resources</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>transform</goal>
-            </goals>
-            <configuration>
-              <transformDirectory>${project.build.directory}/generated-resources/java</transformDirectory>
-            </configuration>
-          </execution>
-          <execution>
-            <id>transform-java-test-sources</id>
-            <phase>generate-test-sources</phase>
-            <goals>
-              <goal>transform</goal>
-            </goals>
-            <configuration>
-              <transformDirectory>${project.build.directory}/generated-test-sources/java</transformDirectory>
-            </configuration>
-          </execution>
-          <execution>
-            <id>transform-test-resources</id>
-            <phase>generate-test-resources</phase>
-            <goals>
-              <goal>transform</goal>
-            </goals>
-            <configuration>
-              <transformDirectory>${project.build.directory}/generated-test-resources/java</transformDirectory>
-            </configuration>
           </execution>
         </executions>
       </plugin>

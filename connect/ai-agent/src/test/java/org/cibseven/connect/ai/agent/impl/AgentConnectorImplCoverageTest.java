@@ -29,9 +29,9 @@ import java.util.Map;
 
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.cibseven.connect.ai.agent.AgentRequest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
@@ -58,7 +58,7 @@ public class AgentConnectorImplCoverageTest {
 
   private AgentConnectorImpl connector;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     connector = new AgentConnectorImpl();
   }
@@ -401,7 +401,7 @@ public class AgentConnectorImplCoverageTest {
    * Tears down listener / redaction state that the retrieval-audit tests
    * install, so they don't leak into the rest of the suite.
    */
-  @After
+  @AfterEach
   public void clearRetrievalAuditState() {
     ProcessStarterToolContext.clear();
     System.clearProperty(AgentChatListener.REDACT_CONTENT_PROPERTY);

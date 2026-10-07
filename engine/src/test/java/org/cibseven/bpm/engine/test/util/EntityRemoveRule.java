@@ -22,18 +22,17 @@ import java.lang.reflect.Method;
 import java.util.function.Supplier;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.task.Task;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JUnit 4 Rule that performs resource cleanup for methods that require post-method execution cleanup.
+ * JUnit 5 extension that performs resource cleanup for methods that require post-method execution cleanup.
  * Currently, the rule supports only clean up of {@link Task}s but the rule can be extended for other resources that
  * might pollute sequential execution of other test methods.
  */
-public class EntityRemoveRule extends TestWatcher {
+public class EntityRemoveRule implements AfterEachCallback {
 
   private static final Logger LOG = LoggerFactory.getLogger(EntityRemoveRule.class);
 
@@ -56,21 +55,11 @@ public class EntityRemoveRule extends TestWatcher {
   }
 
   @Override
-  public Statement apply(Statement base, Description description) {
-    RemoveAfter removeAfterAnnotation = getAnnotation(description, RemoveAfter.class);
+  public void afterEach(ExtensionContext context) {
+    RemoveAfter removeAfterAnnotation = context.getRequiredTestMethod().getAnnotation(RemoveAfter.class);
     boolean methodHasRemoveAfterAnnotation = (removeAfterAnnotation != null);
-
-    try {
-      return new Statement() {
-        @Override
-        public void evaluate() throws Throwable {
-          base.evaluate();
-          executePostEvaluate(removeAfterAnnotation, methodHasRemoveAfterAnnotation);
-        }
-      };
-    } finally {
-      LOG.debug("deleteTasks: {}", methodHasRemoveAfterAnnotation);
-    }
+    executePostEvaluate(removeAfterAnnotation, methodHasRemoveAfterAnnotation);
+    LOG.debug("deleteTasks: {}", methodHasRemoveAfterAnnotation);
   }
 
   protected void executePostEvaluate(RemoveAfter removeAfterAnnotation, boolean methodHasRemoveAfterAnnotation) {
@@ -106,21 +95,6 @@ public class EntityRemoveRule extends TestWatcher {
 
   private boolean hasZeroArguments(RemoveAfter annotation) {
     return annotation.value() == null || annotation.value().length == 0;
-  }
-
-  private <T extends Annotation> T getAnnotation(Description description, Class<T> annotation) {
-    String methodName = description.getMethodName();
-
-    try {
-      Class<?> testClass = description.getTestClass();
-      String methodWithoutParamsName = methodName.split("\\[")[0];
-
-      Method method = testClass.getMethod(methodWithoutParamsName);
-      return method.getAnnotation(annotation);
-    } catch (NoSuchMethodException e) {
-      throw new RuntimeException(
-          "Failed to fetch annotation | annotationName: " + annotation.getName() + ", methodName: " + methodName, e);
-    }
   }
 
   /* Proxy that enables EntityRemoveRule to support lazy initialization by initializing the rule using a supplier &

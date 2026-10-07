@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.jobexecutor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -36,9 +36,11 @@ import org.cibseven.bpm.engine.repository.DeploymentBuilder;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 
 /**
  * Represents a test class, which uses parse listeners
@@ -53,8 +55,8 @@ import org.junit.Test;
  */
 public class JobDefinitionCreationAndDeletionWithParseListenerTest {
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
+  @RegisterExtension
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
     List<BpmnParseListener> listeners = new ArrayList<>();
     listeners.add(new AbstractBpmnParseListener(){
 
@@ -68,8 +70,8 @@ public class JobDefinitionCreationAndDeletionWithParseListenerTest {
     configuration.setCustomPreBPMNParseListeners(listeners);
   });
 
-  @Rule
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   @Test
   public void testDeleteNonExistingAndCreateNewJobDefinitionWithParseListener() {

@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.spring.boot.starter.webapp.filter;
 
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -32,15 +32,15 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.LazyDelegateFilter.InitHook;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class LazyDelegateFilterTest {
 
   @Mock

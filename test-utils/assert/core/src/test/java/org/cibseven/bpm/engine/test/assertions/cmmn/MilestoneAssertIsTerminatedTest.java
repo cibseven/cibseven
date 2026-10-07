@@ -26,13 +26,13 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.assertions.helpers.Failure;
 import org.cibseven.bpm.engine.test.assertions.helpers.ProcessAssertTestCase;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 @Deployment(resources = "cmmn/MilestoneAssertIsTerminatedTest.cmmn")
 public class MilestoneAssertIsTerminatedTest extends ProcessAssertTestCase {
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule processEngineRule = new ProcessEngineRule();
 
   @Test

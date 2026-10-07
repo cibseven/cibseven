@@ -19,8 +19,8 @@ package org.cibseven.bpm.engine.impl.util;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Tobias Metzke
@@ -28,7 +28,7 @@ import org.junit.Test;
  */
 public class StringUtilTest {
   
-  @Rule
+  @RegisterExtension
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   @Test

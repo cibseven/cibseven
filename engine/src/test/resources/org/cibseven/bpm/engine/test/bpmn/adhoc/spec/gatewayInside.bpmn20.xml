@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Spec 10.3.5: Gateway MAY be used inside an ad hoc sub-process, and so MAY Sequence Flow. The
+     gateway therefore has an outgoing flow: a gateway without one is refused by the generic
+     exclusive-gateway validation whatever the enclosing scope, so a fixture without it could never
+     demonstrate that a gateway is accepted, even once inner flows are supported. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-probe">
+  <process id="specGateway" isExecutable="true" camunda:historyTimeToLive="P30D">
+    <startEvent id="start" /><sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <userTask id="taskA" />
+      <exclusiveGateway id="gw" />
+      <sequenceFlow id="inner" sourceRef="gw" targetRef="taskB" />
+      <userTask id="taskB" />
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" /><endEvent id="end" />
+  </process>
+</definitions>

@@ -16,10 +16,10 @@
  */
 package org.cibseven.bpm.engine.test.api.filter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import org.cibseven.bpm.engine.AuthorizationException;
@@ -35,10 +35,10 @@ import org.cibseven.bpm.engine.impl.persistence.entity.AuthorizationEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.FilterEntity;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Sebastian Menski
@@ -52,7 +52,7 @@ public class FilterAuthorizationsTest extends PluggableProcessEngineTest {
   protected Authorization readAuthorization;
   protected Authorization deleteAuthorization;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     testUser = createTestUser("test");
 
@@ -65,7 +65,7 @@ public class FilterAuthorizationsTest extends PluggableProcessEngineTest {
     identityService.setAuthenticatedUserId(testUser.getId());
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processEngineConfiguration.setAuthorizationEnabled(false);
     for (Filter filter : filterService.createFilterQuery().list()) {
@@ -389,7 +389,7 @@ public class FilterAuthorizationsTest extends PluggableProcessEngineTest {
     }
   }
 
-  @Ignore("CAM-4889")
+  @Disabled("CAM-4889")
   @Test
   public void testUpdateFilterGenericOwnerId() {
     grantCreateFilter();

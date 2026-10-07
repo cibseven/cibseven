@@ -20,16 +20,17 @@ import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 /**
@@ -37,7 +38,7 @@ import static org.junit.Assert.assertTrue;
  * the client and an empty processes.xml file
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TestWarDeploymentEmptyProcessesXml extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -48,14 +49,14 @@ public class TestWarDeploymentEmptyProcessesXml extends AbstractFoxPlatformInteg
 
   @Test
   public void testDeployProcessArchive() {
-    Assert.assertNotNull(processEngine);
+    Assertions.assertNotNull(processEngine);
     RepositoryService repositoryService = processEngine.getRepositoryService();
 
     List<ProcessDefinition> processDefinitions = repositoryService.createProcessDefinitionQuery()
       .processDefinitionKey("testDeployProcessArchive")
       .list();
 
-    Assert.assertEquals(1, processDefinitions.size());
+    assertThat(processDefinitions.size()).isEqualTo(1);
     org.cibseven.bpm.engine.repository.Deployment deployment = repositoryService.createDeploymentQuery()
       .deploymentId(processDefinitions.get(0).getDeploymentId())
       .singleResult();

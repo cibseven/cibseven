@@ -20,12 +20,12 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 
 /**
@@ -33,7 +33,7 @@ import org.junit.runner.RunWith;
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TestProcessEnginesXmlInProcessApplication extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -52,7 +52,7 @@ public class TestProcessEnginesXmlInProcessApplication extends AbstractFoxPlatfo
   
   @Test
   public void testDeployProcessArchive() {
-   Assert.assertNotNull(processEngineService.getProcessEngine("engine1"));
+   Assertions.assertNotNull(processEngineService.getProcessEngine("engine1"));
   }
 
 }

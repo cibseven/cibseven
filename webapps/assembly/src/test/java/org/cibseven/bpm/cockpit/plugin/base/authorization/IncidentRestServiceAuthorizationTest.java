@@ -28,9 +28,9 @@ import java.util.List;
 import org.cibseven.bpm.cockpit.impl.plugin.base.dto.IncidentDto;
 import org.cibseven.bpm.cockpit.impl.plugin.base.dto.query.IncidentQueryDto;
 import org.cibseven.bpm.cockpit.impl.plugin.resources.IncidentRestService;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -44,8 +44,7 @@ public class IncidentRestServiceAuthorizationTest extends AuthorizationTest {
 
   protected IncidentRestService resource;
 
-  @Override
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     super.setUp();
 
@@ -61,8 +60,7 @@ public class IncidentRestServiceAuthorizationTest extends AuthorizationTest {
     enableAuthorization();
   }
 
-  @Override
-  @After
+  @AfterEach
   public void tearDown() {
     deleteDeployment(deploymentId);
     super.tearDown();

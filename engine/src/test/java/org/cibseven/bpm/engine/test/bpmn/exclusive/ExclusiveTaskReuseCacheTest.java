@@ -17,9 +17,9 @@
 package org.cibseven.bpm.engine.test.bpmn.exclusive;
 
 import org.cibseven.bpm.engine.test.Deployment;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
@@ -27,12 +27,12 @@ import org.junit.Test;
  */
 public class ExclusiveTaskReuseCacheTest extends ExclusiveTaskTest {
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     processEngineConfiguration.setDbEntityCacheReuseEnabled(true);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     processEngineConfiguration.setDbEntityCacheReuseEnabled(false);
   }

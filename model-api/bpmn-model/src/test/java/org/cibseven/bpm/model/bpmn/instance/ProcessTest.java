@@ -25,7 +25,7 @@ import org.cibseven.bpm.model.bpmn.BpmnTestConstants;
 
 import org.cibseven.bpm.model.bpmn.ProcessType;
 import org.cibseven.bpm.model.bpmn.impl.instance.Supports;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Sebastian Menski

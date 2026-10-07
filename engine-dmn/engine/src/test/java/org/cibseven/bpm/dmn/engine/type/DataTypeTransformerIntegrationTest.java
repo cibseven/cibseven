@@ -32,7 +32,7 @@ import org.cibseven.bpm.dmn.engine.test.DecisionResource;
 import org.cibseven.bpm.dmn.engine.test.DmnEngineTest;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests that {@link DmnDataTypeTransformerTest} is invoked while evaluation of the

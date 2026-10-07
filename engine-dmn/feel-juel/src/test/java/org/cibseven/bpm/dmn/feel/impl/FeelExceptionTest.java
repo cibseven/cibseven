@@ -25,9 +25,9 @@ import java.math.BigInteger;
 import org.cibseven.bpm.dmn.feel.impl.juel.FeelEngineFactoryImpl;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class FeelExceptionTest {
 
@@ -37,7 +37,7 @@ public class FeelExceptionTest {
 
   public VariableMap variables;
 
-  @BeforeClass
+  @BeforeAll
   public static void initFeelEngine() {
     feelEngine = new FeelEngineFactoryImpl().createInstance();
   }
@@ -53,7 +53,7 @@ public class FeelExceptionTest {
     }
   }
 
-  @Before
+  @BeforeEach
   public void initVariables() {
     variables = Variables.createVariables();
     variables.putValue(INPUT_VARIABLE, 13);

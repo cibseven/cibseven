@@ -34,11 +34,10 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * Tenant-check tests for {@code RepositoryService#deleteDeploymentsAsync} (CIB7-1597).
@@ -54,11 +53,11 @@ public class MultiTenancyDeleteDeploymentsBatchTenantCheckTest {
 
   protected static final BpmnModelInstance MODEL = Bpmn.createExecutableProcess().startEvent().endEvent().done();
 
+  @RegisterExtension
   protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected RepositoryService repositoryService;
   protected ManagementService managementService;
@@ -66,7 +65,7 @@ public class MultiTenancyDeleteDeploymentsBatchTenantCheckTest {
   protected ProcessEngineConfiguration processEngineConfiguration;
   protected Batch batch;
 
-  @Before
+  @BeforeEach
   public void init() {
     repositoryService = engineRule.getRepositoryService();
     managementService = engineRule.getManagementService();
@@ -211,7 +210,7 @@ public class MultiTenancyDeleteDeploymentsBatchTenantCheckTest {
         .hasMessageContaining("Cannot delete the deployment");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     identityService.clearAuthentication();
     processEngineConfiguration.setTenantCheckEnabled(true);

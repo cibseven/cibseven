@@ -24,8 +24,8 @@ import java.util.Map;
 
 import org.cibseven.connect.ai.agent.impl.AgentConnectorImpl;
 import org.cibseven.connect.ai.agent.impl.AgentResponseImpl;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Connector-level tests for the invoice processing scenario defined in
@@ -125,7 +125,7 @@ public class InvoiceProcessingConnectorTest {
 
   private StubbedAgentConnector connector;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     connector = new StubbedAgentConnector();
   }

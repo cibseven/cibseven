@@ -23,8 +23,8 @@ import org.cibseven.bpm.engine.rest.dto.ResourceOptionsDto;
 import org.cibseven.bpm.engine.rest.sub.identity.GroupMembersResource;
 import org.cibseven.bpm.engine.rest.util.PathUtil;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.core.UriInfo;
 import java.net.URI;
 
 import static org.cibseven.bpm.engine.authorization.Permissions.CREATE;

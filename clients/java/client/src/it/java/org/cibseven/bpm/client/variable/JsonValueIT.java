@@ -34,7 +34,7 @@ import org.cibseven.bpm.client.dto.ProcessDefinitionDto;
 import org.cibseven.bpm.client.dto.ProcessInstanceDto;
 import org.cibseven.bpm.client.dto.TaskDto;
 import org.cibseven.bpm.client.dto.VariableInstanceDto;
-import org.cibseven.bpm.client.rule.ClientRule;
+import org.cibseven.bpm.client.rule.ClientExtension;
 import org.cibseven.bpm.client.rule.EngineRule;
 import org.cibseven.bpm.client.task.ExternalTask;
 import org.cibseven.bpm.client.task.ExternalTaskService;
@@ -46,11 +46,10 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.json.JSONException;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 public class JsonValueIT {
@@ -63,12 +62,11 @@ public class JsonValueIT {
   protected static final JsonValue VARIABLE_VALUE_JSON_VALUE = ClientValues.jsonValue(VARIABLE_VALUE_JSON_SERIALIZED);
 
   protected static final JsonValue VARIABLE_VALUE_JSON_VALUE_BROKEN = ClientValues.jsonValue(VARIABLE_VALUE_JSON_SERIALIZED_BROKEN);
-
-  protected ClientRule clientRule = new ClientRule();
+  @RegisterExtension
+  protected ClientExtension clientRule = new ClientExtension();
+  @RegisterExtension
   protected EngineRule engineRule = new EngineRule();
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule);
 
   protected ExternalTaskClient client;
 
@@ -78,7 +76,7 @@ public class JsonValueIT {
   protected RecordingExternalTaskHandler handler = new RecordingExternalTaskHandler();
   protected RecordingInvocationHandler invocationHandler = new RecordingInvocationHandler();
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     client = clientRule.client();
     processDefinition = engineRule.deploy(TWO_EXTERNAL_TASK_PROCESS).get(0);

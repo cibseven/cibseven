@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.identity.Group;
 import org.cibseven.bpm.engine.identity.GroupQuery;
@@ -37,9 +37,9 @@ import org.cibseven.bpm.engine.rest.dto.identity.BasicUserCredentialsDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 import io.restassured.http.ContentType;
 
@@ -47,7 +47,7 @@ public class IdentityRestServiceQueryTest extends AbstractRestServiceTest {
 
   protected static final String TEST_USERNAME = "testUsername";
   protected static final String TEST_PASSWORD = "testPassword";
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String IDENTITY_URL = TEST_RESOURCE_ROOT_PATH + "/identity";
@@ -56,7 +56,7 @@ public class IdentityRestServiceQueryTest extends AbstractRestServiceTest {
 
   private User mockUser;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     createMockIdentityQueries();
   }

@@ -18,16 +18,16 @@ package org.cibseven.bpm.engine.test.api.authorization;
 
 import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_INSTANCE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Collections;
 import java.util.List;
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.task.Comment;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
   protected static final String ONE_TASK_PROCESS_KEY = "oneTaskProcess";
@@ -69,7 +69,7 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
 
     // then
     List<Comment> deletedCommentLst = taskService.getProcessInstanceComments(processInstanceId);
-    assertEquals("The comments list should be empty", Collections.emptyList(), deletedCommentLst);
+    assertEquals(Collections.emptyList(), deletedCommentLst, "The comments list should be empty");
 
     // triggers a db clean up
     deleteTask(TASK_ID, true);
@@ -113,7 +113,7 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
 
     // then
     List<Comment> comments = taskService.getProcessInstanceComments(processInstanceId);
-    assertEquals("The comments list should be empty", Collections.emptyList(), comments);
+    assertEquals(Collections.emptyList(), comments, "The comments list should be empty");
 
     // triggers a db clean up
     deleteTask(TASK_ID, true);
@@ -158,7 +158,7 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
 
     // then
     List<Comment> comments = taskService.getProcessInstanceComments(processInstanceId);
-    assertFalse("The comments list should not be empty", comments.isEmpty());
+    assertFalse(comments.isEmpty(), "The comments list should not be empty");
     assertEquals(updatedMessage, comments.get(0).getFullMessage());
 
     // triggers a db clean up
@@ -197,7 +197,7 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
 
     // then
     List<Comment> deletedCommentLst = taskService.getProcessInstanceComments(processInstanceId);
-    assertEquals("The comments list should be empty", Collections.emptyList(), deletedCommentLst);
+    assertEquals(Collections.emptyList(), deletedCommentLst, "The comments list should be empty");
   }
 
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
@@ -233,7 +233,7 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
 
     // then
     List<Comment> comments = taskService.getProcessInstanceComments(processInstanceId);
-    assertEquals("The comments list should be empty", Collections.emptyList(), comments);
+    assertEquals(Collections.emptyList(), comments, "The comments list should be empty");
   }
 
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml")
@@ -270,7 +270,7 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
 
     // then
     List<Comment> comments = taskService.getProcessInstanceComments(processInstanceId);
-    assertFalse("The comments list should not be empty", comments.isEmpty());
+    assertFalse(comments.isEmpty(), "The comments list should not be empty");
     assertEquals(updatedMessage, comments.get(0).getFullMessage());
   }
 

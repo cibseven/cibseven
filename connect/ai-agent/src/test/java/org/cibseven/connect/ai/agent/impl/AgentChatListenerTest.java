@@ -31,8 +31,8 @@ import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.identity.Authentication;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
@@ -57,7 +57,7 @@ public class AgentChatListenerTest {
   /** Tracks BpmnExecutionContext pushed onto the engine's per-thread stack so {@link #tearDown()} drains it. */
   private boolean pushedExecution;
 
-  @After
+  @AfterEach
   public void tearDown() {
     if (pushedExecution) {
       try { Context.removeExecutionContext(); } catch (Exception ignored) {}

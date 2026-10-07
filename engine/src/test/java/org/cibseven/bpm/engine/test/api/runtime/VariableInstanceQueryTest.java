@@ -18,12 +18,12 @@ package org.cibseven.bpm.engine.test.api.runtime;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,7 +54,7 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.engine.variable.value.FileValue;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author roman.smirnov
@@ -465,7 +465,7 @@ public class VariableInstanceQueryTest extends PluggableProcessEngineTest {
     for (VariableInstance var : result) {
       assertEquals("stringVar", var.getName());
       assertEquals("string", var.getTypeName());
-      assertTrue("Unexpected value found: " + var.getValue(), expected.contains(var.getValue()));
+      assertTrue(expected.contains(var.getValue()), "Unexpected value found: " + var.getValue());
     }
   }
 
@@ -2006,8 +2006,8 @@ public class VariableInstanceQueryTest extends PluggableProcessEngineTest {
           .listPage(firstResult, pageSize);
 
       for (VariableInstance variableInstance : page) {
-        assertTrue("variable instance " + variableInstance.getId() + " was returned on more than one page",
-            collectedIds.add(variableInstance.getId()));
+        assertTrue(collectedIds.add(variableInstance.getId()), 
+            "variable instance " + variableInstance.getId() + " was returned on more than one page");
       }
     }
 
@@ -2060,8 +2060,8 @@ public class VariableInstanceQueryTest extends PluggableProcessEngineTest {
         .orderByVariableId().asc()
         .stream()
         .forEach(variableInstance ->
-            assertTrue("variable instance " + variableInstance.getId() + " was streamed more than once",
-                streamedIds.add(variableInstance.getId())));
+            assertTrue(streamedIds.add(variableInstance.getId()),
+            "variable instance " + variableInstance.getId() + " was streamed more than once"));
 
     // then
     assertEquals(variableCount, streamedIds.size());
@@ -2110,14 +2110,14 @@ public class VariableInstanceQueryTest extends PluggableProcessEngineTest {
     // then
     while (iterator.hasNext()) {
       VariableInstance variableInstance = iterator.next();
-      assertTrue("variable instance " + variableInstance.getId() + " was streamed more than once",
-          streamedIds.add(variableInstance.getId()));
+      assertTrue(streamedIds.add(variableInstance.getId()),
+          "variable instance " + variableInstance.getId() + " was streamed more than once");
     }
 
     for (VariableInstance variableInstance : before) {
       if (!variableInstance.getName().equals(notYetStreamedVariableName)) {
-        assertTrue("variable instance " + variableInstance.getId() + " (" + variableInstance.getName() + ") was not streamed",
-            streamedIds.contains(variableInstance.getId()));
+        assertTrue(streamedIds.contains(variableInstance.getId()),
+            "variable instance " + variableInstance.getId() + " (" + variableInstance.getName() + ") was not streamed");
       }
     }
   }

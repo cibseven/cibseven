@@ -26,9 +26,9 @@ import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_INSTANCE;
 import static org.cibseven.bpm.engine.authorization.Resources.TASK;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyString;
@@ -46,9 +46,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.AuthorizationService;
@@ -75,9 +75,9 @@ import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.impl.AuthorizationRestServiceImpl;
 import org.cibseven.bpm.engine.rest.util.ResourceUtil;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
@@ -101,10 +101,10 @@ public class AuthorizationRestServiceInteractionTest extends AbstractRestService
   protected IdentityService identityServiceMock;
   protected ProcessEngineConfigurationImpl processEngineConfigurationMock;
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     authorizationServiceMock = mock(AuthorizationServiceImpl.class);
     identityServiceMock = mock(IdentityServiceImpl.class);

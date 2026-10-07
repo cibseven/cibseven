@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.api.queries;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -37,28 +37,27 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
+import org.junit.jupiter.api.Test;
+
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class QueryByIdAfterTest {
 
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(config -> config.setIdGenerator(new StrongUuidGenerator()));
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(1) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(5) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(config -> config.setIdGenerator(new StrongUuidGenerator()));
 
   private HistoryService historyService;
   private RuntimeService runtimeService;
 
-  @Before
+  @BeforeEach
   public void init() {
     this.historyService = engineRule.getProcessEngine().getHistoryService();
     this.runtimeService = engineRule.getRuntimeService();
@@ -123,14 +122,14 @@ public class QueryByIdAfterTest {
     // then
     while (iterator.hasNext()) {
       HistoricVariableInstance historicVariableInstance = iterator.next();
-      assertTrue("historic variable instance " + historicVariableInstance.getId() + " was streamed more than once",
-          streamedIds.add(historicVariableInstance.getId()));
+      assertTrue(streamedIds.add(historicVariableInstance.getId()), 
+          "historic variable instance " + historicVariableInstance.getId() + " was streamed more than once");
     }
 
     for (HistoricVariableInstance historicVariableInstance : before) {
       if (!historicVariableInstance.getId().equals(notYetStreamedId)) {
-        assertTrue("historic variable instance " + historicVariableInstance.getId() + " was not streamed",
-            streamedIds.contains(historicVariableInstance.getId()));
+        assertTrue(streamedIds.contains(historicVariableInstance.getId()),
+            "historic variable instance " + historicVariableInstance.getId() + " was not streamed");
       }
     }
   }

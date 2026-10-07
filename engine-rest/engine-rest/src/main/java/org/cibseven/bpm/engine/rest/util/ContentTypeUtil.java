@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.util;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.cibseven.bpm.engine.form.CamundaFormRef;
 

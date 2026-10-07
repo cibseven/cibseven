@@ -24,6 +24,7 @@ import static org.cibseven.bpm.engine.test.util.CamundaFormUtils.findAllCamundaF
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,12 +48,13 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.util.CamundaFormUtils;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.io.TempDir;
+
 
 public class RetrieveCamundaFormRefTest {
 
@@ -61,11 +63,12 @@ public class RetrieveCamundaFormRefTest {
   protected static final String START_FORM_CONTENT_V1 = "{\"id\"=\"myStartForm\",\"type\": \"default\",\"components\": []}";
   protected static final String START_FORM_CONTENT_V2 = "{\"id\"=\"myStartForm\",\"type\": \"default\",\"components\":[{\"key\": \"textfield1\",\"label\": \"Text Field\",\"type\": \"textfield\"}]}";
 
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-  protected TemporaryFolder tempFolder = new TemporaryFolder();
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(tempFolder);
+  @RegisterExtension
+  @Order (1) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order (2) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @TempDir
+  protected Path tempFolder;
 
   private RuntimeService runtimeService;
   private TaskService taskService;
@@ -73,7 +76,7 @@ public class RetrieveCamundaFormRefTest {
   private FormService formService;
   private ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void init() {
     runtimeService = engineRule.getRuntimeService();
     taskService = engineRule.getTaskService();
@@ -82,7 +85,7 @@ public class RetrieveCamundaFormRefTest {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     List<org.cibseven.bpm.engine.repository.Deployment> deployments = repositoryService.createDeploymentQuery().list();
     for (org.cibseven.bpm.engine.repository.Deployment deployment : deployments) {
@@ -496,9 +499,11 @@ public class RetrieveCamundaFormRefTest {
       builder.addClasspathResource(path);
     }
     builder.deploy();
+    form.close();
 
     // deploy second version of form
     form = CamundaFormUtils.writeTempFormFile("form.form", v2Content, tempFolder);
     repositoryService.createDeployment().name(getClass().getSimpleName()).addInputStream("form", form).deploy();
+    form.close();
   }
 }

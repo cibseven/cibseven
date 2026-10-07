@@ -22,7 +22,7 @@
 
     <dependency>
       <groupId>org.cibseven.bpm.example</groupId>
-      <artifactId>cibseven-example-invoice-jakarta</artifactId>
+      <artifactId>cibseven-example-invoice</artifactId>
       <version>${project.version}</version>
       <classifier>classes</classifier>
       <scope>provided</scope>
@@ -35,8 +35,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
-        <!-- override version to use fileMappers -->
-        <version>3.2.0</version>
         <executions>
           <execution>
             <id>unpack-invoice</id>
@@ -48,7 +46,7 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>org.cibseven.bpm.example</groupId>
-                  <artifactId>cibseven-example-invoice-jakarta</artifactId>
+                  <artifactId>cibseven-example-invoice</artifactId>
                   <version>${project.version}</version>
                   <type>war</type>
                   <outputDirectory>${project.build.directory}/classes</outputDirectory>

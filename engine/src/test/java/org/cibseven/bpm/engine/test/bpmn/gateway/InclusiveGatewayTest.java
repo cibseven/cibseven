@@ -16,20 +16,21 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.gateway;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Assertions;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.util.CollectionUtil;
@@ -42,7 +43,7 @@ import org.cibseven.bpm.engine.task.TaskQuery;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.model.bpmn.Bpmn;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Joram Barrez
@@ -426,7 +427,7 @@ public class InclusiveGatewayTest extends PluggableProcessEngineTest {
       System.out.println(((ExecutionEntity) execution).getActivityId());
     }
 
-    assertEquals("Found executions: " + runtimeService.createExecutionQuery().list(), 0, runtimeService.createExecutionQuery().count());
+    assertEquals(0, runtimeService.createExecutionQuery().count(), "Found executions: " + runtimeService.createExecutionQuery().list());
     testRule.assertProcessEnded(pi.getId());
   }
 
@@ -794,8 +795,8 @@ public class InclusiveGatewayTest extends PluggableProcessEngineTest {
     testRule.executeAvailableJobs(1);
 
     // then
-    Assertions.assertThat(managementService.createJobQuery().count()).isEqualTo(0);
-    Assertions.assertThat(historyService.createHistoricProcessInstanceQuery().singleResult().getState())
+    assertThat(managementService.createJobQuery().count()).isEqualTo(0);
+    assertThat(historyService.createHistoricProcessInstanceQuery().singleResult().getState())
         .isEqualTo("COMPLETED");
   }
 
@@ -809,8 +810,8 @@ public class InclusiveGatewayTest extends PluggableProcessEngineTest {
     testRule.executeAvailableJobs(1);
 
     // then
-    Assertions.assertThat(managementService.createJobQuery().count()).isEqualTo(0);
-    Assertions.assertThat(historyService.createHistoricProcessInstanceQuery().singleResult().getState())
+    assertThat(managementService.createJobQuery().count()).isEqualTo(0);
+    assertThat(historyService.createHistoricProcessInstanceQuery().singleResult().getState())
         .isEqualTo("COMPLETED");
   }
   

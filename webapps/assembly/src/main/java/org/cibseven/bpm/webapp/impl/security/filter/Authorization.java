@@ -17,7 +17,7 @@
 package org.cibseven.bpm.webapp.impl.security.filter;
 
 import java.util.Collection;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.cibseven.bpm.webapp.impl.security.auth.Authentication;
 import org.cibseven.bpm.webapp.impl.security.auth.UserAuthentication;

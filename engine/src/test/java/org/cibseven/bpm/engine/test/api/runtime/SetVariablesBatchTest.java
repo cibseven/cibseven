@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Assertions;
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.ManagementService;
@@ -56,11 +56,12 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 public class SetVariablesBatchTest {
 
@@ -69,26 +70,26 @@ public class SetVariablesBatchTest {
 
   protected static final VariableMap SINGLE_VARIABLE = Variables.putValue("foo", "bar");
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
   protected BatchRule batchRule = new BatchRule(engineRule, engineTestRule);
   protected BatchHelper helper = new BatchHelper(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule).around(batchRule);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
   protected ManagementService managementService;
 
-  @Before
+  @BeforeEach
   public void assignServices() {
     runtimeService = engineRule.getRuntimeService();
     historyService = engineRule.getHistoryService();
     managementService = engineRule.getManagementService();
   }
 
-  @Before
+  @BeforeEach
   public void deployProcess() {
     BpmnModelInstance process = Bpmn.createExecutableProcess(PROCESS_KEY)
         .startEvent()
@@ -98,7 +99,7 @@ public class SetVariablesBatchTest {
     engineTestRule.deploy(process);
   }
 
-  @After
+  @AfterEach
   public void clearAuthentication() {
     ClockUtil.reset();
     engineRule.getIdentityService()
@@ -721,8 +722,8 @@ public class SetVariablesBatchTest {
     HistoricBatch historicBatch = historyService.createHistoricBatchQuery().singleResult();
     batch = managementService.createBatchQuery().singleResult();
 
-    Assertions.assertThat(batch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
-    Assertions.assertThat(historicBatch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
+    assertThat(batch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
+    assertThat(historicBatch.getExecutionStartTime()).isEqualToIgnoringMillis(TEST_DATE);
 
     // clear
     managementService.deleteBatch(batch.getId(), true);

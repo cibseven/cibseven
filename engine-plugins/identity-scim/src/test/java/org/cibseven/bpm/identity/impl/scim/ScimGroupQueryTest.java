@@ -29,20 +29,19 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.identity.scim.util.ScimTestEnvironment;
 import org.cibseven.bpm.identity.scim.util.ScimTestEnvironmentRule;
 import org.cibseven.bpm.identity.impl.scim.plugin.ScimIdentityProviderPlugin;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * Tests for SCIM group queries.
  */
 public class ScimGroupQueryTest {
 
-  @ClassRule
+  @RegisterExtension
   public static ScimTestEnvironmentRule scimRule = new ScimTestEnvironmentRule();
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProcessEngineRule();
 
   ProcessEngineConfiguration processEngineConfiguration;
@@ -59,7 +58,7 @@ public class ScimGroupQueryTest {
     return config;
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     scimTestEnvironment = scimRule.getScimTestEnvironment();

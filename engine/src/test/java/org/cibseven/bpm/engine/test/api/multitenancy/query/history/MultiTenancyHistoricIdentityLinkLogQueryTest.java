@@ -36,10 +36,11 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 /**
 *
@@ -54,17 +55,15 @@ public class MultiTenancyHistoricIdentityLinkLogQueryTest {
   
   private static String PROCESS_DEFINITION_KEY = "oneTaskProcess";
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule engineRule = new ProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected HistoryService historyService;
   protected RuntimeService runtimeService;
   protected RepositoryService repositoryService;
   protected TaskService taskService;
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected static final String A_USER_ID = "aUserId";
 
@@ -73,7 +72,7 @@ public class MultiTenancyHistoricIdentityLinkLogQueryTest {
   protected final static String TENANT_2 = "tenant2";
   protected final static String TENANT_3 = "tenant3";
 
-  @Before
+  @BeforeEach
   public void init() {
     taskService = engineRule.getTaskService();
     repositoryService = engineRule.getRepositoryService();

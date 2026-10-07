@@ -16,24 +16,19 @@
  */
 package org.cibseven.bpm.engine.cdi.test.impl.context;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.cdi.BusinessProcess;
 import org.cibseven.bpm.engine.cdi.test.CdiProcessEngineTestCase;
 import org.cibseven.bpm.engine.cdi.test.impl.beans.CreditCard;
-import org.cibseven.bpm.engine.cdi.test.impl.beans.ProcessScopedMessageBean;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 /**
  * 
  * @author Daniel Meyer
  */
-@RunWith(Arquillian.class)
 public class BusinessProcessContextTest extends CdiProcessEngineTestCase {
   
   @Test
