@@ -132,6 +132,10 @@ public interface ExternalTaskService {
    *    will succeed and a new lock duration will be set, starting from the current moment.
    * </p>
    *
+   * <p>Note: unlike <code>fetchAndLock</code>, this method does not consume an attempt of a
+   * configured retry cycle (see the class-level Javadoc), and the lock lasts exactly
+   * <code>lockDuration</code> without a retry interval added.</p>
+   *
    * @param externalTaskId the id of the external task to lock
    * @param workerId  the id of the worker to lock the task for
    * @param lockDuration the duration in milliseconds for which task should be locked

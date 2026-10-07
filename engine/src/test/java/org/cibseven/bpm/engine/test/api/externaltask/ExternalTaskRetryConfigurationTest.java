@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.engine.test.api.task.externaltask;
+package org.cibseven.bpm.engine.test.api.externaltask;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -615,5 +615,118 @@ public class ExternalTaskRetryConfigurationTest extends PluggableProcessEngineTe
     assertThat(externalTaskService.createExternalTaskQuery().list())
         .hasSize(2)
         .allSatisfy(task -> assertThat(task.getRetries()).isEqualTo(2));
+  }
+
+  @Test
+  public void shouldApplyRetryCycleToExternalIntermediateMessageThrowEvent() {
+    // given an intermediate message throw event implemented as external task
+    testRule.deploy(Bpmn.createExecutableProcess(PROCESS_KEY)
+        .startEvent()
+        .intermediateThrowEvent("externalTask")
+          .camundaFailedJobRetryTimeCycle("R2/PT5M")
+          .messageEventDefinition()
+            .message("message")
+            .camundaType("external")
+            .camundaTopic(TOPIC_NAME)
+          .messageEventDefinitionDone()
+        .userTask("afterExternalTask")
+        .endEvent()
+        .done());
+
+    // when
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+
+    // then the cycle applies like for a service task or a message end event
+    assertThat(currentExternalTask().getRetries()).isEqualTo(2);
+  }
+
+  // ------------------------------------------- errors in the retry configuration
+
+  @Test
+  public void shouldIgnoreRetryCycleExpressionWithMissingVariable() {
+    // given an expression cycle whose variable is not set
+    testRule.deploy(processWithRetryCycle("${retryCycle}"));
+
+    // when the process is started without the variable
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+
+    // then the task is created and handled as without a retry configuration
+    assertThat(currentExternalTask().getRetries()).isNull();
+
+    // and fetching and failing does not break, for this or any other worker of the topic
+    List<LockedExternalTask> tasks = fetch();
+    assertThat(tasks).hasSize(1);
+    externalTaskService.handleFailure(tasks.get(0).getId(), WORKER_ID, ERROR_MESSAGE, 1, SECOND);
+    setTime(now() + 2 * SECOND);
+    assertThat(fetch()).hasSize(1);
+    assertThat(externalTaskIncidentCount()).isZero();
+  }
+
+  @Test
+  public void shouldIgnoreRetryCycleWithInvalidListEntry() {
+    // given an interval list with an invalid entry - not detected by
+    // ParseUtil#parseRetryIntervals, which only validates single-interval cycles
+    testRule.deploy(processWithRetryCycle("PT1M,PT5X"));
+
+    // when
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+
+    // then the task is handled as without a retry configuration
+    assertThat(currentExternalTask().getRetries()).isNull();
+    for (int i = 0; i < 3; i++) {
+      assertThat(fetch()).as("attempt %d", i + 1).hasSize(1);
+      setTime(now() + LOCK_TIME + SECOND);
+    }
+    assertThat(externalTaskIncidentCount()).isZero();
+  }
+
+  @Test
+  public void shouldIgnoreRetryCycleExpressionResolvingToInvalidList() {
+    // given an expression that resolves to an interval list with an invalid entry
+    testRule.deploy(processWithRetryCycle("${retryCycle}"));
+
+    // when
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY,
+        Collections.singletonMap("retryCycle", "PT1M,PT5X"));
+
+    // then
+    assertThat(currentExternalTask().getRetries()).isNull();
+    assertThat(fetch()).hasSize(1);
+    setTime(now() + LOCK_TIME + SECOND);
+    assertThat(fetch()).hasSize(1);
+  }
+
+  @Test
+  public void shouldHandOutOneAttemptForZeroRetryCycle() {
+    // given a cycle that yields 0 retries
+    testRule.deploy(processWithRetryCycle("R0/PT5M"));
+
+    // when
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+
+    // then the task gets one attempt instead of never being fetched without an incident
+    assertThat(currentExternalTask().getRetries()).isEqualTo(1);
+    assertThat(fetch()).hasSize(1);
+    assertThat(externalTaskIncidentCount()).isEqualTo(1);
+    waitForNextAttempt();
+    assertThat(fetch()).isEmpty();
+  }
+
+  @Test
+  public void shouldTreatNegativeRetriesOfLastAttemptAsZero() {
+    // given the last attempt, handed out with retries 0
+    testRule.deploy(processWithRetryCycle("R1/PT5M"));
+    runtimeService.startProcessInstanceByKey(PROCESS_KEY);
+    LockedExternalTask task = fetch().get(0);
+    assertThat(task.getRetries()).isZero();
+
+    // when a worker using the old pattern reports getRetries() - 1
+    externalTaskService.handleFailure(task.getId(), WORKER_ID, ERROR_MESSAGE, task.getRetries() - 1, SECOND);
+
+    // then the failure is stored instead of being rejected
+    ExternalTask externalTask = currentExternalTask();
+    assertThat(externalTask.getRetries()).isZero();
+    assertThat(externalTask.getErrorMessage()).isEqualTo(ERROR_MESSAGE);
+    assertThat(externalTaskIncidentCount()).isEqualTo(1);
   }
 }

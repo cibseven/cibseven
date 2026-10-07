@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.cibseven.bpm.engine.EntityTypes;
-import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.delegate.BpmnError;
 import org.cibseven.bpm.engine.externaltask.ExternalTask;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
@@ -624,7 +623,10 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
         execution);
 
     if (retryConfiguration != null) {
-      externalTask.setRetries(retryConfiguration.getRetries());
+      // at least one attempt: a cycle like "R0/PT5M" would otherwise create a task with
+      // retries == 0 that is never fetched and has no incident either. With one attempt the
+      // incident is raised when that attempt is fetched, like for any other last attempt.
+      externalTask.setRetries(Math.max(1, retryConfiguration.getRetries()));
     }
 
     ProcessDefinitionEntity processDefinition = execution.getProcessDefinition();
@@ -696,12 +698,14 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
     }
   }
 
-  protected boolean hasRetryConfiguration() {
+  public boolean hasRetryConfiguration() {
     ExecutionEntity execution = getExecution(false);
     if (execution == null || execution.getActivity() == null) {
       return false;
     }
-    return execution.getActivity().getProperties().get(DefaultFailedJobParseListener.EXTERNAL_TASK_FAILED_JOB_CONFIGURATION) != null;
+    // resolved, not just present: an expression cycle that cannot be resolved counts as no
+    // configuration, so worker-reported retries are not decremented at fetch either
+    return getRetryConfiguration() != null;
   }
 
   protected FailedJobRetryConfiguration getRetryConfiguration() {
@@ -723,9 +727,24 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
    */
   protected static FailedJobRetryConfiguration resolveRetryConfiguration(FailedJobRetryConfiguration config,
                                                                           ExecutionEntity execution) {
+    // errors are logged and the task is handled as having no retry configuration, same as
+    // DefaultJobRetryCmd does for jobs: throwing here would break the creation of the task
+    // and roll back every fetchAndLock that selects it, for all workers of the topic
     while (config != null && config.getExpression() != null) {
-      Object value = config.getExpression().getValue(execution);
+      Object value;
+      try {
+        value = config.getExpression().getValue(execution);
+      } catch (Exception e) {
+        ProcessEngineLogger.EXTERNAL_TASK_LOGGER.exceptionWhileResolvingRetryTimeCycle(
+            execution.getActivityId(), config.getExpression().getExpressionText(), e);
+        return null;
+      }
       config = ParseUtil.parseRetryIntervals(value == null ? null : value.toString());
+    }
+    if (!ParseUtil.hasValidRetryIntervals(config)) {
+      ProcessEngineLogger.EXTERNAL_TASK_LOGGER.invalidRetryTimeCycle(
+          execution.getActivityId(), String.join(",", config.getRetryIntervals()));
+      return null;
     }
     return config;
   }
@@ -744,7 +763,9 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
       long now = ClockUtil.getCurrentTime().getTime();
       return new DurationHelper(intervals.get(index)).getDateAfter().getTime() - now;
     } catch (Exception e) {
-      throw new ProcessEngineException("Invalid retry interval '" + intervals.get(index) + "'", e);
+      // not expected, the intervals are validated in resolveRetryConfiguration()
+      ProcessEngineLogger.EXTERNAL_TASK_LOGGER.invalidRetryTimeCycle(activityId, String.join(",", intervals));
+      return null;
     }
   }
 }
