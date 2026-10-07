@@ -21,6 +21,7 @@ import org.cibseven.bpm.engine.spring.test.SpringProcessEngineTestCase;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.springframework.test.context.ContextConfiguration;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 /**
@@ -36,12 +37,12 @@ public class TaskListenerSpringTest extends SpringProcessEngineTestCase {
     // Completing first task will set variable on process instance
     Task task = taskService.createTaskQuery().singleResult();
     taskService.complete(task.getId());
-    assertEquals("task1-complete", runtimeService.getVariable(processInstance.getId(), "calledInExpression"));
+    assertEquals(runtimeService.getVariable(processInstance.getId(), "calledInExpression"), "task1-complete");
     
     // Completing second task will set variable on process instance
     task = taskService.createTaskQuery().singleResult();
     taskService.complete(task.getId());
-    assertEquals("task2-notify", runtimeService.getVariable(processInstance.getId(), "calledThroughNotify"));
+    assertEquals(runtimeService.getVariable(processInstance.getId(), "calledThroughNotify"), "task2-notify");
   }
 
 }

@@ -29,16 +29,16 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 
 @ScenarioUnderTest("AsyncParallelMultiInstanceScenario")
 @Origin("1.1.0")
 public class AsyncParallelMultiInstanceScenarioTest {
 
-  @Rule
+  @RegisterExtension
   public UpgradeTestRule rule = new UpgradeTestRule();
 
   @Test
@@ -52,7 +52,7 @@ public class AsyncParallelMultiInstanceScenarioTest {
 
     // then the process can be completed successfully
     List<Task> subProcessTasks = rule.taskQuery().list();
-    Assert.assertEquals(3, subProcessTasks.size());
+    Assertions.assertEquals(3, subProcessTasks.size());
 
     for (Task subProcessTask : subProcessTasks) {
       rule.getTaskService().complete(subProcessTask.getId());
@@ -62,7 +62,7 @@ public class AsyncParallelMultiInstanceScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("initAsyncBeforeSubprocess.2")
   public void testInitAsyncBeforeSubprocessActivityInstanceTree() {
@@ -73,7 +73,7 @@ public class AsyncParallelMultiInstanceScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
           // this is not the multi-instance body because the execution
@@ -108,7 +108,7 @@ public class AsyncParallelMultiInstanceScenarioTest {
 
     // then the old job definition referencing "miSubProcess" has been migrated
     JobDefinition asyncJobDefinition = rule.jobDefinitionQuery().singleResult();
-    Assert.assertEquals("miSubProcess#multiInstanceBody", asyncJobDefinition.getActivityId());
+    Assertions.assertEquals("miSubProcess#multiInstanceBody", asyncJobDefinition.getActivityId());
   }
 
   @Test
@@ -122,7 +122,7 @@ public class AsyncParallelMultiInstanceScenarioTest {
 
     // then the process can be completed successfully
     List<Task> subProcessTasks = rule.taskQuery().list();
-    Assert.assertEquals(3, subProcessTasks.size());
+    Assertions.assertEquals(3, subProcessTasks.size());
 
     for (Task subProcessTask : subProcessTasks) {
       rule.getTaskService().complete(subProcessTask.getId());
@@ -132,7 +132,7 @@ public class AsyncParallelMultiInstanceScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("initAsyncBeforeTask.2")
   public void testInitAsyncBeforeTaskActivityInstanceTree() {
@@ -143,7 +143,7 @@ public class AsyncParallelMultiInstanceScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
           // this is not the multi-instance body because the execution
@@ -178,7 +178,7 @@ public class AsyncParallelMultiInstanceScenarioTest {
 
     // then the old job definition referencing "miSubProcess" has been migrated
     JobDefinition asyncJobDefinition = rule.jobDefinitionQuery().singleResult();
-    Assert.assertEquals("miTask#multiInstanceBody", asyncJobDefinition.getActivityId());
+    Assertions.assertEquals("miTask#multiInstanceBody", asyncJobDefinition.getActivityId());
   }
 
 }

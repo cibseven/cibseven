@@ -34,7 +34,7 @@ import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
 import org.cibseven.bpm.engine.impl.persistence.entity.PropertyEntity;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class AbstractCamundaAutoConfigurationIT {
@@ -81,7 +81,7 @@ public abstract class AbstractCamundaAutoConfigurationIT {
   @Autowired
   protected ProcessEngine processEngine;
 
-  @After
+  @AfterEach
   public void cleanup() {
     //remove history level from database
     ((ProcessEngineConfigurationImpl)processEngine.getProcessEngineConfiguration()).getCommandExecutorTxRequired().execute(new Command<Void>() {

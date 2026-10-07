@@ -29,17 +29,20 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.stream.Collectors;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 import org.apache.ibatis.builder.xml.XMLConfigBuilder;
@@ -79,6 +82,7 @@ import org.cibseven.bpm.engine.authorization.Permissions;
 import org.cibseven.bpm.engine.impl.AuthorizationServiceImpl;
 import org.cibseven.bpm.engine.impl.DecisionServiceImpl;
 import org.cibseven.bpm.engine.impl.DefaultArtifactFactory;
+import org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator;
 import org.cibseven.bpm.engine.impl.ExternalTaskServiceImpl;
 import org.cibseven.bpm.engine.impl.FilterServiceImpl;
 import org.cibseven.bpm.engine.impl.FormServiceImpl;
@@ -99,6 +103,7 @@ import org.cibseven.bpm.engine.impl.application.ProcessApplicationManager;
 import org.cibseven.bpm.engine.impl.batch.BatchJobHandler;
 import org.cibseven.bpm.engine.impl.batch.BatchMonitorJobHandler;
 import org.cibseven.bpm.engine.impl.batch.BatchSeedJobHandler;
+import org.cibseven.bpm.engine.impl.batch.deletion.DeleteDeploymentsJobHandler;
 import org.cibseven.bpm.engine.impl.batch.deletion.DeleteHistoricProcessInstancesJobHandler;
 import org.cibseven.bpm.engine.impl.batch.deletion.DeleteProcessInstancesJobHandler;
 import org.cibseven.bpm.engine.impl.batch.externaltask.SetExternalTaskRetriesJobHandler;
@@ -269,6 +274,7 @@ import org.cibseven.bpm.engine.impl.migration.validation.instance.MigratingCompe
 import org.cibseven.bpm.engine.impl.migration.validation.instance.MigratingTransitionInstanceValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instance.NoUnmappedCompensationStartEventValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instance.NoUnmappedLeafInstanceValidator;
+import org.cibseven.bpm.engine.impl.migration.validation.instance.AdHocSubProcessInstanceValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instance.SupportedActivityInstanceValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instance.VariableConflictActivityInstanceValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.AdditionalFlowScopeInstructionValidator;
@@ -279,6 +285,7 @@ import org.cibseven.bpm.engine.impl.migration.validation.instruction.Conditional
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.GatewayMappingValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.MigrationInstructionValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.OnlyOnceMappedActivityInstructionValidator;
+import org.cibseven.bpm.engine.impl.migration.validation.instruction.SameAdHocCompletionRuleValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.SameBehaviorInstructionValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.SameEventScopeInstructionValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.SameEventTypeValidator;
@@ -857,6 +864,22 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
    */
   protected boolean enableExpressionsInAdhocQueries = false;
   protected boolean enableExpressionsInStoredQueries = true;
+
+  /**
+   * Whitelist for task query expressions (see {@link org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator}),
+   * applied to both stored filter criteria and adhoc task queries (e.g. REST /task, /task/count).
+   * Replaces the whole whitelist when set, does not extend the defaults. Configured via
+   * {@link #setAllowedFilterExpressions(String)}, a single String rather than a
+   * {@code Set<String>}, so it can be set the same way on every distro.
+   */
+  protected Set<String> allowedFilterExpressions = new HashSet<>(ExpressionWhitelistValidator.DEFAULT_ALLOWED_EXPRESSIONS);
+
+  /**
+   * If false (default), disables the {@link org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator}
+   * entirely, so any expression is allowed in task filter criteria and adhoc task queries. Set to
+   * true to restrict them to {@link #allowedFilterExpressions}.
+   */
+  protected boolean enableFilterExpressionWhitelist = false;
 
   /**
    * If false, disables XML eXternal Entity (XXE) Processing. This provides protection against XXE Processing attacks.
@@ -1545,6 +1568,9 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
       MessageCorrelationBatchJobHandler messageCorrelationJobHandler = new MessageCorrelationBatchJobHandler();
       batchHandlers.put(messageCorrelationJobHandler.getType(), messageCorrelationJobHandler);
+
+      DeleteDeploymentsJobHandler deleteDeploymentsJobHandler = new DeleteDeploymentsJobHandler();
+      batchHandlers.put(deleteDeploymentsJobHandler.getType(), deleteDeploymentsJobHandler);
     }
 
     if (customBatchJobHandlers != null) {
@@ -4626,6 +4652,33 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     this.enableExpressionsInStoredQueries = enableExpressionsInStoredQueries;
   }
 
+  public Set<String> getAllowedFilterExpressions() {
+    return allowedFilterExpressions;
+  }
+
+  /**
+   * @param allowedFilterExpressions semicolon-separated JUEL expressions, e.g. {@code "${currentUser()};${businessCalendar()}"}.
+   *        Entries are stored normalized (see {@link ExpressionWhitelistValidator#normalize(String)}), so numeric
+   *        arguments act as a wildcard: {@code ${dateTime().plusDays()}}, {@code ${dateTime().plusDays(2)}} and
+   *        {@code ${dateTime().plusDays(5)}} are equivalent and each permits any day count.
+   */
+  public ProcessEngineConfigurationImpl setAllowedFilterExpressions(String allowedFilterExpressions) {
+    this.allowedFilterExpressions = Arrays.stream(allowedFilterExpressions.split(";"))
+        .map(String::trim)
+        .filter(expression -> !expression.isEmpty())
+        .map(ExpressionWhitelistValidator::normalize)
+        .collect(Collectors.toSet());
+    return this;
+  }
+
+  public boolean isEnableFilterExpressionWhitelist() {
+    return enableFilterExpressionWhitelist;
+  }
+
+  public void setEnableFilterExpressionWhitelist(boolean enableFilterExpressionWhitelist) {
+    this.enableFilterExpressionWhitelist = enableFilterExpressionWhitelist;
+  }
+
   public boolean isEnableXxeProcessing() {
     return enableXxeProcessing;
   }
@@ -4758,6 +4811,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     migrationInstructionValidators.add(new UpdateEventTriggersValidator());
     migrationInstructionValidators.add(new AdditionalFlowScopeInstructionValidator());
     migrationInstructionValidators.add(new ConditionalEventUpdateEventTriggerValidator());
+    migrationInstructionValidators.add(new SameAdHocCompletionRuleValidator());
     return migrationInstructionValidators;
   }
 
@@ -4799,6 +4853,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     migratingActivityInstanceValidators.add(new NoUnmappedLeafInstanceValidator());
     migratingActivityInstanceValidators.add(new VariableConflictActivityInstanceValidator());
     migratingActivityInstanceValidators.add(new SupportedActivityInstanceValidator());
+    migratingActivityInstanceValidators.add(new AdHocSubProcessInstanceValidator());
 
     return migratingActivityInstanceValidators;
   }

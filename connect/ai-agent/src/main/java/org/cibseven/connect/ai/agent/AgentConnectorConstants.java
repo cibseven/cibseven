@@ -133,6 +133,19 @@ public final class AgentConnectorConstants {
   // ── Chat memory defaults ──────────────────────────────────────────────────
 
   /**
+   * Prefix for the per-{@code memoryId} chat-memory process variable. The full
+   * name is {@code AGENT_CONNECTOR_MEMORY_PREFIX + <memoryId>}.
+   *
+   * <p>Deliberately uses a {@code -memory_} infix rather than extending
+   * {@link #AGENT_CONNECTOR_LOG_PREFIX}: the webclient enumerates chat-log
+   * variables with {@code name.startsWith("cibseven-connect-ai-agent_")}, so a
+   * name under that prefix would surface memory blobs in the AI chat UI and be
+   * parsed as audit events.
+   */
+  public static final String AGENT_CONNECTOR_MEMORY_PREFIX =
+      "cibseven-connect-ai-agent-memory_";
+
+  /**
    * Default sliding window size (number of messages) for the per-memory-id chat
    * memory used when {@code useChatMemory} is activated and no explicit
    * {@code chatMemoryMaxMessages} is provided.

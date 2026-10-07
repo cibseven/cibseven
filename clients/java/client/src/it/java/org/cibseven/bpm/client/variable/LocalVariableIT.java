@@ -22,17 +22,15 @@ import static org.cibseven.bpm.client.util.ProcessModels.EXTERNAL_TASK_TOPIC_FOO
 import org.cibseven.bpm.client.ExternalTaskClient;
 import org.cibseven.bpm.client.dto.ProcessDefinitionDto;
 import org.cibseven.bpm.client.dto.ProcessInstanceDto;
-import org.cibseven.bpm.client.rule.ClientRule;
+import org.cibseven.bpm.client.rule.ClientExtension;
 import org.cibseven.bpm.client.rule.EngineRule;
 import org.cibseven.bpm.client.task.ExternalTask;
 import org.cibseven.bpm.client.util.RecordingExternalTaskHandler;
 import org.cibseven.bpm.engine.variable.value.StringValue;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class LocalVariableIT {
 
@@ -49,11 +47,8 @@ public class LocalVariableIT {
       .endEvent("endEvent")
       .done();
 
-  protected ClientRule clientRule = new ClientRule();
+  protected ClientExtension clientRule = new ClientExtension();
   protected EngineRule engineRule = new EngineRule();
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule);
 
   protected ExternalTaskClient client;
 
@@ -62,7 +57,7 @@ public class LocalVariableIT {
 
   protected RecordingExternalTaskHandler handler = new RecordingExternalTaskHandler();
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     client = clientRule.client();
     processDefinition = engineRule.deploy(EXTERNAL_TASK_PROCESS).get(0);

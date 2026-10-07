@@ -34,11 +34,13 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 /**
  * Test cases for handling of new jobs created while a job is executed
@@ -87,7 +89,8 @@ public class JobExecutorFollowUpTest {
       .done();
 
   protected boolean skipFlushControl = true;
-  protected ProcessEngineBootstrapRule bootstrapRule =
+  @RegisterExtension
+  @Order(1) protected ProcessEngineBootstrapRule bootstrapRule =
       new ProcessEngineBootstrapRule(configuration -> {
         configuration.setJobExecutor(buildControllableJobExecutor());
         configuration.setCommandContextFactory(new CommandContextFactory() {
@@ -96,8 +99,10 @@ public class JobExecutorFollowUpTest {
           }
         });
       });
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
 
   protected static ControllableJobExecutor buildControllableJobExecutor() {
     ControllableJobExecutor jobExecutor = new ControllableJobExecutor();
@@ -105,9 +110,6 @@ public class JobExecutorFollowUpTest {
     jobExecutor.proceedAndWaitOnShutdown(false);
     return jobExecutor;
   }
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule).around(testHelper);
 
   protected ControllableJobExecutor jobExecutor;
   protected ThreadControl acquisitionThread;
@@ -117,7 +119,7 @@ public class JobExecutorFollowUpTest {
   protected long defaultJobExecutorPriorityRangeMin;
   protected long defaultJobExecutorPriorityRangeMax;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     jobExecutor = (ControllableJobExecutor)
         ((ProcessEngineConfigurationImpl) engineRule.getProcessEngine().getProcessEngineConfiguration()).getJobExecutor();
@@ -130,7 +132,7 @@ public class JobExecutorFollowUpTest {
     defaultJobExecutorPriorityRangeMax = configuration.getJobExecutorPriorityRangeMax();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     jobExecutor.shutdown();
 

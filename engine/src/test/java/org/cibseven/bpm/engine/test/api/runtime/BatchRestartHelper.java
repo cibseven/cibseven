@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.api.runtime;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.cibseven.bpm.engine.batch.Batch;
 import org.cibseven.bpm.engine.management.JobDefinition;
@@ -43,7 +43,7 @@ public class BatchRestartHelper extends BatchHelper {
   
   
   public void executeJob(Job job) {
-    assertNotNull("Job to execute does not exist", job);
+    assertNotNull(job, "Job to execute does not exist");
     getManagementService().executeJob(job.getId());
   }
 }

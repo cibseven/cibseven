@@ -26,7 +26,7 @@ import org.cibseven.bpm.application.ProcessApplication;
 
 /**
  * <p>This class is an implementation of {@link ServletContainerInitializer} and
- * is notified whenever a subclass of {@link ServletProcessApplication} annotated
+ * is notified whenever a subclass of {@link JakartaServletProcessApplication} annotated
  * with the {@link ProcessApplication} annotation is deployed. In such an event,
  * we automatically add the class as {@link ServletContextListener} to the
  * {@link ServletContext}.</p>

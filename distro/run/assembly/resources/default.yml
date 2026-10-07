@@ -90,6 +90,13 @@ cibseven:
   # If neither is set, the connector falls back to the hard-coded default
   # `gpt-5.4-nano`. See CIB7-1415 for the full list of override hooks
   # (chat-log opt-out, content redaction, default model).
+  #
+  # Chat memory is stored as a process variable, so it survives restarts and
+  # works with multiple engine replicas. To restore the old JVM-local behaviour
+  # (single node only, memory lost on restart), set ONE of:
+  #
+  #   JVM arg:  -Dcibseven.connect.ai-agent.chatMemoryVariable.enabled=false
+  #   Env var:  CIBSEVEN_CONNECT_AI_AGENT_CHAT_MEMORY_VARIABLE_ENABLED=false
 
   webclient:
     modeler:

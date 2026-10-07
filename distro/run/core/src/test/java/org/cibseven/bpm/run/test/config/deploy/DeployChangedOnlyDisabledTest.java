@@ -19,7 +19,7 @@ package org.cibseven.bpm.run.test.config.deploy;
 import org.cibseven.bpm.run.CamundaBpmRunProcessEngineConfiguration;
 import org.cibseven.bpm.run.property.CamundaBpmRunDeploymentProperties;
 import org.cibseven.bpm.run.test.AbstractRestTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 

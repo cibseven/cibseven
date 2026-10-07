@@ -23,8 +23,8 @@ import java.util.Map;
 import org.cibseven.bpm.container.impl.jboss.extension.BpmPlatformExtension;
 import org.cibseven.bpm.container.impl.jboss.extension.ModelConstants;
 import org.jboss.as.subsystem.test.AbstractSubsystemBaseTest;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.AfterClass;
 
 /**
  *

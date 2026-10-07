@@ -16,14 +16,14 @@
  */
 package org.cibseven.bpm.identity.scim.util;
 
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * JUnit rule for managing SCIM test environment lifecycle.
  */
-public class ScimTestEnvironmentRule implements TestRule {
+public class ScimTestEnvironmentRule implements BeforeAllCallback, AfterAllCallback {
 
   protected ScimTestEnvironment scimTestEnvironment;
 
@@ -32,18 +32,13 @@ public class ScimTestEnvironmentRule implements TestRule {
   }
 
   @Override
-  public Statement apply(Statement base, Description description) {
-    return new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        scimTestEnvironment.init();
-        try {
-          base.evaluate();
-        } finally {
-          scimTestEnvironment.shutdown();
-        }
-      }
-    };
+  public void beforeAll(ExtensionContext context) throws Exception {
+    scimTestEnvironment.init();
+  }
+
+  @Override
+  public void afterAll(ExtensionContext context) throws Exception {
+    scimTestEnvironment.shutdown();
   }
 
   public ScimTestEnvironment getScimTestEnvironment() {

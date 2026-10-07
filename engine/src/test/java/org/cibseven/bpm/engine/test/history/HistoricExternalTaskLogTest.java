@@ -16,13 +16,13 @@
  */
 package org.cibseven.bpm.engine.test.history;
 
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertTrue;
-import static junit.framework.TestCase.fail;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.builder.DefaultExternalTaskModelBuilder.DEFAULT_TOPIC;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.builder.DefaultExternalTaskModelBuilder.createDefaultExternalTaskModel;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 import java.util.List;
@@ -44,11 +44,11 @@ import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.AfterEach;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class HistoricExternalTaskLogTest {
@@ -58,24 +58,26 @@ public class HistoricExternalTaskLogTest {
   protected final String ERROR_DETAILS = "These are the error details!";
   protected final long LOCK_DURATION = 5 * 60L * 1000L;
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+
   protected ProcessInstance processInstance;
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
   protected ExternalTaskService externalTaskService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     runtimeService = engineRule.getRuntimeService();
     historyService = engineRule.getHistoryService();
     externalTaskService = engineRule.getExternalTaskService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     List<ExternalTask> list = externalTaskService.createExternalTaskQuery().workerId(WORKER_ID).list();
     for (ExternalTask externalTask : list) {
@@ -349,7 +351,7 @@ public class HistoricExternalTaskLogTest {
 
   protected ExternalTask startExternalTaskProcess() {
     BpmnModelInstance oneExternalTaskProcess = createDefaultExternalTaskModel().build();
-    ProcessDefinition sourceProcessDefinition = testHelper.deployAndGetDefinition(oneExternalTaskProcess);
+    ProcessDefinition sourceProcessDefinition = testRule.deployAndGetDefinition(oneExternalTaskProcess);
     ProcessInstance pi = runtimeService.startProcessInstanceById(sourceProcessDefinition.getId());
     return externalTaskService.createExternalTaskQuery().processInstanceId(pi.getId()).singleResult();
   }

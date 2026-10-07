@@ -26,12 +26,14 @@ import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+
 
 /**
  * The test covers the following scenario:
@@ -49,24 +51,23 @@ import org.junit.rules.RuleChain;
  */
 public class ConcurrentHistoryCleanupReconfigureTest extends ConcurrencyTestHelper {
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
+  @RegisterExtension
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configuration.setHistoryCleanupBatchWindowStartTime("12:00"));
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(7) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
-
   protected HistoryService historyService;
 
-  @Before
+  @BeforeEach
   public void initializeProcessEngine() {
     processEngineConfiguration =engineRule.getProcessEngineConfiguration();
     historyService = engineRule.getHistoryService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     testRule.deleteHistoryCleanupJobs();
     clearDatabase();

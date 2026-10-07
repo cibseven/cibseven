@@ -26,8 +26,8 @@ import org.cibseven.bpm.engine.externaltask.LockedExternalTask;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class SkipOutputMappingOnCanceledActitivitesTest extends PluggableProcessEngineTest {
 
@@ -35,7 +35,7 @@ public class SkipOutputMappingOnCanceledActitivitesTest extends PluggableProcess
   protected static final long LOCK_TIME = 10000L;
   protected static final String TOPIC_NAME = "externalTaskTopic";
 
-  @After
+  @AfterEach
   public void tearDown() {
     processEngineConfiguration.setSkipOutputMappingOnCanceledActivities(false);
   }

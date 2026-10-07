@@ -17,7 +17,7 @@
 package org.cibseven.bpm.webapp.impl;
 
 import java.util.Date;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.exception.RestException;
 import org.cibseven.bpm.engine.rest.spi.ProcessEngineProvider;

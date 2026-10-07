@@ -17,22 +17,23 @@
 package org.cibseven.bpm.engine.test.standalone.testing;
 
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 
 public class ProcessEngineRuleParentClassDeploymentTest extends ProcessEngineRuleParentClassDeployment  {
 
-  @Rule
+  @RegisterExtension
   public final ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
 
   @Test
   public void testDeploymentOnParentClassLevel() {
-    assertNotNull("process is not deployed",processEngineRule.getRepositoryService().createProcessDefinitionQuery().processDefinitionKey("testHelperDeploymentTest").singleResult());
+    assertNotNull(processEngineRule.getRepositoryService().createProcessDefinitionQuery().processDefinitionKey("testHelperDeploymentTest").singleResult(), "process is not deployed");
   }
 
 

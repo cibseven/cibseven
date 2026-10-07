@@ -19,43 +19,36 @@ package org.cibseven.bpm.model.bpmn.util;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.xml.impl.util.IoUtil;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 import java.io.InputStream;
 
 /**
- * @author Daniel Meyer
- *
+ * JUnit 5 extension to parse BPMN model before each test method.
  */
-public class ParseBpmnModelRule extends TestWatcher {
+public class ParseBpmnModelRule implements BeforeEachCallback {
 
   protected BpmnModelInstance bpmnModelInstance;
 
   @Override
-  protected void starting(Description description) {
-
-    if(description.getAnnotation(BpmnModelResource.class) != null) {
-
-      Class<?> testClass = description.getTestClass();
-      String methodName = description.getMethodName();
-
+  public void beforeEach(ExtensionContext context) {
+    BpmnModelResource annotation = context.getRequiredTestMethod().getAnnotation(BpmnModelResource.class);
+    if (annotation != null) {
+      Class<?> testClass = context.getRequiredTestClass();
+      String methodName = context.getRequiredTestMethod().getName();
       String resourceFolderName = testClass.getName().replaceAll("\\.", "/");
       String bpmnResourceName = resourceFolderName + "." + methodName + ".bpmn";
-
       InputStream resourceAsStream = getClass().getClassLoader().getResourceAsStream(bpmnResourceName);
       try {
         bpmnModelInstance = Bpmn.readModelFromStream(resourceAsStream);
       } finally {
         IoUtil.closeSilently(resourceAsStream);
       }
-
     }
-
   }
 
   public BpmnModelInstance getBpmnModel() {
     return bpmnModelInstance;
   }
-
 }

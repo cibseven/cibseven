@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.standalone.entity;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -35,7 +35,7 @@ import org.cibseven.bpm.engine.impl.pvm.process.ProcessDefinitionImpl;
 import org.cibseven.bpm.engine.impl.pvm.process.TransitionImpl;
 import org.cibseven.bpm.engine.impl.task.TaskDefinition;
 import org.cibseven.bpm.engine.task.DelegationState;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class EntitySerializationTest {
 

@@ -20,8 +20,8 @@ import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.rest.security.auth.AuthenticationProvider;
 import org.cibseven.bpm.engine.rest.security.auth.AuthenticationResult;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * CompositeAuthenticationProvider tries to authenticate using the first

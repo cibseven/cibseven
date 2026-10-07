@@ -21,11 +21,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.cibseven.bpm.engine.runtime.DeserializationTypeValidator;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 public class HistoricVariableJsonSerializationWithValidationTest extends HistoricVariableJsonSerializationTest {
 
-  @Before
+  @BeforeEach
   public void setUpValidator() {
     DeserializationTypeValidator validatorMock = mock(DeserializationTypeValidator.class);
     when(validatorMock.validate(anyString())).thenReturn(true);

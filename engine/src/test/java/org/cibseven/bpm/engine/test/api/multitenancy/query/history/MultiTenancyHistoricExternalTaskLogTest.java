@@ -42,26 +42,26 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class MultiTenancyHistoricExternalTaskLogTest {
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected HistoryService historyService;
   protected RuntimeService runtimeService;
   protected RepositoryService repositoryService;
   protected IdentityService identityService;
   protected ExternalTaskService externalTaskService;
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected final String TENANT_NULL = null;
   protected final String TENANT_ONE = "tenant1";
@@ -72,7 +72,7 @@ public class MultiTenancyHistoricExternalTaskLogTest {
   protected final long LOCK_DURATION = 5 * 60L * 1000L;
 
 
-  @Before
+  @BeforeEach
   public void setUp() {
     repositoryService = engineRule.getRepositoryService();
     historyService = engineRule.getHistoryService();

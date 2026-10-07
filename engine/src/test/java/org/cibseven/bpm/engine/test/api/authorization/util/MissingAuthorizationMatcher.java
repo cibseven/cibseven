@@ -26,28 +26,26 @@ import org.cibseven.bpm.engine.authorization.MissingAuthorization;
 import org.cibseven.bpm.engine.authorization.Permission;
 import org.cibseven.bpm.engine.authorization.Permissions;
 import org.cibseven.bpm.engine.authorization.Resource;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeDiagnosingMatcher;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Filip Hrisafov
  */
-public class MissingAuthorizationMatcher extends TypeSafeDiagnosingMatcher<MissingAuthorization> {
+public class MissingAuthorizationMatcher {
 
-  private MissingAuthorization missing;
-
-  private MissingAuthorizationMatcher(MissingAuthorization authorization) {
-    this.missing = authorization;
-  }
-
-  public static Collection<Matcher<? super MissingAuthorization>> asMatchers(List<MissingAuthorization> missingAuthorizations) {
-    Collection<Matcher<? super MissingAuthorization>> matchers =
-        new ArrayList<Matcher<? super MissingAuthorization>>(missingAuthorizations.size());
-    for (MissingAuthorization authorization : missingAuthorizations) {
-      matchers.add(new MissingAuthorizationMatcher(authorization));
-    }
-    return matchers;
+  // Utility method for AssertJ assertions
+  public static void assertMissingAuthorizationsEquals(List<MissingAuthorization> actual, List<MissingAuthorization> expected) {
+    assertThat(actual)
+      .usingElementComparator((a, b) -> {
+        if (a == b) return 0;
+        if (a == null || b == null) return -1;
+        boolean same = org.apache.commons.lang3.StringUtils.equals(a.getResourceId(), b.getResourceId())
+          && org.apache.commons.lang3.StringUtils.equals(a.getResourceType(), b.getResourceType())
+          && org.apache.commons.lang3.StringUtils.equals(a.getViolatedPermissionName(), b.getViolatedPermissionName());
+        return same ? 0 : -1;
+      })
+      .containsExactlyInAnyOrderElementsOf(expected);
   }
 
   protected static MissingAuthorization asMissingAuthorization(Authorization authorization) {
@@ -76,21 +74,5 @@ public class MissingAuthorizationMatcher extends TypeSafeDiagnosingMatcher<Missi
       missingAuthorizations.add(asMissingAuthorization(authorization));
     }
     return missingAuthorizations;
-  }
-
-  @Override
-  protected boolean matchesSafely(MissingAuthorization item, Description mismatchDescription) {
-    if (StringUtils.equals(missing.getResourceId(), item.getResourceId())
-        && StringUtils.equals(missing.getResourceType(), item.getResourceType())
-        && StringUtils.equals(missing.getViolatedPermissionName(), item.getViolatedPermissionName())) {
-      return true;
-    }
-    mismatchDescription.appendText("expected missing authorization: ").appendValue(missing).appendValue(" received: ").appendValue(item);
-    return false;
-  }
-
-  @Override
-  public void describeTo(Description description) {
-    description.appendValue(missing);
   }
 }

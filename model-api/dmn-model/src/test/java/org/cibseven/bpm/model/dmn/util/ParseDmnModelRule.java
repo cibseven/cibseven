@@ -21,25 +21,24 @@ import java.io.InputStream;
 import org.cibseven.bpm.model.dmn.Dmn;
 import org.cibseven.bpm.model.dmn.DmnModelInstance;
 import org.cibseven.bpm.model.xml.impl.util.IoUtil;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
-public class ParseDmnModelRule extends TestWatcher {
+public class ParseDmnModelRule implements BeforeEachCallback {
 
   protected DmnModelInstance dmnModelInstance;
 
   @Override
-  protected void starting(Description description) {
+  public void beforeEach(ExtensionContext context) throws Exception {
 
-    DmnModelResource dmnModelResource = description.getAnnotation(DmnModelResource.class);
-
+    DmnModelResource dmnModelResource = context.getTestMethod().get().getAnnotation(DmnModelResource.class);
     if(dmnModelResource != null) {
 
       String resourcePath = dmnModelResource.resource();
 
       if (resourcePath.isEmpty()) {
-        Class<?> testClass = description.getTestClass();
-        String methodName = description.getMethodName();
+        Class<?> testClass = context.getTestClass().get();
+        String methodName = context.getTestMethod().get().getName();
 
         String resourceFolderName = testClass.getName().replaceAll("\\.", "/");
         resourcePath = resourceFolderName + "." + methodName + ".dmn";

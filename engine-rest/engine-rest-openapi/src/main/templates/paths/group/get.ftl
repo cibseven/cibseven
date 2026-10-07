@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getQueryGroups"
       tag = "Group"
-      summary = "Get List"
+      summary = "Get Group List"
       desc = "Queries for a list of groups using a list of parameters. The size of the result set can be retrieved
               by using the [Get Group Count](${docsUrl}/reference/rest/group/get-query-count) method." />
 

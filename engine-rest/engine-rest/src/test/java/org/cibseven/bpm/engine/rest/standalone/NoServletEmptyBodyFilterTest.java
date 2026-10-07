@@ -17,14 +17,14 @@
 package org.cibseven.bpm.engine.rest.standalone;
 
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Tassilo Weidner
  */
 public class NoServletEmptyBodyFilterTest extends AbstractEmptyBodyFilterTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule testContainer = new TestContainerRule();
 
 }

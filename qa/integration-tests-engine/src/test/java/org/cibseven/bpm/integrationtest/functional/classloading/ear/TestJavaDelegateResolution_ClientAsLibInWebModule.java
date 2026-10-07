@@ -15,20 +15,23 @@
  * limitations under the License.
  */
 package org.cibseven.bpm.integrationtest.functional.classloading.ear;
-import javax.transaction.SystemException;
+import jakarta.transaction.SystemException;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import org.cibseven.bpm.integrationtest.functional.classloading.beans.ExampleDelegate;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
+import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 
 /**
@@ -41,7 +44,7 @@ import org.junit.runner.RunWith;
  *
  * @author Daniel Meyer
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TestJavaDelegateResolution_ClientAsLibInWebModule extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -51,8 +54,14 @@ public class TestJavaDelegateResolution_ClientAsLibInWebModule extends AbstractF
       .addAsResource("org/cibseven/bpm/integrationtest/functional/classloading/JavaDelegateResolutionTest.testResolveClass.bpmn20.xml")
       .addAsResource("org/cibseven/bpm/integrationtest/functional/classloading/JavaDelegateResolutionTest.testResolveClassFromJobExecutor.bpmn20.xml");
 
+    // WildFly rejects the CDI extension of an engine-cdi jar inside a WAR of an EAR
+    // (WFLYWELD0021), so it goes into the EAR's lib folder like in the other EAR tests
+    JavaArchive engineCdi = DeploymentHelper.getEngineCdi();
+    processArchiveWar.delete("WEB-INF/lib/" + engineCdi.getName());
+
     return ShrinkWrap.create(EnterpriseArchive.class, "test-app.ear")
-      .addAsModule(processArchiveWar);
+      .addAsModule(processArchiveWar)
+      .addAsLibrary(engineCdi);
   }
 
   @Deployment(name="clientDeployment")
@@ -71,7 +80,7 @@ public class TestJavaDelegateResolution_ClientAsLibInWebModule extends AbstractF
     // assert that we cannot load the delegate here:
     try {
       Class.forName("org.cibseven.bpm.integrationtest.functional.classloading.ExampleDelegate");
-      Assert.fail("CNFE expected");
+      fail("CNFE expected");
     }catch (ClassNotFoundException e) {
       // expected
     }
@@ -86,11 +95,11 @@ public class TestJavaDelegateResolution_ClientAsLibInWebModule extends AbstractF
 
     runtimeService.startProcessInstanceByKey("testResolveClassFromJobExecutor");
 
-    Assert.assertEquals(1, runtimeService.createProcessInstanceQuery().count());
+    assertThat(runtimeService.createProcessInstanceQuery().count()).isEqualTo(1);
 
     waitForJobExecutorToProcessAllJobs();
 
-    Assert.assertEquals(0, runtimeService.createProcessInstanceQuery().count());
+    assertThat(runtimeService.createProcessInstanceQuery().count()).isEqualTo(0);
 
   }
 

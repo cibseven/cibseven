@@ -26,11 +26,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.Variant;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Variant;
 
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.BadUserRequestException;

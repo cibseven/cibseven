@@ -23,8 +23,8 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import com.fasterxml.uuid.EthernetAddress;
 import com.fasterxml.uuid.Generators;
 import com.fasterxml.uuid.impl.TimeBasedGenerator;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
@@ -65,7 +65,7 @@ public class UuidGeneratorTest {
       thread.join();
     }
 
-    Assert.assertEquals(THREAD_COUNT * LOOP_COUNT, generatedIds.size());
-    Assert.assertTrue(duplicatedIds.isEmpty());
+    Assertions.assertEquals(THREAD_COUNT * LOOP_COUNT, generatedIds.size());
+    Assertions.assertTrue(duplicatedIds.isEmpty());
   }
 }

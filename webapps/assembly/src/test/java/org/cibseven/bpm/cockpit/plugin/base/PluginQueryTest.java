@@ -23,7 +23,7 @@ import java.util.List;
 import org.cibseven.bpm.cockpit.db.QueryParameters;
 import org.cibseven.bpm.cockpit.plugin.test.AbstractCockpitPluginTest;
 import org.cibseven.bpm.engine.runtime.Execution;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  *

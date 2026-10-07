@@ -26,7 +26,7 @@ import org.cibseven.bpm.engine.rest.hal.HalResource;
 import org.cibseven.bpm.engine.rest.sub.repository.DeploymentResourcesResource;
 import org.cibseven.bpm.engine.rest.util.ApplicationContextPathUtil;
 
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 
 /**
  * @author Daniel Meyer

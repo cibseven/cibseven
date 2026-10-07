@@ -16,8 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.ejb;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.runtime.Incident;
 import org.cibseven.bpm.engine.runtime.Job;
@@ -25,10 +24,10 @@ import org.cibseven.bpm.integrationtest.functional.ejb.beans.SLSBClientDelegate;
 import org.cibseven.bpm.integrationtest.functional.ejb.beans.SLSBThrowExceptionDelegate;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Testcase verifying that if an exception is thrown inside an EJB the original
@@ -37,7 +36,7 @@ import org.junit.runner.RunWith;
  * @author Ronny Bräunlich
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class SLSBExceptionInDelegateTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -56,7 +55,7 @@ public class SLSBExceptionInDelegateTest extends AbstractFoxPlatformIntegrationT
       waitForJobExecutorToProcessAllJobs();
       
       Incident incident = runtimeService.createIncidentQuery().activityId("servicetask1").singleResult();
-      assertThat(incident.getIncidentMessage(), is("error"));
+      assertThat(incident.getIncidentMessage()).isEqualTo("error");
   }
 
 }

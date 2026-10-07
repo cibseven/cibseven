@@ -18,16 +18,16 @@ package org.cibseven.bpm.spring.boot.starter.rest.config.fetchandlock;
 
 import jakarta.servlet.ServletContext;
 import org.cibseven.bpm.spring.boot.starter.rest.test.TestRestApplication;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = { TestRestApplication.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {"camunda.bpm.rest-api.fetch-and-lock.unique-worker-request=false"})
 public class FetchAndLockHandlerConfigureUniqueWorkerRequestFalseIT {

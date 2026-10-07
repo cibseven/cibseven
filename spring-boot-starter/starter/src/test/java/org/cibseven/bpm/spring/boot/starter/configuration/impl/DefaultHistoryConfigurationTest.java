@@ -27,14 +27,14 @@ import org.cibseven.bpm.engine.impl.history.HistoryLevel;
 import org.cibseven.bpm.engine.impl.history.handler.HistoryEventHandler;
 import org.cibseven.bpm.engine.spring.SpringProcessEngineConfiguration;
 import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class DefaultHistoryConfigurationTest {
 
   @Mock
@@ -44,7 +44,7 @@ public class DefaultHistoryConfigurationTest {
 
   private DefaultHistoryConfiguration defaultHistoryConfiguration;
 
-  @Before
+  @BeforeEach
   public void before() {
     camundaBpmProperties = new CamundaBpmProperties();
     defaultHistoryConfiguration = new DefaultHistoryConfiguration();

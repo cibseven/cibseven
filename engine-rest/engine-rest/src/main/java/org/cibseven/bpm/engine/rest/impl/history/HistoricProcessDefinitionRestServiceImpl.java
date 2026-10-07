@@ -18,9 +18,7 @@ package org.cibseven.bpm.engine.rest.impl.history;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.ws.rs.core.UriInfo;
-
+import jakarta.ws.rs.core.UriInfo;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.history.CleanableHistoricProcessInstanceReport;
 import org.cibseven.bpm.engine.history.CleanableHistoricProcessInstanceReportResult;

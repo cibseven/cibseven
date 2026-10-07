@@ -3,7 +3,7 @@
   <@lib.endpointInfo
       id = "setRemovalTimeAsync"
       tag = "Historic Process Instance"
-      summary = "Set Removal Time Async (POST)"
+      summary = "Set Removal Time Async For Historic Process Instances"
       desc = "Sets the removal time to multiple historic process instances asynchronously (batch).
 
               At least `historicProcessInstanceIds` or `historicProcessInstanceQuery` has to be provided.

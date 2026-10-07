@@ -21,7 +21,7 @@
 
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-rest-core-jakarta</artifactId>
+      <artifactId>cibseven-engine-rest-core</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -56,7 +56,22 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-resttestclient</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-restclient</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-http-client</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

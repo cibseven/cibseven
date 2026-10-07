@@ -34,7 +34,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.Collections;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.DecisionService;
 import org.cibseven.bpm.engine.ProcessEngineException;
@@ -46,10 +46,10 @@ import org.cibseven.bpm.engine.repository.DecisionRequirementsDefinitionQuery;
 import org.cibseven.bpm.engine.rest.exception.RestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
@@ -61,7 +61,7 @@ import io.restassured.response.Response;
 
 public class DecisionRequirementsDefinitionRestServiceInteractionTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String DECISION_REQUIREMENTS_DEFINITION_URL = TEST_RESOURCE_ROOT_PATH + "/decision-requirements-definition";
@@ -77,7 +77,7 @@ public class DecisionRequirementsDefinitionRestServiceInteractionTest extends Ab
   protected DecisionRequirementsDefinitionQuery decisionRequirementsDefinitionQueryMock;
   protected DecisionService decisionServiceMock;
 
-  @Before
+  @BeforeEach
   public void setUpRuntime() throws FileNotFoundException, URISyntaxException {
     DecisionRequirementsDefinition mockDecisionRequirementsDefinition = MockProvider.createMockDecisionRequirementsDefinition();
 
@@ -225,8 +225,8 @@ public class DecisionRequirementsDefinitionRestServiceInteractionTest extends Ab
         .get(XML_DEFINITION_URL);
 
     String responseContent = response.asString();
-    Assert.assertTrue(responseContent.contains(MockProvider.EXAMPLE_DECISION_REQUIREMENTS_DEFINITION_ID));
-    Assert.assertTrue(responseContent.contains("<?xml"));
+    Assertions.assertTrue(responseContent.contains(MockProvider.EXAMPLE_DECISION_REQUIREMENTS_DEFINITION_ID));
+    Assertions.assertTrue(responseContent.contains("<?xml"));
   }
 
   // DRD retrieval
@@ -246,7 +246,7 @@ public class DecisionRequirementsDefinitionRestServiceInteractionTest extends Ab
     verify(repositoryServiceMock).getDecisionRequirementsDiagram(MockProvider.EXAMPLE_DECISION_REQUIREMENTS_DEFINITION_ID);
 
     byte[] expected = IoUtil.readInputStream(new FileInputStream(getFile()), "decision requirements diagram");
-    Assert.assertArrayEquals(expected, actual);
+    Assertions.assertArrayEquals(expected, actual);
   }
 
   protected void setUpRuntimeData(DecisionRequirementsDefinition mockDecisionRequirementsDefinition) throws FileNotFoundException, URISyntaxException {
@@ -270,7 +270,7 @@ public class DecisionRequirementsDefinitionRestServiceInteractionTest extends Ab
   protected InputStream createMockDecisionRequirementsDefinitionDmnXml() {
     // do not close the input stream, will be done in implementation
     InputStream dmnXmlInputStream = ReflectUtil.getResourceAsStream("decisions/decision-requirements-model.dmn");
-    Assert.assertNotNull(dmnXmlInputStream);
+    Assertions.assertNotNull(dmnXmlInputStream);
     return dmnXmlInputStream;
   }
 

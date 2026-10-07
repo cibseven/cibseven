@@ -1,4 +1,4 @@
-/*
+/*ver
  * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH
  * under one or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information regarding copyright
@@ -18,9 +18,9 @@ package org.cibseven.bpm.engine.test.history;
 
 import static org.cibseven.bpm.engine.query.PeriodUnit.MONTH;
 import static org.cibseven.bpm.engine.query.PeriodUnit.QUARTER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -44,7 +44,7 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -811,14 +811,14 @@ public class HistoricProcessInstanceDurationReportTest extends PluggableProcessE
     }
 
     public void assertReportResults(List<DurationReportResult> actual) {
-      assertEquals("Report size", periodToProcessInstancesMap.size(), actual.size());
+      assertEquals(periodToProcessInstancesMap.size(), actual.size(), "Report size");
 
       for (DurationReportResult reportResult : actual) {
-        assertEquals("Period unit", periodUnit, reportResult.getPeriodUnit());
+        assertEquals(reportResult.getPeriodUnit(), periodUnit, "Period unit");
 
         int period = reportResult.getPeriod();
         Set<String> processInstancesInPeriod = periodToProcessInstancesMap.get(period);
-        assertNotNull("Unexpected report for period " + period, processInstancesInPeriod);
+        assertNotNull(processInstancesInPeriod, "Unexpected report for period " + period);
 
         List<HistoricProcessInstance> historicProcessInstances = historyService
             .createHistoricProcessInstanceQuery()
@@ -840,9 +840,9 @@ public class HistoricProcessInstanceDurationReportTest extends PluggableProcessE
 
         long avg = sum / historicProcessInstances.size();
 
-        assertEquals("maximum", max, reportResult.getMaximum());
-        assertEquals("minimum", min, reportResult.getMinimum());
-        assertEquals("average", avg, reportResult.getAverage(), 1);
+        assertEquals(max, reportResult.getMaximum(), "maximum");
+        assertEquals(min, reportResult.getMinimum(), "minimum");
+        assertEquals(avg, reportResult.getAverage(), 1, "average");
       }
     }
 

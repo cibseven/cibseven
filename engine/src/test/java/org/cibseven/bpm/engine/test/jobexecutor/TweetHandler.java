@@ -25,7 +25,7 @@ import org.cibseven.bpm.engine.impl.jobexecutor.JobHandlerConfiguration;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.test.jobexecutor.TweetHandler.TweetJobConfiguration;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 public class TweetHandler implements JobHandler<TweetJobConfiguration> {
 
@@ -37,7 +37,7 @@ public class TweetHandler implements JobHandler<TweetJobConfiguration> {
 
   public void execute(TweetJobConfiguration configuration, ExecutionEntity execution, CommandContext commandContext, String tenantId) {
     messages.add(configuration.getMessage());
-    Assert.assertNotNull(commandContext);
+    Assertions.assertNotNull(commandContext);
   }
 
   public List<String> getMessages() {

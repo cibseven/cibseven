@@ -28,22 +28,22 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.asset.ByteArrayAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.fail;
 
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class SetVariablesMigrationContextSwitchTest extends AbstractFoxPlatformIntegrationTest {
 
   public static BpmnModelInstance oneTaskProcess(String key) {
@@ -126,7 +126,7 @@ public class SetVariablesMigrationContextSwitchTest extends AbstractFoxPlatformI
     }
 
     // then
-    Assert.assertNotNull(runtimeService.getVariableTyped(pi, "foo", false));
+    Assertions.assertNotNull(runtimeService.getVariableTyped(pi, "foo", false));
   }
 
   @Test
@@ -161,7 +161,7 @@ public class SetVariablesMigrationContextSwitchTest extends AbstractFoxPlatformI
         .execute();
 
     // then
-    Assert.assertNotNull(runtimeService.getVariableTyped(pi, "foo", false));
+    Assertions.assertNotNull(runtimeService.getVariableTyped(pi, "foo", false));
   }
 
   protected static Asset modelAsAsset(BpmnModelInstance modelInstance) {

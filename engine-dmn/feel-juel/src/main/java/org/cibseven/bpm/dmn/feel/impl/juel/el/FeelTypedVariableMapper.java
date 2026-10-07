@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.dmn.feel.impl.juel.el;
 
-import org.cibseven.bpm.impl.juel.jakarta.el.ExpressionFactory;
-import org.cibseven.bpm.impl.juel.jakarta.el.ValueExpression;
-import org.cibseven.bpm.impl.juel.jakarta.el.VariableMapper;
+import jakarta.el.ExpressionFactory;
+import jakarta.el.ValueExpression;
+import jakarta.el.VariableMapper;
 
 import org.cibseven.bpm.dmn.feel.impl.juel.FeelEngineLogger;
 import org.cibseven.bpm.dmn.feel.impl.juel.FeelLogger;

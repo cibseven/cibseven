@@ -181,39 +181,14 @@ class AgentChatListener implements ChatModelListener {
       new java.util.concurrent.atomic.AtomicBoolean(false);
 
   /**
-   * Environment-variable lookup seam. Defaults to {@link System#getenv(String)};
-   * tests replace it to simulate env vars without spawning a new JVM. Always
-   * restore to {@link System#getenv(String)::apply} after the test.
-   */
-  static java.util.function.Function<String, String> ENV_READER = System::getenv;
-
-  /**
-   * Resolves a boolean flag from a system property, falling back to an
-   * environment variable (via {@link #ENV_READER}), then to
-   * {@code defaultValue}. The system property wins when both are set so
-   * {@code -D} overrides can be applied without editing the container env.
-   * Empty / blank values are treated as unset.
-   */
-  static boolean resolveBooleanFlag(String systemProperty, String envVar, boolean defaultValue) {
-    String fromSys = System.getProperty(systemProperty);
-    if (fromSys != null && !fromSys.trim().isEmpty()) {
-      return Boolean.parseBoolean(fromSys.trim());
-    }
-    String fromEnv = ENV_READER.apply(envVar);
-    if (fromEnv != null && !fromEnv.trim().isEmpty()) {
-      return Boolean.parseBoolean(fromEnv.trim());
-    }
-    return defaultValue;
-  }
-
-  /**
    * Resolves the deployment-wide chat-log variable flag from system property
    * → env var → default ({@code true}). Logs the resolved value exactly once
    * per JVM lifetime: WARN on the non-default {@code false} (compliance-
    * relevant deviation), DEBUG on {@code true}.
    */
   static boolean isChatLogVariableEnabled() {
-    boolean enabled = resolveBooleanFlag(CHAT_LOG_VARIABLE_PROPERTY, CHAT_LOG_VARIABLE_ENV_VAR, true);
+    boolean enabled = ConnectorSettings.resolveBoolean(
+        CHAT_LOG_VARIABLE_PROPERTY, CHAT_LOG_VARIABLE_ENV_VAR, true);
     if (CHAT_LOG_FLAG_LOGGED.compareAndSet(false, true)) {
       if (!enabled) {
         LOG.warn("AI Agent connector: per-activity chat-log variable is DISABLED "
@@ -238,7 +213,7 @@ class AgentChatListener implements ChatModelListener {
    * announcement; matches the existing {@code redactContent} behaviour.
    */
   static boolean isRedactContentEnabled() {
-    return resolveBooleanFlag(REDACT_CONTENT_PROPERTY, REDACT_CONTENT_ENV_VAR, false);
+    return ConnectorSettings.resolveBoolean(REDACT_CONTENT_PROPERTY, REDACT_CONTENT_ENV_VAR, false);
   }
 
   // ── run identity ─────────────────────────────────────────────────────────

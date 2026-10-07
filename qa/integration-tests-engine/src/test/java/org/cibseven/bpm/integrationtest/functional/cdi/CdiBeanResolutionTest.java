@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.cdi;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.cdi.CdiStandaloneProcessEngineConfiguration;
 import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
 import org.cibseven.bpm.integrationtest.functional.cdi.beans.ExampleBean;
@@ -24,12 +26,12 @@ import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 
 /**
@@ -42,7 +44,7 @@ import org.junit.runner.RunWith;
  *
  * @author Daniel Meyer
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class CdiBeanResolutionTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -69,26 +71,26 @@ public class CdiBeanResolutionTest extends AbstractFoxPlatformIntegrationTest {
   @OperateOnDeployment("clientDeployment")
   public void testResolveBean() {
     // assert that we cannot resolve the bean here:
-    Assert.assertNull(ProgrammaticBeanLookup.lookup("exampleBean"));
+    Assertions.assertNull(ProgrammaticBeanLookup.lookup("exampleBean"));
 
-    Assert.assertEquals(0, runtimeService.createProcessInstanceQuery().processDefinitionKey("testResolveBean").count());
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionKey("testResolveBean").count()).isEqualTo(0);
     // but the process engine can:
     runtimeService.startProcessInstanceByKey("testResolveBean");
 
-    Assert.assertEquals(0,runtimeService.createProcessInstanceQuery().processDefinitionKey("testResolveBean").count());
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionKey("testResolveBean").count()).isEqualTo(0);
   }
 
   @Test
   @OperateOnDeployment("clientDeployment")
   public void testResolveBeanFromJobExecutor() {
 
-    Assert.assertEquals(0,runtimeService.createProcessInstanceQuery().processDefinitionKey("testResolveBeanFromJobExecutor").count());
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionKey("testResolveBeanFromJobExecutor").count()).isEqualTo(0);
     runtimeService.startProcessInstanceByKey("testResolveBeanFromJobExecutor");
-    Assert.assertEquals(1,runtimeService.createProcessInstanceQuery().processDefinitionKey("testResolveBeanFromJobExecutor").count());
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionKey("testResolveBeanFromJobExecutor").count()).isEqualTo(1);
 
     waitForJobExecutorToProcessAllJobs();
 
-    Assert.assertEquals(0,runtimeService.createProcessInstanceQuery().processDefinitionKey("testResolveBeanFromJobExecutor").count());
+    assertThat(runtimeService.createProcessInstanceQuery().processDefinitionKey("testResolveBeanFromJobExecutor").count()).isEqualTo(0);
 
   }
 
@@ -96,7 +98,7 @@ public class CdiBeanResolutionTest extends AbstractFoxPlatformIntegrationTest {
   @OperateOnDeployment("clientDeployment")
   public void testResolveCdiStandaloneProcessEngineConfigBean() {
 
-    Assert.assertNotNull(ProgrammaticBeanLookup.lookup(CdiStandaloneProcessEngineConfiguration.class));
+    Assertions.assertNotNull(ProgrammaticBeanLookup.lookup(CdiStandaloneProcessEngineConfiguration.class));
 
   }
 

@@ -21,13 +21,12 @@ import org.cibseven.bpm.model.xml.ModelInstance;
 import org.cibseven.bpm.model.xml.impl.util.ModelTypeException;
 import org.cibseven.bpm.model.xml.testmodel.TestModelParser;
 import org.cibseven.bpm.model.xml.testmodel.instance.*;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.cibseven.bpm.model.xml.test.assertions.ModelAssertions.assertThat;
 import static org.cibseven.bpm.model.xml.testmodel.TestModelConstants.MODEL_NAMESPACE;
-import static org.junit.Assert.fail;
-
+import static org.assertj.core.api.Assertions.fail;
 /**
  * @author Sebastian Menski
  */
@@ -40,7 +39,7 @@ public class ModelElementTypeTest {
   private ModelElementType flyingAnimalType;
   private ModelElementType birdType;
 
-  @Before
+  @BeforeEach
   public void getTypes() {
     TestModelParser modelParser = new TestModelParser();
     modelInstance = modelParser.getEmptyModel();

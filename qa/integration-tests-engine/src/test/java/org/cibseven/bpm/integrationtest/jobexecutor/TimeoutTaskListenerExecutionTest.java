@@ -23,13 +23,15 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.integrationtest.jobexecutor.beans.SampleTaskListenerBean;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-@RunWith(Arquillian.class)
+import static org.assertj.core.api.Assertions.assertThat;
+
+@ExtendWith(ArquillianExtension.class)
 public class TimeoutTaskListenerExecutionTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -49,14 +51,14 @@ public class TimeoutTaskListenerExecutionTest extends AbstractFoxPlatformIntegra
     waitForJobExecutorToProcessAllJobs();
 
     List<ProcessInstance> finallyRunningInstances = runtimeService.createProcessInstanceQuery().processInstanceId(instance.getId()).list();
-    Assert.assertEquals(1, finallyRunningInstances.size());
+    assertThat(finallyRunningInstances.size()).isEqualTo(1);
 
     Task task = taskService.createTaskQuery().processInstanceId(instance.getId()).singleResult();
-    Assert.assertNotNull(task);
+    Assertions.assertNotNull(task);
 
     Object variable = taskService.getVariable(task.getId(), "called");
-    Assert.assertNotNull(variable);
+    Assertions.assertNotNull(variable);
 
-    Assert.assertTrue((boolean) variable);
+    Assertions.assertTrue((boolean) variable);
   }
 }

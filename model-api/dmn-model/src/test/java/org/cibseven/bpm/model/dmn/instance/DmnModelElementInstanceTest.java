@@ -19,15 +19,15 @@ package org.cibseven.bpm.model.dmn.instance;
 import org.cibseven.bpm.model.dmn.impl.DmnModelConstants;
 import org.cibseven.bpm.model.dmn.util.GetDmnModelElementTypeRule;
 import org.cibseven.bpm.model.xml.test.AbstractModelElementInstanceTest;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public abstract class DmnModelElementInstanceTest extends AbstractModelElementInstanceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static final GetDmnModelElementTypeRule modelElementTypeRule = new GetDmnModelElementTypeRule();
 
-  @BeforeClass
+  @BeforeAll
   public static void initModelElementType() {
     initModelElementType(modelElementTypeRule);
   }

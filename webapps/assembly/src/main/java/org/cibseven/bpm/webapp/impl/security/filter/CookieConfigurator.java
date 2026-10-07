@@ -18,7 +18,7 @@ package org.cibseven.bpm.webapp.impl.security.filter;
 
 import java.util.Arrays;
 
-import javax.servlet.FilterConfig;
+import jakarta.servlet.FilterConfig;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.webapp.impl.security.filter.util.CookieConstants;

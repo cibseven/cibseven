@@ -13,16 +13,17 @@
   <name>CIB seven - Run 4 - Assembly</name>
   <packaging>pom</packaging>
   
-  <properties>
-    <!-- generate a bom of compile time dependencies for the license book.
-    Note: Every compile time dependency will end up in the license book. Please
-    declare only dependencies that are actually needed -->
-    <skip-third-party-bom>false</skip-third-party-bom>
-  </properties>
 
   <dependencyManagement>
     <dependencies>
       <!-- override the Spring Boot Groovy version with the Camunda Groovy version -->
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${version.junit5}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
       <dependency>
         <groupId>org.apache.groovy</groupId>
         <artifactId>groovy-bom</artifactId>

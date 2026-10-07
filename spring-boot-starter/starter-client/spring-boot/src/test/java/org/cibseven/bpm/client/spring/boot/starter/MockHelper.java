@@ -20,7 +20,7 @@ import org.cibseven.bpm.client.ExternalTaskClient;
 import org.cibseven.bpm.client.ExternalTaskClientBuilder;
 import org.mockito.MockedStatic;
 
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.Mockito.RETURNS_SELF;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;

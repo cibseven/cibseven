@@ -17,7 +17,7 @@
 package org.cibseven.bpm.spring.boot.starter.property.authcachettl;
 
 import org.cibseven.bpm.spring.boot.starter.property.ParsePropertiesHelper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

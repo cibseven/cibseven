@@ -16,10 +16,10 @@
  */
 package org.cibseven.bpm.engine.test.api.runtime.migration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -38,33 +38,34 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 public class MigrationTimerBoundryEventTest {
 
   private static final String DUE_DATE_IN_THE_PAST = "2018-02-11T12:13:14Z";
   protected static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
   protected ManagementService managementService;
   protected RuntimeService runtimeService;
   protected TaskService taskService;
 
-  @Before
+  @BeforeEach
   public void init() {
     managementService = rule.getManagementService();
     runtimeService = rule.getRuntimeService();
     taskService = rule.getTaskService();
   }
 
-  @After
+  @AfterEach
   public void cleanUpJobs() {
     List<Job> jobs = managementService.createJobQuery().list();
     if (!jobs.isEmpty()) {

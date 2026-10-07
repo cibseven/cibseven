@@ -25,8 +25,8 @@ import org.cibseven.bpm.model.bpmn.instance.Performer;
 import org.cibseven.bpm.model.bpmn.instance.PotentialOwner;
 import org.cibseven.bpm.model.bpmn.instance.ResourceRole;
 import org.cibseven.bpm.model.bpmn.instance.UserTask;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Dario Campagna
@@ -35,7 +35,7 @@ public class ResourceRolesTest {
 
   private static BpmnModelInstance modelInstance;
 
-  @BeforeClass
+  @BeforeAll
   public static void parseModel() {
     modelInstance = Bpmn.readModelFromStream(ResourceRolesTest.class.getResourceAsStream("ResourceRolesTest.bpmn"));
   }

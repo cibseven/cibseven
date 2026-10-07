@@ -17,9 +17,12 @@
 package org.cibseven.bpm.engine.test;
 
 import java.io.FileNotFoundException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+
 import org.cibseven.bpm.engine.AuthorizationService;
 import org.cibseven.bpm.engine.CaseService;
 import org.cibseven.bpm.engine.DecisionService;
@@ -37,18 +40,17 @@ import org.cibseven.bpm.engine.TaskService;
 import org.cibseven.bpm.engine.impl.ProcessEngineImpl;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.diagnostics.PlatformDiagnosticsRegistry;
-import org.cibseven.bpm.engine.impl.test.RequiredDatabase;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
+import org.cibseven.bpm.engine.impl.test.RequiredDatabase;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
-import org.junit.Assume;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
-
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * Convenience for ProcessEngine and services initialization in the form of a
- * JUnit rule.
+ * JUnit Jupiter extension.
  * <p>
  * Usage:
  * </p>
@@ -56,7 +58,7 @@ import org.junit.runners.model.Statement;
  * <pre>
  * public class YourTest {
  *
- *   &#64;Rule
+ *   &#64;RegisterExtension
  *   public ProcessEngineRule processEngineRule = new ProcessEngineRule();
  *
  *   ...
@@ -100,7 +102,7 @@ import org.junit.runners.model.Statement;
  *
  * @author Tom Baeyens
  */
-public class ProcessEngineRule extends TestWatcher implements ProcessEngineServices {
+public class ProcessEngineRule implements BeforeEachCallback, AfterEachCallback, ProcessEngineServices {
 
   protected String configurationResource = "camunda.cfg.xml";
   protected String configurationResourceCompat = "activiti.cfg.xml";
@@ -108,7 +110,6 @@ public class ProcessEngineRule extends TestWatcher implements ProcessEngineServi
   protected List<String> additionalDeployments = new ArrayList<>();
 
   protected boolean ensureCleanAfterTest = false;
-
   protected ProcessEngine processEngine;
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RepositoryService repositoryService;
@@ -151,46 +152,58 @@ public class ProcessEngineRule extends TestWatcher implements ProcessEngineServi
   }
 
   @Override
-  public void starting(Description description) {
-    String methodName = description.getMethodName();
-    if (methodName != null) {
-      // cut off method variant suffix "[variant name]" for parameterized tests
-      int methodNameVariantStart = description.getMethodName().indexOf('[');
-      int methodNameEnd = methodNameVariantStart < 0 ? description.getMethodName().length() : methodNameVariantStart;
-      methodName = description.getMethodName().substring(0, methodNameEnd);
-    }
-    deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, description.getTestClass(), methodName,
-        description.getAnnotation(Deployment.class));
-  }
-
-  @Override
-  public Statement apply(final Statement base, final Description description) {
-
+  public void beforeEach(ExtensionContext context) throws Exception {
     if (processEngine == null) {
       initializeProcessEngine();
     }
-
     initializeServices();
 
-    Class<?> testClass = description.getTestClass();
-    String methodName = description.getMethodName();
+    if (!context.getTestMethod().isPresent() || !context.getTestClass().isPresent()) {
+      // not a regular test method (e.g. class-level lifecycle callback) - nothing more to do
+      return;
+    }
+    Method method = context.getTestMethod().get();
+    Class<?> testClass = context.getTestClass().get();
 
-    RequiredHistoryLevel reqHistoryLevel = description.getAnnotation(RequiredHistoryLevel.class);
+    RequiredHistoryLevel reqHistoryLevel = context.getElement().map(
+        element -> element.getAnnotation(RequiredHistoryLevel.class)).orElse(null);
     boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine,
-        reqHistoryLevel, testClass, methodName);
+        reqHistoryLevel, testClass, method.getName());
 
-    RequiredDatabase requiredDatabase = description.getAnnotation(RequiredDatabase.class);
+    RequiredDatabase requiredDatabase = method.getAnnotation(RequiredDatabase.class);
     boolean runsWithRequiredDatabase = TestHelper.annotationRequiredDatabaseCheck(processEngine,
-        requiredDatabase, testClass, methodName);
-    return new Statement() {
+    requiredDatabase, testClass, method.getName());
+    assumeTrue(hasRequiredHistoryLevel, "ignored because the current history level is too low");
+    assumeTrue(runsWithRequiredDatabase, "ignored because the database doesn't match the required ones");
 
-      @Override
-      public void evaluate() throws Throwable {
-        Assume.assumeTrue("ignored because the current history level is too low", hasRequiredHistoryLevel);
-        Assume.assumeTrue("ignored because the database doesn't match the required ones", runsWithRequiredDatabase);
-        ProcessEngineRule.super.apply(base, description).evaluate();
-      }
-    };
+
+    //from starting(Description description) method
+    String methodName = method.getName();
+    if (methodName != null) {
+      // cut off method variant suffix "[variant name]" for parameterized tests
+      int methodNameVariantStart = methodName.indexOf('[');
+      int methodNameEnd = methodNameVariantStart < 0 ? methodName.length() : methodNameVariantStart;
+      methodName = methodName.substring(0, methodNameEnd);
+    }
+    deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, testClass, methodName, method.getParameterTypes());
+  
+  }
+
+  @Override
+  public void afterEach(ExtensionContext context) throws Exception {
+    identityService.clearAuthentication();
+    processEngine.getProcessEngineConfiguration().setTenantCheckEnabled(true);
+    TestHelper.annotationDeploymentTearDown(processEngine, deploymentId, context.getRequiredTestClass(), context.getRequiredTestMethod().getName());
+    for (String additionalDeployment : additionalDeployments) {
+      TestHelper.deleteDeployment(processEngine, additionalDeployment);
+    }
+    if (ensureCleanAfterTest) {
+      TestHelper.assertAndEnsureCleanDbAndCache(processEngine);
+    }
+    TestHelper.resetIdGenerator(processEngineConfiguration);
+    ClockUtil.reset();
+    clearServiceReferences();
+    PlatformDiagnosticsRegistry.clear();
   }
 
   protected void initializeProcessEngine() {
@@ -235,29 +248,6 @@ public class ProcessEngineRule extends TestWatcher implements ProcessEngineServi
     filterService = null;
     externalTaskService = null;
     decisionService = null;
-  }
-
-  @Override
-  public void finished(Description description) {
-    identityService.clearAuthentication();
-    processEngine.getProcessEngineConfiguration().setTenantCheckEnabled(true);
-
-    TestHelper.annotationDeploymentTearDown(processEngine, deploymentId, description.getTestClass(), description.getMethodName());
-    for (String additionalDeployment : additionalDeployments) {
-      TestHelper.deleteDeployment(processEngine, additionalDeployment);
-    }
-
-    if (ensureCleanAfterTest) {
-      TestHelper.assertAndEnsureCleanDbAndCache(processEngine);
-    }
-
-    TestHelper.resetIdGenerator(processEngineConfiguration);
-    ClockUtil.reset();
-
-
-    clearServiceReferences();
-
-    PlatformDiagnosticsRegistry.clear();
   }
 
   public void setCurrentTime(Date currentTime) {

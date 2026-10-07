@@ -156,14 +156,37 @@
     <dependency>
       <groupId>com.sun.xml.bind</groupId>
       <artifactId>jaxb-impl</artifactId>
-      <version>${version.xml.jaxb-impl4}</version>
+      <version>${version.xml.jaxb-impl}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-resttestclient</artifactId>
       <scope>test</scope>
     </dependency>
-  </dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-restclient</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-http-client</artifactId>
+      <scope>test</scope>
+    </dependency>
+<!-- JUnit Platform Suite API (behebt die Compiler-Fehler) -->
+    <dependency>
+        <groupId>org.junit.platform</groupId>
+        <artifactId>junit-platform-suite-api</artifactId>
+        <scope>test</scope>
+    </dependency>
+
+    <!-- JUnit Platform Suite Engine (wird zur Ausführung der Suiten benötigt) -->
+    <dependency>
+        <groupId>org.junit.platform</groupId>
+        <artifactId>junit-platform-suite-engine</artifactId>
+        <scope>test</scope>
+    </dependency>
+      </dependencies>
 
   <build>
     <resources>

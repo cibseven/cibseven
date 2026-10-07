@@ -32,7 +32,7 @@ import org.cibseven.spin.json.SpinJsonDataFormatException;
 import org.cibseven.spin.json.SpinJsonException;
 import org.cibseven.spin.json.mapping.Order;
 import org.cibseven.spin.json.mapping.RegularCustomer;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;

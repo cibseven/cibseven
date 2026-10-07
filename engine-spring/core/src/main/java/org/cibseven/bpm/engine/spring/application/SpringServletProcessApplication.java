@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.spring.application;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 import org.cibseven.bpm.application.ProcessApplication;
 import org.cibseven.bpm.application.ProcessApplicationInfo;

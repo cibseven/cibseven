@@ -16,39 +16,23 @@
  */
 package org.cibseven.bpm.qa.performance.engine.query;
 
-import java.util.Arrays;
 import java.util.Date;
 import org.cibseven.bpm.engine.management.Metrics;
 import org.cibseven.bpm.qa.performance.engine.junit.ProcessEnginePerformanceTestCase;
 import org.cibseven.bpm.qa.performance.engine.loadgenerator.tasks.GenerateMetricsTask;
 import org.cibseven.bpm.qa.performance.engine.steps.MetricIntervalStep;
 import org.cibseven.bpm.qa.performance.engine.steps.MetricSumStep;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  *
  * @author Christopher Zell <christopher.zell@camunda.com>
  */
-@RunWith(Parameterized.class)
 public class MetricPerformanceTest extends ProcessEnginePerformanceTestCase {
 
-  @Parameter(0)
-  public String name;
-
-  @Parameter(1)
-  public Date startDate;
-
-  @Parameter(2)
-  public Date endDate;
-
-  @Parameters(name="{index}")
-  public static Iterable<Object[]> params() {
-    return Arrays.asList(new Object[][]
-    {
+  static Object[][] params() {
+    return new Object[][] {
       {null,null,null},
       {Metrics.ACTIVTY_INSTANCE_START, null, null},
       {Metrics.ACTIVTY_INSTANCE_START, new Date(0), null},
@@ -57,16 +41,18 @@ public class MetricPerformanceTest extends ProcessEnginePerformanceTestCase {
       {Metrics.ACTIVTY_INSTANCE_START, null, new Date(GenerateMetricsTask.INTERVAL*250)},
       {Metrics.ACTIVTY_INSTANCE_START, new Date(0), new Date(GenerateMetricsTask.INTERVAL*250)},
       {null, new Date(0), new Date(GenerateMetricsTask.INTERVAL*250)}
-    });
+    };
   }
 
-  @Test
-  public void metricInterval() {
+  @ParameterizedTest
+  @MethodSource("params")
+  void metricInterval(String name, Date startDate, Date endDate) {
     performanceTest().step(new MetricIntervalStep(name, startDate, endDate, engine)).run();
   }
 
-  @Test
-  public void metricSum() {
+  @ParameterizedTest
+  @MethodSource("params")
+  void metricSum(String name, Date startDate, Date endDate) {
     performanceTest().step(new MetricSumStep(name, startDate, endDate, engine)).run();
   }
 }

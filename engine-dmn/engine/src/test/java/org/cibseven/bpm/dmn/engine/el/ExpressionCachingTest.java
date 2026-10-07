@@ -31,8 +31,8 @@ import org.cibseven.bpm.dmn.engine.impl.evaluation.ExpressionEvaluationHandler;
 import org.cibseven.bpm.dmn.engine.impl.spi.el.ElExpression;
 import org.cibseven.bpm.dmn.engine.impl.spi.el.ElProvider;
 import org.codehaus.groovy.jsr223.GroovyScriptEngineImpl;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
 /**
@@ -45,7 +45,7 @@ public class ExpressionCachingTest {
   protected ElProvider elProviderSpy;
   private GroovyScriptEngineImpl scriptEngineSpy;
 
-  @Before
+  @BeforeEach
   public void setup() throws ScriptException {
     ScriptEngineManager scriptEngineManager = mock(ScriptEngineManager.class);
 
@@ -53,6 +53,11 @@ public class ExpressionCachingTest {
     when(scriptEngineSpy.createBindings()).thenReturn(new SimpleBindings());
     when(scriptEngineSpy.compile(anyString())).thenReturn(mock(CompiledScript.class));
     when(scriptEngineManager.getEngineByName(anyString())).thenReturn(scriptEngineSpy);
+
+    // Stub factory so isCachableEngine() can check THREADING parameter
+    javax.script.ScriptEngineFactory factoryMock = mock(javax.script.ScriptEngineFactory.class);
+    when(factoryMock.getParameter("THREADING")).thenReturn("MULTITHREADED");
+    when(scriptEngineSpy.getFactory()).thenReturn(factoryMock);
 
     DefaultDmnEngineConfiguration configuration = new DefaultDmnEngineConfiguration();
 

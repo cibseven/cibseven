@@ -17,9 +17,8 @@
 package org.cibseven.bpm.application.impl;
 
 import java.lang.ref.WeakReference;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
 import org.cibseven.bpm.application.AbstractProcessApplication;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
 import org.cibseven.bpm.engine.impl.util.ClassLoaderUtil;
@@ -110,48 +109,19 @@ import org.cibseven.bpm.engine.impl.util.ClassLoaderUtil;
  * @author Daniel Meyer
  * @author Thorben Lindhauer
  *
+ * @deprecated Both classes are based on {@code jakarta.servlet}; use
+ *             {@link JakartaServletProcessApplication} instead. This class extends it
+ *             so that existing subclasses are still detected by every container integration.
  */
-public class ServletProcessApplication extends AbstractServletProcessApplication implements ServletContextListener {
-
-  protected ServletContext servletContext;
+@Deprecated
+public class ServletProcessApplication extends JakartaServletProcessApplication {
 
   @Override
-  public void contextInitialized(ServletContextEvent sce) {
-    servletContext = sce.getServletContext();
-    servletContextPath = servletContext.getContextPath();
-    servletContextName = sce.getServletContext().getServletContextName();
-
-    processApplicationClassloader = initProcessApplicationClassloader(sce);
-
-    // perform lifecycle start
-    deploy();
-  }
-
   protected ClassLoader initProcessApplicationClassloader(ServletContextEvent sce) {
-    if (isServlet30ApiPresent(sce) && getClass().equals(ServletProcessApplication.class)) {
+    // this class itself registered as a listener (e.g. in web.xml) instead of a subclass
+    if (getClass().equals(ServletProcessApplication.class)) {
       return ClassLoaderUtil.getServletContextClassloader(sce);
-    } else {
-      return ClassLoaderUtil.getClassloader(getClass());
     }
-  }
-
-  private boolean isServlet30ApiPresent(ServletContextEvent sce) {
-    return sce.getServletContext().getMajorVersion() >= 3;
-  }
-
-  @Override
-  public void contextDestroyed(ServletContextEvent sce) {
-    // perform lifecycle stop
-    undeploy();
-
-    // clear the reference
-    if (reference != null) {
-      reference.clear();
-    }
-    reference = null;
-  }
-
-  public ServletContext getServletContext() {
-    return servletContext;
+    return super.initProcessApplicationClassloader(sce);
   }
 }

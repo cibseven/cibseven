@@ -15,22 +15,25 @@
   <inceptionYear>2014</inceptionYear>
   <properties>
     <cibseven.artifact>org.cibseven.bpm.model.xml</cibseven.artifact>
-    <camunda.osgi.import.additional>
-      org.assertj.*;resolution:=optional,
-      org.junit.*;resolution:=optional
-    </camunda.osgi.import.additional>
   </properties>
   <dependencies>
 
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>provided</scope>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${version.junit5}</version>
     </dependency>
-
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+  
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
+      <version>${version.assertj}</version>
       <scope>provided</scope>
     </dependency>
 
@@ -56,6 +59,21 @@
             </goals>
           </execution>
         </executions>
+      <configuration>
+        <instructions>
+          <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
+          <Export-Package>
+            org.cibseven.bpm.model.xml,
+            org.cibseven.bpm.model.xml.instance,
+            org.cibseven.bpm.model.xml.type,
+            org.cibseven.bpm.model.xml.validation
+          </Export-Package>
+          <Import-Package>
+            org.assertj.*;resolution:=optional,
+            org.junit.jupiter.*;resolution:=optional
+          </Import-Package>
+        </instructions>
+      </configuration>
       </plugin>
     </plugins>
   </build>

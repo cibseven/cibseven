@@ -3,7 +3,7 @@
   <@lib.endpointInfo
       id = "getProcessEngineNames"
       tag = "Engine"
-      summary = "Get List"
+      summary = "Get Engine List"
       desc = "Retrieves the names of all process engines available on your platform.
               **Note**: You cannot prepend `/engine/{name}` to this method." />
 

@@ -40,8 +40,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 import org.cibseven.bpm.engine.history.HistoricDetail;
 import org.cibseven.bpm.engine.history.HistoricDetailQuery;
 import org.cibseven.bpm.engine.history.HistoricFormField;
@@ -58,10 +58,10 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.type.SerializableValueType;
 import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -71,7 +71,7 @@ import org.mockito.Mockito;
  */
 public class HistoricDetailRestServiceQueryTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String HISTORIC_DETAIL_RESOURCE_URL = TEST_RESOURCE_ROOT_PATH + "/history/detail";
@@ -85,7 +85,7 @@ public class HistoricDetailRestServiceQueryTest extends AbstractRestServiceTest 
 
   protected HistoricFormField historicFormFieldMock;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     List<HistoricDetail> details = new ArrayList<>();
 
@@ -561,9 +561,9 @@ public class HistoricDetailRestServiceQueryTest extends AbstractRestServiceTest 
   private void verifySimpleHistoricActivityQueryResponse(Response response) {
     String content = response.asString();
     List<String> details = from(content).getList("");
-    Assert.assertEquals("There should be two activity instance returned.", 2, details.size());
-    Assert.assertNotNull("The returned details should not be null.", details.get(0));
-    Assert.assertNotNull("The returned details should not be null.", details.get(1));
+    Assertions.assertEquals( 2, details.size(), "There should be two activity instance returned.");
+    Assertions.assertNotNull(details.get(0), "The returned details should not be null.");
+    Assertions.assertNotNull(details.get(1), "The returned details should not be null.");
 
     // note: element [0] is asserted as part of the fluent rest-assured invocation
 
@@ -587,26 +587,26 @@ public class HistoricDetailRestServiceQueryTest extends AbstractRestServiceTest 
     String returnedOperationId2 = from(content).getString("[1].userOperationId");
     String returnedRootProcessInstanceId = from(content).getString("[1].rootProcessInstanceId");
 
-    Assert.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_ID, returnedId2);
-    Assert.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_PROC_DEF_KEY, returnedProcessDefinitionKey2);
-    Assert.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_PROC_DEF_ID, returnedProcessDefinitionId2);
-    Assert.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_PROC_INST_ID, returnedProcessInstanceId2);
-    Assert.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_ACT_INST_ID, returnedActivityInstanceId2);
-    Assert.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_EXEC_ID, returnedExecutionId2);
-    Assert.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_TASK_ID, returnedTaskId2);
-    Assert.assertEquals(DateTimeUtil.parseDate(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_TIME), returnedTime2);
-    Assert.assertEquals(DateTimeUtil.parseDate(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_TIME), returnedRemovalTime);
-    Assert.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_FIELD_ID, returnedFieldId);
-    Assert.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_VALUE, returnedFieldValue);
-    Assert.assertEquals("formField", returnedType);
-    Assert.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_CASE_DEF_ID, returnedCaseDefinitionId2);
-    Assert.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_CASE_DEF_KEY, returnedCaseDefinitionKey2);
-    Assert.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_CASE_INST_ID, returnedCaseInstanceId2);
-    Assert.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_CASE_EXEC_ID, returnedCaseExecutionId2);
-    Assert.assertEquals(MockProvider.EXAMPLE_TENANT_ID, returnedTenantId2);
-    Assert.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_EXEC_ID, returnedExecutionId2);
-    Assert.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_OPERATION_ID, returnedOperationId2);
-    Assert.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_ROOT_PROCESS_INSTANCE_ID, returnedRootProcessInstanceId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_ID, returnedId2);
+    Assertions.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_PROC_DEF_KEY, returnedProcessDefinitionKey2);
+    Assertions.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_PROC_DEF_ID, returnedProcessDefinitionId2);
+    Assertions.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_PROC_INST_ID, returnedProcessInstanceId2);
+    Assertions.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_ACT_INST_ID, returnedActivityInstanceId2);
+    Assertions.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_EXEC_ID, returnedExecutionId2);
+    Assertions.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_TASK_ID, returnedTaskId2);
+    Assertions.assertEquals(DateTimeUtil.parseDate(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_TIME), returnedTime2);
+    Assertions.assertEquals(DateTimeUtil.parseDate(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_TIME), returnedRemovalTime);
+    Assertions.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_FIELD_ID, returnedFieldId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_VALUE, returnedFieldValue);
+    Assertions.assertEquals("formField", returnedType);
+    Assertions.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_CASE_DEF_ID, returnedCaseDefinitionId2);
+    Assertions.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_CASE_DEF_KEY, returnedCaseDefinitionKey2);
+    Assertions.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_CASE_INST_ID, returnedCaseInstanceId2);
+    Assertions.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_CASE_EXEC_ID, returnedCaseExecutionId2);
+    Assertions.assertEquals(MockProvider.EXAMPLE_TENANT_ID, returnedTenantId2);
+    Assertions.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_EXEC_ID, returnedExecutionId2);
+    Assertions.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_FIELD_OPERATION_ID, returnedOperationId2);
+    Assertions.assertEquals(MockProvider.EXAMPLE_HISTORIC_FORM_ROOT_PROCESS_INSTANCE_ID, returnedRootProcessInstanceId);
   }
 
   @Test

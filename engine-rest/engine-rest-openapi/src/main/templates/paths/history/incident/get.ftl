@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getHistoricIncidents"
       tag = "Historic Incident"
-      summary = "Get Incidents"
+      summary = "Get Historic Incidents"
       desc = "Queries for historic incidents that fulfill given parameters.
               The size of the result set can be retrieved by using the
               [Get Incident Count](${docsUrl}/reference/rest/history/incident/get-incident-query-count/)

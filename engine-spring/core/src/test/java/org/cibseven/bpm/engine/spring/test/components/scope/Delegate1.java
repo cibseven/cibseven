@@ -16,10 +16,10 @@
  */
 package org.cibseven.bpm.engine.spring.test.components.scope;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
-import org.junit.Assert;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,7 +46,7 @@ public class Delegate1 implements JavaDelegate,InitializingBean {
 
 		log.info("the processInstance#id is "+ pid) ;
 
-		Assert.assertNotNull("the 'scopedCustomer' reference can't be null", statefulObject);
+		assertNotNull(statefulObject, "the 'scopedCustomer' reference can't be null");
 		String uuid =  UUID.randomUUID().toString();
 		statefulObject.setName(uuid);
 		log.info("the 'uuid' value given to the ScopedCustomer#name property is '" + uuid + "' in " + getClass().getName());
@@ -55,7 +55,7 @@ public class Delegate1 implements JavaDelegate,InitializingBean {
 	}
 
 	public void afterPropertiesSet() throws Exception {
-	 Assert.assertNotNull("the processInstance must not be null", this.processInstance) ;
+	 assertNotNull(this.processInstance, "the processInstance must not be null") ;
 
 	}
 }

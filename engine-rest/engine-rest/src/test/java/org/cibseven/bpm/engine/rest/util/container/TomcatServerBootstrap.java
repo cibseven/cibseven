@@ -37,6 +37,28 @@ import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenDependencies;
 
 public abstract class TomcatServerBootstrap extends AbstractServerBootstrap {
 
+  /**
+   * On CI (Jenkins), the local Maven repository is redirected via -Dmaven.repo.local in MAVEN_OPTS.
+   * Surefire forks a new JVM that inherits MAVEN_OPTS as an environment variable but does NOT
+   * parse it into JVM system properties. ShrinkWrap's resolver checks the system property,
+   * so it falls back to ~/.m2/repository and can't find artifacts from the custom local repo.
+   */
+  static {
+    String mavenOpts = System.getenv("MAVEN_OPTS");
+    if (mavenOpts != null) {
+      String prefix = "-Dmaven.repo.local=";
+      int idx = mavenOpts.indexOf(prefix);
+      if (idx >= 0) {
+        String rest = mavenOpts.substring(idx + prefix.length());
+        int end = rest.indexOf(' ');
+        String repoPath = (end >= 0) ? rest.substring(0, end) : rest;
+        if (!repoPath.isEmpty()) {
+          System.setProperty("maven.repo.local", repoPath);
+        }
+      }
+    }
+  }
+
   private Tomcat tomcat;
   private String workingDir;
   private String webXmlPath;

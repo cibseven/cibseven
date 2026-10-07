@@ -16,7 +16,13 @@
  */
 package org.cibseven.bpm.engine.query;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.ProcessEngineException;
@@ -82,5 +88,69 @@ public interface Query<T extends Query< ? , ? >, U extends Object> {
    *   (default {@link Integer#MAX_VALUE}).
    */
   List<U> listPage(int firstResult, int maxResults);
+
+  /**
+   * Executes the query and returns the results as a lazily evaluated {@link Stream}.
+   *
+   * <p>The stream fetches the results in fixed-size pages from the database on demand (via
+   * {@link #listPage(int, int)}) as it is consumed, so the whole result set is never held in
+   * memory at once. This is a convenience over paginating manually with
+   * {@link #listPage(int, int)}.
+   *
+   * <p><b>Ordering matters:</b> because the results are fetched page by page, the query must
+   * define a <em>stable total order</em> - i.e. an ordering on a unique property (such as the
+   * entity id) - otherwise rows may be duplicated or skipped between pages, just like with
+   * manual pagination. Non-unique orderings (or no ordering at all) do not guarantee a stable
+   * order between page requests.
+   *
+   * <p>Each page is fetched in its own transaction, so the stream does not observe a single
+   * consistent snapshot: concurrent modifications happening while the stream is being consumed
+   * may or may not be reflected. The stream is sequential and should be consumed once.
+   *
+   * @return a lazily evaluated stream of results
+   * @throws BadUserRequestException
+   *   see {@link #listPage(int, int)}
+   */
+  default Stream<U> stream() {
+    final int pageSize = 100;
+
+    Iterator<U> iterator = new Iterator<U>() {
+
+      protected int nextFirstResult = 0;
+      protected List<U> page = null;
+      protected int indexInPage = 0;
+      protected boolean lastPageReached = false;
+
+      @Override
+      public boolean hasNext() {
+        if (page != null && indexInPage < page.size()) {
+          return true;
+        }
+        if (lastPageReached) {
+          return false;
+        }
+        page = listPage(nextFirstResult, pageSize);
+        nextFirstResult += pageSize;
+        indexInPage = 0;
+        // a page smaller than the requested size means there are no further pages
+        if (page.size() < pageSize) {
+          lastPageReached = true;
+        }
+        return indexInPage < page.size();
+      }
+
+      @Override
+      public U next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        return page.get(indexInPage++);
+      }
+    };
+
+    Spliterator<U> spliterator =
+        Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED | Spliterator.NONNULL);
+    return StreamSupport.stream(spliterator, false);
+  }
 
 }

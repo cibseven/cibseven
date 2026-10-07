@@ -15,22 +15,24 @@
  * limitations under the License.
  */
 package org.cibseven.bpm.integrationtest.deployment.war;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 
 /**
  * Assert that we can deploy a WAR with a processes.xml but no process definitions.
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TestWarDeploymentWithoutProcessDefinitions extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -40,10 +42,10 @@ public class TestWarDeploymentWithoutProcessDefinitions extends AbstractFoxPlatf
 
   @Test
   public void testDeployProcessArchive() {
-    Assert.assertNotNull(ProgrammaticBeanLookup.lookup(ProcessEngine.class));
+    Assertions.assertNotNull(ProgrammaticBeanLookup.lookup(ProcessEngine.class));
 
     // no deployment has been constructed
-    Assert.assertEquals(0, repositoryService.createDeploymentQuery().deploymentName("pa").count());
+    assertThat(repositoryService.createDeploymentQuery().deploymentName("pa").count()).isEqualTo(0);
   }
 
 }

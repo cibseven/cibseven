@@ -17,6 +17,7 @@
 package org.cibseven.spin.json.tree;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.cibseven.spin.json.JsonTestConstants.EXAMPLE_JSON_FILE_NAME;
 
 import org.cibseven.spin.SpinList;
@@ -26,7 +27,8 @@ import org.cibseven.spin.impl.test.ScriptVariable;
 import org.cibseven.spin.json.SpinJsonDataFormatException;
 import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.json.SpinJsonPathException;
-import org.junit.Test;
+import org.cibseven.spin.json.SpinJsonPropertyException;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -130,46 +132,58 @@ public abstract class JsonTreeJsonPathScriptTest extends ScriptTest {
     assertThat(nodeList.get(2).stringValue()).isEqualTo("Johnny");
   }
 
-  @Test(expected = SpinJsonPathException.class)
+  @Test
   @Script(execute = false)
   @ScriptVariable(name = "input", file = EXAMPLE_JSON_FILE_NAME)
   public void shouldFailReadingJsonPath() throws Throwable{
-    failingWithException();
+    assertThatExceptionOfType(SpinJsonPathException.class).isThrownBy(() -> 
+      failingWithException()
+    );
   }
 
-  @Test(expected = SpinJsonPathException.class)
+  @Test
   @Script(execute = false)
   @ScriptVariable(name = "input", file = EXAMPLE_JSON_FILE_NAME)
   public void shouldFailAccessNonExistentProperty() throws Throwable{
-    failingWithException();
+    assertThatExceptionOfType(SpinJsonPathException.class).isThrownBy(() -> 
+      failingWithException()
+    );
   }
 
-  @Test(expected = SpinJsonDataFormatException.class)
+  @Test
   @Script(execute = false)
   @ScriptVariable(name = "input", file = EXAMPLE_JSON_FILE_NAME)
   public void shouldFailReadingElementList() throws Throwable{
-    failingWithException();
+    assertThatExceptionOfType(SpinJsonDataFormatException.class).isThrownBy(() -> 
+      failingWithException()
+    );
   }
 
-  @Test(expected = SpinJsonDataFormatException.class)
+  @Test
   @Script(execute = false)
   @ScriptVariable(name = "input", file = EXAMPLE_JSON_FILE_NAME)
   public void shouldFailReadingString() throws Throwable{
-    failingWithException();
+    assertThatExceptionOfType(SpinJsonDataFormatException.class).isThrownBy(() -> 
+    failingWithException()
+  );
   }
 
-  @Test(expected = SpinJsonDataFormatException.class)
+  @Test
   @Script(execute = false)
   @ScriptVariable(name = "input", file = EXAMPLE_JSON_FILE_NAME)
   public void shouldFailReadingNumber() throws Throwable{
-    failingWithException();
+    assertThatExceptionOfType(SpinJsonDataFormatException.class).isThrownBy(() -> 
+    failingWithException()
+  );
   }
 
-  @Test(expected = SpinJsonDataFormatException.class)
+  @Test
   @Script(execute = false)
   @ScriptVariable(name = "input", file = EXAMPLE_JSON_FILE_NAME)
   public void shouldFailReadingBoolean() throws Throwable{
-    failingWithException();
+    assertThatExceptionOfType(SpinJsonDataFormatException.class).isThrownBy(() -> 
+      failingWithException()
+    );
   }
 }
 

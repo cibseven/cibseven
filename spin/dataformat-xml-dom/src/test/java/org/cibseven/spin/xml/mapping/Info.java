@@ -16,7 +16,7 @@
  */
 package org.cibseven.spin.xml.mapping;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 /**
  * @author Stefan Hentschel.

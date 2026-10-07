@@ -13,15 +13,6 @@
   <name>CIB seven - Run - Core</name>
   <packaging>jar</packaging>
 
-  <properties>
-    <!-- generate a bom of compile time dependencies for the license book.
-    Note: Every compile time dependency will end up in the license book. Please
-    declare only dependencies that are actually needed -->
-    <skip-third-party-bom>false</skip-third-party-bom>
-    <!-- snakeyaml is in Spring Boot's runtime scope and then included in our uberjar -->
-    <third-party-bom-scopes>compile|runtime</third-party-bom-scopes>
-  </properties>
-
   <dependencies>
 
     <dependency>
@@ -65,6 +56,11 @@
     </dependency>
 
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.apache.tomcat.embed</groupId>
       <artifactId>tomcat-embed-core</artifactId>
       <exclusions>
@@ -102,8 +98,15 @@
     </dependency>
 
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${version.junit5}</version>
       <scope>test</scope>
     </dependency>
 
@@ -119,12 +122,6 @@
       </exclusions>
     </dependency>
     
-    <!-- Required to Run JUnit4 tests -->
-    <dependency>
-      <groupId>org.junit.vintage</groupId>
-      <artifactId>junit-vintage-engine</artifactId>
-      <scope>test</scope>
-    </dependency>
 
   </dependencies>
 

@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getExternalTasksCount"
       tag = "External Task"
-      summary = "Get List Count"
+      summary = "Get External Task List Count"
       desc = "Queries for the number of external tasks that fulfill given parameters. Takes the same parameters as the
               [Get External Tasks](${docsUrl}/reference/rest/external-task/get-query/) method." />
 
