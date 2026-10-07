@@ -39,8 +39,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * @author Thorben Lindhauer
  *
  */
-//TODO restore: this test is failing after migrating to JUnit5
-@Disabled("Fails since the JUnit5 migration")
+// the arquillian-service that wildfly-arquillian 2.2.0.Final deploys for 'jmx-as7' needs
+// org.jboss.msc.service.AbstractServiceListener, which the JBoss MSC of current WildFly no longer has
+@Disabled("jmx-as7 protocol needs a newer wildfly-arquillian")
 @ExtendWith(ArquillianExtension.class)
 public class TestJarDeployment extends AbstractFoxPlatformIntegrationTest {
   

@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 import org.cibseven.bpm.application.ProcessApplicationInterface;
 import org.cibseven.bpm.application.ProcessApplicationReference;
 import org.cibseven.bpm.application.ProcessApplicationUnavailableException;
-import org.cibseven.bpm.application.impl.ServletProcessApplication;
+import org.cibseven.bpm.application.impl.JakartaServletProcessApplication;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
@@ -29,7 +29,7 @@ import org.jboss.msc.service.StopContext;
 
 /**
  * <p>Start Service for process applications that do not expose an EE Component View
- * (like {@link ServletProcessApplication}</p>
+ * (like {@link JakartaServletProcessApplication}</p>
  *
  * @author Daniel Meyer
  *

@@ -24,7 +24,6 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -36,8 +35,6 @@ import java.util.Set;
  * @author Thorben Lindhauer
  *
  */
-//TODO restore: this test is failing after migrating to JUnit5
-@Disabled("Fails since the JUnit5 migration")
 @ExtendWith(ArquillianExtension.class)
 public class TestWarDeploymentCustomPAName extends AbstractFoxPlatformIntegrationTest {
 
@@ -48,7 +45,7 @@ public class TestWarDeploymentCustomPAName extends AbstractFoxPlatformIntegratio
         .addClass(AbstractFoxPlatformIntegrationTest.class)
         .addClass(CustomNameServletPA.class)
         .addAsResource("org/cibseven/bpm/integrationtest/testDeployProcessArchive.bpmn20.xml");
-    TestContainer.addContainerSpecificResources(testJar);
+    TestContainer.addContainerSpecificResourcesForNonPa(testJar);
     return testJar;
   }
 
