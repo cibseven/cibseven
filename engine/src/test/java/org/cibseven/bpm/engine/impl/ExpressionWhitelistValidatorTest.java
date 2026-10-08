@@ -115,14 +115,28 @@ public class ExpressionWhitelistValidatorTest {
   }
 
   @Test
+  public void shouldAllowAnyNumericArgumentOnTheDialogAndDemoDataEntriesToo() {
+    // the entries added for CIB7-2247 are stored normalized like every other one, so they must
+    // wildcard their numeric argument as well - not just the single value their source happens
+    // to use (plusWeeks(2) in the dialog's help text, plusDays(4) in InvoiceDemoDataGenerator)
+    assertThat(validator.isAllowed("${dateTime().plusWeeks(1)}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().plusWeeks(52)}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().plusDays(1).withTimeAtStartOfDay()}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().plusDays(30).withTimeAtStartOfDay()}")).isTrue();
+  }
+
+  @Test
   public void shouldAllowEmptyArgumentListAsWildcardNotation() {
     assertThat(validator.isAllowed("${dateTime().plusDays()}")).isTrue();
     assertThat(validator.isAllowed("${dateTime().withTimeAtStartOfDay().plusDays().minusSeconds()}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().plusWeeks()}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().plusDays().withTimeAtStartOfDay()}")).isTrue();
   }
 
   @Test
   public void shouldAllowNumericArgumentCombinedWithWhitespace() {
     assertThat(validator.isAllowed("${ dateTime().plusDays( 5 ) }")).isTrue();
+    assertThat(validator.isAllowed("${ dateTime().plusWeeks( 3 ) }")).isTrue();
   }
 
   @Test
@@ -131,6 +145,9 @@ public class ExpressionWhitelistValidatorTest {
     assertThat(validator.isAllowed("${dateTime().plusYears(2)}")).isFalse();
     assertThat(validator.isAllowed("${dateTime().plusDays(2).getClass()}")).isFalse();
     assertThat(validator.isAllowed("${someBean.getById(2)}")).isFalse();
+    // same for the entries added in CIB7-2247: the wildcard must not buy a longer chain
+    assertThat(validator.isAllowed("${dateTime().plusWeeks(2).getClass()}")).isFalse();
+    assertThat(validator.isAllowed("${dateTime().plusDays(4).withTimeAtStartOfDay().getClass()}")).isFalse();
   }
 
   @Test
