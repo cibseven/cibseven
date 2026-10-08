@@ -32,6 +32,8 @@
     <version.license-maven-plugin>2.4.0</version.license-maven-plugin>
     <!-- Version for cibseven-webclient-web -->
     <cibseven-webapp.version>${project.version}</cibseven-webapp.version>
+    <!-- Version for cibseven-mcp-restapi -->
+    <cibseven-mcp-restapi.version>0.0.4-SNAPSHOT</cibseven-mcp-restapi.version>
     <version.junit5>5.13.4</version.junit5>
     <!-- The Spring Framework 7 / Spring Boot 4 trees run on JUnit 6; spring-test 7 is
          compiled against it and calls ExtensionContext.Store.computeIfAbsent, absent from JUnit 5. -->
