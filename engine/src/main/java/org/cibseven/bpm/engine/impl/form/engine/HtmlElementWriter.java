@@ -17,9 +17,11 @@
 package org.cibseven.bpm.engine.impl.form.engine;
 
 import java.io.StringWriter;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.cibseven.bpm.engine.impl.form.engine.HtmlDocumentBuilder.HtmlWriteContext;
 
@@ -38,7 +40,9 @@ public class HtmlElementWriter {
    * inline */
   protected boolean isSelfClosing;
   protected String textContent;
+  protected boolean rawTextContent;
   protected Map<String, String> attributes = new LinkedHashMap<String, String>();
+  protected Set<String> rawAttributes = new HashSet<String>();
 
   public HtmlElementWriter(String tagName) {
     this.tagName = tagName;
@@ -84,7 +88,11 @@ public class HtmlElementWriter {
   protected void writeTextContent(HtmlWriteContext context) {
     StringWriter writer = context.getWriter();
     writer.write("  "); // add additional whitespace
-    writer.write(textContent);
+    if (rawTextContent) {
+      writer.write(textContent);
+    } else {
+      writer.write(escapeHtml(textContent));
+    }
   }
 
   protected void writeStartTagOpen(HtmlWriteContext context) {
@@ -100,17 +108,21 @@ public class HtmlElementWriter {
       writer.write(attribute.getKey());
       if(attribute.getValue() != null) {
         writer.write("=\"");
-        String attributeValue = escapeQuotes(attribute.getValue());
+        boolean isRaw = rawAttributes.contains(attribute.getKey());
+        String attributeValue = isRaw ? attribute.getValue() : escapeHtml(attribute.getValue());
         writer.write(attributeValue);
         writer.write("\"");
       }
     }
   }
 
-  protected String escapeQuotes(String attributeValue){
-    String escapedHtmlQuote = "&quot;";
-    String escapedJavaQuote = "\"";
-    return attributeValue.replaceAll(escapedJavaQuote, escapedHtmlQuote);
+  protected String escapeHtml(String value) {
+    return value
+      .replace("&", "&amp;")
+      .replace("<", "&lt;")
+      .replace(">", "&gt;")
+      .replace("\"", "&quot;")
+      .replace("'", "&#39;");
   }
 
   protected void writeEndLine(HtmlWriteContext context) {
@@ -141,11 +153,28 @@ public class HtmlElementWriter {
     return this;
   }
 
+
+  public HtmlElementWriter rawAttribute(String name, String value) {
+    attributes.put(name, value);
+    rawAttributes.add(name);
+    return this;
+  }
+
   public HtmlElementWriter textContent(String text) {
     if(isSelfClosing) {
       throw new IllegalStateException("Self-closing element cannot have text content.");
     }
     this.textContent = text;
+    this.rawTextContent = false;
+    return this;
+  }
+
+  public HtmlElementWriter rawTextContent(String text) {
+    if(isSelfClosing) {
+      throw new IllegalStateException("Self-closing element cannot have text content.");
+    }
+    this.textContent = text;
+    this.rawTextContent = true;
     return this;
   }
 
