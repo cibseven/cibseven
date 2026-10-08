@@ -29,6 +29,9 @@
     <!-- enable expressions in adhoc queries -->
     <property name="enableExpressionsInAdhocQueries" value="true" />
 
+    <!-- this test covers the full expression feature set, not the security whitelist -->
+    <property name="enableFilterExpressionWhitelist" value="false" />
+
     <property name="enforceHistoryTimeToLive" value="false" />
 
   </bean>
