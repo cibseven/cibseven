@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Case 01 - one synchronous activity, result in the same turn -->
+<definitions id="defs_adHocAgent01" xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" targetNamespace="http://cibseven.org/adhoc-agent">
+  <process id="adHocAgent01" name="Case 01 - one synchronous activity, result in the same turn" isExecutable="true" camunda:historyTimeToLive="P30D">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc" name="Agentic scope">
+      <documentation>Smoke test. calculatePrice completes inside the activation call, so its value comes back in the same tool result - the only turn in which the agent can see it, because a child that has already finished schedules no further turn.</documentation>
+      <extensionElements>
+        <camunda:properties>
+            <camunda:property name="cibseven.agentic.enabled" value="true" />
+            <camunda:property name="cibseven.agentic.agentName" value="Ad-hoc Agent" />
+            <camunda:property name="cibseven.agentic.instruction" value="Du steuerst einen Ad-hoc-Bereich. Ermittle den Preis und beende den Bereich danach." />
+            <camunda:property name="cibseven.agentic.instructionMode" value="append" />
+            <camunda:property name="cibseven.agentic.message" value="Ermittle den Preis der Bestellung und beende dann den Ad-hoc-Bereich." />
+            <camunda:property name="cibseven.agentic.resultVariable" value="agentOutput" />
+        </camunda:properties>
+      </extensionElements>
+      <serviceTask id="calculatePrice" name="Calculate price" camunda:expression="${1200}" camunda:resultVariable="price" />
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+  <bpmndi:BPMNDiagram id="diagram">
+    <bpmndi:BPMNPlane id="plane" bpmnElement="adHocAgent01">
+      <bpmndi:BPMNShape id="di_start" bpmnElement="start">
+        <dc:Bounds x="152" y="172" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="di_adHoc" bpmnElement="adHoc" isExpanded="true">
+        <dc:Bounds x="240" y="80" width="440" height="220" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="di_calculatePrice" bpmnElement="calculatePrice">
+        <dc:Bounds x="460" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="di_end" bpmnElement="end">
+        <dc:Bounds x="740" y="172" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="di_f1" bpmnElement="f1">
+        <di:waypoint x="188" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+        <di:waypoint x="240" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="di_f2" bpmnElement="f2">
+        <di:waypoint x="680" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+        <di:waypoint x="740" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

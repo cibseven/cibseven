@@ -144,10 +144,96 @@
       <scope>test</scope>
     </dependency>
 
+    <!--
+      CIB7-1944. Declared explicitly although it also arrives transitively through
+      cibseven-engine: AdHocToolCatalog imports org.cibseven.bpm.model.bpmn types
+      directly, and a direct import should not rely on a transitive path.
+    -->
+    <dependency>
+      <groupId>org.cibseven.bpm.model</groupId>
+      <artifactId>cibseven-bpmn-model</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- CIB7-1944, test only. The BPMN files under src/test/resources/ad-hoc-agent wire
+         the agent through camunda:connector, and the engine refuses to parse that element
+         unless the connect plugin is registered. A distribution has it; a bare
+         StandaloneInMemProcessEngineConfiguration does not. -->
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine-plugin-connect</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- CIB7-1944, test only. ProcessEngineExtension, the JUnit 5 replacement for the
+         ProcessEngineRule these tests used before the migration in #461. -->
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-bpm-junit5</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- CIB7-1944, Spring, test only. The ad hoc tools are exercised under Spring's
+         transaction management as well as the plain command interceptor, because the two
+         report the same defect differently. -->
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine-spring-6</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <!--
+      Versioned through the property rather than left to dependencyManagement: the connect
+      reactor inherits cibseven-parent, which defines version.spring.framework6, but it does
+      not inherit a dependencyManagement entry for the individual Spring artifacts. Same
+      reason the h2 version is pinned above. Keep it in step with parent/pom.xml.
+    -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <version>${version.spring.framework6}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jdbc</artifactId>
+      <version>${version.spring.framework6}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-tx</artifactId>
+      <version>${version.spring.framework6}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>${version.spring.framework6}</version>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
 
   <build>
     <plugins>
+      <!-- CIB7-1832. Keeps the parameter names of @Tool methods in the bytecode.
+           LangChain4j builds the tool specification a language model sees from
+           reflection, and @P only supplies the description, not the name.
+           Without this the model is offered arg0, arg1, ... and anything it
+           sends under a meaningful name binds to null - which surfaces much
+           later as an engine error that reads like a model mistake.
+           Asserted by AgentToolSpecificationTest. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <parameters>true</parameters>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
