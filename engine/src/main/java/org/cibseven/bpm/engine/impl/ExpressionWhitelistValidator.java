@@ -31,15 +31,26 @@ public class ExpressionWhitelistValidator<T extends AbstractQuery<?, ?>> impleme
   // fallback when no process engine configuration is available (e.g. isolated unit tests).
   // Kept in normalized form (see #normalize): numeric arguments are stripped, so empty
   // parentheses stand for any numeric argument.
+  //
+  // This list has to cover every expression the product itself suggests or creates, otherwise
+  // users following our own examples hit a BadUserRequestException. The three sources are:
+  //   - the Tasklist filter dialog's help texts (dateExpLangHelp, userExpLangHelp and
+  //     commaSeparatedExps in cam-tasklist-filter-modal-criteria.js),
+  //   - the filter documentation (content/webapps/tasklist/filters.md in cibseven-docs-manual),
+  //   - the filters seeded by InvoiceDemoDataGenerator and DemoDataGenerator.
+  // ExpressionWhitelistValidatorTest pins all three; extend it when adding a source.
   public static final Set<String> DEFAULT_ALLOWED_EXPRESSIONS = Collections.unmodifiableSet(
       new HashSet<>(Arrays.asList(
           "${currentUser()}",
           "${currentUserGroups()}",
           "${now()}",
+          "${dateTime()}",
           "${dateTime().withMillis()}",
           "${dateTime().withTimeAtStartOfDay()}",
           "${dateTime().withTimeAtStartOfDay().plusDays().minusSeconds()}",
-          "${dateTime().plusDays()}")));
+          "${dateTime().plusDays()}",
+          "${dateTime().plusDays().withTimeAtStartOfDay()}",
+          "${dateTime().plusWeeks()}")));
 
   @SuppressWarnings("rawtypes")
   public static final ExpressionWhitelistValidator INSTANCE = new ExpressionWhitelistValidator();

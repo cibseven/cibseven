@@ -69,10 +69,39 @@ public class ExpressionWhitelistValidatorTest {
   @Test
   public void shouldAllowStandardTasklistFilterExpressions() {
     // "Tasks due today" (Due After / Due Before) and the "within a timespan" example
-    // from the out-of-the-box Tasklist filter templates
+    // from the out-of-the-box Tasklist filter templates, as documented in
+    // content/webapps/tasklist/filters.md of cibseven-docs-manual
     assertThat(validator.isAllowed("${dateTime().withTimeAtStartOfDay()}")).isTrue();
     assertThat(validator.isAllowed("${dateTime().withTimeAtStartOfDay().plusDays(1).minusSeconds(1)}")).isTrue();
     assertThat(validator.isAllowed("${dateTime().plusDays(2)}")).isTrue();
+  }
+
+  // --- allowed: everything the product itself suggests or creates --------------------------
+  // The default whitelist was originally derived from the filter documentation alone, which
+  // left the dialog's own examples and one seeded filter rejected (CIB7-2247). These tests pin
+  // the remaining sources so the same gap cannot reappear - keep them in sync with the sources.
+
+  @Test
+  public void shouldAllowTheExpressionsSuggestedByTheFilterDialog() {
+    // verbatim from cam-tasklist-filter-modal-criteria.js: dateExpLangHelp is offered for all
+    // seven date criteria (createdBefore/After, dueBefore/After, followUpAfter/Before,
+    // followUpBeforeOrNotExistent), userExpLangHelp and commaSeparatedExps for the rest
+    assertThat(validator.isAllowed("${ now() }")).isTrue();
+    assertThat(validator.isAllowed("${ dateTime() }")).isTrue();
+    assertThat(validator.isAllowed("${ dateTime().plusWeeks(2) }")).isTrue();
+    assertThat(validator.isAllowed("${ currentUser() }")).isTrue();
+    assertThat(validator.isAllowed("${ currentUserGroups() }")).isTrue();
+  }
+
+  @Test
+  public void shouldAllowTheFiltersSeededByTheDemoDataGenerators() {
+    // "My Tasks", "My Group Tasks" and "Soon due tasks" from InvoiceDemoDataGenerator, plus the
+    // two filters from the invoice example's DemoDataGenerator. Note the chain order of the last
+    // one: normalize() strips numeric arguments but does not reorder, so plusDays().withTime...()
+    // is a different entry than withTime...().plusDays().
+    assertThat(validator.isAllowed("${currentUser()}")).isTrue();
+    assertThat(validator.isAllowed("${currentUserGroups()}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().plusDays(4).withTimeAtStartOfDay()}")).isTrue();
   }
 
   // --- numeric arguments act as a wildcard (see ExpressionWhitelistValidator#normalize) ----
