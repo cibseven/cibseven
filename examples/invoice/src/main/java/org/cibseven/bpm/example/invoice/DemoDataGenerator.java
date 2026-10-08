@@ -265,6 +265,9 @@ public class DemoDataGenerator {
       filterProperties.put("description", "Tasks assigned to me");
       filterProperties.put("priority", -10);
       addVariables(filterProperties);
+      // Every expression below must be on the engine's filter expression whitelist, or saveFilter
+      // throws and the demo data fails to seed. See ExpressionWhitelistValidator and its test,
+      // which pin these expressions by hand (CIB7-2247).
       TaskService taskService = engine.getTaskService();
       TaskQuery query = taskService.createTaskQuery().taskAssigneeExpression("${currentUser()}");
       Filter myTasksFilter = filterService.newTaskFilter().setName("My Tasks").setProperties(filterProperties).setOwner("demo").setQuery(query);

@@ -69,10 +69,63 @@ public class ExpressionWhitelistValidatorTest {
   @Test
   public void shouldAllowStandardTasklistFilterExpressions() {
     // "Tasks due today" (Due After / Due Before) and the "within a timespan" example
-    // from the out-of-the-box Tasklist filter templates
+    // from the out-of-the-box Tasklist filter templates, as documented in
+    // content/webapps/tasklist/filters.md of cibseven-docs-manual
     assertThat(validator.isAllowed("${dateTime().withTimeAtStartOfDay()}")).isTrue();
     assertThat(validator.isAllowed("${dateTime().withTimeAtStartOfDay().plusDays(1).minusSeconds(1)}")).isTrue();
     assertThat(validator.isAllowed("${dateTime().plusDays(2)}")).isTrue();
+  }
+
+  // --- allowed: everything the product itself suggests or creates --------------------------
+  // The default whitelist was derived from the filter documentation alone, which left the dialog's
+  // own examples and one seeded filter rejected (CIB7-2247). These tests pin the other sources by
+  // hand; nothing compares them against the real ones, so keep them in sync.
+
+  @Test
+  public void shouldKeepEveryDefaultEntryNormalized() {
+    // an entry carrying a concrete argument - ${dateTime().plusWeeks(2)}, the way the dialog and
+    // the docs spell it - could never match, since isAllowed normalizes its input
+    for (String expression : ExpressionWhitelistValidator.DEFAULT_ALLOWED_EXPRESSIONS) {
+      assertThat(ExpressionWhitelistValidator.normalize(expression))
+          .as("default whitelist entry must be stored normalized")
+          .isEqualTo(expression);
+    }
+  }
+
+  @Test
+  public void shouldAllowTheExpressionsSuggestedByTheFilterDialog() {
+    // verbatim from cam-tasklist-filter-modal-criteria.js. Note that not every expression-capable
+    // criterion carries a help text at all - candidateGroup, for one, has none.
+    assertThat(validator.isAllowed("${ now() }")).isTrue();
+    assertThat(validator.isAllowed("${ dateTime() }")).isTrue();
+    assertThat(validator.isAllowed("${ dateTime().plusWeeks(2) }")).isTrue();
+    assertThat(validator.isAllowed("${ currentUser() }")).isTrue();
+    assertThat(validator.isAllowed("${ currentUserGroups() }")).isTrue();
+  }
+
+  @Test
+  public void shouldNotThrowWhenValidatingAFilterBuiltFromTheDialogExample() {
+    // the reported symptom is a BadUserRequestException from FilterManager#insertOrUpdateFilter,
+    // which calls validate() - pin that path, not only the lookup underneath it
+    validator.validate(queryWithExpression("dueBefore", "${ dateTime() }"));
+    validator.validate(queryWithExpression("dueAfter", "${ dateTime().plusWeeks(2) }"));
+    validator.validate(queryWithExpression("followUpBeforeOrNotExistent", "${ now() }"));
+    // no exception
+  }
+
+  @Test
+  public void shouldAllowTheFiltersSeededByTheDemoData() {
+    // "Soon due tasks" from InvoiceDemoDataGenerator. Its chain order is the point: normalize()
+    // strips numeric arguments but does not reorder, so plusDays().withTimeAtStartOfDay() is a
+    // different entry than withTimeAtStartOfDay().plusDays().minusSeconds() - that was the defect.
+    validator.validate(queryWithExpression("dueBefore", "${dateTime().plusDays(4).withTimeAtStartOfDay()}"));
+
+    // "My Tasks" and "My Group Tasks", seeded here and by the invoice example's DemoDataGenerator
+    assertThat(validator.isAllowed("${currentUser()}")).isTrue();
+    assertThat(validator.isAllowed("${currentUserGroups()}")).isTrue();
+
+    // "Accounting Tasks" passes a plain group name, which takes the literal short circuit
+    assertThat(validator.isAllowed("accounting")).isTrue();
   }
 
   // --- numeric arguments act as a wildcard (see ExpressionWhitelistValidator#normalize) ----
@@ -86,14 +139,27 @@ public class ExpressionWhitelistValidatorTest {
   }
 
   @Test
+  public void shouldAllowAnyNumericArgumentOnTheDialogAndDemoDataEntriesToo() {
+    // the CIB7-2247 entries must wildcard their argument too, not just the single value their
+    // source uses (plusWeeks(2) in the help text, plusDays(4) in InvoiceDemoDataGenerator)
+    assertThat(validator.isAllowed("${dateTime().plusWeeks(1)}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().plusWeeks(52)}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().plusDays(1).withTimeAtStartOfDay()}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().plusDays(30).withTimeAtStartOfDay()}")).isTrue();
+  }
+
+  @Test
   public void shouldAllowEmptyArgumentListAsWildcardNotation() {
     assertThat(validator.isAllowed("${dateTime().plusDays()}")).isTrue();
     assertThat(validator.isAllowed("${dateTime().withTimeAtStartOfDay().plusDays().minusSeconds()}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().plusWeeks()}")).isTrue();
+    assertThat(validator.isAllowed("${dateTime().plusDays().withTimeAtStartOfDay()}")).isTrue();
   }
 
   @Test
   public void shouldAllowNumericArgumentCombinedWithWhitespace() {
     assertThat(validator.isAllowed("${ dateTime().plusDays( 5 ) }")).isTrue();
+    assertThat(validator.isAllowed("${ dateTime().plusWeeks( 3 ) }")).isTrue();
   }
 
   @Test
@@ -102,6 +168,19 @@ public class ExpressionWhitelistValidatorTest {
     assertThat(validator.isAllowed("${dateTime().plusYears(2)}")).isFalse();
     assertThat(validator.isAllowed("${dateTime().plusDays(2).getClass()}")).isFalse();
     assertThat(validator.isAllowed("${someBean.getById(2)}")).isFalse();
+    // same for the entries added in CIB7-2247: the wildcard must not buy a longer chain
+    assertThat(validator.isAllowed("${dateTime().plusWeeks(2).getClass()}")).isFalse();
+    assertThat(validator.isAllowed("${dateTime().plusDays(4).withTimeAtStartOfDay().getClass()}")).isFalse();
+  }
+
+  @Test
+  public void shouldRejectRecombinationsOfTheNowLargerMethodVocabulary() {
+    // the two new entries were added as whole chains, not as building blocks - the methods they
+    // introduce must not become freely combinable. Rejected deliberately.
+    assertThat(validator.isAllowed("${dateTime().plusWeeks(2).withTimeAtStartOfDay()}")).isFalse();
+    assertThat(validator.isAllowed("${dateTime().withTimeAtStartOfDay().plusWeeks(1)}")).isFalse();
+    assertThat(validator.isAllowed("${dateTime().plusWeeks(2).plusDays(1)}")).isFalse();
+    assertThat(validator.isAllowed("${dateTime().plusDays(4).withTimeAtStartOfDay().minusSeconds(1)}")).isFalse();
   }
 
   @Test

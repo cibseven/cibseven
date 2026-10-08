@@ -17,6 +17,10 @@
 
 'use strict';
 
+// Every expression suggested below must be on the engine's filter expression whitelist, or a
+// filter built from our own example is rejected on save. Adding an example here means adding it
+// to ExpressionWhitelistValidator#DEFAULT_ALLOWED_EXPRESSIONS and its test - nothing in the build
+// keeps the two in sync (CIB7-2247).
 var dateExpLangHelp =
   'E.g.: `${ now() }`, `${ dateTime() }` or `${ dateTime().plusWeeks(2) }`';
 var userExpLangHelp = 'E.g.: `${ currentUser() }`';
