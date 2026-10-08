@@ -53,4 +53,43 @@ public class ExternalTaskLogger extends ProcessEngineLogger {
     logDebug("002", "Evaluation of error event definition's expression {} on external task {} failed and will be considered as 'false'. "
         + "Received exception: {}", errorEventDefinition.getExpression(), taskId, exception.getMessage());
   }
+
+  /**
+   * Logs that the retry time cycle expression of an external task activity could not be evaluated.
+   * The external task is handled as if no retry time cycle was configured.
+   *
+   * @param activityId the activity of the external task
+   * @param expression the expression that failed
+   * @param exception the exception that was caught
+   */
+  public void exceptionWhileResolvingRetryTimeCycle(String activityId, Object expression, Exception exception) {
+    logWarn("003", "Could not resolve retry time cycle expression {} of external task activity {}. "
+        + "The external task is handled as if no retry time cycle was configured. Received exception: {}",
+        expression, activityId, exception.getMessage());
+  }
+
+  /**
+   * Logs that a retry time cycle of an external task activity contains an invalid interval.
+   * The external task is handled as if no retry time cycle was configured.
+   *
+   * @param activityId the activity of the external task
+   * @param retryTimeCycle the invalid retry time cycle
+   */
+  public void invalidRetryTimeCycle(String activityId, String retryTimeCycle) {
+    logWarn("004", "Retry time cycle '{}' of external task activity {} contains an invalid interval. "
+        + "The external task is handled as if no retry time cycle was configured.",
+        retryTimeCycle, activityId);
+  }
+
+  /**
+   * Logs that a worker reported negative retries for an external task with a retry time cycle,
+   * which are treated as 0.
+   *
+   * @param taskId the external task
+   * @param retries the reported retries
+   */
+  public void negativeRetriesReportedForRetryTimeCycle(String taskId, int retries) {
+    logDebug("005", "Worker reported retries {} for external task {} with a retry time cycle. Using 0 instead.",
+        retries, taskId);
+  }
 }

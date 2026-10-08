@@ -90,8 +90,13 @@ public interface LockedExternalTask {
   String getProcessDefinitionVersionTag();
 
   /**
-   * @return the number of retries left. The number of retries is provided by
-   *   a task client, therefore the initial value is <code>null</code>.
+   * @return the number of retries left. Without a retry cycle configured for this task's
+   *   activity (modeled via <code>camunda:failedJobRetryTimeCycle</code>, or the engine-wide
+   *   default), the number of retries is provided entirely by a task client, so the initial
+   *   value is <code>null</code>. When a retry cycle does apply, the engine itself initializes
+   *   this from the cycle's configured number of retries and decrements it by one on every
+   *   successful fetch of the task, independently of whatever a client later reports via
+   *   <code>ExternalTaskService.handleFailure</code>.
    */
   Integer getRetries();
 

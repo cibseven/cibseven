@@ -35,6 +35,19 @@ import org.cibseven.bpm.engine.externaltask.UpdateExternalTaskRetriesSelectBuild
  * represent work items that are processed externally and independently of the process
  * engine.
  *
+ * <p>Retries and retry cycles: historically, an external task's number of retries left is
+ * entirely owned by the worker - the engine starts it at <code>null</code> and only ever
+ * writes the value the worker itself reports via <code>handleFailure</code>. This changes as soon
+ * as a retry cycle applies to the task's activity, either modeled directly on it via the
+ * <code>camunda:failedJobRetryTimeCycle</code> extension element, or via the engine-wide
+ * default (the <code>externalTaskFailedJobRetryTimeCycle</code> process engine configuration
+ * property): in that case the engine itself initializes the retries counter from the cycle's configured
+ * number of retries when the task is created, and - independently of whatever a worker reports
+ * back via <code>handleFailure</code> - decrements it by one on every successful
+ * <code>fetchAndLock</code> of that task, to bound a worker that fetches a task and never reports
+ * back. A worker that already applies its own retry bookkeeping on top of a configured cycle
+ * should be aware its count and the engine's will diverge, since both decrement independently.</p>
+ *
  * @author Thorben Lindhauer
  * @author Christopher Zell
  */
@@ -42,6 +55,10 @@ public interface ExternalTaskService {
 
   /**
    * Calls method fetchAndLock(maxTasks, workerId, usePriority), where usePriority is false.
+   *
+   * <p>Note: when a retry cycle applies to a fetched task's activity (modeled or engine-wide
+   * default, see the class-level Javadoc), each successful fetch of that task consumes one of
+   * its configured retries, regardless of whether it is later reported back as failed.</p>
    *
    * @param maxTasks the maximum number of tasks to return
    * @param workerId the id of the worker to lock the tasks for
@@ -72,6 +89,10 @@ public interface ExternalTaskService {
    * unlocked tasks matching the provided topics or if parallel fetching by other workers
    * results in locking failures.</p>
    *
+   * <p>Note: when a retry cycle applies to a fetched task's activity (modeled or engine-wide
+   * default, see the class-level Javadoc), each successful fetch of that task consumes one of
+   * its configured retries, regardless of whether it is later reported back as failed.</p>
+   *
    * <p>
    *   Returns only tasks that the currently authenticated user has at least one
    *   permission out of all of the following groups for:
@@ -97,6 +118,10 @@ public interface ExternalTaskService {
    * Fetch and Lock method which allows the configuration of all parameters through a Fluent API.
    * Configuration options of the builder allow for extra sorting options such as sorting by createTime.
    *
+   * <p>Note: when a retry cycle applies to a fetched task's activity (modeled or engine-wide
+   * default, see the class-level Javadoc), each successful fetch of that task consumes one of
+   * its configured retries, regardless of whether it is later reported back as failed.</p>
+   *
    * @return a builder to define and execute an external task fetching operation
    */
   public FetchAndLockBuilder fetchAndLock();
@@ -106,6 +131,10 @@ public interface ExternalTaskService {
    *    Note: Attempting to lock an already locked external task with the same <code>workerId</code>
    *    will succeed and a new lock duration will be set, starting from the current moment.
    * </p>
+   *
+   * <p>Note: unlike <code>fetchAndLock</code>, this method does not consume an attempt of a
+   * configured retry cycle (see the class-level Javadoc), and the lock lasts exactly
+   * <code>lockDuration</code> without a retry interval added.</p>
    *
    * @param externalTaskId the id of the external task to lock
    * @param workerId  the id of the worker to lock the task for
@@ -202,6 +231,13 @@ public interface ExternalTaskService {
    * <p>If <code>retries</code> is 0, an incident with the given error message is created. The incident gets resolved,
    * once the number of retries is increased again.</p>
    *
+   * <p>Note: when a retry cycle applies to this task's activity (modeled or engine-wide
+   * default, see the class-level Javadoc), its own interval is used for the next attempt's
+   * timing instead of the <code>retryTimeout</code>/<code>retryDuration</code> passed here,
+   * which is then only a fallback for activities with no configured cycle. Independently of
+   * this call, the engine also decrements the retries counter by one on every successful
+   * <code>fetchAndLock</code> of the task.</p>
+   *
    * <p>Exceptions raised in evaluating expressions of error event definitions attached to the task will be ignored by this method
    * and the event definitions considered as not-matching.</p>
    *
@@ -231,6 +267,13 @@ public interface ExternalTaskService {
    *
    * <p>If <code>retries</code> is 0, an incident with the given error message is created. The incident gets resolved,
    * once the number of retries is increased again.</p>
+   *
+   * <p>Note: when a retry cycle applies to this task's activity (modeled or engine-wide
+   * default, see the class-level Javadoc), its own interval is used for the next attempt's
+   * timing instead of the <code>retryTimeout</code>/<code>retryDuration</code> passed here,
+   * which is then only a fallback for activities with no configured cycle. Independently of
+   * this call, the engine also decrements the retries counter by one on every successful
+   * <code>fetchAndLock</code> of the task.</p>
    *
    * <p>Exceptions raised in evaluating expressions of error event definitions attached to the task will be ignored by this method
    * and the event definitions considered as not-matching.</p>
@@ -263,6 +306,13 @@ public interface ExternalTaskService {
    *
    * <p>If <code>retries</code> is 0, an incident with the given error message is created. The incident gets resolved,
    * once the number of retries is increased again.</p>
+   *
+   * <p>Note: when a retry cycle applies to this task's activity (modeled or engine-wide
+   * default, see the class-level Javadoc), its own interval is used for the next attempt's
+   * timing instead of the <code>retryTimeout</code>/<code>retryDuration</code> passed here,
+   * which is then only a fallback for activities with no configured cycle. Independently of
+   * this call, the engine also decrements the retries counter by one on every successful
+   * <code>fetchAndLock</code> of the task.</p>
    *
    * <p>Exceptions raised in evaluating expressions of error event definitions attached to the task will be ignored by this method
    * and the event definitions considered as not-matching.</p>
