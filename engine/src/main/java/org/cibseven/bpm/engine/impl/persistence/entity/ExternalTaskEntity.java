@@ -592,6 +592,15 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
     commandContext.getHistoricExternalTaskLogManager().fireExternalTaskCreatedEvent(this);
   }
 
+  /**
+   * Not fired by {@link #lock(String, long)} itself: the caller has to make sure
+   * that the lock is actually persisted, see FetchExternalTasksCmd.
+   */
+  public void produceHistoricExternalTaskFetchedEvent() {
+    CommandContext commandContext = Context.getCommandContext();
+    commandContext.getHistoricExternalTaskLogManager().fireExternalTaskFetchedEvent(this);
+  }
+
   protected void produceHistoricExternalTaskFailedEvent() {
     CommandContext commandContext = Context.getCommandContext();
     commandContext.getHistoricExternalTaskLogManager().fireExternalTaskFailedEvent(this);
