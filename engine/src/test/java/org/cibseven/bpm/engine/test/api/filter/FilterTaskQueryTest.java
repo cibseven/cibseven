@@ -543,10 +543,9 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
 
   @Test
   public void testSaveFilterWithTheDateExpressionsTheProductItselfSuggests() {
-    // CIB7-2247: the Tasklist filter dialog offers ${ dateTime() } and ${ dateTime().plusWeeks(2) }
-    // as examples for every date criterion, and InvoiceDemoDataGenerator seeds a filter with
-    // ${dateTime().plusDays(4).withTimeAtStartOfDay()}. Saving such a filter has to work - the
-    // reported symptom was a BadUserRequestException raised right here, in FilterManager.
+    // CIB7-2247: the dialog offers the first two as examples for every date criterion, the third is
+    // seeded by InvoiceDemoDataGenerator. The reported symptom was a BadUserRequestException raised
+    // right here, on save.
     processEngineConfiguration.setEnableFilterExpressionWhitelist(true);
 
     TaskQueryImpl query = (TaskQueryImpl) taskService.createTaskQuery()
