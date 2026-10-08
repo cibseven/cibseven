@@ -30,6 +30,14 @@
         <scope>import</scope>
         <type>pom</type>
       </dependency>
+      <!-- Override the Jackson version managed by Spring Boot 4 -->
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
       <dependency>
         <!-- Use Spring Framework to 7.x  -->
         <groupId>org.springframework</groupId>
