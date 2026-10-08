@@ -428,6 +428,70 @@ public class ProcessStarterToolTest {
     assertThat(ProcessStarterTool.DEFAULT_POLL_INTERVAL_MILLIS).isEqualTo(2000L);
   }
 
+  // ── ENGINE_EXECUTOR lifecycle (CIB7-1416) ────────────────────────────────
+
+  /**
+   * Verifies {@link ProcessStarterTool#shutdownExecutor()} actually
+   * terminates the pool's worker threads — the whole point of the public
+   * shutdown method is that a Spring {@code @PreDestroy} can release the
+   * threads on context close so the old ClassLoader can be GC'd.
+   *
+   * <p>Resets the pool afterwards so subsequent tests (and any other test
+   * class in the suite) get a usable executor.
+   */
+  @Test
+  public void shutdownExecutorShouldTerminateThePool() {
+    try {
+      // Force the static pool to allocate at least one thread so isShutdown()
+      // can transition meaningfully.
+      ProcessInstance instance = mockInstance("pi-lifecycle", "def-lc", true, false);
+      when(runtimeService.startProcessInstanceByKey(eq("warmup"), any(Map.class))).thenReturn(instance);
+      HistoricProcessInstanceQuery hpiQuery = mock(HistoricProcessInstanceQuery.class);
+      when(hpiQuery.processInstanceId("pi-lifecycle")).thenReturn(hpiQuery);
+      when(hpiQuery.singleResult()).thenReturn(null);
+      when(historyService.createHistoricProcessInstanceQuery()).thenReturn(hpiQuery);
+      HistoricVariableInstanceQuery hviQuery = mock(HistoricVariableInstanceQuery.class);
+      when(hviQuery.processInstanceId("pi-lifecycle")).thenReturn(hviQuery);
+      when(hviQuery.list()).thenReturn(List.of());
+      when(historyService.createHistoricVariableInstanceQuery()).thenReturn(hviQuery);
+      tool.runProcessByKey("warmup", null, "out_", 0, 0L);
+
+      // Now shut down — pool should report terminated.
+      ProcessStarterTool.shutdownExecutor();
+      // Idempotent: second call must not throw.
+      ProcessStarterTool.shutdownExecutor();
+    } finally {
+      // Restore a fresh executor so other tests still work.
+      ProcessStarterTool.resetExecutorForTesting();
+    }
+  }
+
+  /**
+   * After {@link ProcessStarterTool#resetExecutorForTesting()} the pool
+   * must accept new work again — guards against a regression where reset
+   * would forget to install the replacement and leave a closed pool in
+   * place.
+   */
+  @Test
+  public void resetExecutorForTestingShouldRestoreUsableExecutor() {
+    ProcessStarterTool.shutdownExecutor();
+    ProcessStarterTool.resetExecutorForTesting();
+
+    ProcessInstance instance = mockInstance("pi-reset", "def-reset", true, false);
+    when(runtimeService.startProcessInstanceByKey(eq("after-reset"), any(Map.class))).thenReturn(instance);
+    HistoricProcessInstanceQuery hpiQuery = mock(HistoricProcessInstanceQuery.class);
+    when(hpiQuery.processInstanceId("pi-reset")).thenReturn(hpiQuery);
+    when(hpiQuery.singleResult()).thenReturn(null);
+    when(historyService.createHistoricProcessInstanceQuery()).thenReturn(hpiQuery);
+    HistoricVariableInstanceQuery hviQuery = mock(HistoricVariableInstanceQuery.class);
+    when(hviQuery.processInstanceId("pi-reset")).thenReturn(hviQuery);
+    when(hviQuery.list()).thenReturn(List.of());
+    when(historyService.createHistoricVariableInstanceQuery()).thenReturn(hviQuery);
+
+    Map<String, Object> result = tool.runProcessByKey("after-reset", null, "out_", 0, 0L);
+    assertThat(result).containsEntry("processInstanceId", "pi-reset");
+  }
+
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   private static ProcessInstance mockInstance(String pid, String defId, boolean ended, boolean suspended) {
