@@ -541,6 +541,29 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
     assertTrue(e.getMessage().contains("task query criteria"));
   }
 
+  @Test
+  public void testSaveFilterWithTheDateExpressionsTheProductItselfSuggests() {
+    // CIB7-2247: the Tasklist filter dialog offers ${ dateTime() } and ${ dateTime().plusWeeks(2) }
+    // as examples for every date criterion, and InvoiceDemoDataGenerator seeds a filter with
+    // ${dateTime().plusDays(4).withTimeAtStartOfDay()}. Saving such a filter has to work - the
+    // reported symptom was a BadUserRequestException raised right here, in FilterManager.
+    processEngineConfiguration.setEnableFilterExpressionWhitelist(true);
+
+    TaskQueryImpl query = (TaskQueryImpl) taskService.createTaskQuery()
+      .dueAfterExpression("${ dateTime() }")
+      .dueBeforeExpression("${ dateTime().plusWeeks(2) }")
+      .followUpBeforeExpression("${dateTime().plusDays(4).withTimeAtStartOfDay()}");
+
+    Filter filter = filterService.newTaskFilter("aFilterName");
+    filter.setQuery(query);
+
+    // when
+    filterService.saveFilter(filter);
+
+    // then
+    assertNotNull(filter.getId());
+  }
+
   protected void createDeploymentWithBusinessKey(String aBusinessKey) {
     BpmnModelInstance modelInstance = Bpmn.createExecutableProcess("aProcessDefinition")
         .camundaHistoryTimeToLive(180)

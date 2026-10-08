@@ -77,15 +77,31 @@ public class ExpressionWhitelistValidatorTest {
   }
 
   // --- allowed: everything the product itself suggests or creates --------------------------
-  // The default whitelist was originally derived from the filter documentation alone, which
-  // left the dialog's own examples and one seeded filter rejected (CIB7-2247). These tests pin
-  // the remaining sources so the same gap cannot reappear - keep them in sync with the sources.
+  // The default whitelist was originally derived from the filter documentation alone, which left
+  // the dialog's own examples and one seeded filter rejected (CIB7-2247). These tests pin the
+  // remaining sources. They are a hand-maintained copy: the dialog is JavaScript, the docs live in
+  // another repository and the demo generator only compiles under the develop profile, so nothing
+  // here compares itself against the real source. Keep them in sync when you touch one.
+
+  @Test
+  public void shouldKeepEveryDefaultEntryNormalized() {
+    // an entry written with a concrete argument - ${dateTime().plusWeeks(2)}, exactly the way the
+    // dialog and the docs spell it - would be dead weight: isAllowed normalizes its input, so such
+    // an entry could never match, not even the literal value it was written with
+    for (String expression : ExpressionWhitelistValidator.DEFAULT_ALLOWED_EXPRESSIONS) {
+      assertThat(ExpressionWhitelistValidator.normalize(expression))
+          .as("default whitelist entry must be stored normalized")
+          .isEqualTo(expression);
+    }
+  }
 
   @Test
   public void shouldAllowTheExpressionsSuggestedByTheFilterDialog() {
     // verbatim from cam-tasklist-filter-modal-criteria.js: dateExpLangHelp is offered for all
     // seven date criteria (createdBefore/After, dueBefore/After, followUpAfter/Before,
-    // followUpBeforeOrNotExistent), userExpLangHelp and commaSeparatedExps for the rest
+    // followUpBeforeOrNotExistent), userExpLangHelp for the single-user ones and
+    // commaSeparatedExps for candidateGroups. Note that not every expression-capable criterion
+    // carries a help text at all - candidateGroup, for one, has none.
     assertThat(validator.isAllowed("${ now() }")).isTrue();
     assertThat(validator.isAllowed("${ dateTime() }")).isTrue();
     assertThat(validator.isAllowed("${ dateTime().plusWeeks(2) }")).isTrue();
@@ -94,14 +110,30 @@ public class ExpressionWhitelistValidatorTest {
   }
 
   @Test
-  public void shouldAllowTheFiltersSeededByTheDemoDataGenerators() {
-    // "My Tasks", "My Group Tasks" and "Soon due tasks" from InvoiceDemoDataGenerator, plus the
-    // two filters from the invoice example's DemoDataGenerator. Note the chain order of the last
-    // one: normalize() strips numeric arguments but does not reorder, so plusDays().withTime...()
-    // is a different entry than withTime...().plusDays().
+  public void shouldNotThrowWhenValidatingAFilterBuiltFromTheDialogExample() {
+    // the reported symptom of CIB7-2247 is a BadUserRequestException raised by
+    // FilterManager#insertOrUpdateFilter, which calls validate() - not isAllowed(). Pin the
+    // failure path itself, not only the lookup underneath it.
+    validator.validate(queryWithExpression("dueBefore", "${ dateTime() }"));
+    validator.validate(queryWithExpression("dueAfter", "${ dateTime().plusWeeks(2) }"));
+    validator.validate(queryWithExpression("followUpBeforeOrNotExistent", "${ now() }"));
+    // no exception
+  }
+
+  @Test
+  public void shouldAllowTheFiltersSeededByTheDemoData() {
+    // "Soon due tasks" from InvoiceDemoDataGenerator. Its chain order is the point: normalize()
+    // strips numeric arguments but does not reorder, so plusDays().withTimeAtStartOfDay() is a
+    // different entry than withTimeAtStartOfDay().plusDays().minusSeconds() - that was the defect.
+    validator.validate(queryWithExpression("dueBefore", "${dateTime().plusDays(4).withTimeAtStartOfDay()}"));
+
+    // "My Tasks" and "My Group Tasks", seeded both there and by the invoice example's
+    // DemoDataGenerator. Covered by the dialog test too; repeated so each source stands alone.
     assertThat(validator.isAllowed("${currentUser()}")).isTrue();
     assertThat(validator.isAllowed("${currentUserGroups()}")).isTrue();
-    assertThat(validator.isAllowed("${dateTime().plusDays(4).withTimeAtStartOfDay()}")).isTrue();
+
+    // "Accounting Tasks" passes a plain group name, which takes the literal short circuit
+    assertThat(validator.isAllowed("accounting")).isTrue();
   }
 
   // --- numeric arguments act as a wildcard (see ExpressionWhitelistValidator#normalize) ----
@@ -148,6 +180,18 @@ public class ExpressionWhitelistValidatorTest {
     // same for the entries added in CIB7-2247: the wildcard must not buy a longer chain
     assertThat(validator.isAllowed("${dateTime().plusWeeks(2).getClass()}")).isFalse();
     assertThat(validator.isAllowed("${dateTime().plusDays(4).withTimeAtStartOfDay().getClass()}")).isFalse();
+  }
+
+  @Test
+  public void shouldRejectRecombinationsOfTheNowLargerMethodVocabulary() {
+    // plusWeeks and the plusDays().withTimeAtStartOfDay() order were added as two whole entries,
+    // not as building blocks. Every chain has to match an entry as a whole, so the methods they
+    // introduced must not become freely combinable with the ones already present. These stay
+    // rejected deliberately - extending the list is a decision, not a side effect.
+    assertThat(validator.isAllowed("${dateTime().plusWeeks(2).withTimeAtStartOfDay()}")).isFalse();
+    assertThat(validator.isAllowed("${dateTime().withTimeAtStartOfDay().plusWeeks(1)}")).isFalse();
+    assertThat(validator.isAllowed("${dateTime().plusWeeks(2).plusDays(1)}")).isFalse();
+    assertThat(validator.isAllowed("${dateTime().plusDays(4).withTimeAtStartOfDay().minusSeconds(1)}")).isFalse();
   }
 
   @Test

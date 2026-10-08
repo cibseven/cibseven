@@ -30,15 +30,25 @@ public class ExpressionWhitelistValidator<T extends AbstractQuery<?, ?>> impleme
   // default value of ProcessEngineConfigurationImpl#allowedFilterExpressions; used as a
   // fallback when no process engine configuration is available (e.g. isolated unit tests).
   // Kept in normalized form (see #normalize): numeric arguments are stripped, so empty
-  // parentheses stand for any numeric argument.
+  // parentheses stand for any numeric argument. An entry written with a concrete number would be
+  // dead weight - lookups are normalized, so it could never match, not even the literal value it
+  // was written with. shouldKeepEveryDefaultEntryNormalized guards against that.
   //
   // This list has to cover every expression the product itself suggests or creates, otherwise
-  // users following our own examples hit a BadUserRequestException. The three sources are:
+  // users following our own examples hit a BadUserRequestException (CIB7-2247). Known sources:
   //   - the Tasklist filter dialog's help texts (dateExpLangHelp, userExpLangHelp and
   //     commaSeparatedExps in cam-tasklist-filter-modal-criteria.js),
   //   - the filter documentation (content/webapps/tasklist/filters.md in cibseven-docs-manual),
-  //   - the filters seeded by InvoiceDemoDataGenerator and DemoDataGenerator.
-  // ExpressionWhitelistValidatorTest pins all three; extend it when adding a source.
+  //   - the filters seeded by InvoiceDemoDataGenerator and by the invoice example's
+  //     DemoDataGenerator,
+  //   - the engine test suite, which is where ${dateTime().withMillis()} comes from - it is not
+  //     documented or suggested anywhere (FilterTaskQueryTest, followUpBeforeOrNotExistent).
+  //
+  // ExpressionWhitelistValidatorTest holds a hand-maintained copy of those expressions. Nothing
+  // in the build compares it against the actual sources - the dialog is JavaScript, the docs live
+  // in another repository, and the demo generator is only compiled under the develop profile. So
+  // when you change one of the sources, or add one, update the test too; it cannot notice by
+  // itself.
   public static final Set<String> DEFAULT_ALLOWED_EXPRESSIONS = Collections.unmodifiableSet(
       new HashSet<>(Arrays.asList(
           "${currentUser()}",
