@@ -469,6 +469,123 @@
     </profile>
 
     <profile>
+      <!-- Same setup as the tomcat profile above, but against the previous Tomcat -->
+      <id>tomcat10</id>
+      <dependencies>
+        <dependency>
+          <!-- make sure this comes after runtime in the reactor build -->
+          <groupId>org.cibseven.bpm.qa</groupId>
+          <artifactId>cibseven-qa-tomcat10-runtime</artifactId>
+          <version>${project.version}</version>
+          <scope>provided</scope>
+          <type>pom</type>
+        </dependency>
+
+        <dependency>
+          <groupId>org.jboss.arquillian.container</groupId>
+          <artifactId>arquillian-tomcat-managed-10</artifactId>
+          <version>1.2.4.Final</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.jboss.arquillian.protocol</groupId>
+          <artifactId>arquillian-protocol-servlet-jakarta</artifactId>
+          <version>${version.arquillian-protocol-servlet-jakarta}</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+
+      <build>
+        <testResources>
+          <testResource>
+            <!-- shared tomcat resources (singleEngine.xml, twoEngines.xml, etc.),
+                 excluding files that use pre-Jakarta (javax.*) namespaces/schemas
+                 specific to Tomcat 9: arquillian.xml (tomcat9.runtime.location),
+                 web.xml / web-without-weld.xml (javax web-app schema + BeanManager type),
+                 context.xml (javax.enterprise.inject.spi.BeanManager) -->
+            <directory>src/test/resources-tomcat</directory>
+            <filtering>true</filtering>
+            <excludes>
+              <exclude>arquillian.xml</exclude>
+              <exclude>web.xml</exclude>
+              <exclude>web-without-weld.xml</exclude>
+              <exclude>context.xml</exclude>
+            </excludes>
+          </testResource>
+          <testResource>
+            <!-- Jakarta EE web.xml, web-without-weld.xml and context.xml, reused as-is
+                 from the tomcat profile: web.xml is version="6.0", which is exactly the
+                 Servlet level Tomcat 10.1 implements. arquillian.xml is excluded because
+                 it names the Tomcat 11 runtime; the tomcat10 one is picked up below. -->
+            <directory>src/test/resources-tomcat11</directory>
+            <filtering>true</filtering>
+            <excludes>
+              <exclude>arquillian.xml</exclude>
+            </excludes>
+          </testResource>
+          <testResource>
+            <!-- only arquillian.xml, pointing at ${tomcat10.runtime.location} -->
+            <directory>src/test/resources-tomcat10</directory>
+            <filtering>true</filtering>
+          </testResource>
+        </testResources>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>add-test-source-tomcat</id>
+                <phase>initialize</phase>
+                <goals>
+                  <goal>add-test-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>src/test/java-tomcat</source>
+                  </sources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <!-- no EE stuff on tomcat :) -->
+                <exclude>**/ear/**</exclude>
+                <exclude>**/ejb/**</exclude>
+                <exclude>**/jar/**</exclude>
+                <exclude>**/transactions/**</exclude>
+                <exclude>**/jpa/**</exclude>
+                <!-- No EJB RequestContext available -->
+                <exclude>**/JobExecutorRequestContextTest.java</exclude>
+                <!-- Not supported by arquillian tomcat container -->
+                <exclude>**/TestWarDeploymentWithBrokenBpmnXml.java</exclude>
+                <exclude>**/TestDeploymentWithDroolsTaskFails.java</exclude>
+                <exclude>**/TestProcessEnginesXmlFails.java</exclude>
+
+                <exclude>**/TestWarDeploymentWithProcessEnginePlugin.java</exclude>
+
+                <exclude>**/*_JBOSS.java</exclude>
+                <exclude>**/EjbPALifecycleCallbacksTest.java</exclude>
+
+                <exclude>**/PythonPaClassImportTest.java</exclude>
+
+                <exclude>**/MigrationContextSwitchBeansTest.java</exclude>
+
+                <exclude>**/ManagedJobExecutorTest.java</exclude>
+              </excludes>
+              <redirectTestOutputToFile>${redirect.test.output}</redirectTestOutputToFile>
+              <forkCount>1</forkCount>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
       <id>wildfly</id>
       <dependencies>
         <dependency>
