@@ -445,6 +445,9 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
       if (dbSqlSessionFactory.isModelerEnabled() && !isModelerTablePresent()) {
         missingComponents.add("modeler");
       }
+      if (dbSqlSessionFactory.isChatEnabled() && !isChatTablePresent()) {
+        missingComponents.add("chat");
+      }
 
       if (!missingComponents.isEmpty()) {
         throw LOG.missingTableException(missingComponents);
@@ -550,6 +553,16 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
     executeMandatorySchemaResource("drop", "modeler");
   }
 
+  @Override
+  protected void dbSchemaCreateChat() {
+    executeMandatorySchemaResource("create", "chat");
+  }
+
+  @Override
+  protected void dbSchemaDropChat() {
+    executeMandatorySchemaResource("drop", "chat");
+  }
+
   public void executeMandatorySchemaResource(String operation, String component) {
     executeSchemaResource(operation, component, getResourceForDbOperation(operation, operation, component), false);
   }
@@ -590,6 +603,11 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
   @Override
   public boolean isModelerTablePresent() {
     return isTablePresent("MOD_ELEMENT_TEMPLATES");
+  }
+
+  @Override
+  public boolean isChatTablePresent() {
+    return isTablePresent("CHAT_MESSAGES");
   }
 
   public boolean isTablePresent(String tableName) {
