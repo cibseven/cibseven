@@ -44,6 +44,19 @@
   <property name="db.name" value="oracle" dbms="oracle"/>
   <property name="db.name" value="postgres" dbms="postgresql"/>
 
+  <!-- Accepts an empty database (no ACT_RU_EXECUTION yet - a fresh install) or a schema at
+       Camunda 7.16 or later: ACT_RE_CAMFORMDEF is created by the 7.15-to-7.16 step and never
+       dropped. Anything older is rejected, because this changelog cannot migrate it. -->
+  <preConditions onFail="HALT"
+                 onFailMessage="The database schema is older than Camunda 7.16 and cannot be migrated with this changelog. Upgrade it to Camunda 7.24 first.">
+    <or>
+      <not>
+        <tableExists tableName="ACT_RU_EXECUTION"/>
+      </not>
+      <tableExists tableName="ACT_RE_CAMFORMDEF"/>
+    </or>
+  </preConditions>
+
   <changeSet author="Camunda" id="7.16.0-baseline">
     <preConditions onFail="MARK_RAN">
       <not>
