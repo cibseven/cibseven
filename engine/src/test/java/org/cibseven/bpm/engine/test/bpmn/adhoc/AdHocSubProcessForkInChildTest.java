@@ -17,12 +17,14 @@
 package org.cibseven.bpm.engine.test.bpmn.adhoc;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
 
 import java.util.Arrays;
 import java.util.List;
 
+import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.history.HistoricActivityInstance;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
@@ -34,6 +36,7 @@ import org.cibseven.bpm.engine.test.util.ActivityInstanceAssert;
 import org.cibseven.bpm.engine.test.util.ExecutionAssert;
 import org.cibseven.bpm.engine.test.util.ExecutionTree;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
+import org.cibseven.bpm.engine.variable.Variables;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -63,6 +66,10 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.childrenJoinWithoutAFork.bpmn20.xml";
   protected static final String ASYNC_JOIN =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.forkAndAsyncJoin.bpmn20.xml";
+  protected static final String UNTIL_ENOUGH =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.forkAndJoinUntilEnough.bpmn20.xml";
+  protected static final String UNTIL_ENOUGH_WAITING =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.forkAndJoinUntilEnoughWaiting.bpmn20.xml";
 
   // ---------------------------------------------------------------- the scope after a fork
 
@@ -310,6 +317,55 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
         assertThat(instance.getEndTime()).as(instance.getActivityId()).isNotNull();
       }
     }
+  }
+
+  /**
+   * A branch can make the condition true while the other branch still runs. The condition is
+   * consulted as that branch takes the flow to the join, and the scope completes there: the branch
+   * never waits at the join, the running branch is cancelled, and nothing is left unfinished in the
+   * history.
+   */
+  @Deployment(resources = UNTIL_ENOUGH)
+  @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
+  @Test
+  public void aConditionThatHoldsOnABranchCompletesTheScope() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkAndJoinUntilEnough");
+    activate(scopeExecutionId(pi), "split");
+
+    taskService.complete(task("right").getId(), Variables.createVariables().putValue("enough", true));
+
+    testRule.assertProcessEnded(pi.getId());
+    assertThat(historyService.createHistoricActivityInstanceQuery().processInstanceId(pi.getId())
+        .unfinished().list()).as("nothing may be left running in the history").isEmpty();
+    assertThat(historic(pi, "left").isCanceled()).as("the branch still running").isTrue();
+    assertThat(historic(pi, "join")).as("the branch that made it true never reaches the join").isNull();
+  }
+
+  /**
+   * With {@code cancelRemainingInstances="false"} the scope starts nothing further once the condition
+   * holds, but lets the work that runs finish: the other branch, the join, and the path that goes on
+   * from it, which is the same start's work.
+   */
+  @Deployment(resources = UNTIL_ENOUGH_WAITING)
+  @Test
+  public void aConditionThatHoldsOnABranchLetsTheStartFinish() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkAndJoinUntilEnoughWaiting");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "split");
+
+    taskService.complete(task("right").getId(), Variables.createVariables().putValue("enough", true));
+    testRule.assertProcessNotEnded(pi.getId());
+    assertThatThrownBy(() -> activate(scope, "other"))
+        .as("the scope starts nothing further once the condition held")
+        .isInstanceOf(BadUserRequestException.class)
+        .hasMessageContaining("has already satisfied its completion condition");
+
+    complete("left");
+    assertThat(task("after")).as("the path of the same start goes on from the join").isNotNull();
+    testRule.assertProcessNotEnded(pi.getId());
+
+    complete("after");
+    testRule.assertProcessEnded(pi.getId());
   }
 
   // ---------------------------------------------------------------- two starts of a forking child
