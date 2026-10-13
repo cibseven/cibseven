@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-2269. A non-interrupting event sub process beside an interrupting one: the interrupting
+     handler cancels everything the scope runs, the other handler included, and the scope leaves. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <message id="noticeMessage" name="notice" />
+  <message id="stopMessage" name="stop" />
+  <process id="interruptedHandler" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <userTask id="taskA" />
+      <subProcess id="onNotice" triggeredByEvent="true">
+        <startEvent id="noticed" isInterrupting="false">
+          <messageEventDefinition messageRef="noticeMessage" />
+        </startEvent>
+        <sequenceFlow id="e1" sourceRef="noticed" targetRef="handled" />
+        <userTask id="handled" />
+        <sequenceFlow id="e2" sourceRef="handled" targetRef="handlerEnd" />
+        <endEvent id="handlerEnd" />
+      </subProcess>
+      <subProcess id="onStop" triggeredByEvent="true">
+        <startEvent id="stopped">
+          <messageEventDefinition messageRef="stopMessage" />
+        </startEvent>
+        <sequenceFlow id="s1" sourceRef="stopped" targetRef="stopEnd" />
+        <endEvent id="stopEnd" />
+      </subProcess>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="after" />
+    <userTask id="after" />
+    <sequenceFlow id="f3" sourceRef="after" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

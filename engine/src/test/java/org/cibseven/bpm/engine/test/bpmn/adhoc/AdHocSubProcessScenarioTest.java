@@ -1296,58 +1296,7 @@ public class AdHocSubProcessScenarioTest extends PluggableProcessEngineTest {
         .isEqualTo(true);
   }
 
-  /**
-   * A non-interrupting event sub process inside the scope is refused at deployment (CIB7-1967).
-   *
-   * <p>It is refused rather than documented because the failure depends on the order in which the
-   * two finish. Completing the scope's own activity first works; completing the event sub process
-   * first fails in the persistence layer and leaves a task that can never be completed. A model
-   * therefore passes a test run and fails in production, and nothing a modeller can write enforces
-   * the order.
-   *
-   * <p>The runtime cause is that the engine expands concurrency for a non-interrupting event sub
-   * process — it inserts a branch execution at scope level and moves the scope's activity onto it —
-   * while this behaviour reads the unexpanded shape. Fixing that is the remaining half of
-   * CIB7-1967; when it lands, this refusal goes and the behaviour test it replaced comes back. Its
-   * assertions are preserved in that ticket.
-   */
-  @Test
-  public void testNonInterruptingEventSubProcessIsRejected() {
-    try {
-      deploy("nonInterruptingEventSubProcess.bpmn20.xml");
-      fail("a non-interrupting event sub process inside an ad hoc sub process must be rejected");
-    } catch (ParseException e) {
-      testRule.assertTextPresent("is non-interrupting, which is not supported", e.getMessage());
-      testRule.assertTextPresent("Make it interrupting", e.getMessage());
-    }
-  }
-
-  /**
-   * A non-interrupting boundary event on one of the scope's activities is refused for the same
-   * reason as a non-interrupting event sub process (CIB7-1967).
-   *
-   * <p>Found by looking for other ways into the same failure after the event sub process was
-   * refused. Measured on a distribution before this refusal existed: the handler starts alongside
-   * the activity it is attached to, and completing it while that activity is still running answers
-   * 500 from the persistence layer, leaving a task that can never be completed. Identical symptom,
-   * different element.
-   *
-   * <p>An interrupting boundary event is unaffected -- it cancels the activity instead of running
-   * beside it -- and a boundary event on the ad hoc sub process itself is outside the scope
-   * entirely, so neither is touched.
-   */
-  @Test
-  public void testNonInterruptingBoundaryEventIsRejected() {
-    try {
-      deploy("nonInterruptingBoundaryEvent.bpmn20.xml");
-      fail("a non-interrupting boundary event inside an ad hoc sub process must be rejected");
-    } catch (ParseException e) {
-      testRule.assertTextPresent("is non-interrupting, which is not supported", e.getMessage());
-      testRule.assertTextPresent("the boundary event", e.getMessage());
-    }
-  }
-
-  /** The same, interrupting: firing it must cancel what the scope has running. */
+  /** An interrupting event sub process inside the scope: firing it must cancel what the scope has running. */
   @Deployment
   @Test
   public void testInterruptingEventSubProcessInsideScope() {
