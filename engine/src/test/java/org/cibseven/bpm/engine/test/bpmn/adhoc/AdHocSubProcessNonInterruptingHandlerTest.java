@@ -69,6 +69,10 @@ public class AdHocSubProcessNonInterruptingHandlerTest extends PluggableProcessE
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.boundaryOnABranch.bpmn20.xml";
   protected static final String BOUNDARY_AND_A_SEPARATE_CHILD =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.boundaryAndASeparateChild.bpmn20.xml";
+  protected static final String CONDITIONAL_BOUNDARY =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.conditionalBoundary.bpmn20.xml";
+  protected static final String CONDITIONAL_BOUNDARY_FILTERED =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.conditionalBoundaryFiltered.bpmn20.xml";
 
   // ---------------------------------------------------------------- the event sub process
 
@@ -384,7 +388,45 @@ public class AdHocSubProcessNonInterruptingHandlerTest extends PluggableProcessE
         .as("x carries the label of its activation, y none").isZero();
   }
 
+  /**
+   * A non-interrupting conditional boundary event without a variable filter is evaluated on every
+   * variable change at or below the activity's execution. Starting its side path labels the
+   * activity's execution with the activation it belongs to; written as an ordinary variable, that
+   * label fired the event again while its condition still held, and a second handler started. The
+   * label is engine bookkeeping and dispatches no variable event (CIB7-2264), so one change of the
+   * modelled variable starts one handler.
+   */
+  @Deployment(resources = CONDITIONAL_BOUNDARY)
+  @Test
+  public void anUnfilteredConditionalBoundaryEventStartsOneHandler() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("conditionalBoundary",
+        Collections.<String, Object>singletonMap("fire", false));
+    activate(scopeExecutionId(pi), "work");
+
+    runtimeService.setVariable(pi.getId(), "fire", true);
+
+    assertThat(handlers(pi)).as("one change of fire, one handler").isEqualTo(1);
+  }
+
+  /** The same with a variable filter, which never reacted to the label: the control. */
+  @Deployment(resources = CONDITIONAL_BOUNDARY_FILTERED)
+  @Test
+  public void aFilteredConditionalBoundaryEventStartsOneHandler() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("conditionalBoundaryFiltered",
+        Collections.<String, Object>singletonMap("fire", false));
+    activate(scopeExecutionId(pi), "work");
+
+    runtimeService.setVariable(pi.getId(), "fire", true);
+
+    assertThat(handlers(pi)).isEqualTo(1);
+  }
+
   // ---------------------------------------------------------------- helpers
+
+  protected long handlers(ProcessInstance pi) {
+    return taskService.createTaskQuery().processInstanceId(pi.getId()).taskDefinitionKey("handle")
+        .count();
+  }
 
   protected String scopeExecutionId(ProcessInstance pi) {
     return runtimeService.createExecutionQuery().processInstanceId(pi.getId()).activityId("adHoc")
