@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-2264. A child with two unconditional outgoing flows forks without a gateway, and its
+     branches end apart, with no join. No completion condition. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="implicitFork" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <serviceTask id="split" camunda:expression="${1}" />
+      <sequenceFlow id="i1" sourceRef="split" targetRef="left" />
+      <sequenceFlow id="i2" sourceRef="split" targetRef="right" />
+      <userTask id="left" />
+      <userTask id="right" />
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

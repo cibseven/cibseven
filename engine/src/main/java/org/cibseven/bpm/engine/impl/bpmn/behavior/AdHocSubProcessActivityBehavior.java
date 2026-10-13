@@ -72,6 +72,10 @@ import com.google.gson.JsonElement;
  *     {@link #concurrentChildExecutionEnded}. {@link #complete} is reached by work running on the
  *     scope execution itself, which is an interrupting event sub process. Unlike parallel
  *     multi-instance, {@code complete} here is NOT "can't happen".</li>
+ * <li><b>A fork inside a child adds children.</b> A child that is not a scope forks on its own
+ *     concurrent execution, so each branch is one more concurrent execution of the scope, and each
+ *     ends as a child. A join ends every branch it merges but one, which carries the path on, so a
+ *     merged branch ends as a child without being the end of anything (CIB7-2264).</li>
  * </ul>
  */
 public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavior
@@ -414,7 +418,12 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     // Decide before disposing of anything: a completion condition normally reads a variable the
     // ended child just wrote, and completeScope needs the ended execution's activity to find the
     // flow scope to return to.
-    if (isCompleted(scopeExecution, endedExecution)) {
+    //
+    // Not for a branch merged at a join, though: the path goes on, on the branch the join keeps, so
+    // nothing has finished. Deciding here completed a scope without a condition, and the branch that
+    // went on did so on an execution completing had removed (CIB7-2264). The condition is consulted
+    // as that branch takes the join's outgoing flow, and the rule without one when the path ends.
+    if (!isMergedAtJoin(scopeExecution, endedExecution) && isCompleted(scopeExecution, endedExecution)) {
       completeScope(scopeExecution, endedExecution);
       return;
     }
@@ -436,6 +445,37 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     scopeExecution.forceUpdate();
 
     ((ExecutionEntity) scopeExecution).dispatchDelayedEventsAndPerformOperation((Callback<PvmExecutionImpl, Void>) null);
+  }
+
+  /**
+   * CIB7-2264. Whether the ended child is a branch that a join merges into another, rather than the
+   * end of a path.
+   *
+   * <p>While a join ends the branches it merges, every branch at the gateway is marked ended, the one
+   * it keeps included, and that one is activated again only once the others are gone
+   * ({@code leaveActivityViaTransitions}). So another child on the same gateway that is marked ended
+   * gives it away: it is the branch the join keeps, or one more it merges.
+   */
+  protected boolean isMergedAtJoin(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
+    if (!isJoiningGateway(endedExecution.getActivity())) {
+      return false;
+    }
+    for (ActivityExecution child : ((PvmExecutionImpl) scopeExecution).getNonEventScopeExecutions()) {
+      if (child != endedExecution && child.isEnded() && child.getActivity() == endedExecution.getActivity()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Whether an activity is a gateway that joins: a parallel or an inclusive one, the two that hand
+   * the branches waiting at them to {@code leaveActivityViaTransitions}.
+   */
+  protected boolean isJoiningGateway(PvmActivity activity) {
+    ActivityBehavior behavior = activity == null ? null : activity.getActivityBehavior();
+    return behavior instanceof ParallelGatewayActivityBehavior
+        || behavior instanceof InclusiveGatewayActivityBehavior;
   }
 
   /**
@@ -647,11 +687,31 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     // was still running. The event-scope marker is inactive with a null activity too, which is why the
     // walk is over the non-event-scope children: counting the marker would park every scope forever.
     for (ActivityExecution child : ((PvmExecutionImpl) scopeExecution).getNonEventScopeExecutions()) {
-      if (child != endedExecution && (child.isActive() || child.getActivity() == null)) {
+      if (child != endedExecution && isRunning(child)) {
         return true;
       }
     }
     return false;
+  }
+
+  /**
+   * Whether a child of the scope is still running: it is active; or its activity is null, because it
+   * has entered a scope of its own and its work runs one level below; or it waits at a join
+   * (CIB7-2264). A branch waiting at a join is as much part of the work as the branch it waits for,
+   * so a join that waits for a branch that never comes keeps the scope open, as it would keep an
+   * embedded sub process open.
+   */
+  protected boolean isRunning(ActivityExecution child) {
+    return child.isActive() || child.getActivity() == null || isWaitingAtJoin(child);
+  }
+
+  /**
+   * Inactive on a gateway that joins, without having ended. Not having ended is no sign on its own:
+   * the flag is not stored, so a child read back from the database has never ended, and neither has
+   * the execution a child that is a scope hands its end to.
+   */
+  protected boolean isWaitingAtJoin(ActivityExecution child) {
+    return !child.isActive() && !child.isEnded() && isJoiningGateway(child.getActivity());
   }
 
   protected void completeScope(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
@@ -668,10 +728,11 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    * Disposes of whatever is still running once the completion condition has held, and says whether
    * the scope may leave now.
    *
-   * <p>A child is still running when it is active <em>or</em> when its activity is null. The second
-   * case is a child that has entered a scope of its own -- an embedded sub process, or any activity
-   * carrying an io mapping -- where {@code PvmAtomicOperationCreateScope} inactivates the child and
-   * moves the live work one level down.
+   * <p>A child is still running in the three cases {@link #isRunning} names. The second is a child
+   * that has entered a scope of its own -- an embedded sub process, or any activity carrying an io
+   * mapping -- where {@code PvmAtomicOperationCreateScope} inactivates the child and moves the live
+   * work one level down. The third is a branch waiting at a join, which used to be removed as if it
+   * were done, leaving its activity instance at the join unfinished in the history.
    *
    * <p>CIB7-1961: the earlier form re-tested {@code isActive()} to decide whether to wait, after the
    * outer condition had already been satisfied by the other disjunct. For a scope child neither
@@ -700,7 +761,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
         ((PvmExecutionImpl) scopeExecution).getNonEventScopeExecutions());
 
     for (ActivityExecution child : children) {
-      if (child.isActive() || child.getActivity() == null) {
+      if (isRunning(child)) {
         if (!cancelRunning) {
           return false;
         }
