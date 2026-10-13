@@ -115,11 +115,12 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer, WebM
   public void addViewControllers(ViewControllerRegistry registry) {
 
     WebappProperty webapp = properties.getWebapp();
+    // only redirect from index ("/") if index redirect is enabled
     if (webapp.isIndexRedirectEnabled()) {
-		// using AppendTrailingSlashFilter
       registry.addRedirectViewController("/", webapp.getApplicationPath() + "/");
-	    registry.addViewController(webapp.getApplicationPath() + "/").setViewName("forward:" + webapp.getApplicationPath() + "/index.html");
     }
+    // always serve the webapp index; AppendTrailingSlashFilter redirects the application path to it
+    registry.addViewController(webapp.getApplicationPath() + "/").setViewName("forward:" + webapp.getApplicationPath() + "/index.html");
   }
 
 }
