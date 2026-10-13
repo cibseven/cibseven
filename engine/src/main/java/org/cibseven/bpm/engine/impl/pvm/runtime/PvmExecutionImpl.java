@@ -118,6 +118,13 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
   protected transient PvmActivity nextActivity;
 
   /**
+   * CIB7-2269. While this scope execution starts a non-interrupting event handler beside the
+   * activity the handler is attached to: the execution whose event started it. See
+   * {@link #eventHandlerPathCreated(PvmExecutionImpl)}.
+   */
+  protected transient PvmExecutionImpl eventHandlerTrigger;
+
+  /**
    * the transition that is currently being taken
    */
   protected transient TransitionImpl transition;
@@ -667,8 +674,13 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
     if (eventHandlerActivity.getActivityStartBehavior() == ActivityStartBehavior.CONCURRENT_IN_FLOW_SCOPE
       && flowScope != eventScope) {
       // the current scope is the event scope of the activity
-      findExecutionForScope(eventScope, flowScope)
-        .executeActivity(eventHandlerActivity);
+      PvmExecutionImpl flowScopeExecution = findExecutionForScope(eventScope, flowScope);
+      flowScopeExecution.eventHandlerTrigger = this;
+      try {
+        flowScopeExecution.executeActivity(eventHandlerActivity);
+      } finally {
+        flowScopeExecution.eventHandlerTrigger = null;
+      }
     } else {
       executeActivity(eventHandlerActivity);
     }
@@ -1015,6 +1027,24 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
       setActivity(targetTransition.getSource());
       setTransition(targetTransition);
       performOperation(PvmAtomicOperation.TRANSITION_START_NOTIFY_LISTENER_TAKE);
+    }
+  }
+
+  /**
+   * CIB7-2269. A non-interrupting event handler attached to an activity has just started
+   * {@code handlerPath} as a concurrent child of this scope execution, beside that activity. A scope
+   * that observes forks is told of it as of a fork of the activity, before the path takes a step:
+   * the path belongs to the same activation, and may meet the activity's own path at a join.
+   */
+  public void eventHandlerPathCreated(PvmExecutionImpl handlerPath) {
+    PvmExecutionImpl trigger = eventHandlerTrigger;
+    eventHandlerTrigger = null;
+    if (trigger == null) {
+      return;
+    }
+    ForkObserverBehavior forkObserver = handlerPath.getForkObserver();
+    if (forkObserver != null) {
+      forkObserver.branchesForked(this, trigger, Collections.singletonList(handlerPath));
     }
   }
 

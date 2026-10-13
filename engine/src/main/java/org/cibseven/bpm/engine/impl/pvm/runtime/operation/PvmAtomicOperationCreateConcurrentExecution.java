@@ -42,6 +42,8 @@ public abstract class PvmAtomicOperationCreateConcurrentExecution implements Pvm
     execution.setNextActivity(null);
 
     PvmExecutionImpl propagatingExecution = execution.createConcurrentExecution();
+    // CIB7-2269: before the new execution takes any step
+    execution.eventHandlerPathCreated(propagatingExecution);
 
     // set next activity on propagating execution
     propagatingExecution.setActivity(activityToStart);

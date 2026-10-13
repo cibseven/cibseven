@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-2269. A non-interrupting boundary event on a branch of a fork, whose side path goes straight
+     into the join where the other branch waits: the side path must carry the activation before it
+     arrives. `left` ends on its own. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <message id="pingMessage" name="ping" />
+  <process id="boundaryOnABranch" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <userTask id="work" />
+      <sequenceFlow id="w1" sourceRef="work" targetRef="split" />
+      <parallelGateway id="split" />
+      <sequenceFlow id="w2" sourceRef="split" targetRef="left" />
+      <sequenceFlow id="w3" sourceRef="split" targetRef="right" />
+      <userTask id="left" />
+      <boundaryEvent id="pinged" attachedToRef="left" cancelActivity="false">
+        <messageEventDefinition messageRef="pingMessage" />
+      </boundaryEvent>
+      <sequenceFlow id="b1" sourceRef="pinged" targetRef="join" />
+      <userTask id="right" />
+      <sequenceFlow id="w4" sourceRef="right" targetRef="join" />
+      <parallelGateway id="join" />
+      <sequenceFlow id="j1" sourceRef="join" targetRef="joined" />
+      <userTask id="joined" />
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="after" />
+    <userTask id="after" />
+    <sequenceFlow id="f3" sourceRef="after" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

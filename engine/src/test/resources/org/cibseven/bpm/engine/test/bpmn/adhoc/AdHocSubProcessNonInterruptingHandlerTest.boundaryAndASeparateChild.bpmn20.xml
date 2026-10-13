@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-2269. Two children activated on their own whose paths meet at a join, one of them with a
+     non-interrupting boundary event whose side path ends on its own. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <message id="pingMessage" name="ping" />
+  <process id="boundaryAndASeparateChild" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <userTask id="x" />
+      <boundaryEvent id="pinged" attachedToRef="x" cancelActivity="false">
+        <messageEventDefinition messageRef="pingMessage" />
+      </boundaryEvent>
+      <sequenceFlow id="b1" sourceRef="pinged" targetRef="sideTask" />
+      <userTask id="sideTask" />
+      <userTask id="y" />
+      <sequenceFlow id="i1" sourceRef="x" targetRef="join" />
+      <sequenceFlow id="i2" sourceRef="y" targetRef="join" />
+      <parallelGateway id="join" />
+      <sequenceFlow id="i3" sourceRef="join" targetRef="z" />
+      <userTask id="z" />
+      <completionCondition xsi:type="tFormalExpression">${false}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="after" />
+    <userTask id="after" />
+    <sequenceFlow id="f3" sourceRef="after" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

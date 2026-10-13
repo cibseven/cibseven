@@ -61,6 +61,14 @@ public class AdHocSubProcessNonInterruptingHandlerTest extends PluggableProcessE
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.interruptedHandler.bpmn20.xml";
   protected static final String BOUNDARY_EVENT =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.boundaryEvent.bpmn20.xml";
+  protected static final String BOUNDARY_PATH_MEETS_ITS_ACTIVITY =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.boundaryPathMeetsItsActivity.bpmn20.xml";
+  protected static final String BOUNDARY_PATH_MEETS_FORK =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.boundaryPathMeetsFork.bpmn20.xml";
+  protected static final String BOUNDARY_ON_A_BRANCH =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.boundaryOnABranch.bpmn20.xml";
+  protected static final String BOUNDARY_AND_A_SEPARATE_CHILD =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.boundaryAndASeparateChild.bpmn20.xml";
 
   // ---------------------------------------------------------------- the event sub process
 
@@ -290,6 +298,92 @@ public class AdHocSubProcessNonInterruptingHandlerTest extends PluggableProcessE
     assertThat(task("after")).isNotNull();
   }
 
+  /** The side path and the path of its activity meet at a join: one activation, two paths. */
+  @Deployment(resources = BOUNDARY_PATH_MEETS_ITS_ACTIVITY)
+  @Test
+  public void aBoundaryPathMeetsThePathOfItsActivityAtAJoin() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("boundaryPathMeetsItsActivity");
+    activate(scopeExecutionId(pi), "work");
+    runtimeService.correlateMessage("ping");
+
+    complete("work");
+    assertThat(task("joined")).as("the side path has not arrived yet").isNull();
+    complete("sideTask");
+    assertThat(task("joined")).as("both paths of the activation have arrived").isNotNull();
+
+    complete("joined");
+    assertThat(task("after")).isNotNull();
+  }
+
+  /**
+   * The side path meets a branch of a fork on its activity's path: still one activation, so the join
+   * fires once both have arrived.
+   */
+  @Deployment(resources = BOUNDARY_PATH_MEETS_FORK)
+  @Test
+  public void aBoundaryPathMeetsABranchOfItsActivitysForkAtAJoin() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("boundaryPathMeetsFork");
+    activate(scopeExecutionId(pi), "work");
+    runtimeService.correlateMessage("ping");
+
+    complete("work");
+    complete("left");
+    assertThat(task("joined")).as("the side path has not arrived yet").isNull();
+    complete("sideTask");
+    assertThat(task("joined")).as("the side path and the branch belong to one activation").isNotNull();
+
+    complete("joined");
+    complete("right");
+    assertThat(task("after")).isNotNull();
+  }
+
+  /**
+   * A boundary event on a branch of a fork, whose side path goes straight into the join where the
+   * other branch already waits: the path carries the activation from the moment it is created.
+   */
+  @Deployment(resources = BOUNDARY_ON_A_BRANCH)
+  @Test
+  public void aBoundaryPathThatGoesStraightToAJoinMeetsTheOtherBranchThere() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("boundaryOnABranch");
+    activate(scopeExecutionId(pi), "work");
+    complete("work");
+    complete("right");
+    assertThat(task("joined")).isNull();
+
+    runtimeService.correlateMessage("ping");
+    assertThat(task("joined")).as("the side path of left belongs to the activation of work").isNotNull();
+
+    complete("joined");
+    complete("left");
+    assertThat(task("after")).isNotNull();
+  }
+
+  /**
+   * The start of a side path counts as a fork of its activity, so the activity's activation carries
+   * a label from then on, and its path no longer meets a child activated on its own -- as after any
+   * fork (CIB7-2264). Without the event, the two join.
+   */
+  @Deployment(resources = BOUNDARY_AND_A_SEPARATE_CHILD)
+  @Test
+  public void aChildWhoseBoundaryEventFiredNoLongerMeetsAChildActivatedOnItsOwn() {
+    ProcessInstance quiet = runtimeService.startProcessInstanceByKey("boundaryAndASeparateChild");
+    activate(scopeExecutionId(quiet), "x");
+    activate(scopeExecutionId(quiet), "y");
+    complete(quiet, "x");
+    complete(quiet, "y");
+    assertThat(taskService.createTaskQuery().processInstanceId(quiet.getId()).taskDefinitionKey("z").count())
+        .as("without the event the two children join").isEqualTo(1);
+
+    ProcessInstance pinged = runtimeService.startProcessInstanceByKey("boundaryAndASeparateChild");
+    activate(scopeExecutionId(pinged), "x");
+    activate(scopeExecutionId(pinged), "y");
+    runtimeService.createMessageCorrelation("ping").processInstanceId(pinged.getId()).correlate();
+    complete(pinged, "x");
+    complete(pinged, "y");
+    assertThat(taskService.createTaskQuery().processInstanceId(pinged.getId()).taskDefinitionKey("z").count())
+        .as("x carries the label of its activation, y none").isZero();
+  }
+
   // ---------------------------------------------------------------- helpers
 
   protected String scopeExecutionId(ProcessInstance pi) {
@@ -312,6 +406,11 @@ public class AdHocSubProcessNonInterruptingHandlerTest extends PluggableProcessE
 
   protected void complete(String key) {
     taskService.complete(task(key).getId());
+  }
+
+  protected void complete(ProcessInstance pi, String key) {
+    taskService.complete(taskService.createTaskQuery().processInstanceId(pi.getId()).taskDefinitionKey(key)
+        .singleResult().getId());
   }
 
   protected HistoricActivityInstance historic(ProcessInstance pi, String activityId) {

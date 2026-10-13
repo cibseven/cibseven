@@ -99,7 +99,10 @@ import com.google.gson.JsonElement;
  *     path of a non-interrupting boundary event on one of the scope's activities, runs on a concurrent
  *     execution of the scope, keeps the scope open while it runs and ends as a child. Neither is an
  *     activation. An event sub process is not gathered; a boundary path is, once, where it ends,
- *     like any path (CIB7-2269).</li>
+ *     like any path. A boundary path also joins like a branch of its activity: its start counts as a
+ *     fork, so it carries that activity's {@link #ACTIVATION_ID} and meets the activity's own path
+ *     at a join, and from then on that path no longer meets a child activated on its own
+ *     (CIB7-2269).</li>
  * </ul>
  */
 public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavior
