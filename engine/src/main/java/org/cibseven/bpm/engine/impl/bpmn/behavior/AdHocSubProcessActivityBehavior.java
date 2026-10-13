@@ -78,11 +78,17 @@ import com.google.gson.JsonElement;
  *     concurrent execution, so each branch is one more concurrent execution of the scope, and each
  *     ends as a child. A join ends every branch it merges but one, which carries the path on, so a
  *     merged branch ends as a child without being the end of anything (CIB7-2264).</li>
+ * <li><b>A branch waiting at a join is running.</b> It counts as running for the rule without a
+ *     condition, and is cancelled when the scope completes. A join that waits for a branch that never
+ *     comes therefore keeps a scope without a completion condition open, as it would keep an embedded
+ *     sub process open, until the scope is completed or cancelled (CIB7-2264).</li>
  * <li><b>A join merges only the branches of one start.</b> The branches of every start of every
  *     child are siblings, so a join that counted them all would merge two starts of the same forking
  *     child. A fork therefore labels its branches with the start they belong to, {@link #PERFORMANCE},
  *     and a join counts only branches with the label of the one that arrives. Children that never
- *     forked carry none, and still join each other as before (CIB7-2264).</li>
+ *     forked carry none, and still join each other as before; but they never join a branch of a fork,
+ *     since a join that counted both kinds could count more branches than it has incoming flows and
+ *     then never fire (CIB7-2264).</li>
  * </ul>
  */
 public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavior

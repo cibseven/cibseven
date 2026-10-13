@@ -70,6 +70,8 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.forkAndJoinUntilEnough.bpmn20.xml";
   protected static final String UNTIL_ENOUGH_WAITING =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.forkAndJoinUntilEnoughWaiting.bpmn20.xml";
+  protected static final String STRANDED_JOIN =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.strandedJoin.bpmn20.xml";
 
   // ---------------------------------------------------------------- the scope after a fork
 
@@ -466,6 +468,57 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
     assertThat(count("z")).isZero();
     complete("y");
     assertThat(count("z")).isEqualTo(1);
+  }
+
+  /**
+   * A branch of a fork waits at a join for a child that is never started. Without a completion
+   * condition the scope stays open, because the waiting branch is running; completing the scope
+   * cancels it.
+   */
+  @Deployment(resources = STRANDED_JOIN)
+  @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
+  @Test
+  public void aJoinThatNeverFiresKeepsAScopeWithoutAConditionOpen() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("strandedJoin");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "split");
+
+    complete("right");
+    complete("left");
+    testRule.assertProcessNotEnded(pi.getId());
+    ActivityInstanceAssert.assertThat(runtimeService.getActivityInstance(pi.getId())).hasStructure(
+        describeActivityInstanceTree(pi.getProcessDefinitionId())
+          .beginScope("adHoc")
+            .activity("join")
+        .done());
+
+    runtimeService.completeAdHocSubProcess(scope);
+    testRule.assertProcessEnded(pi.getId());
+    assertThat(historic(pi, "join").isCanceled()).isTrue();
+  }
+
+  /**
+   * A child started on its own does not meet a branch of a fork at a join: the join waits for a
+   * branch of the same start, which never comes.
+   */
+  @Deployment(resources = STRANDED_JOIN)
+  @Test
+  public void aChildStartedOnItsOwnDoesNotMeetABranchOfAFork() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("strandedJoin");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "split");
+    activate(scope, "x");
+
+    complete("left");
+    complete("x");
+    assertThat(count("after")).as("the branch of the fork and x are no pair").isZero();
+    ActivityInstanceAssert.assertThat(runtimeService.getActivityInstance(pi.getId())).hasStructure(
+        describeActivityInstanceTree(pi.getProcessDefinitionId())
+          .beginScope("adHoc")
+            .activity("join")
+            .activity("join")
+            .activity("right")
+        .done());
   }
 
   /** A branch that reaches the join in a job of its own still knows its start. */
