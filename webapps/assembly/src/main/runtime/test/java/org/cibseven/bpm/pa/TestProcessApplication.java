@@ -23,7 +23,7 @@ import java.util.Map;
 import org.cibseven.bpm.admin.impl.web.SetupResource;
 import org.cibseven.bpm.application.PostDeploy;
 import org.cibseven.bpm.application.ProcessApplication;
-import org.cibseven.bpm.application.impl.ServletProcessApplication;
+import org.cibseven.bpm.application.impl.JakartaServletProcessApplication;
 import org.cibseven.bpm.engine.CaseService;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.RuntimeService;
@@ -41,6 +41,6 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
  * @author nico.rehwaldt
  */
 @ProcessApplication
-public class TestProcessApplication extends ServletProcessApplication {
+public class TestProcessApplication extends JakartaServletProcessApplication {
 
 }

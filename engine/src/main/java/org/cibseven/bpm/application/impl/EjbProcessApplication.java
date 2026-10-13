@@ -17,10 +17,11 @@
 package org.cibseven.bpm.application.impl;
 
 /**
- * @deprecated Both classes are based on {@code jakarta.ejb}; use
- *             {@link JakartaEjbProcessApplication} instead. This class extends it
- *             so that existing subclasses, and configurations (e.g. bpm-platform.xml)
- *             that still reference {@code EjbProcessApplication} by name, keep working.
+ * Former base class for EJB process applications.
+ *
+ * @deprecated Both classes are based on {@code jakarta.ejb}; extend
+ *             {@link JakartaEjbProcessApplication} instead. This class only remains
+ *             so that existing subclasses keep working.
  */
 @Deprecated
 public class EjbProcessApplication extends JakartaEjbProcessApplication {
