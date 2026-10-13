@@ -24,6 +24,7 @@ import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
 import org.cibseven.bpm.engine.impl.pvm.PvmLogger;
 import org.cibseven.bpm.engine.impl.pvm.PvmTransition;
+import org.cibseven.bpm.engine.impl.pvm.delegate.ForkObserverBehavior;
 import org.cibseven.bpm.engine.impl.pvm.runtime.LegacyBehavior;
 import org.cibseven.bpm.engine.impl.pvm.runtime.OutgoingExecution;
 import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
@@ -92,6 +93,7 @@ public class PvmAtomicOperationTransitionDestroyScope implements PvmAtomicOperat
       propagatingExecution.inactivate();
 
       List<OutgoingExecution> outgoingExecutions = new ArrayList<OutgoingExecution>();
+      List<PvmExecutionImpl> branches = new ArrayList<PvmExecutionImpl>();
 
       for (int i = 0; i < transitionsToTake.size(); i++) {
         PvmTransition transition = transitionsToTake.get(i);
@@ -106,6 +108,7 @@ public class PvmAtomicOperationTransitionDestroyScope implements PvmAtomicOperat
         }
         else {
           concurrentExecution = scopeExecution.createConcurrentExecution();
+          branches.add(concurrentExecution);
 
           if (i == 1 && !propagatingExecution.isConcurrent()) {
             outgoingExecutions.remove(0);
@@ -123,6 +126,13 @@ public class PvmAtomicOperationTransitionDestroyScope implements PvmAtomicOperat
         }
 
         outgoingExecutions.add(new OutgoingExecution(concurrentExecution, transition));
+      }
+
+      // CIB7-2264: a scope that observes forks learns of this one before any branch moves, so a
+      // join a branch reaches at once already tells the branches apart
+      ForkObserverBehavior forkObserver = propagatingExecution.getForkObserver();
+      if (forkObserver != null) {
+        forkObserver.branchesForked(propagatingExecution.getParent(), propagatingExecution, branches);
       }
 
       // start executions in reverse order (order will be reversed again in command context with the effect that they are

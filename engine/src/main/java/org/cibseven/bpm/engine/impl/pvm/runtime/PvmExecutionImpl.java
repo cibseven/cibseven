@@ -57,8 +57,10 @@ import org.cibseven.bpm.engine.impl.pvm.PvmProcessDefinition;
 import org.cibseven.bpm.engine.impl.pvm.PvmProcessInstance;
 import org.cibseven.bpm.engine.impl.pvm.PvmScope;
 import org.cibseven.bpm.engine.impl.pvm.PvmTransition;
+import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityBehavior;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;
 import org.cibseven.bpm.engine.impl.pvm.delegate.CompositeActivityBehavior;
+import org.cibseven.bpm.engine.impl.pvm.delegate.ForkObserverBehavior;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ModificationObserverBehavior;
 import org.cibseven.bpm.engine.impl.pvm.delegate.SignallableActivityBehavior;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
@@ -1000,12 +1002,32 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
     }
   }
 
+  /**
+   * CIB7-2264. The behavior of the scope this execution is a concurrent child of, when the scope
+   * execution stands on that scope's own activity and the behavior observes forks among its
+   * children; null otherwise.
+   */
+  public ForkObserverBehavior getForkObserver() {
+    PvmExecutionImpl scopeExecution = getParent();
+    if (!isConcurrent() || scopeExecution == null || scopeExecution.getActivity() == null) {
+      return null;
+    }
+    ActivityBehavior behavior = scopeExecution.getActivity().getActivityBehavior();
+    return behavior instanceof ForkObserverBehavior ? (ForkObserverBehavior) behavior : null;
+  }
+
   @Override
   @SuppressWarnings({"rawtypes", "unchecked"})
   public List<ActivityExecution> findInactiveConcurrentExecutions(PvmActivity activity) {
     List<PvmExecutionImpl> inactiveConcurrentExecutionsInActivity = new ArrayList<>();
     if (isConcurrent()) {
-      return getParent().findInactiveChildExecutions(activity);
+      List<ActivityExecution> inactiveSiblings = getParent().findInactiveChildExecutions(activity);
+      // CIB7-2264: under a scope that observes forks, a join counts only what the scope lets it
+      ForkObserverBehavior forkObserver = getForkObserver();
+      if (forkObserver != null) {
+        inactiveSiblings.removeIf(sibling -> !forkObserver.mayJoin(getParent(), this, sibling));
+      }
+      return inactiveSiblings;
     } else if (!isActive()) {
       inactiveConcurrentExecutionsInActivity.add(this);
     }
@@ -1057,6 +1079,13 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
     // execution).
     if (recyclableExecutions.size() > 1) {
       removeVariablesLocalInternal();
+
+      // CIB7-2264: a scope that observes forks may need to give the execution that goes on back
+      // what tells its branches apart
+      ForkObserverBehavior forkObserver = getForkObserver();
+      if (forkObserver != null) {
+        forkObserver.branchesJoined(getParent(), this, recyclableExecutions);
+      }
     }
 
     // mark all recyclable executions as ended

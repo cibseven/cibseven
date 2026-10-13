@@ -19,6 +19,7 @@ package org.cibseven.bpm.engine.impl.bpmn.behavior;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
@@ -29,6 +30,7 @@ import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.impl.pvm.PvmScope;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityBehavior;
 import org.cibseven.bpm.engine.impl.pvm.delegate.CompositeActivityBehavior;
+import org.cibseven.bpm.engine.impl.pvm.delegate.ForkObserverBehavior;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ModificationObserverBehavior;
 import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
 import org.cibseven.bpm.engine.impl.pvm.runtime.operation.PvmAtomicOperation;
@@ -76,10 +78,22 @@ import com.google.gson.JsonElement;
  *     concurrent execution, so each branch is one more concurrent execution of the scope, and each
  *     ends as a child. A join ends every branch it merges but one, which carries the path on, so a
  *     merged branch ends as a child without being the end of anything (CIB7-2264).</li>
+ * <li><b>A join merges only the branches of one start.</b> The branches of every start of every
+ *     child are siblings, so a join that counted them all would merge two starts of the same forking
+ *     child. A fork therefore labels its branches with the start they belong to, {@link #PERFORMANCE},
+ *     and a join counts only branches with the label of the one that arrives. Children that never
+ *     forked carry none, and still join each other as before (CIB7-2264).</li>
  * </ul>
  */
 public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavior
-    implements CompositeActivityBehavior, ModificationObserverBehavior {
+    implements CompositeActivityBehavior, ModificationObserverBehavior, ForkObserverBehavior {
+
+  /**
+   * CIB7-2264. A local variable of each branch of a forking child: the id of the execution that
+   * forked first in that start of the child. Written only where a child forks, and given back to the
+   * branch that goes on from a join, which loses its local variables there.
+   */
+  public static final String PERFORMANCE = "adHocPerformance";
 
   /**
    * Records that this scope instance has activated something; drives the no-condition completion
@@ -476,6 +490,71 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     ActivityBehavior behavior = activity == null ? null : activity.getActivityBehavior();
     return behavior instanceof ParallelGatewayActivityBehavior
         || behavior instanceof InclusiveGatewayActivityBehavior;
+  }
+
+  // ---------------------------------------------------------------- one start of a forking child
+
+  /**
+   * CIB7-2264. Labels the branches with the start of the child they belong to: the label the forking
+   * child already carries, from an earlier fork in the same start, or else its own id.
+   */
+  @Override
+  public void branchesForked(ActivityExecution scopeExecution, ActivityExecution forkingExecution,
+      List<? extends ActivityExecution> branches) {
+    ActivityExecution forkingChild = childOf(scopeExecution, forkingExecution);
+    Object performance = forkingChild.getVariableLocal(PERFORMANCE);
+    if (performance == null) {
+      performance = forkingChild.getId();
+      forkingChild.setVariableLocal(PERFORMANCE, performance);
+    }
+    for (ActivityExecution branch : branches) {
+      branch.setVariableLocal(PERFORMANCE, performance);
+    }
+  }
+
+  /**
+   * CIB7-2264. Two executions may join when they belong to the same start of a child: their children
+   * of the scope carry the same label, or neither carries one, as two children that never forked.
+   */
+  @Override
+  public boolean mayJoin(ActivityExecution scopeExecution, ActivityExecution arrivingExecution,
+      ActivityExecution otherExecution) {
+    return Objects.equals(performanceOf(scopeExecution, arrivingExecution),
+        performanceOf(scopeExecution, otherExecution));
+  }
+
+  /**
+   * CIB7-2264. The branch that goes on from a join has just lost its local variables, its label
+   * among them; it takes the label back from a branch it merged, since a join merges only branches
+   * that carry the same one.
+   */
+  @Override
+  public void branchesJoined(ActivityExecution scopeExecution, ActivityExecution continuingExecution,
+      List<? extends ActivityExecution> joinedExecutions) {
+    for (ActivityExecution joined : joinedExecutions) {
+      if (joined != continuingExecution) {
+        Object performance = performanceOf(scopeExecution, joined);
+        if (performance != null) {
+          continuingExecution.setVariableLocal(PERFORMANCE, performance);
+        }
+        return;
+      }
+    }
+  }
+
+  /** The label of the start an execution belongs to, read from its child of the scope; null if none. */
+  protected Object performanceOf(ActivityExecution scopeExecution, ActivityExecution execution) {
+    ActivityExecution child = childOf(scopeExecution, execution);
+    return child == null ? null : child.getVariableLocal(PERFORMANCE);
+  }
+
+  /** The child of the scope an execution is, or runs below; null for one outside the scope. */
+  protected ActivityExecution childOf(ActivityExecution scopeExecution, ActivityExecution execution) {
+    ActivityExecution child = execution;
+    while (child != null && child.getParent() != scopeExecution) {
+      child = child.getParent();
+    }
+    return child;
   }
 
   /**

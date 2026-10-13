@@ -21,6 +21,7 @@ import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeA
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.history.HistoricActivityInstance;
@@ -56,6 +57,12 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.scopeChildForks.bpmn20.xml";
   protected static final String INCLUSIVE =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.inclusiveForkAndJoin.bpmn20.xml";
+  protected static final String FORK_JOIN_TWICE =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.forkJoinTwice.bpmn20.xml";
+  protected static final String WITHOUT_A_FORK =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.childrenJoinWithoutAFork.bpmn20.xml";
+  protected static final String ASYNC_JOIN =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.forkAndAsyncJoin.bpmn20.xml";
 
   // ---------------------------------------------------------------- the scope after a fork
 
@@ -305,6 +312,128 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
     }
   }
 
+  // ---------------------------------------------------------------- two starts of a forking child
+
+  /**
+   * The branches of two starts of one forking child are siblings under the scope. A join merges only
+   * the branches of one start: the two left branches waiting at it are no pair.
+   */
+  @Deployment(resources = FORK_AND_JOIN)
+  @Test
+  public void twoStartsOfAForkingChildEachJoinTheirOwnBranches() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkAndJoin");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "split");
+    activate(scope, "split");
+
+    completeEach("left");
+    assertThat(count("after")).as("no start has both of its branches at the join").isZero();
+    ActivityInstanceAssert.assertThat(runtimeService.getActivityInstance(pi.getId())).hasStructure(
+        describeActivityInstanceTree(pi.getProcessDefinitionId())
+          .beginScope("adHoc")
+            .activity("join")
+            .activity("join")
+            .activity("right")
+            .activity("right")
+        .done());
+
+    completeOne("right");
+    assertThat(count("after")).as("the start whose branches are both at the join goes on").isEqualTo(1);
+    assertThat(count("right")).isEqualTo(1);
+
+    completeOne("right");
+    assertThat(count("after")).isEqualTo(2);
+
+    completeEach("after");
+    @SuppressWarnings("unchecked")
+    List<Object> results = (List<Object>) runtimeService.getVariable(pi.getId(), "results");
+    assertThat(results)
+        .as("each start: its branch merged at the join, then the end of its path")
+        .containsExactlyInAnyOrder("join", "join", "after", "after");
+    activate(scope, "other");
+    assertThat(task("other")).as("the scope must still take activations").isNotNull();
+  }
+
+  /** An inclusive join waits only for branches of its own start that can still reach it. */
+  @Deployment(resources = INCLUSIVE)
+  @Test
+  public void anInclusiveJoinWaitsOnlyForItsOwnStart() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("inclusiveForkAndJoin");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "split");
+    activate(scope, "split");
+
+    completeEach("left");
+    assertThat(count("after")).as("each left waits for the right of its own start").isZero();
+
+    completeOne("right");
+    assertThat(count("after")).as("the other start's right does not keep this join waiting")
+        .isEqualTo(1);
+
+    completeOne("right");
+    completeEach("after");
+    testRule.assertProcessEnded(pi.getId());
+  }
+
+  /** The branch that goes on from a join still belongs to its start at the next join. */
+  @Deployment(resources = FORK_JOIN_TWICE)
+  @Test
+  public void aStartThatJoinsTwiceKeepsItsBranchesTogether() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkJoinTwice");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "split");
+    activate(scope, "split");
+
+    completeEach("a");
+    completeEach("b");
+    assertThat(count("d")).isEqualTo(2);
+
+    completeEach("d");
+    assertThat(count("e")).as("each d waits at the second join for the c of its own start").isZero();
+
+    completeOne("c");
+    assertThat(count("e")).isEqualTo(1);
+    completeOne("c");
+    assertThat(count("e")).isEqualTo(2);
+  }
+
+  /** Children that never forked still meet at a join, as they did before the fork had a start. */
+  @Deployment(resources = WITHOUT_A_FORK)
+  @Test
+  public void childrenThatNeverForkedStillJoinEachOther() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("childrenJoinWithoutAFork");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "x");
+    activate(scope, "y");
+
+    complete("x");
+    assertThat(count("z")).isZero();
+    complete("y");
+    assertThat(count("z")).isEqualTo(1);
+  }
+
+  /** A branch that reaches the join in a job of its own still knows its start. */
+  @Deployment(resources = ASYNC_JOIN)
+  @Test
+  public void anAsynchronousJoinStillTellsTheStartsApart() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkAndAsyncJoin");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "split");
+    activate(scope, "split");
+
+    completeEach("left");
+    testRule.executeAvailableJobs();
+    assertThat(count("after")).isZero();
+
+    completeOne("right");
+    testRule.executeAvailableJobs();
+    assertThat(count("after")).isEqualTo(1);
+
+    completeOne("right");
+    testRule.executeAvailableJobs();
+    assertThat(count("after")).isEqualTo(2);
+  }
+
   // ---------------------------------------------------------------- helpers
 
   protected String scopeExecutionId(ProcessInstance pi) {
@@ -327,6 +456,21 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
 
   protected void complete(String key) {
     taskService.complete(task(key).getId());
+  }
+
+  protected long count(String key) {
+    return taskService.createTaskQuery().taskDefinitionKey(key).count();
+  }
+
+  /** Completes one of the tasks of an activity, whichever the query returns first. */
+  protected void completeOne(String key) {
+    taskService.complete(taskService.createTaskQuery().taskDefinitionKey(key).list().get(0).getId());
+  }
+
+  protected void completeEach(String key) {
+    for (Task task : taskService.createTaskQuery().taskDefinitionKey(key).list()) {
+      taskService.complete(task.getId());
+    }
   }
 
   /** The single historic instance of an activity; for a join, the one of the branch that waited. */
