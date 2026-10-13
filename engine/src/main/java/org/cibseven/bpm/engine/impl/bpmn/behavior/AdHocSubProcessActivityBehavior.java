@@ -77,7 +77,8 @@ import com.google.gson.JsonElement;
  * <li><b>A fork inside a child adds children.</b> A child that is not a scope forks on its own
  *     concurrent execution, so each branch is one more concurrent execution of the scope, and each
  *     ends as a child. A join ends every branch it merges but one, which carries the path on, so a
- *     merged branch ends as a child without being the end of anything (CIB7-2264).</li>
+ *     merged branch ends as a child without being the end of anything: it is not gathered, and does
+ *     not decide completion. Each path is gathered once, where it ends (CIB7-2264).</li>
  * <li><b>A branch waiting at a join is running.</b> It counts as running for the rule without a
  *     condition, and is cancelled when the scope completes. A join that waits for a branch that never
  *     comes therefore keeps a scope without a completion condition open, as it would keep an embedded
@@ -433,17 +434,20 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
 
   @Override
   public void concurrentChildExecutionEnded(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
-    gatherResult(scopeExecution, endedExecution);
+    // A branch merged at a join is no end of a path: the path goes on, on the branch the join keeps,
+    // so nothing has finished (CIB7-2264). It is neither gathered -- the path is, once, at its end --
+    // nor does it decide completion. Deciding there completed a scope without a condition, and the
+    // branch that went on did so on an execution completing had removed. The condition is consulted
+    // as that branch takes the join's outgoing flow, and the rule without one when the path ends.
+    boolean mergedAtJoin = isMergedAtJoin(scopeExecution, endedExecution);
+    if (!mergedAtJoin) {
+      gatherResult(scopeExecution, endedExecution);
+    }
 
     // Decide before disposing of anything: a completion condition normally reads a variable the
     // ended child just wrote, and completeScope needs the ended execution's activity to find the
     // flow scope to return to.
-    //
-    // Not for a branch merged at a join, though: the path goes on, on the branch the join keeps, so
-    // nothing has finished. Deciding here completed a scope without a condition, and the branch that
-    // went on did so on an execution completing had removed (CIB7-2264). The condition is consulted
-    // as that branch takes the join's outgoing flow, and the rule without one when the path ends.
-    if (!isMergedAtJoin(scopeExecution, endedExecution) && isCompleted(scopeExecution, endedExecution)) {
+    if (!mergedAtJoin && isCompleted(scopeExecution, endedExecution)) {
       completeScope(scopeExecution, endedExecution);
       return;
     }
@@ -625,7 +629,8 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   /**
    * Appends this performance's result to the gathering variable, if the scope gathers (CIB7-1892).
    *
-   * <p>Called as a child ends, and <em>before</em> the completion condition is consulted -- so a
+   * <p>Called as a child ends -- unless a join merged it, which ends no path (CIB7-2264) -- and
+   * <em>before</em> the completion condition is consulted -- so a
    * condition can be written against what has been gathered so far, which is the natural way to say
    * "enough". One call site, not two: see {@link #complete(ActivityExecution)} for why the other
    * callback a child can end through is not one of them.

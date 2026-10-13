@@ -203,7 +203,7 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
 
     complete("after");
     assertThat(runtimeService.getVariable(pi.getId(), "results"))
-        .as("the branch merged at the join, then the end of the path").isEqualTo(Arrays.asList("join", "after"));
+        .as("the path, once, where it ends; not the branch merged at the join").isEqualTo(Arrays.asList("after"));
     ExecutionAssert.assertThat(ExecutionTree.forExecution(pi.getId(), processEngine)).matches(
         describeExecutionTree(null).scope()
           .child("adHoc").scope().id(scope)
@@ -232,6 +232,9 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
 
     complete("left");
     testRule.assertProcessNotEnded(pi.getId());
+    assertThat(runtimeService.getVariable(pi.getId(), "results"))
+        .as("a path is gathered where it ends, though another branch of its start still runs")
+        .isEqualTo(Arrays.asList("left"));
     complete("right");
     testRule.assertProcessEnded(pi.getId());
   }
@@ -406,8 +409,8 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
     @SuppressWarnings("unchecked")
     List<Object> results = (List<Object>) runtimeService.getVariable(pi.getId(), "results");
     assertThat(results)
-        .as("each start: its branch merged at the join, then the end of its path")
-        .containsExactlyInAnyOrder("join", "join", "after", "after");
+        .as("each start's path, once, where it ends")
+        .containsExactly("after", "after");
     activate(scope, "other");
     assertThat(task("other")).as("the scope must still take activations").isNotNull();
   }
