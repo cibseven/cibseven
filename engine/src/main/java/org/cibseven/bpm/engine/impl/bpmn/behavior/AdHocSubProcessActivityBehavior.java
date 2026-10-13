@@ -516,10 +516,10 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     Object activationId = forkingChild.getVariableLocal(ACTIVATION_ID);
     if (activationId == null) {
       activationId = forkingChild.getId();
-      forkingChild.setVariableLocal(ACTIVATION_ID, activationId);
+      writeActivationId(forkingChild, activationId);
     }
     for (ActivityExecution branch : branches) {
-      branch.setVariableLocal(ACTIVATION_ID, activationId);
+      writeActivationId(branch, activationId);
     }
   }
 
@@ -547,10 +547,24 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
       if (joined != continuingExecution) {
         Object activationId = activationIdOf(scopeExecution, joined);
         if (activationId != null) {
-          continuingExecution.setVariableLocal(ACTIVATION_ID, activationId);
+          writeActivationId(continuingExecution, activationId);
         }
         return;
       }
+    }
+  }
+
+  /**
+   * CIB7-2264. Writes the label as engine bookkeeping: stored and in the history, but without a
+   * variable event. A fork of an activity that runs, such as the path of its boundary event, writes
+   * on an execution above that activity's subscriptions, and an unfiltered conditional event there
+   * would otherwise fire again on a write the model never made.
+   */
+  protected void writeActivationId(ActivityExecution execution, Object activationId) {
+    if (execution instanceof ExecutionEntity) {
+      ((ExecutionEntity) execution).setVariableLocalWithoutEvents(ACTIVATION_ID, activationId);
+    } else {
+      execution.setVariableLocal(ACTIVATION_ID, activationId);
     }
   }
 
