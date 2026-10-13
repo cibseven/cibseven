@@ -83,24 +83,25 @@ import com.google.gson.JsonElement;
  *     condition, and is cancelled when the scope completes. A join that waits for a branch that never
  *     comes therefore keeps a scope without a completion condition open, as it would keep an embedded
  *     sub process open, until the scope is completed or cancelled (CIB7-2264).</li>
- * <li><b>A join merges only the branches of one start.</b> The branches of every start of every
- *     child are siblings, so a join that counted them all would merge two starts of the same forking
- *     child. A fork therefore labels its branches with the start they belong to, {@link #PERFORMANCE},
- *     and a join counts only branches with the label of the one that arrives. Children that never
- *     forked carry none, and still join each other as before; but they never join a branch of a fork,
- *     since a join that counted both kinds could count more branches than it has incoming flows and
- *     then never fire (CIB7-2264).</li>
+ * <li><b>A join merges only the branches of one activation.</b> The branches of every activation of
+ *     every child are siblings, so a join that counted them all would merge two activations of the
+ *     same forking child. A fork therefore labels its branches with the activation they belong to,
+ *     {@link #ACTIVATION_ID}, and a join counts only branches with the label of the one that
+ *     arrives. Children that never forked carry none, and still join each other as before; but they
+ *     never join a branch of a fork, since a join that counted both kinds could count more branches
+ *     than it has incoming flows and then never fire (CIB7-2264).</li>
  * </ul>
  */
 public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavior
     implements CompositeActivityBehavior, ModificationObserverBehavior, ForkObserverBehavior {
 
   /**
-   * CIB7-2264. A local variable of each branch of a forking child: the id of the execution that
-   * forked first in that start of the child. Written only where a child forks, and given back to the
-   * branch that goes on from a join, which loses its local variables there.
+   * CIB7-2264. A local variable of each branch of a forking child: the id of the execution its
+   * activation created, which is the execution that forks first in it. Written only where a child
+   * forks, and given back to the branch that goes on from a join, which loses its local variables
+   * there.
    */
-  public static final String PERFORMANCE = "adHocPerformance";
+  public static final String ACTIVATION_ID = "adHocActivationId";
 
   /**
    * Records that this scope instance has activated something; drives the no-condition completion
@@ -502,35 +503,36 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
         || behavior instanceof InclusiveGatewayActivityBehavior;
   }
 
-  // ---------------------------------------------------------------- one start of a forking child
+  // ------------------------------------------------------------ one activation of a forking child
 
   /**
-   * CIB7-2264. Labels the branches with the start of the child they belong to: the label the forking
-   * child already carries, from an earlier fork in the same start, or else its own id.
+   * CIB7-2264. Labels the branches with the activation they belong to: the label the forking child
+   * already carries, from an earlier fork in the same activation, or else its own id.
    */
   @Override
   public void branchesForked(ActivityExecution scopeExecution, ActivityExecution forkingExecution,
       List<? extends ActivityExecution> branches) {
     ActivityExecution forkingChild = childOf(scopeExecution, forkingExecution);
-    Object performance = forkingChild.getVariableLocal(PERFORMANCE);
-    if (performance == null) {
-      performance = forkingChild.getId();
-      forkingChild.setVariableLocal(PERFORMANCE, performance);
+    Object activationId = forkingChild.getVariableLocal(ACTIVATION_ID);
+    if (activationId == null) {
+      activationId = forkingChild.getId();
+      forkingChild.setVariableLocal(ACTIVATION_ID, activationId);
     }
     for (ActivityExecution branch : branches) {
-      branch.setVariableLocal(PERFORMANCE, performance);
+      branch.setVariableLocal(ACTIVATION_ID, activationId);
     }
   }
 
   /**
-   * CIB7-2264. Two executions may join when they belong to the same start of a child: their children
-   * of the scope carry the same label, or neither carries one, as two children that never forked.
+   * CIB7-2264. Two executions may join when they belong to the same activation of a child: their
+   * children of the scope carry the same label, or neither carries one, as two children that never
+   * forked.
    */
   @Override
   public boolean mayJoin(ActivityExecution scopeExecution, ActivityExecution arrivingExecution,
       ActivityExecution otherExecution) {
-    return Objects.equals(performanceOf(scopeExecution, arrivingExecution),
-        performanceOf(scopeExecution, otherExecution));
+    return Objects.equals(activationIdOf(scopeExecution, arrivingExecution),
+        activationIdOf(scopeExecution, otherExecution));
   }
 
   /**
@@ -543,19 +545,22 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
       List<? extends ActivityExecution> joinedExecutions) {
     for (ActivityExecution joined : joinedExecutions) {
       if (joined != continuingExecution) {
-        Object performance = performanceOf(scopeExecution, joined);
-        if (performance != null) {
-          continuingExecution.setVariableLocal(PERFORMANCE, performance);
+        Object activationId = activationIdOf(scopeExecution, joined);
+        if (activationId != null) {
+          continuingExecution.setVariableLocal(ACTIVATION_ID, activationId);
         }
         return;
       }
     }
   }
 
-  /** The label of the start an execution belongs to, read from its child of the scope; null if none. */
-  protected Object performanceOf(ActivityExecution scopeExecution, ActivityExecution execution) {
+  /**
+   * The label of the activation an execution belongs to, read from its child of the scope; null if
+   * none.
+   */
+  protected Object activationIdOf(ActivityExecution scopeExecution, ActivityExecution execution) {
     ActivityExecution child = childOf(scopeExecution, execution);
-    return child == null ? null : child.getVariableLocal(PERFORMANCE);
+    return child == null ? null : child.getVariableLocal(ACTIVATION_ID);
   }
 
   /** The child of the scope an execution is, or runs below; null for one outside the scope. */

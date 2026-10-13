@@ -22,9 +22,10 @@ import java.util.List;
  * The behavior of a scope whose execution stays on its own activity while each child it starts runs
  * on a concurrent execution of its own, as an ad hoc sub process does (CIB7-2264).
  *
- * <p>A child of such a scope that forks adds its branches beside every other child, so the branches
- * of two starts of the same child are siblings, and a join would count them together. The scope is
- * told of each fork and join among its children, and decides which branches a join may merge.
+ * <p>A child of such a scope that forks adds its branches beside every other child, so the
+ * branches of two activations of the same child are siblings, and a join would count them together.
+ * The scope is told of each fork and join among its children, and decides which branches a join may
+ * merge.
  *
  * <p>The engine consults it only for a concurrent child of a scope execution that stands on the
  * scope's own activity.
