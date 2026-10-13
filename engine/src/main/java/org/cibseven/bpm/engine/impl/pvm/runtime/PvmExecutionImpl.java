@@ -1097,6 +1097,11 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
     // this is a workaround to not delete all recyclable
     // executions and create a new execution which leaves
     // the activity.
+    // CIB7-2264: keep marking all of them before the first
+    // of them ends below. An ad hoc sub process tells a branch
+    // merged here from the end of a path by a sibling at the
+    // same gateway already marked ended
+    // (AdHocSubProcessActivityBehavior#isMergedAtJoin).
     for (ActivityExecution execution : recyclableExecutions) {
       execution.setEnded(true);
     }
