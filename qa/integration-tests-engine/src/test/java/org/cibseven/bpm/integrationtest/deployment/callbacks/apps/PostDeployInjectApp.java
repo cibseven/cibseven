@@ -21,11 +21,11 @@ import java.util.List;
 import org.cibseven.bpm.application.PostDeploy;
 import org.cibseven.bpm.application.ProcessApplication;
 import org.cibseven.bpm.application.ProcessApplicationInfo;
+import org.cibseven.bpm.application.impl.JakartaServletProcessApplication;
 import org.cibseven.bpm.engine.ProcessEngine;
 
 @ProcessApplication
-// Using fully-qualified class name instead of import statement to allow for automatic Jakarta transformation
-public class PostDeployInjectApp extends org.cibseven.bpm.application.impl.ServletProcessApplication {
+public class PostDeployInjectApp extends JakartaServletProcessApplication {
   
   public static ProcessEngine processEngine;
   public static ProcessApplicationInfo processApplicationInfo;

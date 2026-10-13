@@ -391,19 +391,8 @@
       <build>
         <testResources>
           <testResource>
-            <!-- shared tomcat resources (singleEngine.xml, twoEngines.xml, etc.),
-                 excluding files that use pre-Jakarta (javax.*) namespaces/schemas
-                 specific to Tomcat 9: arquillian.xml (tomcat9.runtime.location),
-                 web.xml / web-without-weld.xml (javax web-app schema + BeanManager type),
-                 context.xml (javax.enterprise.inject.spi.BeanManager) -->
             <directory>src/test/resources-tomcat</directory>
             <filtering>true</filtering>
-            <excludes>
-              <exclude>arquillian.xml</exclude>
-              <exclude>web.xml</exclude>
-              <exclude>web-without-weld.xml</exclude>
-              <exclude>context.xml</exclude>
-            </excludes>
           </testResource>
           <testResource>
             <!-- resources-tomcat11 contains the Jakarta EE 10 / Tomcat 11 compatible
@@ -498,19 +487,8 @@
       <build>
         <testResources>
           <testResource>
-            <!-- shared tomcat resources (singleEngine.xml, twoEngines.xml, etc.),
-                 excluding files that use pre-Jakarta (javax.*) namespaces/schemas
-                 specific to Tomcat 9: arquillian.xml (tomcat9.runtime.location),
-                 web.xml / web-without-weld.xml (javax web-app schema + BeanManager type),
-                 context.xml (javax.enterprise.inject.spi.BeanManager) -->
             <directory>src/test/resources-tomcat</directory>
             <filtering>true</filtering>
-            <excludes>
-              <exclude>arquillian.xml</exclude>
-              <exclude>web.xml</exclude>
-              <exclude>web-without-weld.xml</exclude>
-              <exclude>context.xml</exclude>
-            </excludes>
           </testResource>
           <testResource>
             <!-- Jakarta EE web.xml, web-without-weld.xml and context.xml, reused as-is
