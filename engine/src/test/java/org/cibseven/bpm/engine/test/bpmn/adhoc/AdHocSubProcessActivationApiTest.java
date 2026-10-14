@@ -57,6 +57,8 @@ public class AdHocSubProcessActivationApiTest extends PluggableProcessEngineTest
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessActivationApiTest.called.bpmn20.xml";
   protected static final String PARALLEL_TOKENS =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessActivationApiTest.parallelTokens.bpmn20.xml";
+  protected static final String TWO_OUTGOING_FLOWS =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessActivationApiTest.twoOutgoingFlows.bpmn20.xml";
 
   protected String scopeExecutionId(String processInstanceId) {
     for (Execution execution : runtimeService.createExecutionQuery()
@@ -635,6 +637,43 @@ public class AdHocSubProcessActivationApiTest extends PluggableProcessEngineTest
         .processInstanceId(pi.getId()).variableName("outcome").count())
         .as("variables set on completion must be recorded")
         .isEqualTo(1);
+  }
+
+  /**
+   * Leaving the scope through two flows forks as leaving any activity does. For that moment the
+   * parent execution stands on the scope's activity, and must not be taken for the scope execution
+   * that keeps its children beside it (CIB7-2269).
+   */
+  @Deployment(resources = TWO_OUTGOING_FLOWS)
+  @Test
+  public void aScopeThatCompletesByItsRuleTakesEveryOutgoingFlow() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocTwoOutgoingFlows");
+    runtimeService.activateAdHocSubProcessActivities(scopeExecutionId(pi.getId()),
+        Collections.singletonList("taskA"));
+
+    taskService.complete(task("taskA").getId());
+
+    assertThat(task("a")).isNotNull();
+    assertThat(task("b")).isNotNull();
+    taskService.complete(task("a").getId());
+    taskService.complete(task("b").getId());
+    testRule.assertProcessEnded(pi.getId());
+  }
+
+  @Deployment(resources = TWO_OUTGOING_FLOWS)
+  @Test
+  public void aScopeCompletedOnRequestTakesEveryOutgoingFlow() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocTwoOutgoingFlows");
+    String scope = scopeExecutionId(pi.getId());
+    runtimeService.activateAdHocSubProcessActivities(scope, Collections.singletonList("taskA"));
+
+    runtimeService.completeAdHocSubProcess(scope);
+
+    assertThat(task("a")).isNotNull();
+    assertThat(task("b")).isNotNull();
+    taskService.complete(task("a").getId());
+    taskService.complete(task("b").getId());
+    testRule.assertProcessEnded(pi.getId());
   }
 
   @Deployment(resources = RESOURCE)

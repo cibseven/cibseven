@@ -546,11 +546,13 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
     //
     // eX+1 is concurrent and the new root for the activity stack to instantiate
     //
-    // An execution that stands on a scope which creates its children itself is never expanded, so
-    // (1) and (2) do not apply to it and it is (3) whatever the number of children: see
-    // standsOnScopeThatCreatesItsChildren. An ad hoc sub process is that case. Taking (2) for a fork
-    // in its only running child (CIB7-2264), or (1) for a non-interrupting handler while nothing runs
-    // in it (CIB7-2269), took the scope execution off its activity and its activity instance.
+    // (2) is not for a single child that is concurrent while this execution stands on a scope
+    // activity. That tree is expanded already, and the execution occupies no activity to hand over,
+    // so it is (3). Only an ad hoc sub process waits like that: its execution stays on its own
+    // activity and runs each child on a concurrent execution, so one child running alone is that
+    // case; taking (2) for a fork in it moved the child under a new concurrent execution and took the
+    // scope execution off its activity and its activity instance (CIB7-2264). A handler started while
+    // no child runs is not decided here: see createConcurrentExecutionBesideChildren (CIB7-2269).
     List<? extends PvmExecutionImpl> children = this.getNonEventScopeExecutions();
 
     // whenever we change the set of child executions we have to force an update
@@ -558,10 +560,7 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
     // that go unnoticed
     forceUpdate();
 
-    if (standsOnScopeThatCreatesItsChildren()) {
-      // (3), with or without children
-
-    } else if (children.isEmpty()) {
+    if (children.isEmpty()) {
       // (1)
       PvmExecutionImpl replacingExecution = this.createExecution();
       replacingExecution.setConcurrent(true);
@@ -570,7 +569,8 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
       this.inactivate();
       this.setActivity(null);
 
-    } else if (children.size() == 1) {
+    } else if (children.size() == 1
+        && !(children.get(0).isConcurrent() && getActivity() != null && getActivity().isScope())) {
       // (2)
       PvmExecutionImpl child = children.get(0);
 
@@ -593,18 +593,38 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
   }
 
   /**
-   * Whether this execution stands on a scope activity whose behaviour creates and removes the scope's
-   * inner executions itself, as a {@link ModificationObserverBehavior} does. Such a scope keeps every
-   * child on a concurrent execution and the scope execution on its own activity, so its tree never
-   * needs expanding: there is no activity to hand over to a replacing execution, and a new branch
-   * goes beside the children. An ad hoc sub process waits like that between activations. A
-   * multi-instance body creates its children itself too, but no branch is ever asked of it: the only
-   * activity inside it is the one it starts itself.
+   * CIB7-2269. Whether this is the execution of a scope that observes forks among its children and
+   * stands on that scope's own activity, as the execution of an ad hoc sub process does from entry
+   * to completion. Such a scope runs every child on a concurrent execution, so its tree is never
+   * compacted and never needs expanding.
+   *
+   * <p>Only the start of an event handler asks this. When a scope is left, the parent execution
+   * stands on the left activity for a moment too, and a fork after it has to expand the tree as
+   * after any other activity.
    */
-  protected boolean standsOnScopeThatCreatesItsChildren() {
+  public boolean standsOnScopeThatObservesForks() {
     PvmActivity activity = getActivity();
-    return activity != null && activity.isScope()
-        && activity.getActivityBehavior() instanceof ModificationObserverBehavior;
+    return isScope() && activity != null && activity.isScope()
+        && activity.getActivityBehavior() instanceof ForkObserverBehavior;
+  }
+
+  /**
+   * CIB7-2269. Creates a concurrent child beside the children of this execution without expanding
+   * the tree: case (3) of {@link #createConcurrentExecution()}, whatever the number of children.
+   * For an execution that {@link #standsOnScopeThatObservesForks() stands on a scope that observes
+   * forks}, where a non-interrupting event handler can start while no child runs; case (1) would
+   * take the scope execution off its activity and its activity instance. The scope execution waits
+   * inactive on its activity, as before the handler started.
+   */
+  public PvmExecutionImpl createConcurrentExecutionBesideChildren() {
+    forceUpdate();
+    inactivate();
+
+    PvmExecutionImpl concurrentExecution = this.createExecution();
+    concurrentExecution.setConcurrent(true);
+    concurrentExecution.setScope(false);
+
+    return concurrentExecution;
   }
 
   @Override

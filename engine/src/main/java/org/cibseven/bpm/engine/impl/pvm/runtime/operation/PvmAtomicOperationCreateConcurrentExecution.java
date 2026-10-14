@@ -41,7 +41,10 @@ public abstract class PvmAtomicOperationCreateConcurrentExecution implements Pvm
     PvmActivity activityToStart = execution.getNextActivity();
     execution.setNextActivity(null);
 
-    PvmExecutionImpl propagatingExecution = execution.createConcurrentExecution();
+    // CIB7-2269: an ad hoc scope keeps its execution on its own activity, also while no child runs
+    PvmExecutionImpl propagatingExecution = execution.standsOnScopeThatObservesForks()
+        ? execution.createConcurrentExecutionBesideChildren()
+        : execution.createConcurrentExecution();
     // CIB7-2269: before the new execution takes any step
     execution.eventHandlerPathCreated(propagatingExecution);
 

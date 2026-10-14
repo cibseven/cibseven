@@ -138,6 +138,7 @@ public class AdHocSubProcessNonInterruptingHandlerTest extends PluggableProcessE
     runtimeService.correlateMessage("notice");
 
     assertThat(activityIdOf(scope)).as("the scope execution must stay on the scope").isEqualTo("adHoc");
+    assertThat(isActive(scope)).as("the scope execution waits beside the handler").isFalse();
     ActivityInstanceAssert.assertThat(runtimeService.getActivityInstance(pi.getId())).hasStructure(
         describeActivityInstanceTree(pi.getProcessDefinitionId())
           .beginScope("adHoc")
@@ -147,6 +148,7 @@ public class AdHocSubProcessNonInterruptingHandlerTest extends PluggableProcessE
 
     complete("handled");
     assertThat(task("after")).as("nothing was activated, so the scope waits").isNull();
+    assertThat(isActive(scope)).isFalse();
     activate(scope, "taskA");
     complete("taskA");
     assertThat(task("after")).isNotNull();
@@ -436,6 +438,11 @@ public class AdHocSubProcessNonInterruptingHandlerTest extends PluggableProcessE
   protected String activityIdOf(String executionId) {
     return ((ExecutionEntity) runtimeService.createExecutionQuery().executionId(executionId).singleResult())
         .getActivityId();
+  }
+
+  protected boolean isActive(String executionId) {
+    return ((ExecutionEntity) runtimeService.createExecutionQuery().executionId(executionId).singleResult())
+        .isActive();
   }
 
   protected void activate(String scopeExecutionId, String activityId) {
