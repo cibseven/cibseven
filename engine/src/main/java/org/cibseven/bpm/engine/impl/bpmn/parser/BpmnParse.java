@@ -3965,50 +3965,6 @@ public class BpmnParse extends Parse {
           adHocElement);
     }
 
-    // CIB7-1967. A non-interrupting event sub process inside the scope makes the process virtual
-    // machine expand concurrency: it inserts a branch execution at scope level and moves the
-    // scope's activity down onto it. This behaviour reads the unexpanded shape, so completing the
-    // task inside such an event sub process while an activity of the scope is still running fails
-    // in the persistence layer and is rolled back, leaving a task that can never be completed.
-    //
-    // Refused rather than documented because the failure depends on the order in which the two
-    // finish. Completing the scope's own activity first works, so the model passes a test run and
-    // fails in production, and no modelling choice can enforce that order. A deployment error is
-    // the one outcome a modeller can act on.
-    //
-    // An interrupting event sub process stays permitted and is the documented alternative: it
-    // cancels the scope's running children instead of running beside them, which leaves the tree
-    // unexpanded. The runtime fix that would lift this refusal is the remaining half of CIB7-1967.
-    for (Element eventSubProcess : adHocElement.elements("subProcess")) {
-      if (!parseBooleanAttribute(eventSubProcess.attribute("triggeredByEvent"), false)) {
-        continue;
-      }
-      for (Element startEvent : eventSubProcess.elements("startEvent")) {
-        if (!parseBooleanAttribute(startEvent.attribute(INTERRUPTING), true)) {
-          addError("Ad hoc sub process '" + activity.getId() + "': the event sub process '"
-              + eventSubProcess.attribute("id") + "' is non-interrupting, which is not supported"
-              + " inside an ad hoc sub process. Make it interrupting, or handle the event outside"
-              + " the scope.", adHocElement);
-        }
-      }
-    }
-
-    // The same failure, reached by the other element that starts work beside a running child: a
-    // non-interrupting boundary event on one of the scope's activities. Measured on a distribution,
-    // it behaves exactly as the event sub process did -- the handler starts alongside, and
-    // completing it while the activity it is attached to is still running fails in the persistence
-    // layer and is rolled back. An interrupting boundary event is unaffected, because it cancels the
-    // activity rather than running beside it, and has a green test.
-    for (Element boundaryEvent : adHocElement.elements("boundaryEvent")) {
-      if (parseBooleanAttribute(boundaryEvent.attribute("cancelActivity"), true)) {
-        continue;
-      }
-      addError("Ad hoc sub process '" + activity.getId() + "': the boundary event '"
-          + boundaryEvent.attribute("id") + "' is non-interrupting, which is not supported inside an"
-          + " ad hoc sub process. Make it interrupting, or attach it to the ad hoc sub process"
-          + " itself rather than to one of its activities.", adHocElement);
-    }
-
     AdHocSubProcessActivityBehavior behavior = new AdHocSubProcessActivityBehavior();
 
     // The XSD declares default="Parallel", so an absent attribute means Parallel rather than
