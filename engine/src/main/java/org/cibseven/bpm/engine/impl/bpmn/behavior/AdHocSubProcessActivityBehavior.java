@@ -995,7 +995,9 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    * <p>With {@code true} the path is also gathered here (CIB7-1892), because it never reaches the
    * end where a path is otherwise gathered. What it has done is finished work, not remaining work:
    * without this, a completed step was kept when no flow followed it and lost when one did. With
-   * {@code false} the path goes on and is gathered at its end, once.
+   * {@code false} the path goes on and is gathered at its end, once. A path that takes the flow out
+   * of a boundary event has performed nothing yet, the event only started it, so it is consulted
+   * like any other but not gathered (CIB7-2269).
    *
    * <p>Without a completion condition there is nothing to consult: the no-condition rule is asked
    * when a child ends, and taking a flow is not an end.
@@ -1009,7 +1011,9 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     }
     // Before completing: completing deletes the transitioning execution, and with it the only
     // execution the element expression can be evaluated against.
-    gatherResult(scopeExecution, transitioning);
+    if (!isHandlerThatPerformedNothing(transitioning.getActivity())) {
+      gatherResult(scopeExecution, transitioning);
+    }
     completeScopeOnRequest(scopeExecution);
   }
 

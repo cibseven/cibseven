@@ -75,6 +75,8 @@ public class AdHocSubProcessNonInterruptingHandlerTest extends PluggableProcessE
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.conditionalBoundaryFiltered.bpmn20.xml";
   protected static final String ESCALATION_PATH_MEETS_FORK =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.escalationPathMeetsFork.bpmn20.xml";
+  protected static final String BOUNDARY_WITH_CONDITION =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.boundaryWithCondition.bpmn20.xml";
   protected static final String FLOWLESS_BOUNDARY =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.flowlessBoundary.bpmn20.xml";
   protected static final String FLOWLESS_BOUNDARY_AND_A_SEPARATE_CHILD =
@@ -449,6 +451,25 @@ public class AdHocSubProcessNonInterruptingHandlerTest extends PluggableProcessE
     taskService.complete(task("work").getId(), Collections.<String, Object>singletonMap("result", "b"));
 
     assertThat(runtimeService.getVariable(pi.getId(), "results")).isEqualTo(Arrays.asList("a", "b"));
+  }
+
+  /**
+   * The condition is consulted on every flow a path takes, the flow out of a boundary event too.
+   * Holding there, it completes the scope, but nothing is gathered: the path has performed nothing,
+   * the event only started it.
+   */
+  @Deployment(resources = BOUNDARY_WITH_CONDITION)
+  @Test
+  public void aConditionThatHoldsOnTheFlowOutOfABoundaryEventGathersNothing() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("boundaryWithCondition");
+    activate(scopeExecutionId(pi), "work");
+
+    runtimeService.createMessageCorrelation("ping").setVariable("stop", true).correlate();
+
+    assertThat(task("after")).as("the condition held on the flow out of the boundary event").isNotNull();
+    assertThat(task("work")).as("the activity is cancelled").isNull();
+    assertThat(task("sideTask")).as("the path is not performed").isNull();
+    assertThat(runtimeService.getVariable(pi.getId(), "results")).as("nothing was performed").isNull();
   }
 
   /**
