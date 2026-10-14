@@ -428,6 +428,86 @@ public class ProcessStarterToolTest {
     assertThat(ProcessStarterTool.DEFAULT_POLL_INTERVAL_MILLIS).isEqualTo(2000L);
   }
 
+  // ── Server-side caps (CIB7-1413) ─────────────────────────────────────────
+
+  @Test
+  public void ceilingsShouldMatchDocumentedValues() {
+    assertThat(ProcessStarterTool.MAX_RETRIES_CEILING).isEqualTo(20);
+    assertThat(ProcessStarterTool.MAX_POLL_INTERVAL_MILLIS_CEILING).isEqualTo(5000L);
+  }
+
+  @Test
+  public void clampMaxRetriesShouldFloorNegativesToZero() {
+    assertThat(ProcessStarterTool.clampMaxRetries(-7)).isZero();
+  }
+
+  @Test
+  public void clampMaxRetriesShouldPassThroughValuesWithinRange() {
+    assertThat(ProcessStarterTool.clampMaxRetries(0)).isZero();
+    assertThat(ProcessStarterTool.clampMaxRetries(7)).isEqualTo(7);
+    assertThat(ProcessStarterTool.clampMaxRetries(ProcessStarterTool.MAX_RETRIES_CEILING))
+        .isEqualTo(ProcessStarterTool.MAX_RETRIES_CEILING);
+  }
+
+  @Test
+  public void clampMaxRetriesShouldClampValuesAboveCeiling() {
+    assertThat(ProcessStarterTool.clampMaxRetries(100))
+        .isEqualTo(ProcessStarterTool.MAX_RETRIES_CEILING);
+    assertThat(ProcessStarterTool.clampMaxRetries(Integer.MAX_VALUE))
+        .isEqualTo(ProcessStarterTool.MAX_RETRIES_CEILING);
+  }
+
+  @Test
+  public void clampPollIntervalMillisShouldFloorNegativesToZero() {
+    assertThat(ProcessStarterTool.clampPollIntervalMillis(-1L)).isZero();
+  }
+
+  @Test
+  public void clampPollIntervalMillisShouldPassThroughValuesWithinRange() {
+    assertThat(ProcessStarterTool.clampPollIntervalMillis(0L)).isZero();
+    assertThat(ProcessStarterTool.clampPollIntervalMillis(2000L)).isEqualTo(2000L);
+    assertThat(ProcessStarterTool.clampPollIntervalMillis(
+            ProcessStarterTool.MAX_POLL_INTERVAL_MILLIS_CEILING))
+        .isEqualTo(ProcessStarterTool.MAX_POLL_INTERVAL_MILLIS_CEILING);
+  }
+
+  @Test
+  public void clampPollIntervalMillisShouldClampValuesAboveCeiling() {
+    assertThat(ProcessStarterTool.clampPollIntervalMillis(10_000L))
+        .isEqualTo(ProcessStarterTool.MAX_POLL_INTERVAL_MILLIS_CEILING);
+    assertThat(ProcessStarterTool.clampPollIntervalMillis(Long.MAX_VALUE))
+        .isEqualTo(ProcessStarterTool.MAX_POLL_INTERVAL_MILLIS_CEILING);
+  }
+
+  /**
+   * End-to-end guard that the ceiling is applied inside {@code runProcessByKey}
+   * — an LLM that passes {@code maxRetries=100} against a never-ending process
+   * must observe at most {@code MAX_RETRIES_CEILING} polls before bailing out
+   * with {@code ended=false}.
+   */
+  @Test
+  public void shouldClampMaxRetriesInsideRunProcessByKey() {
+    ProcessInstance starting = mockInstance("pi-cap", "def-cap", false, false);
+    when(runtimeService.startProcessInstanceByKey(eq("never"), any(Map.class))).thenReturn(starting);
+
+    // Process stays active forever — the loop must exit on the retry budget.
+    ProcessInstance stillActive = mockInstance("pi-cap", "def-cap", false, false);
+    ProcessInstanceQuery query = mock(ProcessInstanceQuery.class);
+    when(query.processInstanceId("pi-cap")).thenReturn(query);
+    when(query.singleResult()).thenReturn(stillActive);
+    when(runtimeService.createProcessInstanceQuery()).thenReturn(query);
+
+    when(runtimeService.getVariables("pi-cap")).thenReturn(new HashMap<>());
+
+    Map<String, Object> result = tool.runProcessByKey(
+        "never", null, "out_", /*maxRetries*/ 100, /*pollIntervalMillis*/ 0L);
+
+    assertThat(result.get("ended")).isEqualTo(false);
+    assertThat(result.get("attempts")).isEqualTo(ProcessStarterTool.MAX_RETRIES_CEILING);
+    // History query must NOT be hit on the not-ended path.
+    verify(historyService, never()).createHistoricProcessInstanceQuery();
+  }
+
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   private static ProcessInstance mockInstance(String pid, String defId, boolean ended, boolean suspended) {
