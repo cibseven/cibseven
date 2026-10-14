@@ -449,9 +449,10 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   public void concurrentChildExecutionEnded(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
     // A branch merged at a join is no end of a path: the path goes on, on the branch the join keeps,
     // so nothing has finished (CIB7-2264). It is neither gathered -- the path is, once, at its end --
-    // nor does it decide completion. Deciding there completed a scope without a condition, and the
-    // branch that went on did so on an execution completing had removed. The condition is consulted
-    // as that branch takes the join's outgoing flow, and the rule without one when the path ends.
+    // nor does it decide completion. Deciding there completed a scope without a condition while the
+    // branch the join keeps still had its path to go, and that branch then went on, on an execution
+    // the completion had already removed. The condition is consulted as that branch takes the join's
+    // outgoing flow, and the rule without one when the path ends.
     boolean mergedAtJoin = isMergedAtJoin(scopeExecution, endedExecution);
     if (!mergedAtJoin) {
       gatherResult(scopeExecution, endedExecution);
@@ -488,10 +489,11 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    * CIB7-2264. Whether the ended child is a branch that a join merges into another, rather than the
    * end of a path.
    *
-   * <p>While a join ends the branches it merges, every branch at the gateway is marked ended, the one
-   * it keeps included, and that one is activated again only once the others are gone
+   * <p>While a join ends the branches it merges, each of them is marked ended, the one it keeps
+   * included, and that one is activated again only once the others are gone
    * ({@code leaveActivityViaTransitions}). So another child on the same gateway that is marked ended
-   * gives it away: it is the branch the join keeps, or one more it merges.
+   * gives it away: it is the branch the join keeps, or one more it merges. A branch of another
+   * activation waiting at the same gateway is not marked, since the join does not merge it.
    */
   protected boolean isMergedAtJoin(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
     if (!isJoiningGateway(endedExecution.getActivity())) {
@@ -669,11 +671,12 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   /**
    * Appends this performance's result to the gathering variable, if the scope gathers (CIB7-1892).
    *
-   * <p>Called as a child ends -- unless a join merged it, which ends no path (CIB7-2264) -- and
-   * <em>before</em> the completion condition is consulted -- so a
+   * <p>Called from two places, each time <em>before</em> the completion condition is consulted, so a
    * condition can be written against what has been gathered so far, which is the natural way to say
-   * "enough". One call site, not two: see {@link #complete(ActivityExecution)} for why the other
-   * callback a child can end through is not one of them.
+   * "enough". As a child ends, unless a join merged it, which ends no path (CIB7-2264); and from
+   * {@link #childTransitioned(ActivityExecution, ActivityExecution)} when the condition holds on an
+   * inner flow and cancels the rest, since that path never reaches its end. Not from
+   * {@link #complete(ActivityExecution)}: see there for why.
    *
    * <p>Timing is the whole of it. The child's own output mapping has already run by now: an ad hoc
    * child that carries one is a scope, and a scope executes its output parameters as it is
@@ -686,7 +689,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    *
    * <p>Two rules make one expression serve every child of the scope: it is evaluated against the
    * child that ended, so {@code execution} names that child, and a null result adds nothing. Between
-   * them a model can gather selectively -- {@code ${execution.currentActivityId == 'tool' ? result :
+   * them a model can gather selectively -- {@code ${execution.currentActivityId == 'assessClaim' ? result :
    * null}} -- and record which performance produced an entry.
    */
   protected void gatherResult(ActivityExecution scopeExecution, ActivityExecution endedExecution) {

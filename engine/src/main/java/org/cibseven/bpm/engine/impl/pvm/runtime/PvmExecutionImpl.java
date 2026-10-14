@@ -539,12 +539,12 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
     //
     // eX+1 is concurrent and the new root for the activity stack to instantiate
     //
-    // (2) is not for a concurrent child of an execution that waits on its own scope activity. That
-    // tree is expanded already, and the execution occupies no activity to hand over, so it is (3). An
-    // ad hoc sub process waits on its own activity and runs each child on a concurrent execution, so
-    // one child running alone is that case; taking (2) for a fork in it moved the child under a new
-    // concurrent execution and took the scope execution off its activity and its activity instance
-    // (CIB7-2264).
+    // (2) is not for a single child that is concurrent while this execution stands on a scope
+    // activity. That tree is expanded already, and the execution occupies no activity to hand over,
+    // so it is (3). Only an ad hoc sub process waits like that: its execution stays on its own
+    // activity and runs each child on a concurrent execution, so one child running alone is that
+    // case; taking (2) for a fork in it moved the child under a new concurrent execution and took the
+    // scope execution off its activity and its activity instance (CIB7-2264).
     List<? extends PvmExecutionImpl> children = this.getNonEventScopeExecutions();
 
     // whenever we change the set of child executions we have to force an update
