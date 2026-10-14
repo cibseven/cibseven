@@ -37,6 +37,8 @@ public class GetTaskAttachmentsCmd implements Command<List<Attachment>>, Seriali
   }
 
   public List<Attachment> execute(CommandContext commandContext) {
+    AttachmentAuthChecks.checkReadTaskIfExists(taskId, commandContext);
+
     return commandContext
       .getAttachmentManager()
       .findAttachmentsByTaskId(taskId);

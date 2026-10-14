@@ -35,10 +35,14 @@ import static org.cibseven.bpm.engine.authorization.Resources.BATCH;
 import static org.cibseven.bpm.engine.authorization.Resources.DECISION_DEFINITION;
 import static org.cibseven.bpm.engine.authorization.Resources.DECISION_REQUIREMENTS_DEFINITION;
 import static org.cibseven.bpm.engine.authorization.Resources.DEPLOYMENT;
+import static org.cibseven.bpm.engine.authorization.Resources.HISTORIC_PROCESS_INSTANCE;
+import static org.cibseven.bpm.engine.authorization.Resources.HISTORIC_TASK;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_INSTANCE;
 import static org.cibseven.bpm.engine.authorization.Resources.TASK;
 
+import org.cibseven.bpm.engine.authorization.HistoricProcessInstancePermissions;
+import org.cibseven.bpm.engine.authorization.HistoricTaskPermissions;
 import org.cibseven.bpm.engine.authorization.Permission;
 import org.cibseven.bpm.engine.authorization.ProcessDefinitionPermissions;
 import org.cibseven.bpm.engine.authorization.ProcessInstancePermissions;
@@ -604,6 +608,16 @@ public class AuthorizationCommandChecker implements CommandChecker {
   public void checkUpdateCaseDefinition(CaseDefinition caseDefinition) {
   }
 
+  @Override
+  public void checkReadHistoricTaskInstance(HistoricTaskInstanceEntity task) {
+    getAuthorizationManager().checkReadHistoricTaskInstance(task);
+  }
+
+  @Override
+  public void checkReadHistoricProcessInstance(HistoricProcessInstanceEntity processInstance) {
+    getAuthorizationManager().checkReadHistoricProcessInstance(processInstance);
+  }
+
   // delete permission ////////////////////////////////////////
 
   @Override
@@ -622,6 +636,50 @@ public class AuthorizationCommandChecker implements CommandChecker {
   @Override
   public void checkDeleteHistoricProcessInstance(HistoricProcessInstance instance) {
     getAuthorizationManager().checkAuthorization(DELETE_HISTORY, PROCESS_DEFINITION, instance.getProcessDefinitionKey());
+  }
+
+  // modify permission /////////////////////////////////////////////////
+  //
+  // The engine has no dedicated write permission for historic data, so a manual mutation of a
+  // historic instance is granted by ALL on that very instance. Unlike DELETE_HISTORY on the process
+  // definition this stays scoped to the single instance and carries no delete semantics, which is
+  // what the attachment commands need when they create or save on a completed task or instance.
+
+  @Override
+  public void checkModifyHistoricTaskInstance(HistoricTaskInstanceEntity task) {
+    // modifying an unexisting historic task instance is silently ignored,
+    // mirroring checkDeleteHistoricTaskInstance
+    if (task == null) {
+      return;
+    }
+
+    PermissionCheckBuilder builder = new PermissionCheckBuilder().disjunctive();
+
+    if (task.getProcessDefinitionKey() != null) {
+      builder.atomicCheckForResourceId(PROCESS_DEFINITION, task.getProcessDefinitionKey(),
+          DELETE_HISTORY);
+    }
+    builder.atomicCheckForResourceId(HISTORIC_TASK, task.getId(), HistoricTaskPermissions.ALL);
+
+    getAuthorizationManager().checkAuthorization(builder.build());
+  }
+
+  @Override
+  public void checkModifyHistoricProcessInstance(HistoricProcessInstance instance) {
+    if (instance == null) {
+      return;
+    }
+
+    PermissionCheckBuilder builder = new PermissionCheckBuilder().disjunctive();
+
+    if (instance.getProcessDefinitionKey() != null) {
+      builder.atomicCheckForResourceId(PROCESS_DEFINITION, instance.getProcessDefinitionKey(),
+          DELETE_HISTORY);
+    }
+    builder.atomicCheckForResourceId(HISTORIC_PROCESS_INSTANCE, instance.getId(),
+        HistoricProcessInstancePermissions.ALL);
+
+    getAuthorizationManager().checkAuthorization(builder.build());
   }
 
   @Override
