@@ -233,6 +233,9 @@ pipeline {
             }
             parallel {
                 stage('engine') {
+                    when {
+                        expression { hasChangesInModule('engine') }
+                    }
                     stages {
                         stage('engine-api-compatibility') {
                             steps { script { withMaven { sh "mvn -f engine/pom.xml verify -Pcheck-api-compatibility" }}}
@@ -244,9 +247,15 @@ pipeline {
                     }
                 }
                 stage('webapp-UNIT-database-table-prefix') {
+                    when {
+                        expression { hasChangesInModule('webapps/assembly') }
+                    }
                     steps { script { withMaven { sh "mvn -f webapps/assembly/pom.xml test -Pdb-table-prefix -Dskip.frontend.build=true" }}}
                 }
                 stage("quarkus") {
+                    when {
+                        expression { hasChangesInModule('juel') || hasChangesInModule('quarkus-extension') }
+                    }
                     stages {
                         stage('quarkus-extension') {
                             steps {
@@ -724,6 +733,33 @@ pipeline {
             }
         }
     }
+}
+
+// Check if there are any changes in the specified module since the branch diverged from main.
+// Returns true if changes are found, false otherwise. When the comparison cannot be made
+// (e.g. main cannot be fetched or no common ancestor in a shallow clone) it returns true,
+// so that a module is built rather than silently skipped.
+def hasChangesInModule(module) {
+    if (env.BRANCH_NAME == 'main' || env.BRANCH_NAME.startsWith('main')) {
+        return true
+    }
+    // For pull requests compare against the target branch, otherwise against main.
+    String target = env.CHANGE_TARGET ?: 'main'
+
+    // git diff --quiet exits with 0 for no differences, 1 for differences and >1 on errors;
+    // both of the latter mean "build".
+    int status = sh(
+        script: """
+            git fetch --no-tags --quiet origin '+refs/heads/${target}:refs/remotes/origin/${target}' || exit 2
+            base=\$(git merge-base 'origin/${target}' HEAD) || exit 2
+            git diff --quiet "\$base" HEAD -- '${module}/'
+        """,
+        returnStatus: true
+    )
+    if (status > 1) {
+        echo "Could not determine changes in '${module}' against '${target}', assuming changed"
+    }
+    return status != 0
 }
 
 // Split in two on purpose: collecting the facts pays the one Maven start-up
