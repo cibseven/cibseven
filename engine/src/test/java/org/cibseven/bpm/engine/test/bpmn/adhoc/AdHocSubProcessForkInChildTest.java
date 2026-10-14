@@ -21,7 +21,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import org.cibseven.bpm.engine.BadUserRequestException;
@@ -73,6 +75,22 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.forkAndJoinUntilEnoughWaiting.bpmn20.xml";
   protected static final String STRANDED_JOIN =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.strandedJoin.bpmn20.xml";
+  protected static final String THREE_WAY_JOIN =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.threeWayJoin.bpmn20.xml";
+  protected static final String BRANCHES_THAT_ARE_SCOPES =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.branchesThatAreScopes.bpmn20.xml";
+  protected static final String FORK_IN_NESTED_AD_HOC =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.forkInNestedAdHoc.bpmn20.xml";
+  protected static final String FORK_IN_EMBEDDED_CHILD =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.forkInEmbeddedChild.bpmn20.xml";
+  protected static final String INCLUSIVE_BRANCH_THAT_CANNOT_REACH_THE_JOIN =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.inclusiveBranchThatCannotReachTheJoin.bpmn20.xml";
+  protected static final String ASYNC_AFTER_FORK =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.asyncAfterFork.bpmn20.xml";
+  protected static final String JOIN_WITHOUT_OUTGOING_FLOW =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.joinWithoutOutgoingFlow.bpmn20.xml";
+  protected static final String JOIN_THAT_FORKS =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.joinThatForks.bpmn20.xml";
   protected static final String INCLUSIVE_SINGLE_FLOW =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.inclusiveSingleFlow.bpmn20.xml";
   protected static final String CONDITIONAL_FLOWS =
@@ -321,14 +339,20 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
     complete("after");
 
     String scopeInstance = historic(pi, "adHoc").getId();
+    List<HistoricActivityInstance> inside = new ArrayList<>();
     for (HistoricActivityInstance instance : historyService.createHistoricActivityInstanceQuery()
         .processInstanceId(pi.getId()).list()) {
-      if (Arrays.asList("split", "fork", "left", "right", "join", "after").contains(instance.getActivityId())) {
-        assertThat(instance.getParentActivityInstanceId()).as(instance.getActivityId())
-            .isEqualTo(scopeInstance);
-        assertThat(instance.getEndTime()).as(instance.getActivityId()).isNotNull();
+      if (!Arrays.asList("start", "adHoc").contains(instance.getActivityId())) {
+        inside.add(instance);
       }
     }
+    assertThat(inside).extracting(HistoricActivityInstance::getActivityId)
+        .as("one instance per step, the join once for each branch that reached it")
+        .containsExactlyInAnyOrder("split", "fork", "left", "right", "join", "join", "after");
+    assertThat(inside).extracting(HistoricActivityInstance::getParentActivityInstanceId).containsOnly(scopeInstance);
+    assertThat(inside).allSatisfy(instance -> assertThat(instance.getEndTime()).as(instance.getActivityId()).isNotNull());
+    assertThat(historyService.createHistoricActivityInstanceQuery().processInstanceId(pi.getId()).unfinished()
+        .list()).extracting(HistoricActivityInstance::getActivityId).containsExactly("adHoc");
   }
 
   /**
@@ -785,6 +809,184 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
     complete("right");
 
     assertThat(count("after")).isEqualTo(1);
+  }
+
+  // ---------------------------------------------------------------- more shapes
+
+  /** A join of three branches merges two of them: neither is gathered, and each activation joins apart. */
+  @Deployment(resources = THREE_WAY_JOIN)
+  @Test
+  public void aThreeWayJoinMergesTwoBranchesOfEachActivation() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("threeWayJoin");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "split");
+    activate(scope, "split");
+
+    completeEach("a");
+    completeEach("b");
+    assertThat(count("after")).isZero();
+    completeOne("c");
+    assertThat(count("after")).isEqualTo(1);
+    completeOne("c");
+    assertThat(count("after")).isEqualTo(2);
+
+    completeEach("after");
+    assertThat(results(pi)).as("each path once, where it ends").containsExactly("after", "after");
+  }
+
+  /**
+   * Branches that are scopes: an input mapping on one, a boundary event on the other. The label sits
+   * on the concurrent execution above each, and the join still pairs the branches of one activation.
+   */
+  @Deployment(resources = BRANCHES_THAT_ARE_SCOPES)
+  @Test
+  public void branchesThatAreScopesJoinByTheirActivation() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("branchesThatAreScopes");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "split");
+    activate(scope, "split");
+
+    completeEach("left");
+    assertThat(count("after")).as("each left waits for the right of its own activation").isZero();
+
+    String oneRight = runtimeService.createExecutionQuery().processInstanceId(pi.getId())
+        .messageEventSubscriptionName("skip").list().get(0).getId();
+    runtimeService.messageEventReceived("skip", oneRight);
+    assertThat(count("after")).as("the skipped right meets the left of its own activation").isEqualTo(1);
+
+    complete("right");
+    assertThat(count("after")).isEqualTo(2);
+  }
+
+  /** A fork inside a nested ad hoc scope is told to the inner scope, which joins per activation. */
+  @Deployment(resources = FORK_IN_NESTED_AD_HOC)
+  @Test
+  public void aForkInANestedScopeJoinsPerActivationThere() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkInNestedAdHoc");
+    activate(scopeExecutionId(pi), "inner");
+    String inner = runtimeService.createExecutionQuery().processInstanceId(pi.getId()).activityId("inner")
+        .singleResult().getId();
+    activate(inner, "split");
+    activate(inner, "split");
+
+    completeEach("split");
+    completeEach("left");
+    assertThat(count("after")).isZero();
+    completeOne("right");
+    assertThat(count("after")).isEqualTo(1);
+    completeOne("right");
+    assertThat(count("after")).isEqualTo(2);
+  }
+
+  /**
+   * A fork inside an embedded sub process child belongs to the sub process scope: no label is
+   * written, and each performance of the sub process joins inside its own scope.
+   */
+  @Deployment(resources = FORK_IN_EMBEDDED_CHILD)
+  @Test
+  public void aForkInsideAnEmbeddedChildIsNotLabelled() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkInEmbeddedChild");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "sub");
+    activate(scope, "sub");
+
+    assertThat(runtimeService.createVariableInstanceQuery().processInstanceIdIn(pi.getId())
+        .variableName("adHocActivationId").count()).isZero();
+    completeEach("left");
+    completeOne("right");
+    assertThat(count("after")).isEqualTo(1);
+    completeOne("right");
+    assertThat(count("after")).isEqualTo(2);
+  }
+
+  /**
+   * An inclusive join waits only for a branch of its own activation that can still reach it: not for
+   * a branch of its own that cannot, nor for a child of no activation that can.
+   */
+  @Deployment(resources = INCLUSIVE_BRANCH_THAT_CANNOT_REACH_THE_JOIN)
+  @Test
+  public void anInclusiveJoinDoesNotWaitForWhatCannotReachItOrIsNotItsOwn() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("inclusiveBranchThatCannotReachTheJoin");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "other");
+    activate(scope, "split");
+
+    complete("left");
+
+    assertThat(count("after")).isEqualTo(1);
+    assertThat(task("right")).as("the right branch is still running elsewhere").isNotNull();
+  }
+
+  /** Completing the scope cancels the branches of two activations waiting at the join. */
+  @Deployment(resources = FORK_AND_JOIN)
+  @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_ACTIVITY)
+  @Test
+  public void completingTheScopeCancelsTwoActivationsWaitingAtTheJoin() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkAndJoin");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "split");
+    activate(scope, "split");
+    completeEach("left");
+
+    runtimeService.completeAdHocSubProcess(scope);
+
+    testRule.assertProcessEnded(pi.getId());
+    assertThat(historyService.createHistoricActivityInstanceQuery().processInstanceId(pi.getId())
+        .activityId("join").list()).extracting(HistoricActivityInstance::isCanceled).containsExactly(true, true);
+  }
+
+  /** A forking activity that is asynchronous after it forks in a job, and labels its branches there. */
+  @Deployment(resources = ASYNC_AFTER_FORK)
+  @Test
+  public void aForkInAJobLabelsItsBranches() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("asyncAfterFork");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "split");
+    activate(scope, "split");
+    testRule.executeAvailableJobs();
+
+    completeEach("left");
+    assertThat(count("after")).isZero();
+    completeOne("right");
+    assertThat(count("after")).isEqualTo(1);
+  }
+
+  /** A join without an outgoing flow ends the path there, and the path is gathered once per activation. */
+  @Deployment(resources = JOIN_WITHOUT_OUTGOING_FLOW)
+  @Test
+  public void aJoinWithoutAnOutgoingFlowEndsThePathOnce() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("joinWithoutOutgoingFlow");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "split");
+    activate(scope, "split");
+
+    completeEach("left");
+    completeEach("right");
+
+    assertThat(results(pi)).containsExactly("join", "join");
+  }
+
+  /** A gateway that joins and forks again hands its activation on to the branches after it. */
+  @Deployment(resources = JOIN_THAT_FORKS)
+  @Test
+  public void aGatewayThatJoinsAndForksKeepsTheActivation() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("joinThatForks");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "split");
+    activate(scope, "split");
+    completeEach("left");
+    completeEach("right");
+
+    assertThat(count("up")).isEqualTo(2);
+    assertThat(count("down")).isEqualTo(2);
+    List<Object> labels = new ArrayList<>();
+    for (Task task : taskService.createTaskQuery().processInstanceId(pi.getId()).list()) {
+      labels.add(runtimeService.getVariableLocal(task.getExecutionId(), "adHocActivationId"));
+    }
+    assertThat(new HashSet<>(labels)).as("two activations, each on an up and a down").hasSize(2);
+    for (Object label : labels) {
+      assertThat(labels.stream().filter(label::equals).count()).isEqualTo(2);
+    }
   }
 
   // ---------------------------------------------------------------- helpers

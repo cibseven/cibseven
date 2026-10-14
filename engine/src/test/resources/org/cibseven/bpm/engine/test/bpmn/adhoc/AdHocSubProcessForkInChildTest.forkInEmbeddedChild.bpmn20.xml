@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-2264. A child that is an embedded sub process with a fork and a join inside it.
+     The branches belong to the sub process scope, not to the ad hoc scope, and carry no label. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="forkInEmbeddedChild" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <subProcess id="sub">
+        <startEvent id="subStart" />
+        <sequenceFlow id="s0" sourceRef="subStart" targetRef="fork" />
+        <parallelGateway id="fork" />
+        <sequenceFlow id="s1" sourceRef="fork" targetRef="left" />
+        <sequenceFlow id="s2" sourceRef="fork" targetRef="right" />
+        <userTask id="left" />
+        <userTask id="right" />
+        <sequenceFlow id="s3" sourceRef="left" targetRef="join" />
+        <sequenceFlow id="s4" sourceRef="right" targetRef="join" />
+        <parallelGateway id="join" />
+        <sequenceFlow id="s5" sourceRef="join" targetRef="after" />
+        <userTask id="after" />
+        <sequenceFlow id="s6" sourceRef="after" targetRef="subEnd" />
+        <endEvent id="subEnd" />
+      </subProcess>
+      <completionCondition xsi:type="tFormalExpression">${false}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>
