@@ -658,6 +658,67 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
     assertThat(count("z")).isEqualTo(1);
   }
 
+  // ---------------------------------------------------------------- a child started by modification
+
+  /**
+   * The branches of a fork carry their activation in the local variable {@code adHocActivationId}: the
+   * id of an execution the activation created, the same on every branch.
+   */
+  @Deployment(resources = FORK_AND_JOIN)
+  @Test
+  public void theBranchesOfAForkCarryTheIdOfTheirActivation() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkAndJoin");
+    activate(scopeExecutionId(pi), "split");
+
+    String left = task("left").getExecutionId();
+    String right = task("right").getExecutionId();
+    Object label = runtimeService.getVariableLocal(left, "adHocActivationId");
+    assertThat(label).isInstanceOf(String.class).isIn(left, right);
+    assertThat(runtimeService.getVariableLocal(right, "adHocActivationId")).isEqualTo(label);
+  }
+
+  /**
+   * A child started by process instance modification belongs to no activation. Started again that
+   * way, a branch of a fork no longer meets the other branch of its activation at the join.
+   */
+  @Deployment(resources = FORK_AND_JOIN)
+  @Test
+  public void aBranchStartedAgainByModificationBelongsToNoActivation() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkAndJoin");
+    activate(scopeExecutionId(pi), "split");
+
+    runtimeService.createProcessInstanceModification(pi.getId())
+        .cancelActivityInstance(activityInstanceId(pi, "left"))
+        .startBeforeActivity("left")
+        .execute();
+    complete("left");
+    complete("right");
+
+    assertThat(count("after")).as("the branches of no activation and of one never meet").isZero();
+  }
+
+  /**
+   * The workaround: the instruction gives the new child the label of the activation, as a local
+   * variable, and the branch meets the other branch of that activation at the join again.
+   */
+  @Deployment(resources = FORK_AND_JOIN)
+  @Test
+  public void aBranchStartedAgainWithItsActivationsLabelJoinsIt() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkAndJoin");
+    activate(scopeExecutionId(pi), "split");
+    Object label = runtimeService.getVariableLocal(task("right").getExecutionId(), "adHocActivationId");
+
+    runtimeService.createProcessInstanceModification(pi.getId())
+        .cancelActivityInstance(activityInstanceId(pi, "left"))
+        .startBeforeActivity("left")
+        .setVariableLocal("adHocActivationId", label)
+        .execute();
+    complete("left");
+    complete("right");
+
+    assertThat(count("after")).isEqualTo(1);
+  }
+
   // ---------------------------------------------------------------- helpers
 
   protected String scopeExecutionId(ProcessInstance pi) {
@@ -689,6 +750,10 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
   /** Completes one of the tasks of an activity, whichever the query returns first. */
   protected void completeOne(String key) {
     taskService.complete(taskService.createTaskQuery().taskDefinitionKey(key).list().get(0).getId());
+  }
+
+  protected String activityInstanceId(ProcessInstance pi, String activityId) {
+    return runtimeService.getActivityInstance(pi.getId()).getActivityInstances(activityId)[0].getId();
   }
 
   /** Completes one of the tasks of an activity, with the conditions of the split after it. */

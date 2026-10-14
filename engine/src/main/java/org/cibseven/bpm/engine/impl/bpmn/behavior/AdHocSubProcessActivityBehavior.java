@@ -102,6 +102,11 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    * activation created, which is the execution that forks first in it. Written only where a child
    * forks, also where an activity that can fork takes a single flow, and given back to the branch
    * that goes on from a join, which loses its local variables there.
+   *
+   * <p>A child started by process instance modification belongs to no activation, so a branch
+   * started again that way no longer meets the other branches of its activation at a join. The
+   * instruction can give it this variable as a local variable, with the value those branches carry;
+   * it then belongs to their activation.
    */
   public static final String ACTIVATION_ID = "adHocActivationId";
 
