@@ -91,6 +91,8 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.joinWithoutOutgoingFlow.bpmn20.xml";
   protected static final String JOIN_THAT_FORKS =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.joinThatForks.bpmn20.xml";
+  protected static final String STRANDED_JOIN_AFTER_THE_CONDITION =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.strandedJoinAfterTheCondition.bpmn20.xml";
   protected static final String INCLUSIVE_SINGLE_FLOW =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.inclusiveSingleFlow.bpmn20.xml";
   protected static final String CONDITIONAL_FLOWS =
@@ -531,6 +533,30 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
     runtimeService.completeAdHocSubProcess(scope);
     testRule.assertProcessEnded(pi.getId());
     assertThat(historic(pi, "join").isCanceled()).isTrue();
+  }
+
+  /**
+   * The same join after the condition has held with cancelRemainingInstances "false": the scope waits
+   * for its running work, the branch at the join included, and refuses activation, so the work that
+   * would feed the join can never come. Only explicit completion ends the scope.
+   */
+  @Deployment(resources = STRANDED_JOIN_AFTER_THE_CONDITION)
+  @Test
+  public void aJoinThatNeverFiresAfterTheConditionHeldLeavesOnlyExplicitCompletion() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("strandedJoinAfterTheCondition");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "split");
+    // left waits at the join first, so the condition holds as right ends, with nothing else running
+    complete("left");
+    taskService.complete(task("right").getId(), Variables.createVariables().putValue("enough", true));
+
+    testRule.assertProcessNotEnded(pi.getId());
+    assertThatThrownBy(() -> activate(scope, "x"))
+        .isInstanceOf(BadUserRequestException.class)
+        .hasMessageContaining("has already satisfied its completion condition");
+
+    runtimeService.completeAdHocSubProcess(scope);
+    testRule.assertProcessEnded(pi.getId());
   }
 
   /**

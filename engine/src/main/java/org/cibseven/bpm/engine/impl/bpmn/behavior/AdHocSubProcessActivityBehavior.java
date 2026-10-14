@@ -82,7 +82,10 @@ import com.google.gson.JsonElement;
  * <li><b>A branch waiting at a join is running.</b> It counts as running for the rule without a
  *     condition, and is cancelled when the scope completes. A join that waits for a branch that never
  *     comes therefore keeps a scope without a completion condition open, as it would keep an embedded
- *     sub process open, until the scope is completed or cancelled (CIB7-2264).</li>
+ *     sub process open, until the scope is completed or cancelled (CIB7-2264). So it does a scope
+ *     whose condition has held with {@code cancelRemainingInstances="false"}: the scope waits for its
+ *     running work, the branch at the join included, and refuses activation, so nothing but explicit
+ *     completion or cancellation ends it.</li>
  * <li><b>A join merges only the branches of one activation.</b> The branches of every activation of
  *     every child are siblings, so a join that counted them all would merge two activations of the
  *     same forking child. A fork therefore labels its branches with the activation they belong to,
