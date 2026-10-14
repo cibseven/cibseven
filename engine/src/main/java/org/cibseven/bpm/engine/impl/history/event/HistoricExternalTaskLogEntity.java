@@ -195,6 +195,11 @@ public class HistoricExternalTaskLogEntity extends HistoryEvent implements Histo
   }
 
   @Override
+  public boolean isFetchedLog() {
+    return state == ExternalTaskState.FETCHED.getStateCode();
+  }
+
+  @Override
   public boolean isSuccessLog() {
     return state == ExternalTaskState.SUCCESSFUL.getStateCode();
   }

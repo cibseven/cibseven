@@ -979,6 +979,7 @@ public abstract class MockProvider {
   public static final String EXAMPLE_HISTORIC_EXTERNAL_TASK_LOG_ROOT_PROC_INST_ID = "aRootProcInstId";
   public static final boolean EXAMPLE_HISTORIC_EXTERNAL_TASK_LOG_IS_CREATION_LOG= true;
   public static final boolean EXAMPLE_HISTORIC_EXTERNAL_TASK_LOG_IS_FAILURE_LOG = true;
+  public static final boolean EXAMPLE_HISTORIC_EXTERNAL_TASK_LOG_IS_FETCHED_LOG = true;
   public static final boolean EXAMPLE_HISTORIC_EXTERNAL_TASK_LOG_IS_SUCCESS_LOG = true;
   public static final boolean EXAMPLE_HISTORIC_EXTERNAL_TASK_LOG_IS_DELETION_LOG = true;
   public static final String EXAMPLE_JOB_CREATE_TIME = withTimezone("2015-01-01T00:00:00");
@@ -3360,6 +3361,7 @@ public abstract class MockProvider {
 
     when(mock.isCreationLog()).thenReturn(EXAMPLE_HISTORIC_EXTERNAL_TASK_LOG_IS_CREATION_LOG);
     when(mock.isFailureLog()).thenReturn(EXAMPLE_HISTORIC_EXTERNAL_TASK_LOG_IS_FAILURE_LOG);
+    when(mock.isFetchedLog()).thenReturn(EXAMPLE_HISTORIC_EXTERNAL_TASK_LOG_IS_FETCHED_LOG);
     when(mock.isSuccessLog()).thenReturn(EXAMPLE_HISTORIC_EXTERNAL_TASK_LOG_IS_SUCCESS_LOG);
     when(mock.isDeletionLog()).thenReturn(EXAMPLE_HISTORIC_EXTERNAL_TASK_LOG_IS_DELETION_LOG);
 
