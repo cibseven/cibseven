@@ -16,6 +16,10 @@
 
   <packaging>pom</packaging>
 
+  <modules>
+    <module>engine</module>
+  </modules>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -53,17 +57,6 @@
   </build>
 
   <profiles>
-    <profile>
-      <id>jdk17-and-onwards</id>
-      <activation>
-        <jdk>[17,)</jdk>
-      </activation>
-
-      <modules>
-        <module>engine</module>
-      </modules>
-    </profile>
-
     <profile>
       <id>quarkus-tests</id>
       <build>
