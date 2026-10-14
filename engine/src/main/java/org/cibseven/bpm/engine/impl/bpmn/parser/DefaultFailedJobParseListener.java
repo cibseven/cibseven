@@ -16,7 +16,9 @@
  */
 package org.cibseven.bpm.engine.impl.bpmn.parser;
 
+import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.MultiInstanceActivityBehavior;
+import org.cibseven.bpm.engine.impl.bpmn.behavior.ExternalTaskActivityBehavior;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.core.model.PropertyKey;
@@ -47,6 +49,20 @@ public class DefaultFailedJobParseListener extends AbstractBpmnParseListener {
 
   public static final PropertyKey<FailedJobRetryConfiguration> FAILED_JOB_CONFIGURATION = new PropertyKey<FailedJobRetryConfiguration>("FAILED_JOB_CONFIGURATION");
 
+  /**
+   * Retry configuration of the external task created on an activity, kept separate from
+   * {@link #FAILED_JOB_CONFIGURATION} because the two can come from different sources: the
+   * job configuration falls back to the engine-wide {@code failedJobRetryTimeCycle}, the
+   * external task configuration to the engine-wide {@code externalTaskFailedJobRetryTimeCycle}.
+   * <p>
+   * A {@code failedJobRetryTimeCycle} modeled on an activity that is both asyncBefore/asyncAfter
+   * and an external task applies to the async job AND to the external task. Before CIB7-562
+   * such a cycle only affected the job and the external task had unlimited retries; now the
+   * external task's retries are limited by the cycle as well, an incident is raised when they are
+   * used up, and the cycle interval replaces the retry timeout reported by the worker.
+   */
+  public static final PropertyKey<FailedJobRetryConfiguration> EXTERNAL_TASK_FAILED_JOB_CONFIGURATION = new PropertyKey<FailedJobRetryConfiguration>("EXTERNAL_TASK_FAILED_JOB_CONFIGURATION");
+
   @Override
   public void parseStartEvent(Element startEventElement, ScopeImpl scope, ActivityImpl startEventActivity) {
     String type = startEventActivity.getProperties().get(BpmnProperties.TYPE);
@@ -68,6 +84,10 @@ public class DefaultFailedJobParseListener extends AbstractBpmnParseListener {
     String type = activity.getProperties().get(BpmnProperties.TYPE);
     if (type != null) {
       this.setFailedJobRetryTimeCycleValue(intermediateEventElement, activity);
+    }
+    if (isExternalTask(activity)) {
+      // intermediate message throw event with camunda:type="external"
+      setExternalTaskFailedJobRetryTimeCycleValue(intermediateEventElement, activity);
     }
   }
 
@@ -176,11 +196,60 @@ public class DefaultFailedJobParseListener extends AbstractBpmnParseListener {
     } else if (isAsync(activity)) {
       setFailedJobRetryTimeCycleValue(element, activity);
     }
+
+    if (isExternalTask(activity)) {
+      // external tasks have no separate "MI body" variant the way jobs do; the single,
+      // natural place to model a retry cycle is the service task's own extensionElements,
+      // the same whether or not the activity is multi-instance - never nested inside
+      // multiInstanceLoopCharacteristics, which exists only so jobs can tell the MI body's
+      // cycle apart from the inner activity's
+      setExternalTaskFailedJobRetryTimeCycleValue(element, activity);
+    }
   }
 
   protected void setFailedJobRetryTimeCycleValue(Element element, ActivityImpl activity) {
-    String failedJobRetryTimeCycleConfiguration = null;
+    String failedJobRetryTimeCycleConfiguration = readFailedJobRetryTimeCycleElement(element);
 
+    if (failedJobRetryTimeCycleConfiguration == null || failedJobRetryTimeCycleConfiguration.isEmpty()) {
+      failedJobRetryTimeCycleConfiguration = Context.getProcessEngineConfiguration().getFailedJobRetryTimeCycle();
+    }
+
+    if (failedJobRetryTimeCycleConfiguration != null) {
+      FailedJobRetryConfiguration configuration = ParseUtil.parseRetryIntervals(failedJobRetryTimeCycleConfiguration);
+      activity.getProperties().set(FAILED_JOB_CONFIGURATION, configuration);
+    }
+  }
+
+  /**
+   * Resolves the retry cycle for the external task created on this activity, independently
+   * of {@link #setFailedJobRetryTimeCycleValue}. A modeled cycle always wins for the external
+   * task, same as it does for a job: the engine-wide external task default only applies when
+   * this activity has no modeled cycle of its own. Earlier this also tried to detect and
+   * suppress a cycle "meant for" an asyncBefore/asyncAfter job on the same activity, but the
+   * CIBseven modeler only exposes the retry-cycle field at all once asyncBefore/After is
+   * enabled - so that check fired for essentially every modeled external task cycle and broke
+   * the feature for anyone using the standard tooling. Removed; see CIB-562 follow-up.
+   */
+  protected void setExternalTaskFailedJobRetryTimeCycleValue(Element element, ActivityImpl activity) {
+    String externalTaskRetryTimeCycleConfiguration = readFailedJobRetryTimeCycleElement(element);
+
+    if (externalTaskRetryTimeCycleConfiguration == null || externalTaskRetryTimeCycleConfiguration.isEmpty()) {
+      externalTaskRetryTimeCycleConfiguration = Context.getProcessEngineConfiguration().getExternalTaskFailedJobRetryTimeCycle();
+    }
+
+    if (externalTaskRetryTimeCycleConfiguration != null) {
+      FailedJobRetryConfiguration configuration = ParseUtil.parseRetryIntervals(externalTaskRetryTimeCycleConfiguration);
+      if (!ParseUtil.hasValidRetryIntervals(configuration)) {
+        // e.g. "PT1M,PT5X": parseRetryIntervals only validates single-interval cycles
+        ProcessEngineLogger.EXTERNAL_TASK_LOGGER.invalidRetryTimeCycle(activity.getId(), externalTaskRetryTimeCycleConfiguration);
+        return;
+      }
+      activity.getProperties().set(EXTERNAL_TASK_FAILED_JOB_CONFIGURATION, configuration);
+    }
+  }
+
+  protected String readFailedJobRetryTimeCycleElement(Element element) {
+    String failedJobRetryTimeCycleConfiguration = null;
     Element extensionElements = element.element(EXTENSION_ELEMENTS);
     if (extensionElements != null) {
       Element failedJobRetryTimeCycleElement = extensionElements.elementNS(FOX_ENGINE_NS, FAILED_JOB_RETRY_TIME_CYCLE);
@@ -193,15 +262,11 @@ public class DefaultFailedJobParseListener extends AbstractBpmnParseListener {
         failedJobRetryTimeCycleConfiguration = failedJobRetryTimeCycleElement.getText();
       }
     }
+    return failedJobRetryTimeCycleConfiguration;
+  }
 
-    if (failedJobRetryTimeCycleConfiguration == null || failedJobRetryTimeCycleConfiguration.isEmpty()) {
-      failedJobRetryTimeCycleConfiguration = Context.getProcessEngineConfiguration().getFailedJobRetryTimeCycle();
-    }
-
-    if (failedJobRetryTimeCycleConfiguration != null) {
-      FailedJobRetryConfiguration configuration = ParseUtil.parseRetryIntervals(failedJobRetryTimeCycleConfiguration);
-      activity.getProperties().set(FAILED_JOB_CONFIGURATION, configuration);
-    }
+  protected boolean isExternalTask(ActivityImpl activity) {
+    return activity.getActivityBehavior() instanceof ExternalTaskActivityBehavior;
   }
 
   protected boolean isMultiInstance(ActivityImpl activity) {
