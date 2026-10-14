@@ -17,6 +17,20 @@
     limitations under the License.
 
 -->
+<!--
+
+    The Camunda changeSets below are guarded by preconditions on ACT_GE_SCHEMA_LOG:
+    a step runs only if its source version is present and its target version is not.
+
+    Without them a database migrated from Camunda fails. Its Liquibase history was
+    recorded under org/camunda/..., so every changeSet here looks new and Liquibase
+    tries to create the schema again. Both checks are required: a database installed
+    fresh at a later version has no rows for the earlier steps.
+
+    Camunda 7.24 is the final Camunda release, so this block is closed. CIB seven
+    changeSets need no preconditions.
+
+-->
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
                    xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -30,7 +44,25 @@
   <property name="db.name" value="oracle" dbms="oracle"/>
   <property name="db.name" value="postgres" dbms="postgresql"/>
 
+  <!-- Accepts an empty database (no ACT_RU_EXECUTION yet - a fresh install) or a schema at
+       Camunda 7.16 or later: ACT_RE_CAMFORMDEF is created by the 7.15-to-7.16 step and never
+       dropped. Anything older is rejected, because this changelog cannot migrate it. -->
+  <preConditions onFail="HALT"
+                 onFailMessage="The database schema is older than Camunda 7.16 and cannot be migrated with this changelog. Upgrade it to Camunda 7.24 first.">
+    <or>
+      <not>
+        <tableExists tableName="ACT_RU_EXECUTION"/>
+      </not>
+      <tableExists tableName="ACT_RE_CAMFORMDEF"/>
+    </or>
+  </preConditions>
+
   <changeSet author="Camunda" id="7.16.0-baseline">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="ACT_RU_EXECUTION"/>
+      </not>
+    </preConditions>
     <sqlFile path="baseline/liquibase.${db.name}.create.engine.sql"
              encoding="UTF-8"
              relativeToChangelogFile="true"
@@ -73,6 +105,12 @@
   </changeSet>
 
   <changeSet author="Camunda" id="7.16-to-7.17">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="1">SELECT COUNT(DISTINCT VERSION_) FROM ACT_GE_SCHEMA_LOG WHERE VERSION_ = '7.16.0'</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT COUNT(DISTINCT VERSION_) FROM ACT_GE_SCHEMA_LOG WHERE VERSION_ = '7.17.0'</sqlCheck>
+      </and>
+    </preConditions>
     <sqlFile path="upgrade/${db.name}_engine_7.16_to_7.17.sql"
              encoding="UTF-8"
              relativeToChangelogFile="true"
@@ -85,6 +123,12 @@
   </changeSet>
 
   <changeSet author="Camunda" id="7.17-to-7.18">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="1">SELECT COUNT(DISTINCT VERSION_) FROM ACT_GE_SCHEMA_LOG WHERE VERSION_ = '7.17.0'</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT COUNT(DISTINCT VERSION_) FROM ACT_GE_SCHEMA_LOG WHERE VERSION_ = '7.18.0'</sqlCheck>
+      </and>
+    </preConditions>
     <sqlFile path="upgrade/${db.name}_engine_7.17_to_7.18.sql"
              encoding="UTF-8"
              relativeToChangelogFile="true"
@@ -97,6 +141,12 @@
   </changeSet>
 
   <changeSet author="Camunda" id="7.18-to-7.19">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="1">SELECT COUNT(DISTINCT VERSION_) FROM ACT_GE_SCHEMA_LOG WHERE VERSION_ = '7.18.0'</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT COUNT(DISTINCT VERSION_) FROM ACT_GE_SCHEMA_LOG WHERE VERSION_ = '7.19.0'</sqlCheck>
+      </and>
+    </preConditions>
     <sqlFile path="upgrade/${db.name}_engine_7.18_to_7.19.sql"
              encoding="UTF-8"
              relativeToChangelogFile="true"
@@ -109,6 +159,12 @@
   </changeSet>
 
   <changeSet author="Camunda" id="7.19-to-7.20">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="1">SELECT COUNT(DISTINCT VERSION_) FROM ACT_GE_SCHEMA_LOG WHERE VERSION_ = '7.19.0'</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT COUNT(DISTINCT VERSION_) FROM ACT_GE_SCHEMA_LOG WHERE VERSION_ = '7.20.0'</sqlCheck>
+      </and>
+    </preConditions>
     <sqlFile path="upgrade/${db.name}_engine_7.19_to_7.20.sql"
              encoding="UTF-8"
              relativeToChangelogFile="true"
@@ -121,6 +177,12 @@
   </changeSet>
 
   <changeSet author="Camunda" id="7.20-to-7.21">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="1">SELECT COUNT(DISTINCT VERSION_) FROM ACT_GE_SCHEMA_LOG WHERE VERSION_ = '7.20.0'</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT COUNT(DISTINCT VERSION_) FROM ACT_GE_SCHEMA_LOG WHERE VERSION_ = '7.21.0'</sqlCheck>
+      </and>
+    </preConditions>
     <sqlFile path="upgrade/${db.name}_engine_7.20_to_7.21.sql"
              encoding="UTF-8"
              relativeToChangelogFile="true"
@@ -133,6 +195,12 @@
   </changeSet>
 
   <changeSet author="Camunda" id="7.21-to-7.22">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="1">SELECT COUNT(DISTINCT VERSION_) FROM ACT_GE_SCHEMA_LOG WHERE VERSION_ = '7.21.0'</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT COUNT(DISTINCT VERSION_) FROM ACT_GE_SCHEMA_LOG WHERE VERSION_ = '7.22.0'</sqlCheck>
+      </and>
+    </preConditions>
     <sqlFile path="upgrade/${db.name}_engine_7.21_to_7.22.sql"
              encoding="UTF-8"
              relativeToChangelogFile="true"
@@ -145,6 +213,12 @@
   </changeSet>
 
   <changeSet author="Camunda" id="7.22-to-7.23">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="1">SELECT COUNT(DISTINCT VERSION_) FROM ACT_GE_SCHEMA_LOG WHERE VERSION_ = '7.22.0'</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT COUNT(DISTINCT VERSION_) FROM ACT_GE_SCHEMA_LOG WHERE VERSION_ = '7.23.0'</sqlCheck>
+      </and>
+    </preConditions>
     <sqlFile path="upgrade/${db.name}_engine_7.22_to_7.23.sql"
              encoding="UTF-8"
              relativeToChangelogFile="true"
@@ -157,6 +231,12 @@
   </changeSet>
 
   <changeSet author="Camunda" id="7.23-to-7.24">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="1">SELECT COUNT(DISTINCT VERSION_) FROM ACT_GE_SCHEMA_LOG WHERE VERSION_ = '7.23.0'</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT COUNT(DISTINCT VERSION_) FROM ACT_GE_SCHEMA_LOG WHERE VERSION_ = '7.24.0'</sqlCheck>
+      </and>
+    </preConditions>
     <sqlFile path="upgrade/${db.name}_engine_7.23_to_7.24.sql"
              encoding="UTF-8"
              relativeToChangelogFile="true"

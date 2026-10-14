@@ -17,13 +17,20 @@
 package org.cibseven.bpm.sql.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 import liquibase.Contexts;
@@ -33,6 +40,7 @@ import liquibase.change.core.SQLFileChange;
 import liquibase.changelog.ChangeSet;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
+import liquibase.database.jvm.JdbcConnection;
 import liquibase.diff.DiffGeneratorFactory;
 import liquibase.diff.DiffResult;
 import liquibase.diff.ObjectDifferences;
@@ -68,6 +76,12 @@ public class SqlScriptTest {
       "ACT_HI_PROCINST_PROC_INST_ID__KEY",// used on PostgreSQL
       "ACT_UNIQ_TENANT_MEMB_USER",
       "ACT_UNIQ_TENANT_MEMB_GROUP");
+
+  /** The last Camunda release, and the point from which the CIB seven changeSets take over. */
+  protected static final String CAMUNDA_FINAL_TAG = "7.24.0";
+
+  /** Where Camunda recorded its Liquibase history - a different path, so the ids no longer match. */
+  protected static final String CAMUNDA_HISTORY_PATH = "org/camunda/bpm/engine/db/liquibase/camunda-changelog.xml";
 
   protected Properties properties;
   protected Database database;
@@ -174,6 +188,177 @@ public class SqlScriptTest {
     assertThat(changeSetsToApply)
         .withFailMessage("Resulting upgraded database schema differs: %s", getChanges(changeSetsToApply))
         .isEmpty();
+  }
+
+  /**
+   * A database that still carries the Liquibase history written by Camunda is the situation
+   * every migrating customer is in: the changeSets are identical but were recorded under the
+   * Camunda classpath, so they do not match by (id, author, filename) any more.
+   */
+  @Test
+  public void shouldMigrateDatabaseWithCamundaLiquibaseHistory() throws Exception {
+    // given the schema a clean installation produces
+    liquibase.update(new Contexts());
+    DatabaseSnapshot reference = createCurrentDatabaseSnapshot();
+    cleanUpDatabaseTables();
+
+    // and a Camunda 7.24 database whose history was recorded under the Camunda path
+    liquibase.update(CAMUNDA_FINAL_TAG, new Contexts());
+    renameChangeLogHistoryTo(CAMUNDA_HISTORY_PATH);
+
+    // when the CIB seven changelog is applied to it
+    liquibase.update(new Contexts());
+
+    // then the Camunda steps were skipped and only the CIB seven steps ran
+    Map<String, String> execTypes = execTypesOfNewlyEvaluatedChangeSets();
+    assertThat(execTypes).containsAllEntriesOf(expectedExecTypes());
+
+    // and the result is the same schema a clean installation produces
+    assertSchemaMatches(reference);
+  }
+
+  /**
+   * Same as above, but the database was installed fresh at Camunda 7.24 instead of being
+   * upgraded to it. Its ACT_GE_SCHEMA_LOG therefore holds a single row and none of the
+   * intermediate versions - a step must not run just because its target version is absent.
+   */
+  @Test
+  public void shouldMigrateFreshCamundaInstallWithSparseSchemaLog() throws Exception {
+    // given the schema a clean installation produces
+    liquibase.update(new Contexts());
+    DatabaseSnapshot reference = createCurrentDatabaseSnapshot();
+    cleanUpDatabaseTables();
+
+    // and a Camunda 7.24 database that was never upgraded, so it logged only its own version
+    liquibase.update(CAMUNDA_FINAL_TAG, new Contexts());
+    collapseSchemaLogToSingleRow(CAMUNDA_FINAL_TAG);
+    renameChangeLogHistoryTo(CAMUNDA_HISTORY_PATH);
+
+    // when the CIB seven changelog is applied to it
+    liquibase.update(new Contexts());
+
+    // then the Camunda steps were still skipped - none ran against the newer schema
+    Map<String, String> execTypes = execTypesOfNewlyEvaluatedChangeSets();
+    assertThat(execTypes).containsAllEntriesOf(expectedExecTypes());
+
+    assertSchemaMatches(reference);
+  }
+
+  /**
+   * ACT_RE_CAMFORMDEF is created by the 7.15-to-7.16 step and never dropped, so a schema
+   * without it predates Camunda 7.16. This changelog cannot migrate such a database and
+   * must refuse it instead of silently applying only the CIB seven steps.
+   */
+  @Test
+  public void shouldRejectSchemaOlderThanCamunda716() throws Exception {
+    // given a Camunda managed schema that looks older than Camunda 7.16
+    liquibase.update(CAMUNDA_FINAL_TAG, new Contexts());
+    executeSql("DROP TABLE ACT_RE_CAMFORMDEF");
+    renameChangeLogHistoryTo(CAMUNDA_HISTORY_PATH);
+
+    // when
+    Throwable thrown = catchThrowable(() -> liquibase.update(new Contexts()));
+
+    // then the update is refused, with the reason stated
+    assertThat(thrown)
+        .withFailMessage("Expected the changelog to reject a pre-7.16 schema, but the update succeeded")
+        .isNotNull();
+    assertThat(causeChainMessage(thrown)).contains("older than Camunda 7.16");
+  }
+
+  /** Camunda-era steps must be skipped, CIB seven steps must run. */
+  protected static Map<String, String> expectedExecTypes() {
+    Map<String, String> expected = new LinkedHashMap<>();
+    for (String id : new String[] { "7.16.0-baseline", "7.16-to-7.17", "7.17-to-7.18", "7.18-to-7.19",
+        "7.19-to-7.20", "7.20-to-7.21", "7.21-to-7.22", "7.22-to-7.23", "7.23-to-7.24" }) {
+      expected.put(id, "MARK_RAN");
+    }
+    for (String id : new String[] { "7.24-to-2.1", "2.1-to-2.2", "2.2-to-2.3" }) {
+      expected.put(id, "EXECUTED");
+    }
+    return expected;
+  }
+
+  protected void assertSchemaMatches(DatabaseSnapshot reference) throws Exception {
+    DatabaseSnapshot migrated = createCurrentDatabaseSnapshot();
+    DiffResult diffResult = databaseDiffer.compare(reference, migrated, new CompareControl());
+    List<ChangeSet> changeSetsToApply = new DiffToChangeLog(diffResult, new CustomDiffOutputControl())
+        .generateChangeSets();
+
+    assertThat(changeSetsToApply)
+        .withFailMessage("Migrated database schema differs: %s", getChanges(changeSetsToApply))
+        .isEmpty();
+  }
+
+  /** Pretends the existing history was written by Camunda, under its own classpath location. */
+  protected void renameChangeLogHistoryTo(String fileName) throws Exception {
+    executeSql(String.format("UPDATE %s SET FILENAME = '%s'", changeLogTable(), fileName));
+
+    // without this the changeSets would still match their own rows, every step would simply be
+    // skipped, and the test would pass without ever exercising the preconditions
+    assertThat(queryColumn("SELECT DISTINCT FILENAME FROM " + changeLogTable()))
+        .withFailMessage("Renaming the Liquibase history had no effect")
+        .containsExactly(fileName);
+  }
+
+  /**
+   * Reduces ACT_GE_SCHEMA_LOG to the single row a fresh installation writes, relabelled to the
+   * given version. Reuses the existing row so no database specific timestamp literal is needed.
+   */
+  protected void collapseSchemaLogToSingleRow(String version) throws Exception {
+    executeSql("DELETE FROM ACT_GE_SCHEMA_LOG WHERE ID_ <> '0'");
+    executeSql(String.format("UPDATE ACT_GE_SCHEMA_LOG SET VERSION_ = '%s' WHERE ID_ = '0'", version));
+
+    assertThat(queryColumn("SELECT VERSION_ FROM ACT_GE_SCHEMA_LOG"))
+        .withFailMessage("Collapsing ACT_GE_SCHEMA_LOG had no effect, so the log is not sparse")
+        .containsExactly(version);
+  }
+
+  protected List<String> queryColumn(String sql) throws Exception {
+    List<String> values = new ArrayList<>();
+    Connection connection = ((JdbcConnection) database.getConnection()).getUnderlyingConnection();
+    try (Statement statement = connection.createStatement(); ResultSet rs = statement.executeQuery(sql)) {
+      while (rs.next()) {
+        values.add(rs.getString(1));
+      }
+    }
+    return values;
+  }
+
+  /** EXECUTED / MARK_RAN per changeSet, for the rows this changelog has just written. */
+  protected Map<String, String> execTypesOfNewlyEvaluatedChangeSets() throws Exception {
+    Map<String, String> result = new LinkedHashMap<>();
+    String sql = String.format("SELECT ID, EXECTYPE FROM %s WHERE FILENAME <> '%s'",
+        changeLogTable(), CAMUNDA_HISTORY_PATH);
+    Connection connection = ((JdbcConnection) database.getConnection()).getUnderlyingConnection();
+    try (Statement statement = connection.createStatement(); ResultSet rs = statement.executeQuery(sql)) {
+      while (rs.next()) {
+        result.put(rs.getString(1), rs.getString(2));
+      }
+    }
+    return result;
+  }
+
+  protected String changeLogTable() {
+    return database.escapeTableName(database.getLiquibaseCatalogName(), database.getLiquibaseSchemaName(),
+        database.getDatabaseChangeLogTableName());
+  }
+
+  protected void executeSql(String sql) throws LiquibaseException {
+    SQLFileChange sqlFileChange = new SQLFileChange();
+    sqlFileChange.setSql(sql);
+    database.execute(sqlFileChange.generateStatements(database), null);
+    // Liquibase runs with auto commit disabled, so DML would be rolled back by the next
+    // operation. DDL escapes this because most databases commit it implicitly.
+    database.commit();
+  }
+
+  protected static String causeChainMessage(Throwable throwable) {
+    StringBuilder messages = new StringBuilder();
+    for (Throwable t = throwable; t != null; t = t.getCause()) {
+      messages.append(t.getMessage()).append('\n');
+    }
+    return messages.toString();
   }
 
   protected void executeSqlScript(String sqlFolder, String sqlScript) throws LiquibaseException {
