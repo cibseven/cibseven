@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-2269. boundaryPathMeetsFork with a non-interrupting escalation boundary event: the activity
+     it is attached to is an embedded sub process whose end event escalates. One activation of
+     `work`, two paths into `join`. `right` ends on its own. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <escalation id="escalation" escalationCode="E1" />
+  <process id="escalationPathMeetsFork" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <subProcess id="work">
+        <startEvent id="workStart" />
+        <sequenceFlow id="w0" sourceRef="workStart" targetRef="inner" />
+        <userTask id="inner" />
+        <sequenceFlow id="w1" sourceRef="inner" targetRef="escalate" />
+        <endEvent id="escalate">
+          <escalationEventDefinition escalationRef="escalation" />
+        </endEvent>
+      </subProcess>
+      <boundaryEvent id="escalated" attachedToRef="work" cancelActivity="false">
+        <escalationEventDefinition escalationRef="escalation" />
+      </boundaryEvent>
+      <sequenceFlow id="b1" sourceRef="escalated" targetRef="sideTask" />
+      <userTask id="sideTask" />
+      <sequenceFlow id="b2" sourceRef="sideTask" targetRef="join" />
+      <sequenceFlow id="w2" sourceRef="work" targetRef="split" />
+      <parallelGateway id="split" />
+      <sequenceFlow id="w3" sourceRef="split" targetRef="left" />
+      <sequenceFlow id="w4" sourceRef="split" targetRef="right" />
+      <userTask id="left" />
+      <userTask id="right" />
+      <sequenceFlow id="w5" sourceRef="left" targetRef="join" />
+      <parallelGateway id="join" />
+      <sequenceFlow id="j1" sourceRef="join" targetRef="joined" />
+      <userTask id="joined" />
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="after" />
+    <userTask id="after" />
+    <sequenceFlow id="f3" sourceRef="after" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

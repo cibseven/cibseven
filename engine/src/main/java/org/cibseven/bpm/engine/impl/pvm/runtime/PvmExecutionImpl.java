@@ -694,15 +694,24 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
     if (eventHandlerActivity.getActivityStartBehavior() == ActivityStartBehavior.CONCURRENT_IN_FLOW_SCOPE
       && flowScope != eventScope) {
       // the current scope is the event scope of the activity
-      PvmExecutionImpl flowScopeExecution = findExecutionForScope(eventScope, flowScope);
-      flowScopeExecution.eventHandlerTrigger = this;
-      try {
-        flowScopeExecution.executeActivity(eventHandlerActivity);
-      } finally {
-        flowScopeExecution.eventHandlerTrigger = null;
-      }
+      findExecutionForScope(eventScope, flowScope).executeEventHandlerBeside(this, eventHandlerActivity);
     } else {
       executeActivity(eventHandlerActivity);
+    }
+  }
+
+  /**
+   * CIB7-2269. Starts a non-interrupting event handler attached to an activity, in this execution of
+   * the handler's flow scope: {@code trigger} is the execution of the activity whose event started
+   * it. A scope that observes forks is told of the handler's path as of a branch of that activity:
+   * see {@link #eventHandlerPathCreated(PvmExecutionImpl)}.
+   */
+  public void executeEventHandlerBeside(PvmExecutionImpl trigger, PvmActivity eventHandlerActivity) {
+    eventHandlerTrigger = trigger;
+    try {
+      executeActivity(eventHandlerActivity);
+    } finally {
+      eventHandlerTrigger = null;
     }
   }
 

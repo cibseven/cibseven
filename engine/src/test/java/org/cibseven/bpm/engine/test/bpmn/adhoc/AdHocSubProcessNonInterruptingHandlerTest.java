@@ -73,6 +73,8 @@ public class AdHocSubProcessNonInterruptingHandlerTest extends PluggableProcessE
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.conditionalBoundary.bpmn20.xml";
   protected static final String CONDITIONAL_BOUNDARY_FILTERED =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.conditionalBoundaryFiltered.bpmn20.xml";
+  protected static final String ESCALATION_PATH_MEETS_FORK =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.escalationPathMeetsFork.bpmn20.xml";
 
   // ---------------------------------------------------------------- the event sub process
 
@@ -333,6 +335,28 @@ public class AdHocSubProcessNonInterruptingHandlerTest extends PluggableProcessE
     runtimeService.correlateMessage("ping");
 
     complete("work");
+    complete("left");
+    assertThat(task("joined")).as("the side path has not arrived yet").isNull();
+    complete("sideTask");
+    assertThat(task("joined")).as("the side path and the branch belong to one activation").isNotNull();
+
+    complete("joined");
+    complete("right");
+    assertThat(task("after")).isNotNull();
+  }
+
+  /**
+   * The same with an escalation boundary event, whose path the engine starts on its own way, from
+   * the escalation, and not from an event subscription.
+   */
+  @Deployment(resources = ESCALATION_PATH_MEETS_FORK)
+  @Test
+  public void anEscalationPathMeetsABranchOfItsActivitysForkAtAJoin() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("escalationPathMeetsFork");
+    activate(scopeExecutionId(pi), "work");
+
+    complete("inner");
+    assertThat(task("sideTask")).as("the escalation started the side path").isNotNull();
     complete("left");
     assertThat(task("joined")).as("the side path has not arrived yet").isNull();
     complete("sideTask");
