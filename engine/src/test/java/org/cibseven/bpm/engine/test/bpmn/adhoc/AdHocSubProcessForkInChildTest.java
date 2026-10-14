@@ -492,8 +492,10 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
     String scope = scopeExecutionId(pi);
     activate(scope, "split");
 
-    complete("right");
+    // left waits at the join first, so that the end of right is when the rule without a condition
+    // decides, with nothing else running
     complete("left");
+    complete("right");
     testRule.assertProcessNotEnded(pi.getId());
     ActivityInstanceAssert.assertThat(runtimeService.getActivityInstance(pi.getId())).hasStructure(
         describeActivityInstanceTree(pi.getProcessDefinitionId())
