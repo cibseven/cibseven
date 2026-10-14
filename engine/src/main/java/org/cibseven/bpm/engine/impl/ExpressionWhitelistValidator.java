@@ -29,17 +29,29 @@ public class ExpressionWhitelistValidator<T extends AbstractQuery<?, ?>> impleme
 
   // default value of ProcessEngineConfigurationImpl#allowedFilterExpressions; used as a
   // fallback when no process engine configuration is available (e.g. isolated unit tests).
-  // Kept in normalized form (see #normalize): numeric arguments are stripped, so empty
-  // parentheses stand for any numeric argument.
+  // Kept in normalized form (see #normalize): an entry carrying a concrete number could never
+  // match, since lookups are normalized. shouldKeepEveryDefaultEntryNormalized guards that.
+  //
+  // Must cover every expression the product itself suggests or creates, or users following our own
+  // examples hit a BadUserRequestException (CIB7-2247). Sources:
+  //   - the filter dialog's help texts (cam-tasklist-filter-modal-criteria.js),
+  //   - the filter documentation (webapps/tasklist/filters.md in cibseven-docs-manual),
+  //   - InvoiceDemoDataGenerator and the invoice example's DemoDataGenerator,
+  //   - the engine test suite - sole origin of ${dateTime().withMillis()}.
+  // ExpressionWhitelistValidatorTest pins these by hand; no build step compares it against the
+  // sources, so update it when you change one.
   public static final Set<String> DEFAULT_ALLOWED_EXPRESSIONS = Collections.unmodifiableSet(
       new HashSet<>(Arrays.asList(
           "${currentUser()}",
           "${currentUserGroups()}",
           "${now()}",
+          "${dateTime()}",
           "${dateTime().withMillis()}",
           "${dateTime().withTimeAtStartOfDay()}",
           "${dateTime().withTimeAtStartOfDay().plusDays().minusSeconds()}",
-          "${dateTime().plusDays()}")));
+          "${dateTime().plusDays()}",
+          "${dateTime().plusDays().withTimeAtStartOfDay()}",
+          "${dateTime().plusWeeks()}")));
 
   @SuppressWarnings("rawtypes")
   public static final ExpressionWhitelistValidator INSTANCE = new ExpressionWhitelistValidator();
