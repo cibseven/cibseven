@@ -46,7 +46,7 @@ public abstract class PvmAtomicOperationCreateConcurrentExecution implements Pvm
         ? execution.createConcurrentExecutionBesideChildren()
         : execution.createConcurrentExecution();
     // CIB7-2269: before the new execution takes any step
-    execution.eventHandlerPathCreated(propagatingExecution);
+    execution.eventHandlerPathCreated(propagatingExecution, activityToStart);
 
     // set next activity on propagating execution
     propagatingExecution.setActivity(activityToStart);

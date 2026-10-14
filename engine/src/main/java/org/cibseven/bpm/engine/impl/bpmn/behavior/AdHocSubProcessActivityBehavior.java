@@ -468,9 +468,10 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     // A non-interrupting event sub process ends here like any child, but it is an event handler
     // rather than a performance, so it is gathered no more than an interrupting one is in complete:
     // evaluated against the handler, the element expression would add whatever the last performance
-    // left behind (CIB7-2269). Unlike a merged branch, it does decide completion.
+    // left behind (CIB7-2269). So is the path of a boundary event without an outgoing flow, which
+    // ends at the event and has performed nothing. Unlike a merged branch, both decide completion.
     boolean mergedAtJoin = isMergedAtJoin(scopeExecution, endedExecution);
-    if (!mergedAtJoin && !isEventSubProcess(endedExecution.getActivity())) {
+    if (!mergedAtJoin && !isHandlerThatPerformedNothing(endedExecution.getActivity())) {
       gatherResult(scopeExecution, endedExecution);
     }
 
@@ -536,6 +537,16 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   /** Whether the activity is an event sub process, a handler started by its own start event. */
   protected boolean isEventSubProcess(PvmActivity activity) {
     return activity instanceof ActivityImpl && ((ActivityImpl) activity).isTriggeredByEvent();
+  }
+
+  /**
+   * Whether a child that ended in this activity was an event handler that performed nothing: an
+   * event sub process, or the path of a boundary event that ended at the event, having no outgoing
+   * flow (CIB7-2269).
+   */
+  protected boolean isHandlerThatPerformedNothing(PvmActivity activity) {
+    ActivityBehavior behavior = activity == null ? null : activity.getActivityBehavior();
+    return isEventSubProcess(activity) || behavior instanceof BoundaryEventActivityBehavior;
   }
 
   // ------------------------------------------------------------ one activation of a forking child

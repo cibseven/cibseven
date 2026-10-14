@@ -75,6 +75,10 @@ public class AdHocSubProcessNonInterruptingHandlerTest extends PluggableProcessE
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.conditionalBoundaryFiltered.bpmn20.xml";
   protected static final String ESCALATION_PATH_MEETS_FORK =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.escalationPathMeetsFork.bpmn20.xml";
+  protected static final String FLOWLESS_BOUNDARY =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.flowlessBoundary.bpmn20.xml";
+  protected static final String FLOWLESS_BOUNDARY_AND_A_SEPARATE_CHILD =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.flowlessBoundaryAndASeparateChild.bpmn20.xml";
 
   // ---------------------------------------------------------------- the event sub process
 
@@ -412,6 +416,39 @@ public class AdHocSubProcessNonInterruptingHandlerTest extends PluggableProcessE
     complete(pinged, "y");
     assertThat(taskService.createTaskQuery().processInstanceId(pinged.getId()).taskDefinitionKey("z").count())
         .as("x carries the label of its activation, y none").isZero();
+  }
+
+  /**
+   * A boundary event without an outgoing flow only records that its event happened. Its path ends
+   * where it starts and is no fork, so the activation stays as it was: x still meets y.
+   */
+  @Deployment(resources = FLOWLESS_BOUNDARY_AND_A_SEPARATE_CHILD)
+  @Test
+  public void aBoundaryEventWithoutAFlowLeavesTheActivationAsItWas() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("flowlessBoundaryAndASeparateChild");
+    activate(scopeExecutionId(pi), "x");
+    activate(scopeExecutionId(pi), "y");
+    runtimeService.correlateMessage("ping");
+
+    complete("x");
+    complete("y");
+    assertThat(task("z")).as("x and y still join").isNotNull();
+  }
+
+  /** Nor is its path gathered: it performed nothing, and would add the last result again. */
+  @Deployment(resources = FLOWLESS_BOUNDARY)
+  @Test
+  public void aBoundaryEventWithoutAFlowIsNotGathered() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("flowlessBoundary");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "work");
+    taskService.complete(task("work").getId(), Collections.<String, Object>singletonMap("result", "a"));
+
+    activate(scope, "work");
+    runtimeService.correlateMessage("ping");
+    taskService.complete(task("work").getId(), Collections.<String, Object>singletonMap("result", "b"));
+
+    assertThat(runtimeService.getVariable(pi.getId(), "results")).isEqualTo(Arrays.asList("a", "b"));
   }
 
   /**

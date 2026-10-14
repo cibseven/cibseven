@@ -120,7 +120,7 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
   /**
    * CIB7-2269. While this scope execution starts a non-interrupting event handler beside the
    * activity the handler is attached to: the execution whose event started it. See
-   * {@link #eventHandlerPathCreated(PvmExecutionImpl)}.
+   * {@link #eventHandlerPathCreated(PvmExecutionImpl, PvmActivity)}.
    */
   protected transient PvmExecutionImpl eventHandlerTrigger;
 
@@ -704,7 +704,7 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
    * CIB7-2269. Starts a non-interrupting event handler attached to an activity, in this execution of
    * the handler's flow scope: {@code trigger} is the execution of the activity whose event started
    * it. A scope that observes forks is told of the handler's path as of a branch of that activity:
-   * see {@link #eventHandlerPathCreated(PvmExecutionImpl)}.
+   * see {@link #eventHandlerPathCreated(PvmExecutionImpl, PvmActivity)}.
    */
   public void executeEventHandlerBeside(PvmExecutionImpl trigger, PvmActivity eventHandlerActivity) {
     eventHandlerTrigger = trigger;
@@ -1064,11 +1064,15 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
    * {@code handlerPath} as a concurrent child of this scope execution, beside that activity. A scope
    * that observes forks is told of it as of a fork of the activity, before the path takes a step:
    * the path belongs to the same activation, and may meet the activity's own path at a join.
+   *
+   * <p>A handler without an outgoing flow, a boundary event that only records that its event
+   * happened, ends where it starts. Its path never reaches a join and is no fork, so the scope is
+   * not told of it.
    */
-  public void eventHandlerPathCreated(PvmExecutionImpl handlerPath) {
+  public void eventHandlerPathCreated(PvmExecutionImpl handlerPath, PvmActivity handlerActivity) {
     PvmExecutionImpl trigger = eventHandlerTrigger;
     eventHandlerTrigger = null;
-    if (trigger == null) {
+    if (trigger == null || handlerActivity.getOutgoingTransitions().isEmpty()) {
       return;
     }
     ForkObserverBehavior forkObserver = handlerPath.getForkObserver();
