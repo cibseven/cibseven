@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A parked scope with one child that writes agent state the way the connector does, and one that
+     tries to overwrite it the way an untrusted tool would. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-agent-state">
+  <process id="adHocAgentState" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <serviceTask id="writeState"
+                   camunda:class="org.cibseven.connect.ai.agent.agentic.AdHocAgentStateTest$WriteAgentState" />
+      <serviceTask id="tamper"
+                   camunda:expression="${execution.setVariable('adHocAgentPending', 'cleared by a tool')}" />
+      <userTask id="workerA" name="Worker A" />
+      <!-- Parked: a condition that never holds switches off "no active child, so complete". -->
+      <completionCondition xsi:type="tFormalExpression">${false}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>
