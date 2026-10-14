@@ -72,6 +72,12 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.forkAndJoinUntilEnoughWaiting.bpmn20.xml";
   protected static final String STRANDED_JOIN =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.strandedJoin.bpmn20.xml";
+  protected static final String INCLUSIVE_SINGLE_FLOW =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.inclusiveSingleFlow.bpmn20.xml";
+  protected static final String CONDITIONAL_FLOWS =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.conditionalFlows.bpmn20.xml";
+  protected static final String EXCLUSIVE_BEFORE_A_JOIN =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessForkInChildTest.exclusiveBeforeAJoin.bpmn20.xml";
 
   // ---------------------------------------------------------------- the scope after a fork
 
@@ -546,6 +552,112 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
     assertThat(count("after")).isEqualTo(2);
   }
 
+  // ---------------------------------------------------------------- a fork that takes one flow
+
+  /**
+   * An inclusive split whose conditions select one flow forks all the same. Its path carries its
+   * activation, so the join does not wait for another activation that is still before the split.
+   */
+  @Deployment(resources = INCLUSIVE_SINGLE_FLOW)
+  @Test
+  public void anActivationThatTakesOneFlowDoesNotWaitForAnotherOne() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("inclusiveSingleFlow");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "split");
+    activate(scope, "split");
+
+    completeOne("split", true, false);
+    complete("left");
+    assertThat(count("after"))
+        .as("the join must not wait for the activation that is still at the split")
+        .isEqualTo(1);
+
+    completeOne("split", true, true);
+    complete("left");
+    complete("right");
+    assertThat(count("after")).isEqualTo(2);
+
+    completeEach("after");
+    assertThat(results(pi)).as("each activation's path, once, where it ends")
+        .containsExactly("after", "after");
+  }
+
+  /** The other order: a path that took one flow passes the join where a forked activation waits. */
+  @Deployment(resources = INCLUSIVE_SINGLE_FLOW)
+  @Test
+  public void anActivationThatTakesOneFlowPassesAJoinWhereAForkedOneWaits() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("inclusiveSingleFlow");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "split");
+    activate(scope, "split");
+
+    completeOne("split", true, true);
+    complete("left");
+    assertThat(count("after")).isZero();
+
+    completeOne("split", true, false);
+    complete("left");
+    assertThat(count("after"))
+        .as("the path that took one flow goes on alone, the forked activation still waits")
+        .isEqualTo(1);
+
+    complete("right");
+    assertThat(count("after")).isEqualTo(2);
+  }
+
+  /** Two activations that each take one flow are two paths, not the two branches of one join. */
+  @Deployment(resources = INCLUSIVE_SINGLE_FLOW)
+  @Test
+  public void twoActivationsThatTakeOneFlowEachAreNotMergedAtTheJoin() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("inclusiveSingleFlow");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "split");
+    activate(scope, "split");
+
+    completeOne("split", true, false);
+    completeOne("split", true, false);
+    completeEach("left");
+    assertThat(count("after")).as("two activations, two paths").isEqualTo(2);
+
+    completeEach("after");
+    assertThat(results(pi)).containsExactly("after", "after");
+  }
+
+  /** Conditional flows of a task fork as an inclusive gateway does, also when one condition holds. */
+  @Deployment(resources = CONDITIONAL_FLOWS)
+  @Test
+  public void conditionalFlowsThatSelectOneFlowForkAllTheSame() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("conditionalFlows");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "split");
+    activate(scope, "split");
+
+    completeOne("split", true, false);
+    complete("left");
+    assertThat(count("after"))
+        .as("the join must not wait for the activation that is still at the split")
+        .isEqualTo(1);
+  }
+
+  /**
+   * An exclusive gateway chooses one flow by definition and is no fork: the path of a child that
+   * passes one still meets a child activated on its own at a join.
+   */
+  @Deployment(resources = EXCLUSIVE_BEFORE_A_JOIN)
+  @Test
+  public void anExclusiveGatewayIsNoFork() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("exclusiveBeforeAJoin");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "x");
+    activate(scope, "y");
+
+    complete("x");
+    complete("a");
+    assertThat(count("z")).isZero();
+    complete("y");
+    assertThat(count("z")).isEqualTo(1);
+  }
+
   // ---------------------------------------------------------------- helpers
 
   protected String scopeExecutionId(ProcessInstance pi) {
@@ -577,6 +689,17 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
   /** Completes one of the tasks of an activity, whichever the query returns first. */
   protected void completeOne(String key) {
     taskService.complete(taskService.createTaskQuery().taskDefinitionKey(key).list().get(0).getId());
+  }
+
+  /** Completes one of the tasks of an activity, with the conditions of the split after it. */
+  protected void completeOne(String key, boolean goLeft, boolean goRight) {
+    taskService.complete(taskService.createTaskQuery().taskDefinitionKey(key).list().get(0).getId(),
+        Variables.createVariables().putValue("goLeft", goLeft).putValue("goRight", goRight));
+  }
+
+  @SuppressWarnings("unchecked")
+  protected List<Object> results(ProcessInstance pi) {
+    return (List<Object>) runtimeService.getVariable(pi.getId(), "results");
   }
 
   protected void completeEach(String key) {

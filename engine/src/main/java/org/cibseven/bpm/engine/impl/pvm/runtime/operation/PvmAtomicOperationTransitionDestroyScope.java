@@ -86,6 +86,13 @@ public class PvmAtomicOperationTransitionDestroyScope implements PvmAtomicOperat
           + "activity " + activity);
     }
     else if (transitionsToTake.size() == 1) {
+      // CIB7-2264: an activity that can fork tells a scope that observes forks also when it takes a
+      // single flow, so that a join does not count the path with other activations
+      ForkObserverBehavior forkObserver = propagatingExecution.getForkObserver();
+      if (forkObserver != null && activity.getOutgoingTransitions().size() > 1) {
+        forkObserver.branchesForked(propagatingExecution.getParent(), propagatingExecution,
+            Collections.<PvmExecutionImpl>emptyList());
+      }
       propagatingExecution.setTransition(transitionsToTake.get(0));
       propagatingExecution.take();
     }

@@ -35,6 +35,9 @@ public interface ForkObserverBehavior extends ActivityBehavior {
   /**
    * A child of the scope forked: {@code forkingExecution} goes on along the first transition, and
    * {@code branches} along the others. Called before any of them takes its transition.
+   *
+   * <p>Also called, with no branches, when an activity with more than one outgoing flow takes a
+   * single one of them, as an inclusive gateway or conditional flows do when one condition holds.
    */
   void branchesForked(ActivityExecution scopeExecution, ActivityExecution forkingExecution,
       List<? extends ActivityExecution> branches);

@@ -87,9 +87,11 @@ import com.google.gson.JsonElement;
  *     every child are siblings, so a join that counted them all would merge two activations of the
  *     same forking child. A fork therefore labels its branches with the activation they belong to,
  *     {@link #ACTIVATION_ID}, and a join counts only branches with the label of the one that
- *     arrives. Children that never forked carry none, and still join each other as before; but they
- *     never join a branch of a fork, since a join that counted both kinds could count more branches
- *     than it has incoming flows and then never fire (CIB7-2264).</li>
+ *     arrives. An activity that can fork labels its path also when its conditions select a single
+ *     flow, as an inclusive gateway or conditional flows may; an exclusive gateway is no fork.
+ *     Children that never forked carry none, and still join each other as before; but they never
+ *     join a branch of a fork, since a join that counted both kinds could count more branches than
+ *     it has incoming flows and then never fire (CIB7-2264).</li>
  * </ul>
  */
 public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavior
@@ -98,8 +100,8 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   /**
    * CIB7-2264. A local variable of each branch of a forking child: the id of the execution its
    * activation created, which is the execution that forks first in it. Written only where a child
-   * forks, and given back to the branch that goes on from a join, which loses its local variables
-   * there.
+   * forks, also where an activity that can fork takes a single flow, and given back to the branch
+   * that goes on from a join, which loses its local variables there.
    */
   public static final String ACTIVATION_ID = "adHocActivationId";
 
@@ -508,10 +510,19 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   /**
    * CIB7-2264. Labels the branches with the activation they belong to: the label the forking child
    * already carries, from an earlier fork in the same activation, or else its own id.
+   *
+   * <p>Without branches, an activity with more than one outgoing flow took a single one. An inclusive
+   * gateway or conditional flows whose conditions selected one flow forked all the same, and the path
+   * is labelled as a branch is, so that a join counts it only with its own activation. An exclusive
+   * gateway is no fork: it chooses one flow by definition, and the path stays as it was.
    */
   @Override
   public void branchesForked(ActivityExecution scopeExecution, ActivityExecution forkingExecution,
       List<? extends ActivityExecution> branches) {
+    ActivityBehavior forkingBehavior = forkingExecution.getActivity().getActivityBehavior();
+    if (branches.isEmpty() && forkingBehavior instanceof ExclusiveGatewayActivityBehavior) {
+      return;
+    }
     ActivityExecution forkingChild = childOf(scopeExecution, forkingExecution);
     Object activationId = forkingChild.getVariableLocal(ACTIVATION_ID);
     if (activationId == null) {
