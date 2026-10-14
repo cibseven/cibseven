@@ -240,7 +240,7 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
     complete("left");
     testRule.assertProcessNotEnded(pi.getId());
     assertThat(runtimeService.getVariable(pi.getId(), "results"))
-        .as("a path is gathered where it ends, though another branch of its start still runs")
+        .as("a path is gathered where it ends, though another branch of its activation still runs")
         .isEqualTo(Arrays.asList("left"));
     complete("right");
     testRule.assertProcessEnded(pi.getId());
@@ -356,11 +356,11 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
   /**
    * With {@code cancelRemainingInstances="false"} the scope starts nothing further once the condition
    * holds, but lets the work that runs finish: the other branch, the join, and the path that goes on
-   * from it, which is the same start's work.
+   * from it, which is the same activation's work.
    */
   @Deployment(resources = UNTIL_ENOUGH_WAITING)
   @Test
-  public void aConditionThatHoldsOnABranchLetsTheStartFinish() {
+  public void aConditionThatHoldsOnABranchLetsTheActivationFinish() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkAndJoinUntilEnoughWaiting");
     String scope = scopeExecutionId(pi);
     activate(scope, "split");
@@ -373,29 +373,29 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
         .hasMessageContaining("has already satisfied its completion condition");
 
     complete("left");
-    assertThat(task("after")).as("the path of the same start goes on from the join").isNotNull();
+    assertThat(task("after")).as("the path of the same activation goes on from the join").isNotNull();
     testRule.assertProcessNotEnded(pi.getId());
 
     complete("after");
     testRule.assertProcessEnded(pi.getId());
   }
 
-  // ---------------------------------------------------------------- two starts of a forking child
+  // ---------------------------------------------------------------- two activations of a forking child
 
   /**
-   * The branches of two starts of one forking child are siblings under the scope. A join merges only
-   * the branches of one start: the two left branches waiting at it are no pair.
+   * The branches of two activations of one forking child are siblings under the scope. A join merges
+   * only the branches of one activation: the two left branches waiting at it are no pair.
    */
   @Deployment(resources = FORK_AND_JOIN)
   @Test
-  public void twoStartsOfAForkingChildEachJoinTheirOwnBranches() {
+  public void twoActivationsOfAForkingChildEachJoinTheirOwnBranches() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkAndJoin");
     String scope = scopeExecutionId(pi);
     activate(scope, "split");
     activate(scope, "split");
 
     completeEach("left");
-    assertThat(count("after")).as("no start has both of its branches at the join").isZero();
+    assertThat(count("after")).as("no activation has both of its branches at the join").isZero();
     ActivityInstanceAssert.assertThat(runtimeService.getActivityInstance(pi.getId())).hasStructure(
         describeActivityInstanceTree(pi.getProcessDefinitionId())
           .beginScope("adHoc")
@@ -406,7 +406,7 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
         .done());
 
     completeOne("right");
-    assertThat(count("after")).as("the start whose branches are both at the join goes on").isEqualTo(1);
+    assertThat(count("after")).as("the activation whose branches are both at the join goes on").isEqualTo(1);
     assertThat(count("right")).isEqualTo(1);
 
     completeOne("right");
@@ -416,26 +416,26 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
     @SuppressWarnings("unchecked")
     List<Object> results = (List<Object>) runtimeService.getVariable(pi.getId(), "results");
     assertThat(results)
-        .as("each start's path, once, where it ends")
+        .as("each activation's path, once, where it ends")
         .containsExactly("after", "after");
     activate(scope, "other");
     assertThat(task("other")).as("the scope must still take activations").isNotNull();
   }
 
-  /** An inclusive join waits only for branches of its own start that can still reach it. */
+  /** An inclusive join waits only for branches of its own activation that can still reach it. */
   @Deployment(resources = INCLUSIVE)
   @Test
-  public void anInclusiveJoinWaitsOnlyForItsOwnStart() {
+  public void anInclusiveJoinWaitsOnlyForItsOwnActivation() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("inclusiveForkAndJoin");
     String scope = scopeExecutionId(pi);
     activate(scope, "split");
     activate(scope, "split");
 
     completeEach("left");
-    assertThat(count("after")).as("each left waits for the right of its own start").isZero();
+    assertThat(count("after")).as("each left waits for the right of its own activation").isZero();
 
     completeOne("right");
-    assertThat(count("after")).as("the other start's right does not keep this join waiting")
+    assertThat(count("after")).as("the other activation's right does not keep this join waiting")
         .isEqualTo(1);
 
     completeOne("right");
@@ -443,10 +443,10 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
     testRule.assertProcessEnded(pi.getId());
   }
 
-  /** The branch that goes on from a join still belongs to its start at the next join. */
+  /** The branch that goes on from a join still belongs to its activation at the next join. */
   @Deployment(resources = FORK_JOIN_TWICE)
   @Test
-  public void aStartThatJoinsTwiceKeepsItsBranchesTogether() {
+  public void anActivationThatJoinsTwiceKeepsItsBranchesTogether() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkJoinTwice");
     String scope = scopeExecutionId(pi);
     activate(scope, "split");
@@ -457,7 +457,7 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
     assertThat(count("d")).isEqualTo(2);
 
     completeEach("d");
-    assertThat(count("e")).as("each d waits at the second join for the c of its own start").isZero();
+    assertThat(count("e")).as("each d waits at the second join for the c of its own activation").isZero();
 
     completeOne("c");
     assertThat(count("e")).isEqualTo(1);
@@ -465,7 +465,7 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
     assertThat(count("e")).isEqualTo(2);
   }
 
-  /** Children that never forked still meet at a join, as they did before the fork had a start. */
+  /** Children that never forked still meet at a join, as they did before joins told activations apart. */
   @Deployment(resources = WITHOUT_A_FORK)
   @Test
   public void childrenThatNeverForkedStillJoinEachOther() {
@@ -511,7 +511,7 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
 
   /**
    * A child started on its own does not meet a branch of a fork at a join: the join waits for a
-   * branch of the same start, which never comes.
+   * branch of the same activation, which never comes.
    */
   @Deployment(resources = STRANDED_JOIN)
   @Test
@@ -533,10 +533,10 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
         .done());
   }
 
-  /** A branch that reaches the join in a job of its own still knows its start. */
+  /** A branch that reaches the join in a job of its own still knows its activation. */
   @Deployment(resources = ASYNC_JOIN)
   @Test
-  public void anAsynchronousJoinStillTellsTheStartsApart() {
+  public void anAsynchronousJoinStillTellsTheActivationsApart() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkAndAsyncJoin");
     String scope = scopeExecutionId(pi);
     activate(scope, "split");

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- CIB7-2264. One start of a child forks into three branches, joins two of them, and joins the
-     path that goes on with the third: the branch that leaves the first join must still belong to its
-     start at the second. The completion condition is false, so the scope stays open. -->
+<!-- CIB7-2264. One activation of a child forks into three branches, joins two of them, and joins
+     the path that goes on with the third: the branch that leaves the first join must still belong to
+     its activation at the second. The completion condition is false, so the scope stays open. -->
 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
              xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
