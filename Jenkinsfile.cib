@@ -269,22 +269,28 @@ pipeline {
                 expression { isAnyCustomTest || params.QA_TEST_SUITE == 'ALL'}
             }
             stages {
+                // The runs of one stage rebuild the same module with "clean", so each run publishes
+                // its own test reports before the next one wipes them (CIB7-2164).
                 stage('Engine Integration') {
                     when { expression { params.QA_ENG_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Ptomcat,h2,engine-integration" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly,h2,engine-integration" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly-domain,h2,engine-integration" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly,wildfly-servlet,h2,engine-integration" }}
+                        script {
+                            stage('engine-IT tomcat') { mvnWithTestReports("-f qa/pom.xml -Dengine-integration clean install -Ptomcat,h2,engine-integration", 'qa/integration-tests-engine') }
+                            stage('engine-IT wildfly') { mvnWithTestReports("-f qa/pom.xml -Dengine-integration clean install -Pwildfly,h2,engine-integration", 'qa/integration-tests-engine') }
+                            stage('engine-IT wildfly-domain') { mvnWithTestReports("-f qa/pom.xml -Dengine-integration clean install -Pwildfly-domain,h2,engine-integration", 'qa/integration-tests-engine') }
+                            stage('engine-IT wildfly-servlet') { mvnWithTestReports("-f qa/pom.xml -Dengine-integration clean install -Pwildfly,wildfly-servlet,h2,engine-integration", 'qa/integration-tests-engine') }
+                        }
                     }
                 }
                 stage('Web Integration') {
                     when { expression { params.QA_WEB_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         // TODO: enable chrome and chromedriver on jenkins and remove the exclusion for org.cibseven.bpm.LoginIT
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat10,h2,webapps-integration" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}
+                        script {
+                            stage('webapp-IT tomcat') { mvnWithTestReports("-f qa/pom.xml clean install -Ptomcat,h2,webapps-integration", 'qa/integration-tests-webapps') }
+                            stage('webapp-IT tomcat10') { mvnWithTestReports("-f qa/pom.xml clean install -Ptomcat10,h2,webapps-integration", 'qa/integration-tests-webapps') }
+                            stage('webapp-IT wildfly') { mvnWithTestReports("-f qa/pom.xml clean install -Pwildfly,h2,webapps-integration", 'qa/integration-tests-webapps') }
+                        }
                     }
                 }
                 stage('Run Integration') {
@@ -305,7 +311,7 @@ pipeline {
                     when {  expression { params.QA_PERF || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script {
-                            withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }
+                            stage('perf benchmark') { mvnWithTestReports("-f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2", 'qa/performance-tests-engine') }
                             if (params.ATTACH_QA_PERF_REPORTS == true) {
                                 sh "mkdir ./qa/performance-tests-engine/target/perf_benchmark; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_benchmark/"
                                 zip zipFile: 'perf_benchmark.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_benchmark'
@@ -313,7 +319,7 @@ pipeline {
                             }
                         }
                         script {
-                            withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Psql-statementlog,h2" }
+                            stage('perf sql-statementlog') { mvnWithTestReports("-f qa/performance-tests-engine/pom.xml clean install -Psql-statementlog,h2", 'qa/performance-tests-engine') }
                             if (params.ATTACH_QA_PERF_REPORTS == true) {
                                 sh "mkdir ./qa/performance-tests-engine/target/perf_sql_statementlog; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_sql_statementlog/"
                                 zip zipFile: 'perf_sql_statementlog.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_sql_statementlog'
@@ -321,7 +327,7 @@ pipeline {
 	                        }
                         }
                         script {
-                            withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pactivity-count,h2 -DwatchActivities=start,timer,end -Dtest=AsyncStartAndTimerPerformanceTest" }
+                            stage('perf activity-count') { mvnWithTestReports("-f qa/performance-tests-engine/pom.xml clean install -Pactivity-count,h2 -DwatchActivities=start,timer,end -Dtest=AsyncStartAndTimerPerformanceTest", 'qa/performance-tests-engine') }
                             if (params.ATTACH_QA_PERF_REPORTS == true) {
                                 sh "mkdir ./qa/performance-tests-engine/target/perf_activity_count; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_activity_count/"
                                 zip zipFile: 'perf_activity_count.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_activity_count'
@@ -786,6 +792,20 @@ def checkDepVersionAlignment() {
         }
     }
     parallel branches
+}
+
+// Runs one Maven call and publishes the test reports below moduleDir right away, also when
+// the call fails. The final 'JUnit Report' stage alone would only see the reports of the last
+// run, since every "clean" of the same module deletes those of the run before (CIB7-2164).
+// The published reports are deleted afterwards, so that the final stage does not count them twice.
+def mvnWithTestReports(String mvnArgs, String moduleDir) {
+    try {
+        withMaven { sh "mvn ${mvnArgs}" }
+    } finally {
+        junit allowEmptyResults: true,
+              testResults: "${moduleDir}/**/target/surefire-reports/*.xml,${moduleDir}/**/target/failsafe-reports/*.xml"
+        sh "find ${moduleDir} -type d \\( -name surefire-reports -o -name failsafe-reports \\) -prune -exec rm -rf {} +"
+    }
 }
 
 // - "1.2.0" -> no
