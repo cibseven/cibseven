@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-2269. Two activities, one with a non-interrupting boundary event, and a non-interrupting
+     event sub process, in a scope whose completion condition holds once `stop` is true, with
+     cancelRemainingInstances="false": the scope waits for what still runs when it holds. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <message id="noticeMessage" name="notice" />
+  <message id="pingMessage" name="ping" />
+  <process id="handlersAfterTheCondition" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc" cancelRemainingInstances="false">
+      <userTask id="taskA" />
+      <userTask id="taskB" />
+      <boundaryEvent id="pinged" attachedToRef="taskB" cancelActivity="false">
+        <messageEventDefinition messageRef="pingMessage" />
+      </boundaryEvent>
+      <sequenceFlow id="b1" sourceRef="pinged" targetRef="sideTask" />
+      <userTask id="sideTask" />
+      <subProcess id="onNotice" triggeredByEvent="true">
+        <startEvent id="noticed" isInterrupting="false">
+          <messageEventDefinition messageRef="noticeMessage" />
+        </startEvent>
+        <sequenceFlow id="e1" sourceRef="noticed" targetRef="handled" />
+        <userTask id="handled" />
+        <sequenceFlow id="e2" sourceRef="handled" targetRef="handlerEnd" />
+        <endEvent id="handlerEnd" />
+      </subProcess>
+      <completionCondition xsi:type="tFormalExpression">${execution.hasVariable('stop') and stop}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="after" />
+    <userTask id="after" />
+    <sequenceFlow id="f3" sourceRef="after" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

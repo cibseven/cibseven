@@ -97,12 +97,20 @@ import com.google.gson.JsonElement;
  *     it has incoming flows and then never fire (CIB7-2264).</li>
  * <li><b>A non-interrupting handler is a child too.</b> A non-interrupting event sub process, or the
  *     path of a non-interrupting boundary event on one of the scope's activities, runs on a concurrent
- *     execution of the scope, keeps the scope open while it runs and ends as a child. Neither is an
- *     activation. An event sub process is not gathered; a boundary path is, once, where it ends,
- *     like any path. A boundary path also joins like a branch of its activity: its start counts as a
- *     fork, so it carries that activity's {@link #ACTIVATION_ID} and meets the activity's own path
- *     at a join, and from then on that path no longer meets a child activated on its own
- *     (CIB7-2269).</li>
+ *     execution of the scope, keeps the scope open while it runs and ends as a child (CIB7-2269).
+ *     <ul>
+ *     <li>Neither is an activation. Once the completion condition has held with
+ *         {@code cancelRemainingInstances="false"}, activation is refused, but a handler still starts
+ *         on its event, and the scope waits for it as for the activities still running. A handler
+ *         started by process instance modification is an activation, and is refused.</li>
+ *     <li>An event sub process is not gathered. A boundary path is, once, where it ends, like any
+ *         path; not when it ends at the event, which has no outgoing flow, nor when the condition
+ *         holds on the flow out of the event. Either way it has performed nothing.</li>
+ *     <li>A boundary path with an outgoing flow joins like a branch of its activity: its start counts
+ *         as a fork, so it carries that activity's {@link #ACTIVATION_ID} and meets the activity's own
+ *         path at a join, and from then on that path no longer meets a child activated on its own. A
+ *         boundary event without an outgoing flow is no fork.</li>
+ *     </ul></li>
  * </ul>
  */
 public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavior

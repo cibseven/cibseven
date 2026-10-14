@@ -77,6 +77,8 @@ public class AdHocSubProcessNonInterruptingHandlerTest extends PluggableProcessE
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.escalationPathMeetsFork.bpmn20.xml";
   protected static final String BOUNDARY_WITH_CONDITION =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.boundaryWithCondition.bpmn20.xml";
+  protected static final String HANDLERS_AFTER_THE_CONDITION =
+      "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.handlersAfterTheCondition.bpmn20.xml";
   protected static final String FLOWLESS_BOUNDARY =
       "org/cibseven/bpm/engine/test/bpmn/adhoc/AdHocSubProcessNonInterruptingHandlerTest.flowlessBoundary.bpmn20.xml";
   protected static final String FLOWLESS_BOUNDARY_AND_A_SEPARATE_CHILD =
@@ -470,6 +472,69 @@ public class AdHocSubProcessNonInterruptingHandlerTest extends PluggableProcessE
     assertThat(task("work")).as("the activity is cancelled").isNull();
     assertThat(task("sideTask")).as("the path is not performed").isNull();
     assertThat(runtimeService.getVariable(pi.getId(), "results")).as("nothing was performed").isNull();
+  }
+
+  // ---------------------------------------------------------------- after the condition held
+
+  /**
+   * An event is not an activation. Once the condition has held with cancelRemainingInstances
+   * "false", activation is refused, but an event sub process still starts on its event, and the
+   * scope waits for it as for the activity still running.
+   */
+  @Deployment(resources = HANDLERS_AFTER_THE_CONDITION)
+  @Test
+  public void anEventSubProcessStillStartsAfterTheConditionHeld() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("handlersAfterTheCondition");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "taskA");
+    activate(scope, "taskB");
+    taskService.complete(task("taskA").getId(), Collections.<String, Object>singletonMap("stop", true));
+    assertThatThrownBy(() -> activate(scope, "taskA")).isInstanceOf(BadUserRequestException.class);
+
+    runtimeService.correlateMessage("notice");
+    assertThat(task("handled")).as("the event still starts its handler").isNotNull();
+
+    complete("taskB");
+    assertThat(task("after")).as("the scope waits for the running handler").isNull();
+    complete("handled");
+    assertThat(task("after")).isNotNull();
+  }
+
+  /** The same for the path of a boundary event on an activity still running. */
+  @Deployment(resources = HANDLERS_AFTER_THE_CONDITION)
+  @Test
+  public void aBoundaryPathStillStartsAfterTheConditionHeld() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("handlersAfterTheCondition");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "taskA");
+    activate(scope, "taskB");
+    taskService.complete(task("taskA").getId(), Collections.<String, Object>singletonMap("stop", true));
+
+    runtimeService.correlateMessage("ping");
+    assertThat(task("sideTask")).as("the event still starts the path").isNotNull();
+
+    complete("taskB");
+    assertThat(task("after")).as("the scope waits for the running path").isNull();
+    complete("sideTask");
+    assertThat(task("after")).isNotNull();
+  }
+
+  /** Process instance modification is an activation, also into an event sub process. */
+  @Deployment(resources = HANDLERS_AFTER_THE_CONDITION)
+  @Test
+  public void startingAHandlerByModificationIsRefusedAfterTheConditionHeld() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("handlersAfterTheCondition");
+    String scope = scopeExecutionId(pi);
+    activate(scope, "taskA");
+    activate(scope, "taskB");
+    taskService.complete(task("taskA").getId(), Collections.<String, Object>singletonMap("stop", true));
+
+    assertThatThrownBy(() -> runtimeService.createProcessInstanceModification(pi.getId())
+          .startBeforeActivity("handled")
+          .execute())
+        .isInstanceOf(BadUserRequestException.class)
+        .hasMessageContaining("has already satisfied its completion condition");
+    assertThat(task("handled")).isNull();
   }
 
   /**
