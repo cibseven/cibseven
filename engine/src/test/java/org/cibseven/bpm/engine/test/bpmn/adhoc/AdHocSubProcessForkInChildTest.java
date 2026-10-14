@@ -27,6 +27,7 @@ import java.util.List;
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.history.HistoricActivityInstance;
+import org.cibseven.bpm.engine.history.HistoricVariableInstance;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
@@ -660,7 +661,7 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
     assertThat(count("z")).isEqualTo(1);
   }
 
-  // ---------------------------------------------------------------- a child started by modification
+  // ---------------------------------------------------------------- the activation label
 
   /**
    * The branches of a fork carry their activation in the local variable {@code adHocActivationId}: the
@@ -677,6 +678,71 @@ public class AdHocSubProcessForkInChildTest extends PluggableProcessEngineTest {
     Object label = runtimeService.getVariableLocal(left, "adHocActivationId");
     assertThat(label).isInstanceOf(String.class).isIn(left, right);
     assertThat(runtimeService.getVariableLocal(right, "adHocActivationId")).isEqualTo(label);
+  }
+
+  /** The branch that goes on from a join has the label of the branches it merged again. */
+  @Deployment(resources = FORK_AND_JOIN)
+  @Test
+  public void theLabelComesBackOnThePathAfterTheJoin() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkAndJoin");
+    activate(scopeExecutionId(pi), "split");
+    Object label = runtimeService.getVariableLocal(task("right").getExecutionId(), "adHocActivationId");
+
+    complete("left");
+    complete("right");
+
+    assertThat(runtimeService.getVariableLocal(task("after").getExecutionId(), "adHocActivationId"))
+        .isEqualTo(label);
+  }
+
+  /** A child activated on its own never forked, and carries no label. */
+  @Deployment(resources = FORK_AND_JOIN)
+  @Test
+  public void aChildActivatedOnItsOwnCarriesNoLabel() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkAndJoin");
+    activate(scopeExecutionId(pi), "other");
+
+    assertThat(runtimeService.getVariablesLocal(task("other").getExecutionId()))
+        .doesNotContainKey("adHocActivationId");
+  }
+
+  /**
+   * The label is an ordinary local variable, and nothing reserves the name: written on one branch,
+   * it takes that branch out of its activation, and the join no longer pairs the two.
+   */
+  @Deployment(resources = FORK_AND_JOIN)
+  @Test
+  public void aBranchWhoseLabelIsOverwrittenNoLongerJoinsItsPair() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkAndJoin");
+    activate(scopeExecutionId(pi), "split");
+    runtimeService.setVariableLocal(task("left").getExecutionId(), "adHocActivationId", "somethingElse");
+
+    complete("left");
+    complete("right");
+
+    assertThat(count("after")).isZero();
+  }
+
+  /**
+   * The label is in the history, one row per branch, on the branch's execution. The rows carry no
+   * activity instance: the fork is reported after the PVM detached the branches from theirs.
+   */
+  @Deployment(resources = FORK_AND_JOIN)
+  @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
+  @Test
+  public void theLabelIsInTheHistoryWithoutAnActivityInstance() {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("forkAndJoin");
+    activate(scopeExecutionId(pi), "split");
+    String left = task("left").getExecutionId();
+    String right = task("right").getExecutionId();
+    Object label = runtimeService.getVariableLocal(left, "adHocActivationId");
+
+    List<HistoricVariableInstance> rows = historyService.createHistoricVariableInstanceQuery()
+        .processInstanceId(pi.getId()).variableName("adHocActivationId").list();
+
+    assertThat(rows).extracting(HistoricVariableInstance::getExecutionId).containsExactlyInAnyOrder(left, right);
+    assertThat(rows).extracting(HistoricVariableInstance::getValue).containsOnly(label);
+    assertThat(rows).extracting(HistoricVariableInstance::getActivityInstanceId).containsOnly((String) null);
   }
 
   /**

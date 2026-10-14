@@ -107,6 +107,11 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    * started again that way no longer meets the other branches of its activation at a join. The
    * instruction can give it this variable as a local variable, with the value those branches carry;
    * it then belongs to their activation.
+   *
+   * <p>It is an ordinary local String variable, and nothing reserves the name: a form field, a script
+   * or an input mapping that writes it on a branch changes what a join merges. Its history rows
+   * belong to the execution and the process instance, not to an activity instance: the PVM has
+   * already detached the branches from theirs when the fork is reported.
    */
   public static final String ACTIVATION_ID = "adHocActivationId";
 
