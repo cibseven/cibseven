@@ -26,6 +26,7 @@ import org.cibseven.bpm.application.PostDeploy;
 import org.cibseven.bpm.application.PreUndeploy;
 import org.cibseven.bpm.application.ProcessApplication;
 import org.cibseven.bpm.application.impl.JakartaServletProcessApplication;
+import org.cibseven.bpm.application.impl.ServletProcessApplication;
 import org.cibseven.bpm.container.impl.jboss.deployment.marker.ProcessApplicationAttachments;
 import org.jboss.as.ee.component.Attachments;
 import org.jboss.as.ee.component.ComponentDescription;
@@ -108,7 +109,9 @@ public class ProcessApplicationProcessor implements DeploymentUnitProcessor {
       servletProcessApplications = new HashSet<>(compositeIndex.getAllKnownSubclasses(DotName.createSimple(JakartaServletProcessApplication.class.getName())));
       // the index only covers the deployment, not the engine module, so it cannot see that the deprecated
       // ServletProcessApplication extends JakartaServletProcessApplication: collect its subclasses explicitly
-      servletProcessApplications.addAll(compositeIndex.getAllKnownSubclasses(DotName.createSimple("org.cibseven.bpm.application.impl.ServletProcessApplication")));
+      @SuppressWarnings("deprecation")
+      DotName deprecatedServletProcessApplication = DotName.createSimple(ServletProcessApplication.class.getName());
+      servletProcessApplications.addAll(compositeIndex.getAllKnownSubclasses(deprecatedServletProcessApplication));
     } else {
       return null;
     }

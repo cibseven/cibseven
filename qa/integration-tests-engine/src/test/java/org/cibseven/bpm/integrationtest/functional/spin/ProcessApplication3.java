@@ -17,9 +17,9 @@
 package org.cibseven.bpm.integrationtest.functional.spin;
 
 import org.cibseven.bpm.application.ProcessApplication;
+import org.cibseven.bpm.application.impl.JakartaServletProcessApplication;
 
 @ProcessApplication("pa3")
-// Using fully-qualified class name instead of import statement to allow for automatic Jakarta transformation
-public class ProcessApplication3 extends org.cibseven.bpm.application.impl.ServletProcessApplication {
+public class ProcessApplication3 extends JakartaServletProcessApplication {
 
 }

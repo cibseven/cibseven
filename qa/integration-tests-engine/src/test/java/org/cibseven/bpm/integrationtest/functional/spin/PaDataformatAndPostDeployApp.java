@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.cibseven.bpm.application.PostDeploy;
 import org.cibseven.bpm.application.ProcessApplication;
+import org.cibseven.bpm.application.impl.JakartaServletProcessApplication;
 import org.cibseven.bpm.engine.ProcessEngine;
 
 
@@ -28,8 +29,7 @@ import org.cibseven.bpm.engine.ProcessEngine;
  *
  */
 @ProcessApplication(PaDataformatAndPostDeployApp.PA_NAME)
-// Using fully-qualified class name instead of import statement to allow for automatic Jakarta transformation
-public class PaDataformatAndPostDeployApp extends org.cibseven.bpm.application.impl.ServletProcessApplication {
+public class PaDataformatAndPostDeployApp extends JakartaServletProcessApplication {
 
   public final static String PA_NAME  = "PaDataformatAndPostDeployApp";
 
