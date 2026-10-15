@@ -36,7 +36,7 @@ public class CamundaBpmRunProperties {
 
   @NestedConfigurationProperty
   protected CamundaBpmRunLdapProperties ldap = new CamundaBpmRunLdapProperties();
-  
+
   @NestedConfigurationProperty
   protected CamundaBpmRunScimProperties scim = new CamundaBpmRunScimProperties();
 
@@ -75,7 +75,7 @@ public class CamundaBpmRunProperties {
   public void setLdap(CamundaBpmRunLdapProperties ldap) {
     this.ldap = ldap;
   }
-  
+
   public CamundaBpmRunScimProperties getScim() {
     return scim;
   }

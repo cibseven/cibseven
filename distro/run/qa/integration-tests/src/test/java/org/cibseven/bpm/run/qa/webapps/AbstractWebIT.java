@@ -20,8 +20,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import kong.unirest.ObjectMapper;
 import kong.unirest.Unirest;
 import org.cibseven.bpm.TestProperties;
-import org.junit.jupiter.api.BeforeAll;
+
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.openqa.selenium.chrome.ChromeDriverService;
 
 import java.util.logging.Logger;
