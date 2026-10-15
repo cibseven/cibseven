@@ -16,7 +16,6 @@
 
   <dependencyManagement>
     <dependencies>
-      <!-- override the Spring Boot Groovy version with the Camunda Groovy version -->
       <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
@@ -24,6 +23,7 @@
         <scope>import</scope>
         <type>pom</type>
       </dependency>
+      <!-- override the Spring Boot Groovy version with the Camunda Groovy version -->
       <dependency>
         <groupId>org.apache.groovy</groupId>
         <artifactId>groovy-bom</artifactId>
