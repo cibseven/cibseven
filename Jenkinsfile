@@ -299,7 +299,7 @@ pipeline {
                   'clean install -Pwildfly,postgresql,engine-integration', 
                   runtimeStash: true, 
                   archiveStash: true,
-                  // we need to use JDK 17 for Spring 6
+                  // we need to use JDK 17 for Spring 7
                   jdkVersion: 'jdk-17-latest',
                   withPodSpec: true)
               },
@@ -328,7 +328,7 @@ pipeline {
                   'clean install -Pwildfly,postgresql,postgresql-xa,engine-integration', 
                   runtimeStash: true, 
                   archiveStash: true,
-                  // we need to use JDK 17 for Spring 6
+                  // we need to use JDK 17 for Spring 7
                   jdkVersion: 'jdk-17-latest',
                   withPodSpec: true)
               },
@@ -541,7 +541,7 @@ pipeline {
                   'clean install -Pwildfly-domain,h2,engine-integration',
                   runtimeStash: true,
                   archiveStash: true,
-                  // we need to use JDK 17 for Spring 6
+                  // we need to use JDK 17 for Spring 7
                   jdkVersion: 'jdk-17-latest')
               },
               postFailure: {
@@ -564,7 +564,7 @@ pipeline {
                   'clean install -Pwildfly,wildfly-servlet,h2,engine-integration',
                   runtimeStash: true,
                   archiveStash: true,
-                  // we need to use JDK 17 for Spring 6
+                  // we need to use JDK 17 for Spring 7
                   jdkVersion: 'jdk-17-latest')
               },
               postFailure: {

@@ -55,12 +55,12 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-framework-bom</artifactId>
-        <!-- Must match the Spring version used by cibseven-engine-spring (Spring 6 / Jakarta),
+        <!-- Must match the Spring version used by cibseven-engine-spring (Spring 7 / Jakarta),
              which is what actually gets deployed into the WAR via DeploymentHelper.getEngineSpring().
              Using the old javax-based version.spring.framework (5.x) here causes a version skew:
              spring-web's ContextLoaderListener would reference javax.servlet.ServletContextListener,
              which doesn't exist on Tomcat 11 / Jakarta EE 10 -> NoClassDefFoundError at deployment. -->
-        <version>${version.spring.framework6}</version>
+        <version>${version.spring.framework7}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>

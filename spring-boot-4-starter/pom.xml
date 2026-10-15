@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -10,257 +11,22 @@
 
   <groupId>org.cibseven.bpm.springboot.project</groupId>
   <artifactId>cibseven-bpm-spring-boot-4-starter-root</artifactId>
-  <name>CIB seven - Spring Boot 4 Starter - Root Pom</name>
-  <inceptionYear>2015</inceptionYear>
-
+  <name>CIB seven - Spring Boot 4 Starter - Relocations</name>
   <packaging>pom</packaging>
 
-  <properties>
-    <!-- disable parallel unit tests run -->
-    <surefire.forkCount>1</surefire.forkCount>
-  </properties>
-
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <!-- Override HK2 from 4.0.0-M3 (bundled with Spring Boot) to 4.0.0 stable -->
-        <groupId>org.glassfish.hk2</groupId>
-        <artifactId>hk2-bom</artifactId>
-        <version>4.0.0</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-      
-      <!-- Addressing Jackson 2 CVEs coming from v2.21.5
-        jackson-core:
-        CVE-2026-89407, CVE-2026-89425,
-        CVE-2026-19032, CVE-2026-83557
-        jackson-databind:
-        CVE-2026-68497, CVE-2026-91776, CVE-2026-91777 -->
-      <dependency>
-        <groupId>com.fasterxml.jackson</groupId>
-        <artifactId>jackson-bom</artifactId>
-        <version>${version.jackson}</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-      <!-- Addressing Jackson 3 CVEs coming from v3.1.5
-        jackson-core:
-        CVE-2026-91776, CVE-2026-91777,
-        CVE-2026-89407, CVE-2026-89425.
-        jackson-databind:
-        CVE-2026-83557, CVE-2026-19032, CVE-2026-83557 -->
-      <dependency>
-        <groupId>tools.jackson</groupId>
-        <artifactId>jackson-bom</artifactId>
-        <version>${version.jackson3}</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-
-      <dependency>
-        <!-- Use Spring Framework to 7.x  -->
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-framework-bom</artifactId>
-        <version>${version.spring.framework7}</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-      <dependency>
-        <!-- Import dependency management from Spring Boot 4 -->
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-dependencies</artifactId>
-        <version>${version.spring-boot4}</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-
-      <!-- Temporary Apache HttpComponents CVE overrides.
-           Remove these once the imported Spring Boot BOM manages fixed versions. -->
-      <dependency>
-        <groupId>org.apache.httpcomponents.client5</groupId>
-        <artifactId>httpclient5</artifactId>
-        <version>${version.httpclient5}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.httpcomponents.core5</groupId>
-        <artifactId>httpcore5</artifactId>
-        <version>${version.httpcore5}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.httpcomponents.core5</groupId>
-        <artifactId>httpcore5-h2</artifactId>
-        <version>${version.httpcore5}</version>
-      </dependency>
-
-      <!-- Direct override: spring-context 6.2.x leaks via cibseven BOM chain; pin to 7.0.6 -->
-      <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-context</artifactId>
-        <version>${version.spring.framework7}</version>
-      </dependency>
-
-      <!-- Temporary Apache Tomcat CVE overrides (BOM pins a vulnerable version).
-           Remove these once the imported Spring Boot 4 BOM manages fixed versions. -->
-      <dependency>
-        <groupId>org.apache.tomcat.embed</groupId>
-        <artifactId>tomcat-embed-core</artifactId>
-        <version>${version.tomcat}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.tomcat.embed</groupId>
-        <artifactId>tomcat-embed-el</artifactId>
-        <version>${version.tomcat}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.tomcat.embed</groupId>
-        <artifactId>tomcat-embed-websocket</artifactId>
-        <version>${version.tomcat}</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
-  <profiles>
-    <profile>
-      <id>distro</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <modules>
-        <module>starter</module>
-        <module>starter-rest</module>
-        <module>starter-security</module>
-        <module>starter-test</module>
-        <module>starter-client/spring-boot</module>
-        <module>starter-webapp-core</module>
-        <module>starter-webapp</module>
-        <module>starter-qa</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>integration-test-spring-boot-starter</id>
-      <modules>
-        <module>starter-qa</module>
-        <module>starter</module>
-        <module>starter-rest</module>
-        <module>starter-security</module>
-        <module>starter-client/spring-boot</module>
-        <module>starter-webapp-core</module>
-      </modules>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-failsafe-plugin</artifactId>
-            <version>${version.surefire}</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>integration-test</goal>
-                  <goal>verify</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <skipTests>true</skipTests>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
-
-  <build>
-    <defaultGoal>clean install</defaultGoal>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-jar-plugin</artifactId>
-          <configuration>
-            <archive>
-              <manifest>
-                <addDefaultImplementationEntries />
-              </manifest>
-            </archive>
-          </configuration>
-        </plugin>
-        <!-- set version for spring-boot-maven-plugin because we use the
-          spring-boot-parent only in dependencyManagement section, not as parent. -->
-        <plugin>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-maven-plugin</artifactId>
-          <version>${version.spring-boot4}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-failsafe-plugin</artifactId>
-          <configuration>
-            <redirectTestOutputToFile>true</redirectTestOutputToFile>
-            <trimStackTrace>false</trimStackTrace>
-          </configuration>
-        </plugin>
-        <!-- set jwtSecret for all starter tests -->
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <configuration>
-            <systemPropertyVariables>
-              <cibseven.webclient.authentication.jwtSecret>RtURHZ7SQYfLoX902wcjlvduW2qe9g0bjMUczmffjiTjzU9phbv3mK54zHMqeGK6cqgoEBTIUE6RqwvemSqbpD40qUPXVRElvDHGhn4OAEfjeEP2ANah8GJejSA08E820mForcQHBmediqg2DzIrxnDXyf2</cibseven.webclient.authentication.jwtSecret>
-            </systemPropertyVariables>
-          </configuration>
-        </plugin>
-        <!-- OpenRewrite for Spring Boot 4 migration -->
-        <plugin>
-          <groupId>org.openrewrite.maven</groupId>
-          <artifactId>rewrite-maven-plugin</artifactId>
-          <version>6.34.0</version>
-          <configuration>
-            <activeRecipes>
-              <recipe>org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0</recipe>
-            </activeRecipes>
-          </configuration>
-          <dependencies>
-            <dependency>
-              <groupId>org.openrewrite.recipe</groupId>
-              <artifactId>rewrite-spring</artifactId>
-              <version>6.27.1</version>
-            </dependency>
-          </dependencies>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.0.0-M1</version>
-        <configuration>
-          <rules>
-            <requireJavaVersion>
-              <version>[17,)</version>
-            </requireJavaVersion>
-          </rules>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-
   <description>
-    Description of CIB seven - Spring Boot 4 Starter - Root Pom
+    Maven relocations from the former Spring Boot 4 starter artifacts (suffix -4) to the default starter artifacts.
   </description>
+
+  <modules>
+    <module>starter</module>
+    <module>starter-rest</module>
+    <module>starter-security</module>
+    <module>starter-test</module>
+    <module>starter-client/spring-boot</module>
+    <module>starter-webapp-core</module>
+    <module>starter-webapp</module>
+  </modules>
 
   <licenses>
     <license>
@@ -268,33 +34,5 @@
       <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
     </license>
   </licenses>
-
-  <organization>
-    <name>CIB seven</name>
-    <url>https://cibseven.org</url>
-  </organization>
-
-  <url>https://cibseven.org</url>
-
-  <developers>
-    <developer>
-      <id>CIB seven</id>
-      <name>CIB seven Community</name>
-      <organization>CIB seven</organization>
-      <organizationUrl>https://cibseven.org</organizationUrl>
-    </developer>
-  </developers>
-
-  <scm>
-    <url>https://github.com/cibseven/cibseven</url>
-    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
-    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
-
-  <issueManagement>
-    <system>GitHub Issues</system>
-    <url>https://github.com/cibseven/cibseven/issues</url>
-  </issueManagement>
 
 </project>
