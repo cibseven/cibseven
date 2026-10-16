@@ -281,7 +281,7 @@ public class TaskResourceImpl implements TaskResource {
       InputStream stream = new ByteArrayInputStream(content.getBytes(EncodingUtil.DEFAULT_ENCODING));
       return Response
           .ok(stream)
-          .type(MediaType.APPLICATION_XHTML_XML)
+          .type(MediaType.APPLICATION_XHTML_XML + ";charset=UTF-8")
           .build();
     }
 
