@@ -740,7 +740,10 @@ pipeline {
 // (e.g. main cannot be fetched or no common ancestor in a shallow clone) it returns true,
 // so that a module is built rather than silently skipped.
 def hasChangesInModule(module) {
-    if (env.BRANCH_NAME == 'main' || env.BRANCH_NAME.startsWith('main')) {
+    if (env.BRANCH_NAME.startsWith('main')) {
+        return true
+    }
+    if (isAnyCustomTest || params.QA_TEST_SUITE == 'ALL') {
         return true
     }
     // For pull requests compare against the target branch, otherwise against main.
