@@ -23,14 +23,15 @@
 
     <@lib.property
         name = "historyTimeToLive"
-        type = "string"
-        desc = "The engine-wide default history time to live, in days. `null` if not configured, meaning historic data is kept indefinitely unless a process or decision definition sets its own value." />
+        type = "integer"
+        format = "int32"
+        desc = "The engine-wide default history time to live in days for process definitions and decision definitions if no other value is defined inside BPMN or DMN models. `-1` (default) means to keep history indefinitely, `0` means to delete history immediately." />
 
     <@lib.property
         name = "enforceHistoryTimeToLive"
         type = "boolean"
         last = true
-        desc = "Whether the process engine requires an explicit history time to live to be set (rejecting `null` values). `null` if this process engine does not report it." />
+        desc = "Feature flag that prevents the deployment or redeployment of any model resource (BPMN, DMN, CMMN) that contains a `historyTimeToLive` of `null` by throwing a `ProcessEngineException`. Defaults to `true`." />
 
 </@lib.dto>
 </#macro>

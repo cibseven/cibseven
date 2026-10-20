@@ -66,7 +66,7 @@ public class ConfigurationRestServiceTest extends AbstractRestServiceTest {
       .body("historyLevel", equalTo("full"))
       .body("authorizationEnabled", equalTo(true))
       .body("enablePasswordPolicy", equalTo(false))
-      .body("historyTimeToLive", equalTo("180"))
+      .body("historyTimeToLive", equalTo(180))
       .body("enforceHistoryTimeToLive", equalTo(true))
     .when().get(CONFIGURATION_URL);
   }
@@ -82,7 +82,7 @@ public class ConfigurationRestServiceTest extends AbstractRestServiceTest {
       .body("historyLevel", equalTo("full"))
       .body("authorizationEnabled", equalTo(true))
       .body("enablePasswordPolicy", equalTo(false))
-      .body("historyTimeToLive", equalTo("180"))
+      .body("historyTimeToLive", equalTo(180))
       .body("enforceHistoryTimeToLive", equalTo(true))
     .when().get(NAMED_ENGINE_CONFIGURATION_URL);
   }
@@ -104,16 +104,16 @@ public class ConfigurationRestServiceTest extends AbstractRestServiceTest {
       .body("historyLevel", equalTo("none"))
       .body("authorizationEnabled", equalTo(false))
       .body("enablePasswordPolicy", equalTo(true))
-      .body("historyTimeToLive", equalTo(null))
+      .body("historyTimeToLive", equalTo(-1))
       .body("enforceHistoryTimeToLive", equalTo(false))
     .when().get(CONFIGURATION_URL);
   }
 
   @Test
-  public void testGetConfiguration_notImplClass_leavesTtlFieldsUnknown() {
+  public void testGetConfiguration_notImplClass_usesTtlDefaults() {
     // A ProcessEngineConfiguration that isn't the impl subclass (e.g. a custom
-    // implementation) must not blow up - it should just report the two new fields as
-    // unknown (null), same as an engine-rest client too old to know about them.
+    // implementation) must not blow up - historyTimeToLive falls back to -1 and
+    // enforceHistoryTimeToLive falls back to its default (true).
     ProcessEngineConfiguration bareConfiguration = mock(ProcessEngineConfiguration.class);
     when(bareConfiguration.getProcessEngineName()).thenReturn("default");
     when(bareConfiguration.getHistory()).thenReturn("full");
@@ -126,8 +126,8 @@ public class ConfigurationRestServiceTest extends AbstractRestServiceTest {
     .then().expect()
       .statusCode(Status.OK.getStatusCode())
       .body("engineName", equalTo("default"))
-      .body("historyTimeToLive", equalTo(null))
-      .body("enforceHistoryTimeToLive", equalTo(null))
+      .body("historyTimeToLive", equalTo(-1))
+      .body("enforceHistoryTimeToLive", equalTo(true))
     .when().get(CONFIGURATION_URL);
   }
 
