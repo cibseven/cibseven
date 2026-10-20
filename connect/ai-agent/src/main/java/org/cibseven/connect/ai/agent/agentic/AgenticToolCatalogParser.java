@@ -134,17 +134,18 @@ public final class AgenticToolCatalogParser {
   }
 
   /**
-   * One parse of a process, as the checks this ticket added see it (CIB7-2136): which process,
+   * One parse of a process, as the agent's checks see it (CIB7-2136, CIB7-2367): which process,
    * and whether it is deployed now or only parsed again, from a deployment made earlier, after a
    * restart, a cache eviction or on another node.
    *
-   * <p>Those checks refuse a model when it is deployed. A model parsed again that they would
+   * <p>The checks refuse a model when it is deployed. A model parsed again that they would
    * refuse was deployed when nothing checked it: while the AI agent was off, or before the check
    * existed. Refused now, it would stop every instance of it, and every command that needs the
-   * definition, even the ones that would end them. So then a check only logs what it would refuse
-   * and the model loads as it is; a declaration it would refuse is left out of the catalogue. The
-   * engine treats its own checks that depend on the configuration the same way, as the history
-   * time to live.
+   * definition, even the ones that would end them. So then a check only logs what it would refuse,
+   * and the model loads without the part it refuses: a scope no agent can run stays the plain ad
+   * hoc scope it was deployed as, and a broken tool, parameter or setting is left out. The engine
+   * treats its own checks that depend on the configuration the same way, as the history time to
+   * live.
    */
   public static final class Parsing {
 
@@ -161,17 +162,36 @@ public final class AgenticToolCatalogParser {
 
     /** Runs the check: it refuses a deployment, and only logs on a parse again. */
     public void check(Runnable check) {
-      if (newDeployment) {
-        check.run();
-        return;
-      }
+      check(check, "it loads as it is");
+    }
+
+    /**
+     * Runs the check: it refuses a deployment; on a parse again it logs what it would refuse.
+     *
+     * @param instead what the model loads with instead, named in the log
+     * @return whether the check passed, so the caller leaves out what it refused
+     */
+    public boolean check(Runnable check, String instead) {
       try {
         check.run();
-      } catch (BpmnParseException e) {
-        LOG.warn("Process '{}' is parsed again, not deployed, and a deployment of it would now be"
-            + " refused: {} It was deployed when nothing checked this, so it loads as it is."
-            + " Deploy a corrected version.", processKey, e.getMessage());
+        return true;
+      } catch (BpmnParseException refusal) {
+        refuse(refusal, instead);
+        return false;
       }
+    }
+
+    /**
+     * Refuses a deployment with {@code refusal}; on a parse again only logs it, with what the
+     * model loads with instead, and returns.
+     */
+    public void refuse(BpmnParseException refusal, String instead) {
+      if (newDeployment) {
+        throw refusal;
+      }
+      LOG.warn("Process '{}' is parsed again, not deployed, and a deployment of it would now be"
+          + " refused: {} It was deployed when nothing checked this, so {}."
+          + " Deploy a corrected version.", processKey, refusal.getMessage(), instead);
     }
   }
 
@@ -198,24 +218,38 @@ public final class AgenticToolCatalogParser {
       if (id == null || !startableIds.contains(id)) {
         continue;
       }
+      // On a parse again a tool these would refuse is left out, so the agent never starts it
+      // (CIB7-2367): one whose guard cannot be read would run unguarded, one whose parameter
+      // property cannot be read would run without the value the model was never asked for.
+      String leftOut = "the tool '" + id + "' is left out of the agent's catalogue";
       if (COMPLETE_SCOPE_TOOL.equals(id)) {
-        throw new BpmnParseException("Ad hoc sub process '" + scopeElement.attribute("id")
-            + "': the child '" + id + "' collides with the built-in tool of the same name."
-            + " Rename the activity.", child);
+        parsing.refuse(new BpmnParseException("Ad hoc sub process '"
+            + scopeElement.attribute("id") + "': the child '" + id + "' collides with the"
+            + " built-in tool of the same name. Rename the activity.", child), leftOut);
+        continue;
       }
       if (!TOOL_NAME.matcher(id).matches()) {
-        throw new BpmnParseException("Ad hoc sub process '" + scopeElement.attribute("id")
-            + "': the id '" + id + "' cannot be a tool name. Tool names may carry letters,"
-            + " digits, '_' and '-', at most 64 of them. Rename the activity.", child);
+        parsing.refuse(new BpmnParseException("Ad hoc sub process '"
+            + scopeElement.attribute("id") + "': the id '" + id + "' cannot be a tool name. Tool"
+            + " names may carry letters, digits, '_' and '-', at most 64 of them. Rename the"
+            + " activity.", child), leftOut);
+        continue;
       }
       Map<String, String> properties = childProperties(child);
-      List<AdHocToolDescriptor.Parameter> parameters =
-          parameters(scopeElement, child, parsing);
+      boolean blockedWhileOthersRun;
+      List<AdHocToolDescriptor.Parameter> parameters;
+      try {
+        blockedWhileOthersRun = blockedWhileOthersRun(scopeElement, child, properties);
+        parameters = parameters(scopeElement, child, parsing);
+      } catch (BpmnParseException refusal) {
+        parsing.refuse(refusal, leftOut);
+        continue;
+      }
       declared.put(id, parameters);
       catalog.add(new AdHocToolDescriptor(id, child.attribute("name"),
           firstDocumentation(child), readVariables(child),
           resultVariables(parsing, scopeElement, child, properties),
-          blockedWhileOthersRun(scopeElement, child, properties), parameters));
+          blockedWhileOthersRun, parameters));
     }
     parsing.check(() -> refuseUnreadCalls(scopeElement, startableIds));
     parsing.check(() -> refuseUndeclaredReadsInFollowers(scopeElement, startableIds, declared));
@@ -280,6 +314,11 @@ public final class AgenticToolCatalogParser {
         continue;
       }
       Set<String> tools = reachedFrom.get(id);
+      // Reached from a tool left out on a parse again (CIB7-2367): its declarations are gone with
+      // it, and every read here would be named undeclared only for that.
+      if (tools != null && !declared.keySet().containsAll(tools)) {
+        continue;
+      }
       Map<String, AdHocToolDescriptor.Parameter> byName =
           new HashMap<String, AdHocToolDescriptor.Parameter>();
       String declaredBy = null;

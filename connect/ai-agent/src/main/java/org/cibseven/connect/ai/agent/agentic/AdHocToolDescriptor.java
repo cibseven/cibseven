@@ -35,7 +35,9 @@ import org.cibseven.bpm.engine.variable.value.ObjectValue;
  *
  * <p>Built at <em>parse time</em> from the model and stored on the scope's activity
  * under {@link #CATALOG}, so the catalogue exists before any instance runs and a
- * broken declaration refuses the deployment rather than a turn. Read at run time to
+ * broken declaration refuses the deployment rather than a turn; on a parse again of a
+ * deployment made while the agent was off, the broken tool is left out instead
+ * (CIB7-2367). Read at run time to
  * build one tool specification per entry — the activity <em>is</em> the tool, so a
  * wrong activity name is not expressible for the model at all.
  *
