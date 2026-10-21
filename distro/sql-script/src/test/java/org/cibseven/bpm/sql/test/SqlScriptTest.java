@@ -273,7 +273,7 @@ public class SqlScriptTest {
         "7.19-to-7.20", "7.20-to-7.21", "7.21-to-7.22", "7.22-to-7.23", "7.23-to-7.24" }) {
       expected.put(id, "MARK_RAN");
     }
-    for (String id : new String[] { "7.24-to-2.1", "2.1-to-2.2", "2.2-to-2.3" }) {
+    for (String id : new String[] { "7.24-to-2.1", "2.1-to-2.2", "2.2-to-3.0" }) {
       expected.put(id, "EXECUTED");
     }
     return expected;
