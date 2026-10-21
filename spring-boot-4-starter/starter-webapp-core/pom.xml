@@ -26,6 +26,14 @@
       <classifier>classes</classifier>
     </dependency>
 
+    <!-- The webclient selects it by class name (cibseven.webclient.bpm.provider), so it must be on
+         the same classpath as the webclient -->
+    <dependency>
+      <groupId>org.cibseven.webapp</groupId>
+      <artifactId>cibseven-direct-provider</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.cibseven.bpm.webapp</groupId>
       <artifactId>cibseven-webapp</artifactId>
