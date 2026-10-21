@@ -22,7 +22,7 @@ import jakarta.servlet.ServletContextListener;
 import java.lang.ref.WeakReference;
 import org.cibseven.bpm.application.AbstractProcessApplication;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
-import org.cibseven.bpm.engine.impl.util.JakartaClassLoaderUtil;
+import org.cibseven.bpm.engine.impl.util.ClassLoaderUtil;
 
 /**
  * <p>
@@ -43,7 +43,7 @@ import org.cibseven.bpm.engine.impl.util.JakartaClassLoaderUtil;
  *
  * <pre>
  * {@literal @}ProcessApplication("Loan Approval App")
- * public class LoanApprovalApplication extends ServletProcessApplication {
+ * public class LoanApprovalApplication extends JakartaServletProcessApplication {
  * // empty implementation
  * }
  * </pre>
@@ -108,9 +108,9 @@ public class JakartaServletProcessApplication extends AbstractServletProcessAppl
 
   protected ClassLoader initProcessApplicationClassloader(ServletContextEvent sce) {
     if (getClass().equals(JakartaServletProcessApplication.class)) {
-      return JakartaClassLoaderUtil.getServletContextClassloader(sce);
+      return ClassLoaderUtil.getServletContextClassloader(sce);
     } else {
-      return JakartaClassLoaderUtil.getClassloader(getClass());
+      return ClassLoaderUtil.getClassloader(getClass());
     }
   }
 

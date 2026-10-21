@@ -17,7 +17,6 @@
     <cargo.deploy.timeout>120000</cargo.deploy.timeout>
 
     <!-- Needs to be adjusted with every WildFly update -->
-    <cargo.wildfly28.container.id>wildfly28x</cargo.wildfly28.container.id>
     <cargo.wildfly.container.id>wildfly35x</cargo.wildfly.container.id>
 
     <redirect.test.output>true</redirect.test.output>

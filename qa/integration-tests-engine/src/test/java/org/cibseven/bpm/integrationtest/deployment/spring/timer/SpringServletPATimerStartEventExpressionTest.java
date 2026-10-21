@@ -23,12 +23,9 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-//TODO restore: this test is failing after migrating to JUnit5
-@Disabled("Fails since the JUnit5 migration")
 @ExtendWith(ArquillianExtension.class)
 public class SpringServletPATimerStartEventExpressionTest extends AbstractFoxPlatformIntegrationTest {
 
@@ -40,9 +37,10 @@ public class SpringServletPATimerStartEventExpressionTest extends AbstractFoxPla
       .addClass(MyBean.class)
       .addAsResource("META-INF/scan_for_definitions_processes.xml", "META-INF/processes.xml")
       .addAsResource("org/cibseven/bpm/integrationtest/deployment/spring/timer/timer-start-event-process.bpmn", "timer-start-event-process.bpmn")
-      .addAsWebInfResource("org/cibseven/bpm/integrationtest/deployment/spring/timer/start-event-expression-web.xml", "web.xml")
       .addAsLibraries(DeploymentHelper.getEngineSpring());
-    TestContainer.addContainerSpecificResources(testJar);
+    TestContainer.addContainerSpecificResourcesForNonPa(testJar);
+    // must come after the container resources, which bring a web.xml of their own
+    testJar.addAsWebInfResource("org/cibseven/bpm/integrationtest/deployment/spring/timer/start-event-expression-web.xml", "web.xml");
     return testJar;
   }
 

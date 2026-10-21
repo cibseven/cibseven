@@ -396,12 +396,14 @@
     <profile>
       <id>resteasy</id>
       <properties>
-        <version.netty>4.1.42.Final</version.netty>
+        <!-- Resteasy 6.x is the first Jakarta EE (jakarta.*) generation and is
+             what the Tomcat distro ships; Resteasy 3.x is still javax-based. -->
+        <version.resteasy>6.2.17.Final</version.resteasy>
       </properties>
       <dependencies>
-<!--        <dependency>
+        <dependency>
           <groupId>org.jboss.resteasy</groupId>
-          <artifactId>resteasy-jaxrs</artifactId>
+          <artifactId>resteasy-core</artifactId>
           <version>${version.resteasy}</version>
           <scope>test</scope>
           <exclusions>
@@ -410,13 +412,6 @@
               <groupId>org.apache.httpcomponents</groupId>
             </exclusion>
           </exclusions>
-        </dependency>-->
-
-        <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-all</artifactId>
-          <version>${version.netty}</version>
-          <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -610,16 +605,15 @@
       <id>wildfly-compatibility</id>
       <properties>
         <!-- Test with Resteasy version used by the oldest
-             Camunda-supported Wildfly/JBoss EAP version.
-             Currently, this is JBoss EAP 7.2. -->
-        <version.resteasy>3.6.1.SP2</version.resteasy>
-        <version.netty>4.1.42.Final</version.netty>
+             CIB seven-supported Wildfly version.
+             Currently, this is Wildfly 28 (28.0.1.Final). -->
+        <version.resteasy>6.2.4.Final</version.resteasy>
       </properties>
 
       <dependencies>
-<!--        <dependency>
+        <dependency>
           <groupId>org.jboss.resteasy</groupId>
-          <artifactId>resteasy-jaxrs</artifactId>
+          <artifactId>resteasy-core</artifactId>
           <version>${version.resteasy}</version>
           <scope>test</scope>
           <exclusions>
@@ -628,13 +622,6 @@
               <groupId>org.apache.httpcomponents</groupId>
             </exclusion>
           </exclusions>
-        </dependency>-->
-
-        <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-all</artifactId>
-          <version>${version.netty}</version>
-          <scope>test</scope>
         </dependency>
 
         <dependency>

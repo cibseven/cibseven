@@ -34,7 +34,6 @@ import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -46,8 +45,6 @@ import static org.cibseven.bpm.application.ProcessApplicationContext.withProcess
  * @author Thorben Lindhauer
  *
  */
-//TODO restore: this test is failing after migrating to JUnit5
-@Disabled("Fails since the JUnit5 migration")
 @ExtendWith(ArquillianExtension.class)
 public class PaContextSwitchTest extends AbstractFoxPlatformIntegrationTest {
 
@@ -63,8 +60,9 @@ public class PaContextSwitchTest extends AbstractFoxPlatformIntegrationTest {
         .addClass(JsonDataFormatConfigurator.class)
         .addAsServiceProvider(DataFormatConfigurator.class, JsonDataFormatConfigurator.class);
 
+    TestContainer.addContainerSpecificResourcesForNonPa(webArchive);
+    // must come after the container resources: on WildFly its jboss-deployment-structure.xml has to replace theirs
     TestContainer.addSpinJacksonJsonDataFormat(webArchive);
-    TestContainer.addContainerSpecificResources(webArchive);
 
     return webArchive;
   }
@@ -77,7 +75,7 @@ public class PaContextSwitchTest extends AbstractFoxPlatformIntegrationTest {
         .addAsResource("META-INF/processes.xml")
         .addClass(AbstractFoxPlatformIntegrationTest.class)
         .addClass(ProcessApplication2.class);
-    TestContainer.addContainerSpecificResources(webArchive);
+    TestContainer.addContainerSpecificResourcesForNonPa(webArchive);
     return webArchive;
   }
 

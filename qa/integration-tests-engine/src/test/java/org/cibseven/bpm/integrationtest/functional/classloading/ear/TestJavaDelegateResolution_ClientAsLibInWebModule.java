@@ -21,14 +21,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import org.cibseven.bpm.integrationtest.functional.classloading.beans.ExampleDelegate;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
+import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -43,8 +44,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
  *
  * @author Daniel Meyer
  */
-//TODO restore: this test is failing after migrating to JUnit5
-@Disabled("Fails since the JUnit5 migration")
 @ExtendWith(ArquillianExtension.class)
 public class TestJavaDelegateResolution_ClientAsLibInWebModule extends AbstractFoxPlatformIntegrationTest {
 
@@ -55,8 +54,14 @@ public class TestJavaDelegateResolution_ClientAsLibInWebModule extends AbstractF
       .addAsResource("org/cibseven/bpm/integrationtest/functional/classloading/JavaDelegateResolutionTest.testResolveClass.bpmn20.xml")
       .addAsResource("org/cibseven/bpm/integrationtest/functional/classloading/JavaDelegateResolutionTest.testResolveClassFromJobExecutor.bpmn20.xml");
 
+    // WildFly rejects the CDI extension of an engine-cdi jar inside a WAR of an EAR
+    // (WFLYWELD0021), so it goes into the EAR's lib folder like in the other EAR tests
+    JavaArchive engineCdi = DeploymentHelper.getEngineCdi();
+    processArchiveWar.delete("WEB-INF/lib/" + engineCdi.getName());
+
     return ShrinkWrap.create(EnterpriseArchive.class, "test-app.ear")
-      .addAsModule(processArchiveWar);
+      .addAsModule(processArchiveWar)
+      .addAsLibrary(engineCdi);
   }
 
   @Deployment(name="clientDeployment")

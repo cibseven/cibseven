@@ -23,7 +23,7 @@ import javax.naming.NamingException;
 import org.cibseven.bpm.application.ProcessApplicationInterface;
 import org.cibseven.bpm.application.ProcessApplicationReference;
 import org.cibseven.bpm.application.ProcessApplicationUnavailableException;
-import org.cibseven.bpm.application.impl.ServletProcessApplication;
+import org.cibseven.bpm.application.impl.JakartaServletProcessApplication;
 import org.cibseven.bpm.engine.impl.context.Context;
 
 import jakarta.enterprise.inject.spi.CDI;
@@ -68,7 +68,7 @@ public class BeanManagerLookup {
   /**
    * Uses the engine's own "current process application" context (set by
    * Context.executeWithinProcessApplication around EL evaluation, event listeners, etc.)
-   * to find the exact ServletProcessApplication/WAR that is currently executing, and reads
+   * to find the exact JakartaServletProcessApplication/WAR that is currently executing, and reads
    * the BeanManager that Weld published on that WAR's own ServletContext. This works across
    * the classloader boundary between shared engine-cdi code and a WAR-local CDI container,
    * unlike CDI.current() (which can silently pick an arbitrary, possibly wrong, deployed WAR)
@@ -82,8 +82,8 @@ public class BeanManagerLookup {
     }
     try {
       ProcessApplicationInterface processApplication = reference.getProcessApplication().getRawObject();
-      if (processApplication instanceof ServletProcessApplication) {
-        ServletContext servletContext = ((ServletProcessApplication) processApplication).getServletContext();
+      if (processApplication instanceof JakartaServletProcessApplication) {
+        ServletContext servletContext = ((JakartaServletProcessApplication) processApplication).getServletContext();
         if (servletContext != null) {
           Object beanManager = servletContext.getAttribute(WELD_SERVLET_CONTEXT_BEAN_MANAGER_ATTRIBUTE);
           if (beanManager instanceof BeanManager) {

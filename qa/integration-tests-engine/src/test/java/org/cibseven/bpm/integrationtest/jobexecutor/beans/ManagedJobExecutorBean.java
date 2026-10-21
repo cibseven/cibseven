@@ -37,9 +37,8 @@ public class ManagedJobExecutorBean {
 
   @PostConstruct
   public void startEngine() {
-    // Using fully-qualified class name instead of import statement to allow for automatic Jakarta transformation
-    org.cibseven.bpm.engine.impl.cfg.JtaProcessEngineConfiguration processEngineConfiguration =
-        new org.cibseven.bpm.engine.impl.cfg.JtaProcessEngineConfiguration();
+    org.cibseven.bpm.engine.impl.cfg.JakartaTransactionProcessEngineConfiguration processEngineConfiguration =
+        new org.cibseven.bpm.engine.impl.cfg.JakartaTransactionProcessEngineConfiguration();
     processEngineConfiguration.setDatabaseSchemaUpdate("true")
       .setHistory("auto")
       .setDbMetricsReporterActivate(false)

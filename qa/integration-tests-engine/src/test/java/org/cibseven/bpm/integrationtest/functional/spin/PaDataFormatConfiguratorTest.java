@@ -36,7 +36,6 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -49,8 +48,6 @@ import java.util.Date;
  * @author Thorben Lindhauer
  *
  */
-//TODO restore: this test is failing after migrating to JUnit5
-@Disabled("Fails since the JUnit5 migration")
 @ExtendWith(ArquillianExtension.class)
 public class PaDataFormatConfiguratorTest extends AbstractFoxPlatformIntegrationTest {
 
@@ -68,8 +65,9 @@ public class PaDataFormatConfiguratorTest extends AbstractFoxPlatformIntegration
         .addClass(JsonDataFormatConfigurator.class)
         .addAsServiceProvider(DataFormatConfigurator.class, JsonDataFormatConfigurator.class);
 
+    TestContainer.addContainerSpecificResourcesForNonPa(webArchive);
+    // must come after the container resources: on WildFly its jboss-deployment-structure.xml has to replace theirs
     TestContainer.addSpinJacksonJsonDataFormat(webArchive);
-    TestContainer.addContainerSpecificResources(webArchive);
     return webArchive;
 
   }

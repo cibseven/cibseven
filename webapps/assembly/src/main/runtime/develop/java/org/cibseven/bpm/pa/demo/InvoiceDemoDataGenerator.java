@@ -206,6 +206,10 @@ public class InvoiceDemoDataGenerator {
       variableDefinitions.add(new FilterVariableDefinition("Broken", "failingVar"));
       variableDefinitions.add(new FilterVariableDefinition("Value 1", "value1"));
       filterProperties.put("variables", variableDefinitions);
+      // Every expression below must be on the engine's filter expression whitelist, or saveFilter
+      // throws and the demo data fails to seed. Mind the chain order: the whitelist matches a chain
+      // as a whole and normalize() does not reorder it. Keep ExpressionWhitelistValidator and its
+      // test in sync by hand - this class only compiles under the develop profile (CIB7-2247).
       TaskService taskService = engine.getTaskService();
       TaskQuery query = taskService.createTaskQuery().taskAssigneeExpression("${currentUser()}");
       filter = filterService.newTaskFilter().setName("My Tasks").setProperties(filterProperties).setQuery(query);

@@ -30,8 +30,8 @@
     <module name="org.cibseven.bpm.cibseven-engine" />
 
     <!-- JSON (provided scope in the connector) -->
-    <module name="com.fasterxml.jackson.core.jackson-databind" slot="@version.jackson@" />
-    <module name="com.fasterxml.jackson.core.jackson-core" slot="@version.jackson@" />
-    <module name="com.fasterxml.jackson.core.jackson-annotations" slot="@version.jackson@" />
+    <module name="com.fasterxml.jackson.core.jackson-databind" slot="cibseven" />
+    <module name="com.fasterxml.jackson.core.jackson-core" slot="cibseven" />
+    <module name="com.fasterxml.jackson.core.jackson-annotations" slot="cibseven" />
   </dependencies>
 </module>

@@ -33,7 +33,6 @@ import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -41,8 +40,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Checks if the process application is invoked with an invocation context.
  */
-//TODO restore: this test is failing after migrating to JUnit5
-@Disabled("Fails since the JUnit5 migration")
 @ExtendWith(ArquillianExtension.class)
 public class InvocationContextTest extends AbstractFoxPlatformIntegrationTest {
 
@@ -57,7 +54,7 @@ public class InvocationContextTest extends AbstractFoxPlatformIntegrationTest {
         .addAsResource("org/cibseven/bpm/integrationtest/functional/context/InvocationContextTest-timer.bpmn")
         .addAsResource("org/cibseven/bpm/integrationtest/functional/context/InvocationContextTest-message.bpmn")
         .addAsResource("org/cibseven/bpm/integrationtest/functional/context/InvocationContextTest-signalTask.bpmn");
-    TestContainer.addContainerSpecificResources(testJar);
+    TestContainer.addContainerSpecificResourcesForNonPa(testJar);
     return testJar;
   }
 

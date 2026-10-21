@@ -19,7 +19,9 @@
                            "engineName": "default",
                            "historyLevel": "full",
                            "authorizationEnabled": false,
-                           "enablePasswordPolicy": false
+                           "enablePasswordPolicy": false,
+                           "historyTimeToLive": "180",
+                           "enforceHistoryTimeToLive": false
                          }
                      }'] />
   }

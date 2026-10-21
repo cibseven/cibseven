@@ -6,7 +6,7 @@
   <dependencies>
 
     <module name="java.base" />
-    <module name="org.joda.time" slot="2.1" />
+    <module name="org.joda.time" slot="cibseven" />
 
     <module name="org.cibseven.commons.cibseven-commons-typed-values" />
     <module name="org.cibseven.commons.cibseven-commons-logging" />
