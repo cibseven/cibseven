@@ -36,6 +36,12 @@
           <groupId>org.cibseven.connect</groupId>
           <artifactId>cibseven-connect-core</artifactId>
         </exclusion>
+        <!-- pulled in by okio-jvm 3.6.0; holds only compile-time metadata (no classes),
+         since Kotlin 1.9.20 its content lives in kotlin-stdlib -->
+        <exclusion>
+          <groupId>org.jetbrains.kotlin</groupId>
+          <artifactId>kotlin-stdlib-common</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
 
