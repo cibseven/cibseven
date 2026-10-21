@@ -33,9 +33,9 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
-import org.springframework.boot.autoconfigure.security.oauth2.client.ClientsConfiguredCondition;
-import org.springframework.boot.autoconfigure.web.servlet.JerseyApplicationPath;
+import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties;
+import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.ClientsConfiguredCondition;
+import org.springframework.boot.jersey.autoconfigure.JerseyApplicationPath;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -76,7 +76,7 @@ public class CamundaSpringSecurityOAuth2WebappAutoConfiguration {
   protected SsoLogoutSuccessHandler ssoLogoutSuccessHandler(ClientRegistrationRepository clientRegistrationRepository) {
     logger.debug("Registering SsoLogoutSuccessHandler");
     return new SsoLogoutSuccessHandler(clientRegistrationRepository, oAuth2Properties);
-  } 
+  }
 
   @Bean
   public FilterRegistrationBean<?> webappAuthenticationFilter() {
@@ -86,7 +86,7 @@ public class CamundaSpringSecurityOAuth2WebappAutoConfiguration {
     filterRegistration.setInitParameters(Map.of(
         ProcessEngineAuthenticationFilter.AUTHENTICATION_PROVIDER_PARAM, OAuth2AuthenticationProvider.class.getName()));
     // make sure the filter is registered after the Spring Security Filter Chain
-    filterRegistration.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER + 1);
+    filterRegistration.setOrder(SecurityFilterProperties.DEFAULT_FILTER_ORDER + 1);
     filterRegistration.addUrlPatterns(legacyWebappPath + "/app/*", legacyWebappPath + "/api/*");
     filterRegistration.setDispatcherTypes(DispatcherType.REQUEST);
     return filterRegistration;
@@ -108,7 +108,7 @@ public class CamundaSpringSecurityOAuth2WebappAutoConfiguration {
       // @formatter:off
       http.securityMatcher(request -> {
             String fullPath = request.getServletPath() + (request.getPathInfo() != null ? request.getPathInfo() : "");
-            return fullPath.startsWith(legacyWebappPath) || 
+            return fullPath.startsWith(legacyWebappPath) ||
                    fullPath.startsWith(OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI) ||
                    fullPath.startsWith("/login") ||
                    fullPath.startsWith("/logout");

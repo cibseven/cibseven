@@ -19,16 +19,11 @@ package org.cibseven.bpm.run.qa.webapps;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import org.cibseven.bpm.run.qa.util.SpringBootManagedContainer;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -37,20 +32,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * NOTE:
  * copied from
  * <a href="https://github.com/cibseven/cibseven/blob/main/qa/integration-tests-webapps/integration-tests/src/main/java/org/cibseven/bpm/PluginsRootResourceIT.java">platform</a>
- * then added <code>@BeforeParam</code> and <code>@AfterParam</code> methods for container setup
+ * then added container setup and different setups via {@link ParameterizedTest}
  * and changed  <code>appBasePath</code> to <code>APP_BASE_PATH</code>, might be removed with https://jira.camunda.com/browse/CAM-11379
  */
 public class PluginsRootResourceIT extends AbstractWebIT {
 
-  @BeforeEach
-  public void createClient() throws Exception {
-    createClient(getWebappCtxPath());
-  }
-
   private static SpringBootManagedContainer container;
 
-  @BeforeAll
-  public static void runStartScript(String assetName, boolean assetAllowed) {
+  public static void runStartScript() {
     container = new SpringBootManagedContainer("--webapps");
     try {
       container.start();
@@ -59,7 +48,6 @@ public class PluginsRootResourceIT extends AbstractWebIT {
     }
   }
 
-  @AfterAll
   public static void stopApp() {
     try {
       if (container != null) {
@@ -72,27 +60,34 @@ public class PluginsRootResourceIT extends AbstractWebIT {
     }
   }
 
-  public static Collection<Object[]> getAssets() {
-    return Arrays.asList(new Object[][]{
-        {"app/plugin.js", true},
-        {"app/plugin.css", true},
-        {"app/asset.js", false},
-        {"../..", false},
-        {"../../annotations-api.jar", false},
-    });
+  static Stream<Arguments> getAssets() {
+    return Stream.of(
+        Arguments.of("app/plugin.js", true),
+        Arguments.of("app/plugin.css", true),
+        Arguments.of("app/asset.js", false),
+        Arguments.of("../..", false),
+        Arguments.of("../../annotations-api.jar", false)
+    );
   }
 
-  @ParameterizedTest
+  @ParameterizedTest(name = "Test instance: {index}. Asset: {0}, Allowed: {1}")
   @MethodSource("getAssets")
-  public void shouldGetAssetIfAllowed(String assetName, boolean assetAllowed) {
-    // when
-    HttpResponse<String> response = Unirest.get(APP_BASE_PATH + "api/admin/plugin/adminPlugins/static/" + assetName).asString();
+  public void shouldGetAssetIfAllowed(String assetName, boolean assetAllowed) throws Exception {
+    try {
+      runStartScript();
+      createClient(getWebappCtxPath());
 
-    // then
-    assertResponse(assetName, response, assetAllowed);
+      // when
+      HttpResponse<String> response = Unirest.get(APP_BASE_PATH + "api/admin/plugin/adminPlugins/static/" + assetName).asString();
+
+      // then
+      assertResponse(assetName, assetAllowed, response);
+    } finally {
+      stopApp();
+    }
   }
 
-  protected void assertResponse(String asset, HttpResponse<String> response, boolean assetAllowed) {
+  protected void assertResponse(String asset, boolean assetAllowed, HttpResponse<String> response) {
     if (assetAllowed) {
       assertEquals(200, response.getStatus());
     } else {
