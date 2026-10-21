@@ -119,6 +119,10 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
     if (processEngineConfiguration.isModelerEnabled()) {
       dbSchemaCreateModeler();
     }
+
+    if (processEngineConfiguration.isNotificationsEnabled()) {
+      dbSchemaCreateNotification();
+    }
   }
 
   protected abstract void dbSchemaCreateIdentity();
@@ -137,9 +141,15 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
 
   protected abstract void dbSchemaCreateModeler();
 
+  protected abstract void dbSchemaCreateNotification();
+
 
   public void dbSchemaDrop() {
     ProcessEngineConfigurationImpl processEngineConfiguration = Context.getProcessEngineConfiguration();
+
+    if (processEngineConfiguration.isNotificationsEnabled()) {
+      dbSchemaDropNotification();
+    }
 
     if (processEngineConfiguration.isModelerEnabled()) {
       dbSchemaDropModeler();
@@ -188,6 +198,8 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
 
   protected abstract void dbSchemaDropModeler();
 
+  protected abstract void dbSchemaDropNotification();
+
   public void dbSchemaPrune() {
     ProcessEngineConfigurationImpl processEngineConfiguration = Context.getProcessEngineConfiguration();
     if (isHistoryTablePresent() && !processEngineConfiguration.isDbHistoryUsed()) {
@@ -211,6 +223,9 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
     if (isModelerTablePresent() && !processEngineConfiguration.isModelerEnabled()) {
       dbSchemaDropModeler();
     }
+    if (isNotificationTablePresent() && !processEngineConfiguration.isNotificationsEnabled()) {
+      dbSchemaDropNotification();
+    }
   }
 
   public abstract boolean isEngineTablePresent();
@@ -228,6 +243,8 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
   public abstract boolean isDmnHistoryTablePresent();
 
   public abstract boolean isModelerTablePresent();
+
+  public abstract boolean isNotificationTablePresent();
 
   public void dbSchemaUpdate() {
     ProcessEngineConfigurationImpl processEngineConfiguration = Context.getProcessEngineConfiguration();
@@ -262,6 +279,10 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
 
     if (!isModelerTablePresent() && processEngineConfiguration.isModelerEnabled()) {
       dbSchemaCreateModeler();
+    }
+
+    if (!isNotificationTablePresent() && processEngineConfiguration.isNotificationsEnabled()) {
+      dbSchemaCreateNotification();
     }
 
   }
