@@ -13,17 +13,6 @@
   <name>CIB seven - Run 4 - Module AI Agent</name>
   <packaging>pom</packaging>
 
-  <dependencyManagement>
-    <dependencies>
-      <!-- already part of the cibseven-bpm-run4-core uberjar (same version.slf4j) -->
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-        <scope>provided</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
   <dependencies>
 
     <dependency>
@@ -43,6 +32,16 @@
           <artifactId>kotlin-stdlib-common</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <!-- Supplied at runtime by the cibseven-bpm-run4-core uberjar, hence not copied here.
+         Declared as a direct dependency (instead of a dependencyManagement entry) so that its version comes
+         from the Spring Boot BOM imported by the run4 root pom: a versionless dependencyManagement entry
+         replaces the BOM's managed version for that artifact. -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <scope>provided</scope>
     </dependency>
 
   </dependencies>
