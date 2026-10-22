@@ -671,6 +671,12 @@ public final class AgenticToolCatalogParser {
    * takes the type another one gives, two given types must agree, and so must two given
    * descriptions: a call without one takes the one another gives.
    *
+   * <p>A parameter is required (CIB7-2135): it is listed in the schema's {@code required} array,
+   * and a call that leaves it out is refused before the activity starts. A trailing
+   * {@link #OPTIONAL_MARKER} on the type marks it as one the model may leave out. A call without a
+   * type takes the marker with the type another call gives; two calls that give a type must agree
+   * on the marker too.
+   *
    * @param typed the names whose type a call of this tool gave, so far
    */
   protected static void addMappingDeclarations(Element scopeElement, Element child, String text,
@@ -688,9 +694,11 @@ public final class AgenticToolCatalogParser {
       String description = AgenticToolParameterFunction.unescape(
           firstPresent(declaration.group(2), declaration.group(3))).trim();
       boolean typeGiven = declaration.group(4) != null || declaration.group(5) != null;
-      String type = AgenticToolParameterFunction.unescape(
-          firstPresent(declaration.group(4), declaration.group(5))).trim()
-          .toLowerCase(Locale.ROOT);
+      String declaredType = AgenticToolParameterFunction.unescape(
+          firstPresent(declaration.group(4), declaration.group(5))).trim();
+      String markedType = declaredType.toLowerCase(Locale.ROOT);
+      boolean required = !isMarked(markedType);
+      String type = unmarked(markedType);
       if (AdHocToolDescriptor.TOOL_CALL_VARIABLE.equals(name)) {
         throw reservedName(where, child);
       }
@@ -698,23 +706,30 @@ public final class AgenticToolCatalogParser {
         throw new BpmnParseException(where + ": the parameter name '" + name + "' is longer than"
             + " 64 characters.", child);
       }
-      if (!typeGiven && AdHocToolDescriptor.PARAMETER_TYPES.contains(
-          description.toLowerCase(Locale.ROOT))) {
+      // Every marker is stripped first: 'integer?', or 'integer??', as the only literal is a type
+      // in the wrong place as much as 'integer' is, and would otherwise pass as a description.
+      String descriptionWord = description.toLowerCase(Locale.ROOT);
+      String descriptionType = descriptionWord;
+      while (isMarked(descriptionType)) {
+        descriptionType = unmarked(descriptionType);
+      }
+      if (!typeGiven && AdHocToolDescriptor.PARAMETER_TYPES.contains(descriptionType)) {
         throw new BpmnParseException(where + ", parameter '" + name + "': the second argument of "
             + AgenticToolParameterFunction.NAME + " is the description, and '" + description
             + "' reads like a type. To give the type alone, write "
             + AgenticToolParameterFunction.NAME + "(" + AdHocToolDescriptor.TOOL_CALL_VARIABLE
-            + "." + name + ", '', '" + description.toLowerCase(Locale.ROOT) + "').", child);
+            + "." + name + ", '', '" + marked(descriptionType, !isMarked(descriptionWord))
+            + "').", child);
       }
       if (typeGiven && !AdHocToolDescriptor.PARAMETER_TYPES.contains(type)) {
-        throw new BpmnParseException(where + ", parameter '" + name + "': the type '" + type
-            + "' is not supported. Use one of " + AdHocToolDescriptor.PARAMETER_TYPES + "."
-            + typeHint(type), child);
+        throw new BpmnParseException(where + ", parameter '" + name + "': the type '"
+            + declaredType + "' is not supported. Use one of "
+            + AdHocToolDescriptor.PARAMETER_TYPES + "." + typeHint(type), child);
       }
       AdHocToolDescriptor.Parameter known = byName.get(name);
       if (known == null) {
         byName.put(name, new AdHocToolDescriptor.Parameter(name,
-            typeGiven ? type : AgenticToolParameterFunction.DEFAULT_TYPE, description));
+            typeGiven ? type : AgenticToolParameterFunction.DEFAULT_TYPE, description, required));
         if (typeGiven) {
           typed.add(name);
         }
@@ -724,12 +739,21 @@ public final class AgenticToolCatalogParser {
       // only logged, and must leave the name as the declarations before it made it.
       boolean firstType = typeGiven && !typed.contains(name);
       String mergedType = firstType ? type : known.getType();
+      boolean mergedRequired = firstType ? required : known.isRequired();
       if (typeGiven && !firstType && !known.getType().equals(type)) {
         throw new BpmnParseException(where + ", parameter '" + name + "' is declared with two"
-            + " types, '" + known.getType() + "' and '" + type + "'. Give it one type. A call"
+            + " types, '" + marked(known.getType(), known.isRequired()) + "' and '"
+            + marked(type, required) + "'. Give it one type. A call"
             + " without a type takes the type another call gives, and ${"
             + AdHocToolDescriptor.TOOL_CALL_VARIABLE + "." + name + "} reads the value without"
             + " declaring it again.", child);
+      }
+      if (typeGiven && !firstType && known.isRequired() != required) {
+        throw new BpmnParseException(where + ", parameter '" + name + "' is declared required"
+            + " in one call and optional in another, as '" + type + "' and '"
+            + marked(type, false) + "'. Mark it the same way in every call that gives a type:"
+            + " with a trailing '" + OPTIONAL_MARKER + "' for an optional parameter, without one"
+            + " for a required parameter.", child);
       }
       if (!description.isEmpty() && !known.getDescription().isEmpty()
           && !description.equals(known.getDescription())) {
@@ -743,7 +767,8 @@ public final class AgenticToolCatalogParser {
       if (firstType) {
         typed.add(name);
       }
-      byName.put(name, new AdHocToolDescriptor.Parameter(name, mergedType, mergedDescription));
+      byName.put(name, new AdHocToolDescriptor.Parameter(name, mergedType, mergedDescription,
+          mergedRequired));
     }
     Matcher any = AgenticToolParameterFunction.ANY_CALL.matcher(text);
     while (any.find()) {
@@ -809,6 +834,29 @@ public final class AgenticToolCatalogParser {
       return " A number with a fraction is 'number'; it arrives as a Double.";
     }
     return "";
+  }
+
+  /**
+   * Trailing marker on a parameter's type naming it optional, e.g. {@code 'integer?'}; without
+   * it a parameter is required. The declaration syntax lives here and only here: everything
+   * downstream reads {@link AdHocToolDescriptor.Parameter#isRequired()} and never sees how it
+   * was written.
+   */
+  protected static final char OPTIONAL_MARKER = '?';
+
+  /** The type as a declaration writes it, with the marker of an optional parameter. */
+  protected static String marked(String type, boolean required) {
+    return required ? type : type + OPTIONAL_MARKER;
+  }
+
+  /** Whether {@code type} ends in {@link #OPTIONAL_MARKER}. */
+  protected static boolean isMarked(String type) {
+    return type.endsWith(String.valueOf(OPTIONAL_MARKER));
+  }
+
+  /** {@code type} without one trailing {@link #OPTIONAL_MARKER} and the blanks before it. */
+  protected static String unmarked(String type) {
+    return isMarked(type) ? type.substring(0, type.length() - 1).trim() : type;
   }
 
   /**

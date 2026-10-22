@@ -919,6 +919,34 @@ public class AgenticTurnJobTest {
   protected static final String SYNC_WAITING_AND_BROKEN = SYNC_AND_WAITING
       + "      <serviceTask id='kaputt' name='Kaputt' camunda:expression='${nichtDa.methode()}' />";
 
+  /**
+   * The CIB7-2135 reproduction, as the ticket and the suite's M05 write it: both parameters
+   * declared without a marker, so both are required. Calling it without {@code limit} must be
+   * refused before the activity starts, not fail inside it.
+   */
+  protected static final String SYNC_WITH_REQUIRED_PARAMETER = suche("string");
+
+  /**
+   * As {@link #SYNC_WITH_REQUIRED_PARAMETER}, but {@code query} is marked optional: a distinct
+   * fixture for a parameter the model may leave out.
+   */
+  protected static final String SYNC_WITH_OPTIONAL_AND_REQUIRED_PARAMETER = suche("string?");
+
+  /** A tool 'suche' with the parameters query, of the given type, and limit, without a marker. */
+  protected static String suche(String queryType) {
+    return "      <serviceTask id='suche' name='Suche' camunda:expression='${query}-${limit}'"
+        + " camunda:resultVariable='treffer'>"
+        + "        <extensionElements><camunda:inputOutput>"
+        + "          <camunda:inputParameter name='query'>"
+        + "${toolParameter(toolCall.query, 'Suchbegriff', '" + queryType + "')}"
+        + "</camunda:inputParameter>"
+        + "          <camunda:inputParameter name='limit'>"
+        + "${toolParameter(toolCall.limit, 'Maximale Trefferzahl', 'integer')}"
+        + "</camunda:inputParameter>"
+        + "        </camunda:inputOutput></extensionElements>"
+        + "      </serviceTask>";
+  }
+
   protected ProcessInstance startSteps() {
     return start(connectorModel("",
         "<camunda:inputParameter name='message'>Rechne.</camunda:inputParameter>", "",
@@ -930,6 +958,21 @@ public class AgenticTurnJobTest {
     return start(connectorModel("",
         "<camunda:inputParameter name='message'>Rechne.</camunda:inputParameter>", "",
         "stub-key", SYNC_WAITING_AND_BROKEN), Collections.<String, Object>emptyMap());
+  }
+
+  /** As {@link #startSteps()}, with {@link #SYNC_WITH_REQUIRED_PARAMETER}'s tool. */
+  protected ProcessInstance startStepsWithARequiredParameterTool() {
+    return start(connectorModel("",
+        "<camunda:inputParameter name='message'>Suche.</camunda:inputParameter>", "",
+        "stub-key", SYNC_WITH_REQUIRED_PARAMETER), Collections.<String, Object>emptyMap());
+  }
+
+  /** As {@link #startSteps()}, with {@link #SYNC_WITH_OPTIONAL_AND_REQUIRED_PARAMETER}'s tool. */
+  protected ProcessInstance startStepsWithAnOptionalParameterTool() {
+    return start(connectorModel("",
+        "<camunda:inputParameter name='message'>Suche.</camunda:inputParameter>", "",
+        "stub-key", SYNC_WITH_OPTIONAL_AND_REQUIRED_PARAMETER),
+        Collections.<String, Object>emptyMap());
   }
 
   protected void runOneJob() {
@@ -1560,6 +1603,99 @@ public class AgenticTurnJobTest {
     assertThat(requestBodies.get(1)).as("the next step's request carries the refusal")
         .contains("has no parameter 'betrag'");
     assertThat(alive(pi)).as("the model answered, nothing runs: the scope ended").isFalse();
+  }
+
+  /**
+   * CIB7-2135: a call that omits a required parameter is refused before the activity starts, not
+   * failed inside it. The model reads the refusal, naming the parameter, calls again with it
+   * supplied, and the scope completes — the reproduction from the ticket.
+   */
+  @Test
+  public void aMissingRequiredParameterIsRefusedBeforeTheActivityStarts() throws IOException {
+    script.add(toolCall("suche", "{\\\"query\\\":\\\"Rom\\\"}"));
+    script.add(toolCall("suche", "{\\\"query\\\":\\\"Rom\\\",\\\"limit\\\":5}"));
+    script.add(answer("Fertig."));
+    ProcessInstance pi = startStepsWithARequiredParameterTool();
+
+    runOneJob();
+    assertThat(requests.get()).as("the step asked the model once, refusal or not").isEqualTo(1);
+    assertThat(toolRequiresParameter(requestBodies.get(0), "suche", "limit"))
+        .as("the model was told 'limit' is required, in the very first request").isTrue();
+    assertThat(toolRequiresParameter(requestBodies.get(0), "suche", "query"))
+        .as("the reproduction's 'query' carries no marker either, so it is required too").isTrue();
+    assertThat(engine.getManagementService().createJobQuery().list())
+        .as("the next step waits").hasSize(1);
+    assertThat(engine.getHistoryService().createHistoricActivityInstanceQuery()
+        .processInstanceId(pi.getId()).activityId("suche").count())
+        .as("no child started: the refusal ran before the activity").isZero();
+
+    runOneJob();
+    assertThat(requests.get()).isEqualTo(2);
+    assertThat(requestBodies.get(1)).as("the next step's request names the missing parameter")
+        .contains("is missing required parameter 'limit'");
+    assertThat(engine.getManagementService().createJobQuery().list())
+        .as("the corrected call ran the tool within this step, one more step waits").hasSize(1);
+
+    runOneJob();
+    assertThat(requests.get()).isEqualTo(3);
+    assertThat(engine.getHistoryService().createHistoricActivityInstanceQuery()
+        .processInstanceId(pi.getId()).activityId("suche").count())
+        .as("the corrected call started the activity, once").isEqualTo(1);
+    assertThat(engine.getHistoryService().createHistoricVariableInstanceQuery()
+        .processInstanceId(pi.getId()).variableName("treffer").singleResult().getValue())
+        .as("the corrected values actually reached the activation").isEqualTo("Rom-5");
+    assertThat(alive(pi)).as("the model answered, nothing runs: the scope ended").isFalse();
+    assertThat(engine.getRuntimeService().createIncidentQuery().processInstanceId(pi.getId()).count())
+        .as("the symptom this ticket removes: no incident is raised").isZero();
+  }
+
+  /**
+   * An omitted optional parameter is no refusal: the activity starts on the first call, and its
+   * mapping reads {@code toolCall.query} as null.
+   */
+  @Test
+  public void anOmittedOptionalParameterReadsAsNull() throws IOException {
+    script.add(toolCall("suche", "{\\\"limit\\\":5}"));
+    script.add(answer("Fertig."));
+    ProcessInstance pi = startStepsWithAnOptionalParameterTool();
+
+    runOneJob();
+    assertThat(requests.get()).as("optional 'query' left out: no refusal, one call").isEqualTo(1);
+    assertThat(toolRequiresParameter(requestBodies.get(0), "suche", "query"))
+        .as("'query' carries '?' here, so it is absent from the wire schema's required list")
+        .isFalse();
+    assertThat(engine.getHistoryService().createHistoricActivityInstanceQuery()
+        .processInstanceId(pi.getId()).activityId("suche").count())
+        .as("the activity started on the first call, nothing refused it").isEqualTo(1);
+    assertThat(engine.getHistoryService().createHistoricVariableInstanceQuery()
+        .processInstanceId(pi.getId()).variableName("treffer").singleResult().getValue())
+        .as("the mapping read 'query' as null (rendered empty) rather than failing")
+        .isEqualTo("-5");
+
+    runOneJob();
+    assertThat(alive(pi)).as("the model answered, nothing runs: the scope ended").isFalse();
+    assertThat(engine.getRuntimeService().createIncidentQuery().processInstanceId(pi.getId()).count())
+        .as("no incident").isZero();
+  }
+
+  /**
+   * Whether the request's tool schema for {@code toolName} lists {@code parameterName} as
+   * required. Fails loudly if {@code toolName} is not offered in this request at all, so a
+   * missing tool is never read as "not required" — the two are not the same claim.
+   */
+  private static boolean toolRequiresParameter(String requestBody, String toolName,
+      String parameterName) throws IOException {
+    for (JsonNode tool : new ObjectMapper().readTree(requestBody).path("tools")) {
+      if (toolName.equals(tool.path("function").path("name").asText())) {
+        for (JsonNode required : tool.path("function").path("parameters").path("required")) {
+          if (parameterName.equals(required.asText())) {
+            return true;
+          }
+        }
+        return false;
+      }
+    }
+    throw new AssertionError("tool '" + toolName + "' is not offered in this request: " + requestBody);
   }
 
   /**

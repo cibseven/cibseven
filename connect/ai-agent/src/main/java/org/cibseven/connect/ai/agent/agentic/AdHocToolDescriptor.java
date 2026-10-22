@@ -112,11 +112,13 @@ public final class AdHocToolDescriptor {
         private final String name;
         private final String type;
         private final String description;
+        private final boolean required;
 
-        public Parameter(String name, String type, String description) {
+        public Parameter(String name, String type, String description, boolean required) {
             this.name = name;
             this.type = type;
             this.description = description;
+            this.required = required;
         }
 
         /** The parameter's name: its key in {@link #TOOL_CALL_VARIABLE}. */
@@ -132,6 +134,15 @@ public final class AdHocToolDescriptor {
         /** What the model is told the parameter means; may be empty, never null. */
         public String getDescription() {
             return description;
+        }
+
+        /**
+         * Whether the model must supply this parameter. A required parameter is listed
+         * in the tool schema's {@code required} array; a call that omits it, or passes
+         * {@code null} for it, is refused before the activity starts.
+         */
+        public boolean isRequired() {
+            return required;
         }
     }
 
