@@ -522,6 +522,117 @@ public class AgenticAdHocParseListenerTest {
         .hasMessageContaining("A number with a fraction is 'number'; it arrives as a Double.");
   }
 
+  // --- a parameter is required, a trailing '?' marks it optional (CIB7-2135)
+
+  /** Without a marker a parameter is required: the reproduction from the ticket, verbatim. */
+  @Test
+  public void aParameterWithoutAMarkerIsRequired() {
+    deploy(withInput("${toolParameter(toolCall.limit, 'Maximale Trefferzahl', 'integer')}"));
+
+    AdHocToolDescriptor.Parameter limit = catalogOf("adHoc").get(0).getParameters().get(0);
+    assertThat(limit.getType()).isEqualTo("integer");
+    assertThat(limit.isRequired()).isTrue();
+  }
+
+  /** A trailing '?' marks the parameter optional; the '?' is not part of the type. */
+  @Test
+  public void aTrailingQuestionMarkMarksAParameterOptional() {
+    deploy(withInput("${toolParameter(toolCall.limit, 'Maximale Trefferzahl', 'integer?')}"));
+
+    AdHocToolDescriptor.Parameter limit = catalogOf("adHoc").get(0).getParameters().get(0);
+    assertThat(limit.getType()).isEqualTo("integer");
+    assertThat(limit.isRequired()).isFalse();
+    assertThat(limit.getDescription()).isEqualTo("Maximale Trefferzahl");
+  }
+
+  /** A call without a type and description is required too: string, with no marker. */
+  @Test
+  public void aParameterWithoutATypeIsARequiredString() {
+    deploy(withInput("${toolParameter(toolCall.stichwort)}"));
+
+    AdHocToolDescriptor.Parameter stichwort = catalogOf("adHoc").get(0).getParameters().get(0);
+    assertThat(stichwort.getType()).isEqualTo("string");
+    assertThat(stichwort.isRequired()).isTrue();
+  }
+
+  /** Every type takes the marker, under any casing and with blanks before it. */
+  @Test
+  public void everyTypeTakesTheMarker() {
+    deploy(withInput("${toolParameter(toolCall.a, '', 'string?')}"
+        + "${toolParameter(toolCall.b, '', 'NUMBER ?')}"
+        + "${toolParameter(toolCall.c, '', 'Boolean?')}"
+        + "${toolParameter(toolCall.d, '', 'integer')}"));
+
+    List<AdHocToolDescriptor.Parameter> parameters = catalogOf("adHoc").get(0).getParameters();
+    assertThat(parameters).extracting("name", "type", "required").containsExactly(
+        tuple("a", "string", false), tuple("b", "number", false), tuple("c", "boolean", false),
+        tuple("d", "integer", true));
+  }
+
+  /** One marker is read; a second one, or a marker without a type, is an unsupported type. */
+  @Test
+  public void refusesASecondMarkerOrAMarkerWithoutAType() {
+    assertThatThrownBy(() -> deploy(withInput("${toolParameter(toolCall.x, '', 'integer??')}")))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("the type 'integer??' is not supported");
+    assertThatThrownBy(() -> deploy(withInput("${toolParameter(toolCall.x, '', '?')}")))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("the type '?' is not supported");
+  }
+
+  /** The deployment error quotes the type as written in the model, not lowercased. */
+  @Test
+  public void theUnsupportedTypeErrorKeepsTheOriginalCasing() {
+    assertThatThrownBy(() -> deploy(withInput("${toolParameter(toolCall.x, '', 'TEXT?')}")))
+        .hasMessageContaining("the type 'TEXT?' is not supported");
+  }
+
+  /** A marked type as the only literal is a type in the wrong place, as a plain one is. */
+  @Test
+  public void refusesAMarkedTypeWordAsTheOnlyLiteral() {
+    assertThatThrownBy(() -> deploy(withInput("${toolParameter(toolCall.menge, 'integer?')}")))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("'integer?' reads like a type")
+        .hasMessageContaining("toolParameter(toolCall.menge, '', 'integer?')");
+    assertThatThrownBy(() -> deploy(withInput("${toolParameter(toolCall.menge, 'integer??')}")))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("'integer??' reads like a type")
+        .hasMessageContaining("toolParameter(toolCall.menge, '', 'integer?')");
+  }
+
+  /** The marker belongs to the type: two calls that give one must agree on it. */
+  @Test
+  public void refusesAParameterDeclaredRequiredAndOptional() {
+    assertThatThrownBy(() -> deploy(withInput("${toolParameter(toolCall.limit, '', 'integer')}"
+        + "${toolParameter(toolCall.limit, '', 'integer?')}")))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("'limit' is declared required in one call and optional in another,"
+            + " as 'integer' and 'integer?'");
+  }
+
+  /** A call without a type takes the marker of the call that gives one, in either order. */
+  @Test
+  public void aCallWithoutATypeTakesTheMarkerAnotherCallGives() {
+    deploy(agentic("<userTask id='erst'><extensionElements><camunda:inputOutput>"
+        + "<camunda:inputParameter name='a'>${toolParameter(toolCall.limit)}"
+        + "</camunda:inputParameter>"
+        + "<camunda:inputParameter name='b'>${toolParameter(toolCall.limit, '', 'integer?')}"
+        + "</camunda:inputParameter>"
+        + "</camunda:inputOutput></extensionElements></userTask>"
+        + "<userTask id='dann'><extensionElements><camunda:inputOutput>"
+        + "<camunda:inputParameter name='b'>${toolParameter(toolCall.limit, '', 'integer?')}"
+        + "</camunda:inputParameter>"
+        + "<camunda:inputParameter name='a'>${toolParameter(toolCall.limit)}"
+        + "</camunda:inputParameter>"
+        + "</camunda:inputOutput></extensionElements></userTask>"));
+
+    for (AdHocToolDescriptor tool : catalogOf("adHoc")) {
+      AdHocToolDescriptor.Parameter limit = tool.getParameters().get(0);
+      assertThat(limit.getType()).as(tool.getActivityId()).isEqualTo("integer");
+      assertThat(limit.isRequired()).as(tool.getActivityId()).isFalse();
+    }
+  }
+
   /** The description and the type may be left out; the type is then string. */
   @Test
   public void theDescriptionAndTheTypeMayBeLeftOut() {

@@ -32,6 +32,13 @@ import java.util.regex.Pattern;
  * string without a description, {@code toolParameter(toolCall.amount, 'Amount in euros')} a
  * string with one.
  *
+ * <p>A parameter is required (CIB7-2135): the model must supply it, and a call that leaves it out,
+ * or passes null, is refused before the activity starts, so the model calls again with it. A
+ * trailing {@code ?} on the type marks it optional, as in
+ * {@code toolParameter(toolCall.limit, 'Maximum number of hits', 'integer?')}: the model may leave
+ * it out, and the parameter then reads null. A call without a type takes the marker with the type
+ * another call of the same parameter gives.
+ *
  * <p>Two readers of the same text. At deployment the catalogue parser reads the call, its
  * parameter name after {@code toolCall.}, and its literal description and type, and offers the
  * tool with that parameter; only a call in an input parameter of an activity the agent starts,

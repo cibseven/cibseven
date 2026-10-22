@@ -16,10 +16,12 @@
  */
 package org.cibseven.connect.ai.agent.impl;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.cibseven.connect.ai.agent.agentic.AdHocToolDescriptor;
 import org.cibseven.connect.ai.agent.agentic.AgenticToolCatalogParser;
@@ -45,10 +47,11 @@ import dev.langchain4j.service.tool.ToolProviderResult;
  *
  * <p>Built from the parse-time catalogue on the scope's activity, so what the model is
  * offered is exactly what the deployment validated. A tool's parameters are the
- * {@code toolParameter} calls in its input mappings (CIB7-2136), and nothing else: a value the
- * declaration does not name cannot be passed, and a value of the wrong type is
- * refused through the same exception channel every other tool error takes back to
- * the model.
+ * {@code toolParameter} calls in its input mappings (CIB7-2136), and nothing else. Three things
+ * are refused before the activity starts, through the same exception channel every other tool
+ * error takes back to the model: a value the declaration does not name, a value of the wrong
+ * type, and a call that leaves out a parameter the declaration makes required — the model reads
+ * the refusal and calls again.
  *
  * <p>The execution stays in {@link AdHocSubProcessTool}: this class only translates a
  * tool call into that layer's {@code startActivity}/{@code completeScope}, which is
@@ -107,6 +110,13 @@ public class AdHocToolProvider implements ToolProvider {
     /**
      * The tool specification of one catalogue entry: the id as the name, the label and
      * documentation as the description, the declared parameters as the schema.
+     *
+     * <p>An optional parameter is simply absent from {@code required} — fine for the default,
+     * non-strict schema this connector sends today. OpenAI's <em>strict</em> tool mode requires
+     * every property to be listed in {@code required} (optionality is expressed by also making
+     * the type nullable); if this connector ever turns strict mode on, a declared-optional
+     * parameter stops being expressible as written here and this method needs revisiting, not
+     * just the request flag.
      */
     protected ToolSpecification specification(AdHocToolDescriptor descriptor) {
         ToolSpecification.Builder tool = ToolSpecification.builder()
@@ -114,6 +124,7 @@ public class AdHocToolProvider implements ToolProvider {
                 .description(description(descriptor));
         if (!descriptor.getParameters().isEmpty()) {
             JsonObjectSchema.Builder schema = JsonObjectSchema.builder();
+            List<String> required = new ArrayList<String>();
             for (AdHocToolDescriptor.Parameter parameter : descriptor.getParameters()) {
                 if ("integer".equals(parameter.getType())) {
                     schema.addIntegerProperty(parameter.getName(), parameter.getDescription());
@@ -124,6 +135,12 @@ public class AdHocToolProvider implements ToolProvider {
                 } else {
                     schema.addStringProperty(parameter.getName(), parameter.getDescription());
                 }
+                if (parameter.isRequired()) {
+                    required.add(parameter.getName());
+                }
+            }
+            if (!required.isEmpty()) {
+                schema.required(required);
             }
             tool.parameters(schema.build());
         }
@@ -190,14 +207,20 @@ public class AdHocToolProvider implements ToolProvider {
      * The call's arguments, restricted to the declared parameters.
      *
      * <p>An undeclared name is refused rather than dropped: silently dropping it would
-     * have the model believe the value arrived. A missing declared parameter is simply
-     * absent — required-ness is deliberately not part of the first step's scope.
-     * Types were promised to the model in the schema; a value that still arrives with
-     * the wrong shape is refused through the exception channel, not coerced.
+     * have the model believe the value arrived. Types were promised to the model in the
+     * schema; a value that still arrives with the wrong shape is refused, not coerced. A
+     * required parameter that is absent, or passed as {@code null}, is refused as well;
+     * an optional one is simply absent, and {@code toolCall.<name>} reads null.
+     *
+     * <p>All of it is refused at once, before the activity starts, in one message through
+     * the exception channel: the model can fix the whole call in its next attempt rather
+     * than one mistake at a time.
      */
     protected Map<String, Object> arguments(AdHocToolDescriptor descriptor, String argumentsJson) {
         Map<String, Object> raw = parse(argumentsJson);
         Map<String, Object> values = new LinkedHashMap<String, Object>();
+        List<String> refusals = new ArrayList<String>();
+        List<String> wronglyTyped = new ArrayList<String>();
         for (Map.Entry<String, Object> argument : raw.entrySet()) {
             AdHocToolDescriptor.Parameter declared = null;
             for (AdHocToolDescriptor.Parameter candidate : descriptor.getParameters()) {
@@ -207,13 +230,55 @@ public class AdHocToolProvider implements ToolProvider {
                 }
             }
             if (declared == null) {
-                throw new AdHocToolRefusedException("'" + descriptor.getActivityId()
-                        + "' has no parameter '" + argument.getKey() + "'. Pass only the parameters"
-                        + " the tool declares.");
+                refusals.add("'" + descriptor.getActivityId() + "' has no parameter '"
+                        + argument.getKey() + "'. Pass only the parameters the tool declares.");
+                continue;
             }
-            values.put(declared.getName(), typed(descriptor, declared, argument.getValue()));
+            try {
+                values.put(declared.getName(), typed(descriptor, declared, argument.getValue()));
+            } catch (AdHocToolRefusedException e) {
+                refusals.add(e.getMessage());
+                wronglyTyped.add(declared.getName());
+            }
+        }
+        String missing = missingRequiredParameters(descriptor, values, wronglyTyped);
+        if (missing != null) {
+            refusals.add(missing);
+        }
+        if (!refusals.isEmpty()) {
+            throw new AdHocToolRefusedException(String.join(" ", refusals));
         }
         return values;
+    }
+
+    /**
+     * Why the call lacks a required parameter, or null: every required parameter missing from
+     * {@code values} or passed as {@code null} is named in one sentence. One passed with the
+     * wrong type is not missing; its refusal says so already. A variable of the same name
+     * visible on the scope does not stand in for it: the activity reads the value from
+     * {@code toolCall}, not from that variable.
+     */
+    protected String missingRequiredParameters(AdHocToolDescriptor descriptor,
+            Map<String, Object> values, List<String> wronglyTyped) {
+        List<String> missing = new ArrayList<String>();
+        for (AdHocToolDescriptor.Parameter parameter : descriptor.getParameters()) {
+            if (parameter.isRequired() && values.get(parameter.getName()) == null
+                    && !wronglyTyped.contains(parameter.getName())) {
+                missing.add(parameter.getName());
+            }
+        }
+        if (missing.isEmpty()) {
+            return null;
+        }
+        boolean one = missing.size() == 1;
+        return "'" + descriptor.getActivityId() + "' is missing required parameter"
+                + (one ? " " : "s ") + quoted(missing) + ". Call again with "
+                + (one ? "it" : "them") + " included.";
+    }
+
+    /** {@code [a, b, c]} rendered as {@code 'a', 'b', 'c'}. */
+    protected static String quoted(List<String> names) {
+        return names.stream().map(name -> "'" + name + "'").collect(Collectors.joining(", "));
     }
 
     /**

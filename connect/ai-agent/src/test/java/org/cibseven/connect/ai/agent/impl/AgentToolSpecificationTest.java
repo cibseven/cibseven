@@ -133,14 +133,17 @@ public class AgentToolSpecificationTest {
         .doesNotContain("wert11");
   }
 
-  /** A declared parameter reaches the model with its name, type and description. */
+  /**
+   * A declared parameter reaches the model with its name, type and description, here two
+   * declared required.
+   */
   @Test
   public void aDeclaredParameterIsPartOfTheSchema() {
     AdHocToolDescriptor descriptor = new AdHocToolDescriptor("temperaturErmitteln",
         null, null, Collections.<String>emptyList(), false,
         Arrays.asList(
-            new AdHocToolDescriptor.Parameter("stadt", "string", "Die gesuchte Stadt"),
-            new AdHocToolDescriptor.Parameter("limit", "integer", "")));
+            new AdHocToolDescriptor.Parameter("stadt", "string", "Die gesuchte Stadt", true),
+            new AdHocToolDescriptor.Parameter("limit", "integer", "", true)));
 
     ToolSpecification specification =
         new AdHocToolProvider(null).specification(descriptor);
@@ -148,6 +151,58 @@ public class AgentToolSpecificationTest {
     assertThat(parameterNames(specification)).containsExactly("stadt", "limit");
     assertThat(specification.parameters().properties().get("stadt").description())
         .isEqualTo("Die gesuchte Stadt");
+  }
+
+  /** An optional parameter is part of the schema's properties but not its required list. */
+  @Test
+  public void anOptionalParameterIsAbsentFromRequired() {
+    AdHocToolDescriptor descriptor = new AdHocToolDescriptor("temperaturErmitteln",
+        null, null, Collections.<String>emptyList(), false,
+        Arrays.asList(new AdHocToolDescriptor.Parameter("stadt", "string", "", false)));
+
+    ToolSpecification specification =
+        new AdHocToolProvider(null).specification(descriptor);
+
+    assertThat(specification.parameters().properties())
+        .as("still offered as a parameter, just not a required one").containsKey("stadt");
+    assertThat(specification.parameters().required())
+        .as("the schema never claims any property is required").isEmpty();
+  }
+
+  /**
+   * A tool with several parameters, all of them optional, still offers every one of them and
+   * claims none as required. The schema is built without calling {@code required(...)} at all
+   * in that case, so what this pins is the result a model is offered, not which builder calls
+   * produced it.
+   */
+  @Test
+  public void aToolWithOnlyOptionalParametersHasAnEmptyRequiredList() {
+    AdHocToolDescriptor descriptor = new AdHocToolDescriptor("suche",
+        null, null, Collections.<String>emptyList(), false,
+        Arrays.asList(
+            new AdHocToolDescriptor.Parameter("query", "string", "", false),
+            new AdHocToolDescriptor.Parameter("limit", "integer", "", false)));
+
+    ToolSpecification specification =
+        new AdHocToolProvider(null).specification(descriptor);
+
+    assertThat(parameterNames(specification)).containsExactly("query", "limit");
+    assertThat(specification.parameters().required()).isEmpty();
+  }
+
+  /** A required parameter is named in the schema's required list. */
+  @Test
+  public void aRequiredParameterIsPartOfRequired() {
+    AdHocToolDescriptor descriptor = new AdHocToolDescriptor("suche",
+        null, null, Collections.<String>emptyList(), false,
+        Arrays.asList(
+            new AdHocToolDescriptor.Parameter("query", "string", "", false),
+            new AdHocToolDescriptor.Parameter("limit", "integer", "", true)));
+
+    ToolSpecification specification =
+        new AdHocToolProvider(null).specification(descriptor);
+
+    assertThat(specification.parameters().required()).containsExactly("limit");
   }
 
   /**

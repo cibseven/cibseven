@@ -2,8 +2,8 @@
   "$schema": "https://unpkg.com/@camunda/element-templates-json-schema/resources/schema.json",
   "name": "CIB seven AI Agent (ad hoc sub process)",
   "id": "org.cibseven.connect.ai.agent.AdHocSubProcess",
-  "version": 5,
-  "description": "Makes an ad hoc sub process agentic: the AI agent's connector on this element drives it, its child activities are the tools, and each turn runs as a job on the scope. The connector's input parameters are evaluated on every turn; its output parameters are applied after every turn, so they hold the last turn's answer.",
+  "version": 6,
+  "description": "Makes an ad hoc sub process agentic: the AI agent's connector on this element drives it, its child activities are the tools, and each turn runs as a job on the scope. The connector's input parameters are evaluated on every turn; its output parameters are applied after every turn, so they hold the last turn's answer. A tool takes values from the model through toolParameter(toolCall.<name>, '<description>', '<type>') in one of its input mappings, where the type is string, integer, number or boolean. Such a parameter is required: the model must supply it, and a call that leaves it out is refused before the activity starts, so the model calls again with it. A trailing ? on the type ('integer?') marks it optional: the model may leave it out, and toolCall.<name> then reads null.",
   "icon": {
     "contents": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20width%3D%2224%22%20height%3D%2224%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M9%202%20L10.4%208.6%20L17%2010%20L10.4%2011.4%20L9%2018%20L7.6%2011.4%20L1%2010%20L7.6%208.6%20Z%22%20fill%3D%22%23E11E19%22/%3E%3Cpath%20d%3D%22M17.5%2013%20L18.2%2015.8%20L21%2016.5%20L18.2%2017.2%20L17.5%2020%20L16.8%2017.2%20L14%2016.5%20L16.8%2015.8%20Z%22%20fill%3D%22%230F2133%22/%3E%3C/svg%3E"
   },
