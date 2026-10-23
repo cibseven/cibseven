@@ -38,6 +38,10 @@ public interface ForkObserverBehavior extends ActivityBehavior {
    *
    * <p>Also called, with no branches, when an activity with more than one outgoing flow takes a
    * single one of them, as an inclusive gateway or conditional flows do when one condition holds.
+   *
+   * <p>Also called when a non-interrupting event handler attached to an activity of the scope starts
+   * its path beside that activity: {@code forkingExecution} is then the execution whose event started
+   * it, and {@code branches} the path alone, before it takes a step (CIB7-2269).
    */
   void branchesForked(ActivityExecution scopeExecution, ActivityExecution forkingExecution,
       List<? extends ActivityExecution> branches);

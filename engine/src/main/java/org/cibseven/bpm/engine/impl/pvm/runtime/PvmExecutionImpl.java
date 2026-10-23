@@ -118,6 +118,13 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
   protected transient PvmActivity nextActivity;
 
   /**
+   * CIB7-2269. While this scope execution starts a non-interrupting event handler beside the
+   * activity the handler is attached to: the execution whose event started it. See
+   * {@link #eventHandlerPathCreated(PvmExecutionImpl, PvmActivity)}.
+   */
+  protected transient PvmExecutionImpl eventHandlerTrigger;
+
+  /**
    * the transition that is currently being taken
    */
   protected transient TransitionImpl transition;
@@ -544,7 +551,8 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
     // so it is (3). Only an ad hoc sub process waits like that: its execution stays on its own
     // activity and runs each child on a concurrent execution, so one child running alone is that
     // case; taking (2) for a fork in it moved the child under a new concurrent execution and took the
-    // scope execution off its activity and its activity instance (CIB7-2264).
+    // scope execution off its activity and its activity instance (CIB7-2264). A handler started while
+    // no child runs is not decided here: see createConcurrentExecutionBesideChildren (CIB7-2269).
     List<? extends PvmExecutionImpl> children = this.getNonEventScopeExecutions();
 
     // whenever we change the set of child executions we have to force an update
@@ -577,6 +585,41 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
     }
 
     // (1), (2), and (3)
+    PvmExecutionImpl concurrentExecution = this.createExecution();
+    concurrentExecution.setConcurrent(true);
+    concurrentExecution.setScope(false);
+
+    return concurrentExecution;
+  }
+
+  /**
+   * CIB7-2269. Whether this is the execution of a scope that observes forks among its children and
+   * stands on that scope's own activity, as the execution of an ad hoc sub process does from entry
+   * to completion. Such a scope runs every child on a concurrent execution, so its tree is never
+   * compacted and never needs expanding.
+   *
+   * <p>Only the start of an event handler asks this. When a scope is left, the parent execution
+   * stands on the left activity for a moment too, and a fork after it has to expand the tree as
+   * after any other activity.
+   */
+  public boolean standsOnScopeThatObservesForks() {
+    PvmActivity activity = getActivity();
+    return isScope() && activity != null && activity.isScope()
+        && activity.getActivityBehavior() instanceof ForkObserverBehavior;
+  }
+
+  /**
+   * CIB7-2269. Creates a concurrent child beside the children of this execution without expanding
+   * the tree: case (3) of {@link #createConcurrentExecution()}, whatever the number of children.
+   * For an execution that {@link #standsOnScopeThatObservesForks() stands on a scope that observes
+   * forks}, where a non-interrupting event handler can start while no child runs; case (1) would
+   * take the scope execution off its activity and its activity instance. The scope execution waits
+   * inactive on its activity, as before the handler started.
+   */
+  public PvmExecutionImpl createConcurrentExecutionBesideChildren() {
+    forceUpdate();
+    inactivate();
+
     PvmExecutionImpl concurrentExecution = this.createExecution();
     concurrentExecution.setConcurrent(true);
     concurrentExecution.setScope(false);
@@ -651,10 +694,24 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
     if (eventHandlerActivity.getActivityStartBehavior() == ActivityStartBehavior.CONCURRENT_IN_FLOW_SCOPE
       && flowScope != eventScope) {
       // the current scope is the event scope of the activity
-      findExecutionForScope(eventScope, flowScope)
-        .executeActivity(eventHandlerActivity);
+      findExecutionForScope(eventScope, flowScope).executeEventHandlerBeside(this, eventHandlerActivity);
     } else {
       executeActivity(eventHandlerActivity);
+    }
+  }
+
+  /**
+   * CIB7-2269. Starts a non-interrupting event handler attached to an activity, in this execution of
+   * the handler's flow scope: {@code trigger} is the execution of the activity whose event started
+   * it. A scope that observes forks is told of the handler's path as of a branch of that activity:
+   * see {@link #eventHandlerPathCreated(PvmExecutionImpl, PvmActivity)}.
+   */
+  public void executeEventHandlerBeside(PvmExecutionImpl trigger, PvmActivity eventHandlerActivity) {
+    eventHandlerTrigger = trigger;
+    try {
+      executeActivity(eventHandlerActivity);
+    } finally {
+      eventHandlerTrigger = null;
     }
   }
 
@@ -999,6 +1056,28 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
       setActivity(targetTransition.getSource());
       setTransition(targetTransition);
       performOperation(PvmAtomicOperation.TRANSITION_START_NOTIFY_LISTENER_TAKE);
+    }
+  }
+
+  /**
+   * CIB7-2269. A non-interrupting event handler attached to an activity has just started
+   * {@code handlerPath} as a concurrent child of this scope execution, beside that activity. A scope
+   * that observes forks is told of it as of a fork of the activity, before the path takes a step:
+   * the path belongs to the same activation, and may meet the activity's own path at a join.
+   *
+   * <p>A handler without an outgoing flow, a boundary event that only records that its event
+   * happened, ends where it starts. Its path never reaches a join and is no fork, so the scope is
+   * not told of it.
+   */
+  public void eventHandlerPathCreated(PvmExecutionImpl handlerPath, PvmActivity handlerActivity) {
+    PvmExecutionImpl trigger = eventHandlerTrigger;
+    eventHandlerTrigger = null;
+    if (trigger == null || handlerActivity.getOutgoingTransitions().isEmpty()) {
+      return;
+    }
+    ForkObserverBehavior forkObserver = handlerPath.getForkObserver();
+    if (forkObserver != null) {
+      forkObserver.branchesForked(this, trigger, Collections.singletonList(handlerPath));
     }
   }
 
