@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Case 13 - two activities writing the same variable name -->
+<definitions id="defs_adHocAgent13" xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" targetNamespace="http://cibseven.org/adhoc-agent">
+  <process id="adHocAgent13" name="Case 13 - two activities writing the same variable name" isExecutable="true" camunda:historyTimeToLive="P30D">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc" name="Agentic scope">
+      <documentation>Documents current behaviour rather than asserting a wish: both children write the variable 'result', so the second overwrites the first. An activity meant to run repeatedly should write into a collection instead. No aggregation is implemented.</documentation>
+      <extensionElements>
+        <camunda:properties>
+            <camunda:property name="cibseven.agentic.enabled" value="true" />
+            <camunda:property name="cibseven.agentic.agentName" value="Ad-hoc Agent" />
+            <camunda:property name="cibseven.agentic.instruction" value="Du steuerst einen Ad-hoc-Bereich. Fuehre stepA und stepB aus und beende den Bereich danach." />
+            <camunda:property name="cibseven.agentic.instructionMode" value="append" />
+            <camunda:property name="cibseven.agentic.message" value="Fuehre stepA und dann stepB aus." />
+            <camunda:property name="cibseven.agentic.resultVariable" value="agentOutput" />
+        </camunda:properties>
+      </extensionElements>
+      <serviceTask id="stepA" name="Step A" camunda:expression="${'A'}" camunda:resultVariable="result" />
+      <serviceTask id="stepB" name="Step B" camunda:expression="${'B'}" camunda:resultVariable="result" />
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+  <bpmndi:BPMNDiagram id="diagram">
+    <bpmndi:BPMNPlane id="plane" bpmnElement="adHocAgent13">
+      <bpmndi:BPMNShape id="di_start" bpmnElement="start">
+        <dc:Bounds x="152" y="172" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="di_adHoc" bpmnElement="adHoc" isExpanded="true">
+        <dc:Bounds x="240" y="80" width="620" height="220" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="di_stepA" bpmnElement="stepA">
+        <dc:Bounds x="460" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="di_stepB" bpmnElement="stepB">
+        <dc:Bounds x="640" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="di_end" bpmnElement="end">
+        <dc:Bounds x="920" y="172" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="di_f1" bpmnElement="f1">
+        <di:waypoint x="188" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+        <di:waypoint x="240" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="di_f2" bpmnElement="f2">
+        <di:waypoint x="860" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+        <di:waypoint x="920" y="190" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

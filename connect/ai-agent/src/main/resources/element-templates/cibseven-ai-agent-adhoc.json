@@ -1,0 +1,185 @@
+{
+  "$schema": "https://unpkg.com/@camunda/element-templates-json-schema/resources/schema.json",
+  "name": "CIB seven AI Agent (ad hoc sub process)",
+  "id": "org.cibseven.connect.ai.agent.AdHocSubProcess",
+  "version": 2,
+  "icon": {
+    "contents": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20width%3D%2224%22%20height%3D%2224%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M9%202%20L10.4%208.6%20L17%2010%20L10.4%2011.4%20L9%2018%20L7.6%2011.4%20L1%2010%20L7.6%208.6%20Z%22%20fill%3D%22%23E11E19%22/%3E%3Cpath%20d%3D%22M17.5%2013%20L18.2%2015.8%20L21%2016.5%20L18.2%2017.2%20L17.5%2020%20L16.8%2017.2%20L14%2016.5%20L16.8%2015.8%20Z%22%20fill%3D%22%230F2133%22/%3E%3C/svg%3E"
+  },
+  "description": "Makes an ad hoc sub process agentic: the agent is configuration on this element, its child activities are the tools, and each turn runs as a job on the scope.",
+  "keywords": ["ai", "agent", "llm", "openai", "adhoc", "agentic", "langchain4j"],
+  "appliesTo": [
+    "bpmn:AdHocSubProcess"
+  ],
+  "groups": [
+    { "id": "input",  "label": "Input"  },
+    { "id": "agent",  "label": "Agent"  },
+    { "id": "limits", "label": "Limits" },
+    { "id": "tools",  "label": "Tools"  }
+  ],
+  "properties": [
+    {
+      "type": "Hidden",
+      "value": "true",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.enabled"
+      }
+    },
+    {
+      "label": "Agent name",
+      "type": "String",
+      "group": "input",
+      "value": "Ad-hoc Agent",
+      "description": "Names the agent in log lines and audit events. Defaults to the id of this element.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.agentName"
+      }
+    },
+    {
+      "label": "Task (from process data)",
+      "type": "Text",
+      "group": "input",
+      "description": "What the agent is asked to do, sent at the start of every turn. An input parameter, so it may be assembled from process data with expressions: 'Handle order ${orderNumber}.' Takes precedence over the fixed task below.",
+      "binding": {
+        "type": "camunda:inputParameter",
+        "name": "instruction"
+      }
+    },
+    {
+      "label": "Task (fixed)",
+      "type": "Text",
+      "group": "input",
+      "description": "The short form for a task that is fully known when the model is deployed. Ignored when the task above is set. One of the two is required.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.message"
+      }
+    },
+    {
+      "label": "System prompt",
+      "type": "Text",
+      "group": "input",
+      "description": "Who the agent is and when it should end the scope. Fixed at deployment; unlike the task, it does not depend on process data.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.systemPrompt"
+      }
+    },
+    {
+      "label": "System prompt mode",
+      "type": "Dropdown",
+      "group": "input",
+      "value": "append",
+      "choices": [
+        { "name": "Append to the built-in prompt", "value": "append" },
+        { "name": "Replace the built-in prompt",   "value": "replace" }
+      ],
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.instructionMode"
+      }
+    },
+    {
+      "label": "Result variable",
+      "type": "String",
+      "group": "input",
+      "value": "agentOutput",
+      "description": "Process variable the agent's answer is written to at the end of every turn.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.resultVariable"
+      }
+    },
+    {
+      "label": "Model",
+      "type": "String",
+      "group": "agent",
+      "description": "Leave empty to take the engine's connector configuration.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.model"
+      }
+    },
+    {
+      "label": "Base URL",
+      "type": "String",
+      "group": "agent",
+      "description": "OpenAI-compatible endpoint, e.g. http://localhost:11434/v1. Leave empty to take the engine's configuration.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.baseUrl"
+      }
+    },
+    {
+      "label": "API key",
+      "type": "String",
+      "group": "agent",
+      "description": "Leave empty to take the engine's configuration or the environment.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.apiKey"
+      }
+    },
+    {
+      "label": "Reasoning effort",
+      "type": "String",
+      "group": "agent",
+      "description": "For models that support it: low, medium, high.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.reasoningEffort"
+      }
+    },
+    {
+      "label": "Reasoning summary",
+      "type": "String",
+      "group": "agent",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.reasoningSummary"
+      }
+    },
+    {
+      "label": "Max model calls per turn",
+      "type": "String",
+      "group": "limits",
+      "description": "Tool calls allowed within one turn. Default 25. A value that is not a positive number falls back to the default.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.maxModelCalls"
+      }
+    },
+    {
+      "label": "Max turns",
+      "type": "String",
+      "group": "limits",
+      "description": "Turns allowed before the agent must stop. Default 10.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.maxTurns"
+      }
+    },
+    {
+      "label": "Additional tool classes",
+      "type": "Text",
+      "group": "tools",
+      "description": "Comma-separated @Tool classes, on top of the ad hoc tool. The child activities of this scope are already the agent's tools; AdHocSubProcessTool is added automatically and does not belong here.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.toolClasses"
+      }
+    },
+    {
+      "label": "MCP servers",
+      "type": "Text",
+      "group": "tools",
+      "description": "JSON array of MCP server configs: [{\"name\": \"...\", \"url\": \"...\", \"headers\": {...}}].",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.mcpServers"
+      }
+    }
+  ]
+}
