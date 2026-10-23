@@ -1,0 +1,122 @@
+/*
+ * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH
+ * under one or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information regarding copyright
+ * ownership. Camunda licenses this file to you under the Apache License,
+ * Version 2.0; you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.cibseven.bpm.engine.test.api.form;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import org.cibseven.bpm.engine.form.FormData;
+import org.cibseven.bpm.engine.impl.form.FormFieldImpl;
+import org.cibseven.bpm.engine.impl.form.TaskFormDataImpl;
+import org.cibseven.bpm.engine.impl.form.engine.AbstractRenderFormDelegate;
+import org.cibseven.bpm.engine.impl.form.type.EnumFormType;
+import org.cibseven.bpm.engine.impl.form.type.StringFormType;
+import org.junit.jupiter.api.Test;
+
+/**
+ * <p>AbstractRenderFormDelegate has no registered subclass and is never
+ * invoked through the public FormEngine SPI, but it is a public class that
+ * duplicates HtmlFormEngine's rendering logic, so its escaping behavior is
+ * exercised directly here via a minimal test-only subclass.</p>
+ */
+public class AbstractRenderFormDelegateTest {
+
+  protected static class RenderFormDelegate extends AbstractRenderFormDelegate {
+    public String render(FormData formData) {
+      return renderFormData(formData);
+    }
+  }
+
+  @Test
+  public void testTransformNullFormData() {
+    assertNull(new RenderFormDelegate().render(null));
+  }
+
+  @Test
+  public void testRenderFormFieldEscapesXssInLabel() {
+
+    FormFieldImpl formField = new FormFieldImpl();
+    formField.setId("someField");
+    formField.setLabel("<img src=x onerror=alert(1)>");
+    formField.setType(new StringFormType());
+    formField.setValidationConstraints(Collections.emptyList());
+    formField.setDefaultValue(null);
+
+    TaskFormDataImpl taskFormData = new TaskFormDataImpl();
+    taskFormData.setFormFields(Collections.singletonList(formField));
+    taskFormData.setFormProperties(Collections.emptyList());
+
+    String renderedForm = new RenderFormDelegate().render(taskFormData);
+
+    assertTrue(renderedForm.contains("&lt;img src=x onerror=alert(1)&gt;"));
+    assertFalse(renderedForm.contains("<img src=x onerror=alert(1)>"));
+
+  }
+
+  @Test
+  public void testRenderFormFieldEscapesXssInEnumOption() {
+
+    Map<String, String> enumValues = new LinkedHashMap<String, String>();
+    enumValues.put("someKey", "<script>alert(1)</script>");
+
+    FormFieldImpl formField = new FormFieldImpl();
+    formField.setId("someField");
+    formField.setLabel(null);
+    formField.setType(new EnumFormType(enumValues));
+    formField.setValidationConstraints(Collections.emptyList());
+    formField.setDefaultValue(null);
+
+    TaskFormDataImpl taskFormData = new TaskFormDataImpl();
+    taskFormData.setFormFields(Collections.singletonList(formField));
+    taskFormData.setFormProperties(Collections.emptyList());
+
+    String renderedForm = new RenderFormDelegate().render(taskFormData);
+
+    assertTrue(renderedForm.contains("&lt;script&gt;alert(1)&lt;/script&gt;"));
+    assertFalse(renderedForm.contains("<script>alert(1)</script>"));
+
+  }
+
+  @Test
+  public void testRenderFormFieldKeepsAngularExpressionsUnescaped() {
+
+    FormFieldImpl formField = new FormFieldImpl();
+    formField.setId("someField");
+    formField.setLabel(null);
+    formField.setType(new StringFormType());
+    formField.setValidationConstraints(Collections.emptyList());
+    formField.setDefaultValue(null);
+
+    TaskFormDataImpl taskFormData = new TaskFormDataImpl();
+    taskFormData.setFormFields(Collections.singletonList(formField));
+    taskFormData.setFormProperties(Collections.emptyList());
+
+    String renderedForm = new RenderFormDelegate().render(taskFormData);
+
+    // the generated ng-if expression joins two checks with "&&"; it must stay literal
+    // for Angular to evaluate it, not be HTML-escaped to "&amp;&amp;"
+    assertTrue(renderedForm.contains("$invalid && "));
+    assertFalse(renderedForm.contains("&amp;&amp;"));
+
+  }
+
+}
