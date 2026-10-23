@@ -253,6 +253,9 @@ public class ExecutionEntity extends PvmExecutionImpl implements Execution, Proc
   protected transient List<VariableInstanceLifecycleListener<VariableInstanceEntity>> registeredVariableListeners
     = new ArrayList<>();
 
+  /** CIB7-2264. Set while {@link #setVariableLocalWithoutEvents} writes. */
+  protected transient boolean variableEventsSuppressed;
+
   public ExecutionEntity() {
   }
 
@@ -1702,11 +1705,30 @@ public class ExecutionEntity extends PvmExecutionImpl implements Execution, Proc
 
     listeners.add((VariableInstanceLifecycleListener) VariableInstanceHistoryListener.INSTANCE);
 
-    listeners.add((VariableInstanceLifecycleListener) new VariableListenerInvocationListener(this));
+    if (!variableEventsSuppressed) {
+      listeners.add((VariableInstanceLifecycleListener) new VariableListenerInvocationListener(this));
 
-    listeners.addAll((List) registeredVariableListeners);
+      listeners.addAll((List) registeredVariableListeners);
+    }
 
     return listeners;
+  }
+
+  /**
+   * CIB7-2264. Sets a local variable the engine keeps for its own bookkeeping, such as the activation
+   * a branch inside an ad hoc sub process belongs to. It is stored and written to the history like
+   * any variable, but no variable event is dispatched for it. Conditional events and variable
+   * listeners react to the variables of the model, and an unfiltered non-interrupting conditional
+   * event below this execution would otherwise fire again on a write the model never made.
+   */
+  public void setVariableLocalWithoutEvents(String variableName, Object value) {
+    boolean suppressedBefore = variableEventsSuppressed;
+    variableEventsSuppressed = true;
+    try {
+      setVariableLocal(variableName, value);
+    } finally {
+      variableEventsSuppressed = suppressedBefore;
+    }
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })

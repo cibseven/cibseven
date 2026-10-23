@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-2264. An inclusive fork whose right branch ends without reaching the join, so a
+     left branch at the join waits for nothing of its own activation. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="inclusiveBranchThatCannotReachTheJoin" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <serviceTask id="split" camunda:expression="${1}" />
+      <sequenceFlow id="i1" sourceRef="split" targetRef="fork" />
+      <inclusiveGateway id="fork" />
+      <sequenceFlow id="i2" sourceRef="fork" targetRef="left">
+        <conditionExpression xsi:type="tFormalExpression">${true}</conditionExpression>
+      </sequenceFlow>
+      <sequenceFlow id="i3" sourceRef="fork" targetRef="right">
+        <conditionExpression xsi:type="tFormalExpression">${true}</conditionExpression>
+      </sequenceFlow>
+      <userTask id="left" />
+      <userTask id="right" />
+      <userTask id="other" />
+      <sequenceFlow id="i4" sourceRef="left" targetRef="join" />
+      <sequenceFlow id="i5" sourceRef="other" targetRef="join" />
+      <inclusiveGateway id="join" />
+      <sequenceFlow id="i6" sourceRef="join" targetRef="after" />
+      <userTask id="after" />
+      <completionCondition xsi:type="tFormalExpression">${false}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

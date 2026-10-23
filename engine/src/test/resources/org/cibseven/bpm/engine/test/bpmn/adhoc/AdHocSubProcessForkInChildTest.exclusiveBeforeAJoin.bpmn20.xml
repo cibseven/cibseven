@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-2264. Two children, each started on its own, that meet at one join; the path of x passes an
+     exclusive gateway first, which chooses and does not fork. The completion condition is false, so
+     the scope stays open. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="exclusiveBeforeAJoin" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <userTask id="x" />
+      <sequenceFlow id="i1" sourceRef="x" targetRef="choice" />
+      <exclusiveGateway id="choice" default="toB" />
+      <sequenceFlow id="toA" sourceRef="choice" targetRef="a">
+        <conditionExpression xsi:type="tFormalExpression">${true}</conditionExpression>
+      </sequenceFlow>
+      <sequenceFlow id="toB" sourceRef="choice" targetRef="b" />
+      <userTask id="a" />
+      <userTask id="b" />
+      <userTask id="y" />
+      <sequenceFlow id="i2" sourceRef="a" targetRef="join" />
+      <sequenceFlow id="i3" sourceRef="y" targetRef="join" />
+      <parallelGateway id="join" />
+      <sequenceFlow id="i4" sourceRef="join" targetRef="z" />
+      <userTask id="z" />
+      <completionCondition xsi:type="tFormalExpression">${false}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

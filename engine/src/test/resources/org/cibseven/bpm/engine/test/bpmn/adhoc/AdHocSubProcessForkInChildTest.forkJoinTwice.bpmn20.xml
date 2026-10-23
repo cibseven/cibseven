@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-2264. One activation of a child forks into three branches, joins two of them, and joins
+     the path that goes on with the third: the branch that leaves the first join must still belong to
+     its activation at the second. The completion condition is false, so the scope stays open. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="forkJoinTwice" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <serviceTask id="split" camunda:expression="${1}" />
+      <sequenceFlow id="i1" sourceRef="split" targetRef="fork" />
+      <parallelGateway id="fork" />
+      <sequenceFlow id="i2" sourceRef="fork" targetRef="a" />
+      <sequenceFlow id="i3" sourceRef="fork" targetRef="b" />
+      <sequenceFlow id="i4" sourceRef="fork" targetRef="c" />
+      <userTask id="a" />
+      <userTask id="b" />
+      <userTask id="c" />
+      <sequenceFlow id="i5" sourceRef="a" targetRef="join1" />
+      <sequenceFlow id="i6" sourceRef="b" targetRef="join1" />
+      <parallelGateway id="join1" />
+      <sequenceFlow id="i7" sourceRef="join1" targetRef="d" />
+      <userTask id="d" />
+      <sequenceFlow id="i8" sourceRef="d" targetRef="join2" />
+      <sequenceFlow id="i9" sourceRef="c" targetRef="join2" />
+      <parallelGateway id="join2" />
+      <sequenceFlow id="i10" sourceRef="join2" targetRef="e" />
+      <userTask id="e" />
+      <completionCondition xsi:type="tFormalExpression">${false}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>
