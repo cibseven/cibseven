@@ -27,6 +27,8 @@ camunda.bpm:
     support-legacy-quartz-syntax: true
 
   generic-properties.properties:
+    # create the webclient tables (modeler, chat, notifications); this distribution ships the webclient
+    webappSchemaEnabled: true
 # https://docs.cibseven.org/manual/latest/user-guide/security/#variable-values-from-untrusted-sources
     deserialization-type-validation-enabled: true
     deserialization-allowed-packages:
