@@ -141,6 +141,13 @@
       <directory>../modules/ai-agent/target/dependency/</directory>
       <outputDirectory>configuration/userlib-ai/</outputDirectory>
     </fileSet>
+    <!-- mcp-restapi shares the userlib-ai/ folder: it is only on the loader path
+         when the AI flag is on. Jars common to both modules (okhttp, okio, kotlin,
+         commons-codec, jtokkit, ...) are the same version and dedupe by filename. -->
+    <fileSet>
+      <directory>../modules/mcp-restapi/target/dependency/</directory>
+      <outputDirectory>configuration/userlib-ai/</outputDirectory>
+    </fileSet>
     <!-- http/soap connectors ship into the always-on userlib/ folder so the
          connectors (and their classpath*:element-templates/*.json bundled in the
          connector JARs) are available out of the box. Unlike the heavy ai-agent
