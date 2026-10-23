@@ -442,11 +442,8 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
       if (dbSqlSessionFactory.isDmnEnabled() && !isDmnTablePresent()) {
         missingComponents.add("decision.engine");
       }
-      if (dbSqlSessionFactory.isModelerEnabled() && !isModelerTablePresent()) {
-        missingComponents.add("modeler");
-      }
-      if (dbSqlSessionFactory.isNotificationsEnabled() && !isNotificationTablePresent()) {
-        missingComponents.add("notification");
+      if (dbSqlSessionFactory.isWebappSchemaEnabled() && !isWebappTablePresent()) {
+        missingComponents.add("webapp");
       }
 
       if (!missingComponents.isEmpty()) {
@@ -544,23 +541,13 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
   }
 
   @Override
-  protected void dbSchemaCreateModeler() {
-    executeMandatorySchemaResource("create", "modeler");
+  protected void dbSchemaCreateWebapp() {
+    executeMandatorySchemaResource("create", "webapp");
   }
 
   @Override
-  protected void dbSchemaDropModeler() {
-    executeMandatorySchemaResource("drop", "modeler");
-  }
-
-  @Override
-  protected void dbSchemaCreateNotification() {
-    executeMandatorySchemaResource("create", "notification");
-  }
-
-  @Override
-  protected void dbSchemaDropNotification() {
-    executeMandatorySchemaResource("drop", "notification");
+  protected void dbSchemaDropWebapp() {
+    executeMandatorySchemaResource("drop", "webapp");
   }
 
   public void executeMandatorySchemaResource(String operation, String component) {
@@ -601,13 +588,8 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
   }
 
   @Override
-  public boolean isModelerTablePresent() {
+  public boolean isWebappTablePresent() {
     return isTablePresent("MOD_ELEMENT_TEMPLATES");
-  }
-
-  @Override
-  public boolean isNotificationTablePresent() {
-    return isTablePresent("NOTIF_NOTIFICATIONS");
   }
 
   public boolean isTablePresent(String tableName) {

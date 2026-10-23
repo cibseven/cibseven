@@ -41,6 +41,7 @@ public class BootstrapEngineCommand implements ProcessEngineBootstrapCommand {
   private final static EnginePersistenceLogger LOG = ProcessEngineLogger.PERSISTENCE_LOGGER;
 
   protected static final String INSTALLATION_PROPERTY_NAME = "camunda.installation.id";
+  protected static final String WEBAPP_SCHEMA_VERSION_PROPERTY_NAME = "webapp.schema.version";
 
   @Override
   public Void execute(CommandContext commandContext) {
@@ -57,7 +58,19 @@ public class BootstrapEngineCommand implements ProcessEngineBootstrapCommand {
     // installationId needs to be updated in the telemetry data
     updateTelemetryData(commandContext);
 
+    readWebappSchemaVersion(commandContext);
+
     return null;
+  }
+
+  /**
+   * The webclient tables are an optional schema component, so the engine reports what is in the
+   * database rather than what it was configured to create. Absent means the tables are not there.
+   */
+  protected void readWebappSchemaVersion(CommandContext commandContext) {
+    PropertyEntity property = commandContext.getPropertyManager().findPropertyById(WEBAPP_SCHEMA_VERSION_PROPERTY_NAME);
+    commandContext.getProcessEngineConfiguration()
+      .setWebappSchemaVersion(property == null ? null : property.getValue());
   }
 
   protected void createHistoryCleanupJob(CommandContext commandContext) {

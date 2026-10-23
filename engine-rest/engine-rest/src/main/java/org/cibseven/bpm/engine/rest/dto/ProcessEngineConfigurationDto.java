@@ -25,6 +25,7 @@ public class ProcessEngineConfigurationDto {
   private String historyLevel;
   private boolean authorizationEnabled;
   private boolean enablePasswordPolicy;
+  private String webappSchemaVersion;
 	// Time to live for historical data, in days.
 	// If null, means to keep historical data indefinitely.
 	// Valid when `enforceHistoryTimeToLive` is not null, elsewhere ignored.
@@ -41,6 +42,7 @@ public class ProcessEngineConfigurationDto {
     dto.historyLevel = configuration.getHistory();
     dto.authorizationEnabled = configuration.isAuthorizationEnabled();
     dto.enablePasswordPolicy = configuration.isEnablePasswordPolicy();
+    dto.webappSchemaVersion = configuration.getWebappSchemaVersion();
     // historyTimeToLive/enforceHistoryTimeToLive are only declared on the impl class, not
     // on the abstract ProcessEngineConfiguration.
     if (configuration instanceof ProcessEngineConfigurationImpl) {
@@ -81,6 +83,14 @@ public class ProcessEngineConfigurationDto {
 
   public void setEnablePasswordPolicy(boolean enablePasswordPolicy) {
     this.enablePasswordPolicy = enablePasswordPolicy;
+  }
+
+  public String getWebappSchemaVersion() {
+    return webappSchemaVersion;
+  }
+
+  public void setWebappSchemaVersion(String webappSchemaVersion) {
+    this.webappSchemaVersion = webappSchemaVersion;
   }
 
   public String getHistoryTimeToLive() {
