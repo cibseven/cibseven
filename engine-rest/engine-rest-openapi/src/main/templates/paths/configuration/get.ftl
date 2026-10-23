@@ -20,8 +20,8 @@
                            "historyLevel": "full",
                            "authorizationEnabled": false,
                            "enablePasswordPolicy": false,
-                           "historyTimeToLive": "180",
-                           "enforceHistoryTimeToLive": false
+                           "historyTimeToLive": 180,
+                           "enforceHistoryTimeToLive": true
                          }
                      }'] />
   }
