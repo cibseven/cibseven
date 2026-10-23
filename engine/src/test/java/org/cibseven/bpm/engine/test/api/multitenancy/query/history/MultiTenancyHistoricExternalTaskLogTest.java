@@ -98,7 +98,7 @@ public class MultiTenancyHistoricExternalTaskLogTest {
       createHistoricExternalTaskLogQuery();
 
     // then
-    assertThat(query.count()).isEqualTo(5L);
+    assertThat(query.count()).isEqualTo(10L);
   }
 
   @Test
@@ -112,7 +112,7 @@ public class MultiTenancyHistoricExternalTaskLogTest {
         .withoutTenantId();
 
     // then
-    assertThat(query.count()).isEqualTo(2L);
+    assertThat(query.count()).isEqualTo(3L);
   }
 
   @Test
@@ -129,8 +129,8 @@ public class MultiTenancyHistoricExternalTaskLogTest {
       .tenantIdIn(TENANT_TWO);
 
     // then
-    assertThat(queryTenant1.count()).isEqualTo(2L);
-    assertThat(queryTenant2.count()).isEqualTo(3L);
+    assertThat(queryTenant1.count()).isEqualTo(5L);
+    assertThat(queryTenant2.count()).isEqualTo(5L);
   }
 
   @Test
@@ -144,7 +144,7 @@ public class MultiTenancyHistoricExternalTaskLogTest {
       .tenantIdIn(TENANT_ONE, TENANT_TWO);
 
     // then
-    assertThat(query.count()).isEqualTo(5L);
+    assertThat(query.count()).isEqualTo(10L);
   }
 
   @Test
@@ -187,13 +187,10 @@ public class MultiTenancyHistoricExternalTaskLogTest {
       .asc()
       .list();
 
-    // then
-    assertThat(HistoricExternalTaskLogs.size()).isEqualTo(5);
-    assertThat(HistoricExternalTaskLogs.get(0).getTenantId()).isEqualTo(TENANT_ONE);
-    assertThat(HistoricExternalTaskLogs.get(1).getTenantId()).isEqualTo(TENANT_ONE);
-    assertThat(HistoricExternalTaskLogs.get(2).getTenantId()).isEqualTo(TENANT_TWO);
-    assertThat(HistoricExternalTaskLogs.get(3).getTenantId()).isEqualTo(TENANT_TWO);
-    assertThat(HistoricExternalTaskLogs.get(4).getTenantId()).isEqualTo(TENANT_TWO);
+    // then: 5 logs per tenant (created, fetched x n, failed[, successful])
+    assertThat(HistoricExternalTaskLogs.size()).isEqualTo(10);
+    assertThat(HistoricExternalTaskLogs.subList(0, 5)).extracting("tenantId").containsOnly(TENANT_ONE);
+    assertThat(HistoricExternalTaskLogs.subList(5, 10)).extracting("tenantId").containsOnly(TENANT_TWO);
   }
 
   @Test
@@ -207,13 +204,10 @@ public class MultiTenancyHistoricExternalTaskLogTest {
       .desc()
       .list();
 
-    // then
-    assertThat(HistoricExternalTaskLogs.size()).isEqualTo(5);
-    assertThat(HistoricExternalTaskLogs.get(0).getTenantId()).isEqualTo(TENANT_TWO);
-    assertThat(HistoricExternalTaskLogs.get(1).getTenantId()).isEqualTo(TENANT_TWO);
-    assertThat(HistoricExternalTaskLogs.get(2).getTenantId()).isEqualTo(TENANT_TWO);
-    assertThat(HistoricExternalTaskLogs.get(3).getTenantId()).isEqualTo(TENANT_ONE);
-    assertThat(HistoricExternalTaskLogs.get(4).getTenantId()).isEqualTo(TENANT_ONE);
+    // then: 5 logs per tenant (created, fetched x n, failed[, successful])
+    assertThat(HistoricExternalTaskLogs.size()).isEqualTo(10);
+    assertThat(HistoricExternalTaskLogs.subList(0, 5)).extracting("tenantId").containsOnly(TENANT_TWO);
+    assertThat(HistoricExternalTaskLogs.subList(5, 10)).extracting("tenantId").containsOnly(TENANT_ONE);
   }
 
   @Test
@@ -238,10 +232,10 @@ public class MultiTenancyHistoricExternalTaskLogTest {
     HistoricExternalTaskLogQuery query = historyService.createHistoricExternalTaskLogQuery();
 
     // then
-    assertThat(query.count()).isEqualTo(2L);
-    assertThat(query.tenantIdIn(TENANT_ONE).count()).isEqualTo(2L);
+    assertThat(query.count()).isEqualTo(5L);
+    assertThat(query.tenantIdIn(TENANT_ONE).count()).isEqualTo(5L);
     assertThat(query.tenantIdIn(TENANT_TWO).count()).isEqualTo(0L);
-    assertThat(query.tenantIdIn(TENANT_ONE, TENANT_TWO).count()).isEqualTo(2L);
+    assertThat(query.tenantIdIn(TENANT_ONE, TENANT_TWO).count()).isEqualTo(5L);
   }
 
   @Test
@@ -253,9 +247,9 @@ public class MultiTenancyHistoricExternalTaskLogTest {
     HistoricExternalTaskLogQuery query = historyService.createHistoricExternalTaskLogQuery();
 
     // then
-    assertThat(query.count()).isEqualTo(5L);
-    assertThat(query.tenantIdIn(TENANT_ONE).count()).isEqualTo(2L);
-    assertThat(query.tenantIdIn(TENANT_TWO).count()).isEqualTo(3L);
+    assertThat(query.count()).isEqualTo(10L);
+    assertThat(query.tenantIdIn(TENANT_ONE).count()).isEqualTo(5L);
+    assertThat(query.tenantIdIn(TENANT_TWO).count()).isEqualTo(5L);
   }
 
   @Test
@@ -268,7 +262,7 @@ public class MultiTenancyHistoricExternalTaskLogTest {
     HistoricExternalTaskLogQuery query = historyService.createHistoricExternalTaskLogQuery();
 
     // then
-    assertThat(query.count()).isEqualTo(5L);
+    assertThat(query.count()).isEqualTo(10L);
   }
 
   @Test
