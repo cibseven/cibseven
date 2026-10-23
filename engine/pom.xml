@@ -929,28 +929,6 @@
       </build>
     </profile>
 
-    <profile>
-     <id>exclude-post-jdk15-tests</id>
-      <activation>
-        <jdk>[15,)</jdk>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <configuration>
-                <!-- Nashorn is not part of the JDK anymore in Java 15+ -->
-                <excludes combine.children="append">
-                  <exclude>**/*NashornTest.java</exclude>
-                </excludes>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
-
     <!-- test profiles -->
     <profile>
      <id>testBpmn</id>
@@ -999,24 +977,6 @@
      <properties>
       <test.excludes>bpmn|cmmn</test.excludes>
      </properties>
-    </profile>
-
-    <profile>
-      <id>java11</id>
-      <activation>
-        <jdk>11</jdk>
-      </activation>
-      <dependencyManagement>
-        <dependencies>
-          <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-framework-bom</artifactId>
-            <version>${version.spring.framework}</version>
-            <type>pom</type>
-            <scope>import</scope>
-          </dependency>
-        </dependencies>
-      </dependencyManagement>
     </profile>
 
   </profiles>
