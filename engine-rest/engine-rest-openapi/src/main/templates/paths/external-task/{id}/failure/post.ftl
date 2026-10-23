@@ -6,7 +6,10 @@
       tag = "External Task"
       summary = "Handle Failure"
       desc = "Reports a failure to execute an external task by id. A number of retries and a timeout until the task can
-              be retried can be specified. If retries are set to 0, an incident for this task is created." />
+              be retried can be specified. If retries are set to 0, an incident for this task is created. Note: if a
+              retry cycle is configured for the task's activity (modeled or engine-wide default), its own interval
+              determines the next attempt's timing instead of the given timeout, and the engine independently
+              decrements its own retries counter by one on every successful fetch of the task." />
 
   "parameters" : [
 

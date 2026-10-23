@@ -18,6 +18,7 @@ package org.cibseven.bpm.engine.impl.cmd;
 
 import java.util.Map;
 
+import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExternalTaskEntity;
 import org.cibseven.bpm.engine.impl.util.EnsureUtil;
 
@@ -60,13 +61,21 @@ public class HandleExternalTaskFailureCmd extends HandleExternalTaskCmd {
 
   @Override
   public void execute(ExternalTaskEntity externalTask) {
-    externalTask.failed(errorMessage, errorDetails, retries, retryDuration, variables, localVariables);
+    int reportedRetries = retries;
+    if (reportedRetries < 0 && externalTask.hasRetryConfiguration()) {
+      // the engine already decremented the retries at fetch, so the last attempt is handed out
+      // with retries 0; a worker that still reports getRetries() - 1 must not lose its failure
+      ProcessEngineLogger.EXTERNAL_TASK_LOGGER.negativeRetriesReportedForRetryTimeCycle(externalTask.getId(), reportedRetries);
+      reportedRetries = 0;
+    }
+    EnsureUtil.ensureGreaterThanOrEqual("retries", reportedRetries, 0);
+    externalTask.failed(errorMessage, errorDetails, reportedRetries, retryDuration, variables, localVariables);
   }
 
   @Override
   protected void validateInput() {
     super.validateInput();
-    EnsureUtil.ensureGreaterThanOrEqual("retries", retries, 0);
+    // retries are validated in execute(), negative values are accepted for tasks with a retry time cycle
     EnsureUtil.ensureGreaterThanOrEqual("retryDuration", retryDuration, 0);
   }
 
