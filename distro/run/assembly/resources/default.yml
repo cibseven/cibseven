@@ -102,6 +102,7 @@ cibseven:
 
   webclient:
     modeler:
+      enabled: true
       templates:
         paths:
           # Bundled connector templates (e.g. ai-agent) ship inside their JAR under
