@@ -259,8 +259,6 @@
                 <resource>
                   <directory>${basedir}/../core/src/test/java</directory>
                   <filtering>false</filtering>
-                  <!-- Nashorn is not part of the JDK anymore in Java 15+ -->
-                  <excludes>**/*NashornTest.java</excludes>
                 </resource>
               </resources>
             </configuration>

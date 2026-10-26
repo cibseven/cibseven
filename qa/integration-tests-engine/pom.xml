@@ -1004,28 +1004,6 @@
         </plugins>
       </build>
     </profile>
-
-    <profile>
-      <id>exclude-post-jdk15-tests</id>
-      <activation>
-        <jdk>[15,)</jdk>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <configuration>
-                <!-- Nashorn is not part of the JDK anymore in Java 15+ -->
-                <excludes combine.children="append">
-                  <exclude>**/*NashornTest.java</exclude>
-                </excludes>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
   </profiles>
   <description>
     Description of CIB seven - QA Integration Tests - Engine
