@@ -23,6 +23,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.el.ELException;
+
 import org.cibseven.bpm.engine.ActivityTypes;
 import org.cibseven.bpm.engine.BpmnParseException;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
@@ -358,8 +360,18 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     }
 
     // The connector's own mapping, applied on every turn. Its message is the task. Its presence
-    // on the scope is what makes the scope agentic at runtime (AgenticScopes.isAgentic).
-    IoMapping io = BpmnParseUtil.parseInputOutput(connector);
+    // on the scope is what makes the scope agentic at runtime (AgenticScopes.isAgentic). An
+    // expression in it that does not parse, a missing brace or an unknown function, throws an EL
+    // error rather than a refusal: on a parse again it would block the definition, and a
+    // deployment would name neither the element nor its line (CIB7-2367).
+    IoMapping io;
+    try {
+      io = BpmnParseUtil.parseInputOutput(connector);
+    } catch (ELException e) {
+      throw new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': an expression"
+          + " of the connector '" + AgenticTurnRunner.AGENT_CONNECTOR_ID + "' cannot be read: "
+          + e.getMessage(), scopeElement);
+    }
     refuseAConnectorWithoutATask(scopeElement, activity, io);
     refuseAnUndersizedPerActivityMemoryWindow(scopeElement, activity, connector, io, properties);
     return io;

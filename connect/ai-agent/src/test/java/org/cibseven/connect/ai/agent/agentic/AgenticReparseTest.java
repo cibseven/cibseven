@@ -23,6 +23,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +80,10 @@ public class AgenticReparseTest {
   protected static final String MESSAGE =
       "<camunda:inputParameter name='message'>Do the work.</camunda:inputParameter>";
 
+  /** The classes whose warnings a test reads. */
+  protected static final List<Class<?>> LOGGING =
+      Arrays.<Class<?>>asList(AgenticToolCatalogParser.class, AgenticTurnRetry.class);
+
   protected final List<ProcessEngine> engines = new ArrayList<ProcessEngine>();
   protected String database;
   protected ListAppender<ILoggingEvent> log;
@@ -97,7 +102,9 @@ public class AgenticReparseTest {
       }
     }
     if (log != null) {
-      ((Logger) LoggerFactory.getLogger(AgenticToolCatalogParser.class)).detachAppender(log);
+      for (Class<?> logging : LOGGING) {
+        ((Logger) LoggerFactory.getLogger(logging)).detachAppender(log);
+      }
     }
   }
 
@@ -410,6 +417,54 @@ public class AgenticReparseTest {
   }
 
   /**
+   * The engine's cycle, as the fallback of a scope's cycle that cannot be read, cannot be read
+   * either: the default retries the turns, and the expression's error blocks nothing.
+   */
+  @Test
+  public void anEnginesCycleThatCannotBeReadGivesWayToTheDefault(TestInfo test) {
+    ProcessEngine off = engineWithoutTheAgent(test);
+    deploy(off, process("agenticScope", adHoc(
+        "<camunda:failedJobRetryTimeCycle>sometimes</camunda:failedJobRetryTimeCycle>"
+            + connector(MESSAGE), "<userTask id='arbeit' />")));
+    String definitionId = off.getRepositoryService().createProcessDefinitionQuery()
+        .singleResult().getId();
+    ProcessEngine on = engine(test, "on", new ConnectProcessEnginePlugin(),
+        configuration -> configuration.setFailedJobRetryTimeCycle("${unbekannt()}"));
+    recordWarnings();
+
+    ActivityImpl scope = scopeOf(on, definitionId, "adHoc");
+
+    assertThat(scope.getProperties().get(AgenticTurnRetry.RETRY_CONFIGURATION).getRetries())
+        .isEqualTo(3);
+    assertThat(warnings()).anySatisfy(warning -> assertThat(warning)
+        .contains("'sometimes' is not a retry cycle for its turns")
+        .contains("so the turns of 'adHoc' are retried by the cycle '"
+            + AgenticTurnRetry.DEFAULT_RETRY_TIME_CYCLE + "'."));
+  }
+
+  /**
+   * The engine's cycle is its configuration, not the model's: one that cannot be read refuses no
+   * deployment. It is logged, and the default retries the turns.
+   */
+  @Test
+  public void anEnginesCycleThatCannotBeReadRefusesNoModel(TestInfo test) {
+    ProcessEngine on = engine(test, "on", new ConnectProcessEnginePlugin(),
+        configuration -> configuration.setFailedJobRetryTimeCycle("${unbekannt()}"));
+    recordWarnings();
+
+    deploy(on, process("agenticScope", adHoc(connector(MESSAGE), "<userTask id='arbeit' />")));
+    String definitionId = on.getRepositoryService().createProcessDefinitionQuery()
+        .singleResult().getId();
+
+    assertThat(scopeOf(on, definitionId, "adHoc").getProperties()
+        .get(AgenticTurnRetry.RETRY_CONFIGURATION).getRetries()).isEqualTo(3);
+    assertThat(warnings()).anySatisfy(warning -> assertThat(warning)
+        .contains("The engine's failedJobRetryTimeCycle '${unbekannt()}' is not a retry cycle, so"
+            + " the turns of 'adHoc' are retried by the cycle '"
+            + AgenticTurnRetry.DEFAULT_RETRY_TIME_CYCLE + "'."));
+  }
+
+  /**
    * Deploys the scope with the agent off and starts two instances; with the agent on, the model
    * loads and logs what a deployment would refuse, one instance is read and goes on, the other is
    * deleted, and a new deployment is still refused.
@@ -586,6 +641,26 @@ public class AgenticReparseTest {
                 + "</boundaryEvent><sequenceFlow id='g1' sourceRef='grenze' targetRef='end' />",
             "the event sub process 'fehler' inside it catches", leftOutOfOnLimit,
             withoutOnLimit()),
+        Arguments.of("a message that does not parse",
+            adHoc(connector("<camunda:inputParameter name='message'>Handle ${order."
+                + "</camunda:inputParameter>"), "<userTask id='arbeit' />"),
+            "an expression of the connector 'cibseven-ai-agent' cannot be read", plain,
+            withoutTheAgent),
+        Arguments.of("an unknown function in the connector",
+            adHoc(connector("<camunda:inputParameter name='message'>${unbekannt(1)}"
+                + "</camunda:inputParameter>"), "<userTask id='arbeit' />"),
+            "an expression of the connector 'cibseven-ai-agent' cannot be read", plain,
+            withoutTheAgent),
+        Arguments.of("a retry cycle expression that does not parse",
+            adHoc("<camunda:failedJobRetryTimeCycle>${unbekannt()}"
+                + "</camunda:failedJobRetryTimeCycle>" + connector(MESSAGE),
+                "<userTask id='arbeit' />"),
+            "'${unbekannt()}' is not a retry cycle for its turns",
+            "the turns of 'adHoc' are retried by the cycle '"
+                + AgenticTurnRetry.DEFAULT_RETRY_TIME_CYCLE + "'",
+            (Consumer<ActivityImpl>) scope -> assertThat(scope.getProperties()
+                .get(AgenticTurnRetry.RETRY_CONFIGURATION).getRetries()).as("the default's")
+                .isEqualTo(3)),
         Arguments.of("a retry cycle that cannot be read",
             adHoc("<camunda:failedJobRetryTimeCycle>sometimes</camunda:failedJobRetryTimeCycle>"
                 + connector(MESSAGE), "<userTask id='arbeit' />"),
@@ -703,7 +778,9 @@ public class AgenticReparseTest {
   protected void recordWarnings() {
     log = new ListAppender<ILoggingEvent>();
     log.start();
-    ((Logger) LoggerFactory.getLogger(AgenticToolCatalogParser.class)).addAppender(log);
+    for (Class<?> logging : LOGGING) {
+      ((Logger) LoggerFactory.getLogger(logging)).addAppender(log);
+    }
   }
 
   protected List<String> warnings() {
