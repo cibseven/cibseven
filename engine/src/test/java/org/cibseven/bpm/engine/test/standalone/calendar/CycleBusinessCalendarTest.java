@@ -232,6 +232,30 @@ public class CycleBusinessCalendarTest {
       // Both day-of-month and day-of-week fields are '?' (no scheduling criteria)
       // "0 0 0 ? * ?" -> "0 0 0 ? * *"
       assertThat(sdf.format(cbc.resolveDuedate("0 0 0 ? * ?", startDate))).isEqualTo("2010 02 12 00:00");
+
+      // Increments beyond the range of the field match the start value only, the increment is removed
+      // "0 0/60 * * * ?" -> "0 0 * * * ?"
+      assertThat(sdf.format(cbc.resolveDuedate("0 0/60 * * * ?", startDate))).isEqualTo("2010 02 11 18:00");
+      // "0 0/120 * * * ?" -> "0 0 * * * ?" (hourly, not every two hours)
+      assertThat(sdf.format(cbc.resolveDuedate("0 0/120 * * * ?", startDate))).isEqualTo("2010 02 11 18:00");
+      // "0 5/60 * * * ?" -> "0 5 * * * ?"
+      assertThat(sdf.format(cbc.resolveDuedate("0 5/60 * * * ?", startDate))).isEqualTo("2010 02 11 18:05");
+      // "0/60 0 0 * * ?" -> "0 0 0 * * ?"
+      assertThat(sdf.format(cbc.resolveDuedate("0/60 0 0 * * ?", startDate))).isEqualTo("2010 02 12 00:00");
+      // "0 0 0/24 * * ?" -> "0 0 0 * * ?"
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 0/24 * * ?", startDate))).isEqualTo("2010 02 12 00:00");
+      // "0 0 0 1/32 * ?" -> "0 0 0 1 * ?"
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1/32 * ?", startDate))).isEqualTo("2010 03 01 00:00");
+      // "0 0 0 1 1/13 ?" -> "0 0 0 1 1 ?"
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1 1/13 ?", startDate))).isEqualTo("2011 01 01 00:00");
+      // "0 0 0 ? * 1/8" -> "0 0 0 ? * 1" (Sunday)
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 0 ? * 1/8", startDate))).isEqualTo("2010 02 14 00:00");
+      // increments within the range of the field are kept: minutes 0 and 59
+      assertThat(sdf.format(cbc.resolveDuedate("0 0/59 * * * ?", startDate))).isEqualTo("2010 02 11 17:59");
+      // '*/60' was rejected by Quartz 1.8.4 as well
+      assertThatThrownBy(() -> cbc.resolveDuedate("0 */60 * * * ?", startDate))
+          .isInstanceOf(ProcessEngineException.class)
+          .hasMessageContaining("Exception while parsing cycle expression");
     }
   }
 
@@ -283,6 +307,11 @@ public class CycleBusinessCalendarTest {
 
       // Both day-of-month and day-of-week fields are '?' - should fail
       assertThatThrownBy(() -> cbc.resolveDuedate("0 0 0 ? * ?", startDate))
+          .isInstanceOf(ProcessEngineException.class)
+          .hasMessageContaining("Exception while parsing cycle expression");
+
+      // Increment beyond the range of the field - should fail
+      assertThatThrownBy(() -> cbc.resolveDuedate("0 0/60 * * * ?", startDate))
           .isInstanceOf(ProcessEngineException.class)
           .hasMessageContaining("Exception while parsing cycle expression");
     }
