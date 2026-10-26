@@ -161,6 +161,12 @@ public class PropertiesAwareClientFactory extends ClientFactory implements Resou
     if (clientConfigurationProps.getLockDuration() != null) {
       clientConfiguration.setLockDuration(clientConfigurationProps.getLockDuration());
     }
+    if (clientConfigurationProps.getUseCreateTime() != null) {
+      clientConfiguration.setUseCreateTime(clientConfigurationProps.getUseCreateTime());
+    }
+    if (clientConfigurationProps.getOrderByCreateTime() != null) {
+      clientConfiguration.setOrderByCreateTime(clientConfigurationProps.getOrderByCreateTime());
+    }
     if (clientConfigurationProps.getAsyncResponseTimeout() != null) {
       clientConfiguration.setAsyncResponseTimeout(clientConfigurationProps.getAsyncResponseTimeout());
     }

@@ -21,8 +21,8 @@
                            "authorizationEnabled": false,
                            "enablePasswordPolicy": false,
                            "webappSchemaVersion": "3.0.0",
-                           "historyTimeToLive": "180",
-                           "enforceHistoryTimeToLive": false
+                           "historyTimeToLive": 180,
+                           "enforceHistoryTimeToLive": true
                          }
                      }'] />
   }
