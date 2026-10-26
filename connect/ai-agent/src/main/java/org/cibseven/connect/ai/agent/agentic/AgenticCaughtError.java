@@ -55,16 +55,26 @@ public class AgenticCaughtError extends ErrorEventDefinition {
    */
   private static final ThreadLocal<Caught> CAUGHT = new ThreadLocal<Caught>();
 
+  /**
+   * The last BPMN error a definition of this kind was offered and did not catch, while none caught
+   * it (review round 4). Nothing at all may catch it: the engine then ends the throwing activity as
+   * if it had completed ({@code BpmnExceptionHandler}, {@code enableExceptionsAfterUnhandledBpmnError}
+   * off by default), and its end must not count as the repair of an earlier interruption.
+   */
+  private static final ThreadLocal<Caught> UNCAUGHT = new ThreadLocal<Caught>();
+
   /** Clears what this thread caught, as its command closes. Stateless, so one serves them all. */
   private static final CommandContextListener FORGET = new CommandContextListener() {
     @Override
     public void onCommandContextClose(CommandContext commandContext) {
       CAUGHT.remove();
+      UNCAUGHT.remove();
     }
 
     @Override
     public void onCommandFailed(CommandContext commandContext, Throwable t) {
       CAUGHT.remove();
+      UNCAUGHT.remove();
     }
   };
 
@@ -114,6 +124,12 @@ public class AgenticCaughtError extends ErrorEventDefinition {
     boolean catches = super.catchesError(errorCode);
     if (catches) {
       remember(errorCode, null);
+    } else {
+      CommandContext command = Context.getCommandContext();
+      if (command != null) {
+        UNCAUGHT.set(new Caught(command, getHandlerActivityId(), errorCode, null));
+        command.registerCommandContextListener(FORGET);
+      }
     }
     return catches;
   }
@@ -141,6 +157,8 @@ public class AgenticCaughtError extends ErrorEventDefinition {
     CommandContext command = Context.getCommandContext();
     if (command != null) {
       CAUGHT.set(new Caught(command, getHandlerActivityId(), errorCode, exceptionClass));
+      // Caught after all, by this definition: what another one was offered is moot.
+      UNCAUGHT.remove();
       command.registerCommandContextListener(FORGET);
     }
   }
@@ -151,14 +169,31 @@ public class AgenticCaughtError extends ErrorEventDefinition {
    */
   static Caught takeCaughtOn(ActivityImpl attachedTo) {
     Caught caught = CAUGHT.get();
-    if (caught == null || caught.command != Context.getCommandContext()) {
-      return null;
-    }
-    PvmActivity handler = attachedTo.getProcessDefinition().findActivity(caught.handlerActivityId);
-    if (handler == null || handler.getEventScope() != attachedTo) {
+    if (!on(caught, attachedTo)) {
       return null;
     }
     CAUGHT.remove();
     return caught;
+  }
+
+  /**
+   * Whether a BPMN error thrown by {@code attachedTo} in the running command was offered to the
+   * boundary error events on it and caught by none, nor by anything else. Taken.
+   */
+  static boolean takeUncaughtOn(ActivityImpl attachedTo) {
+    if (!on(UNCAUGHT.get(), attachedTo)) {
+      return false;
+    }
+    UNCAUGHT.remove();
+    return true;
+  }
+
+  /** Whether {@code caught} is of the running command and of a boundary event on {@code attachedTo}. */
+  private static boolean on(Caught caught, ActivityImpl attachedTo) {
+    if (caught == null || caught.command != Context.getCommandContext()) {
+      return false;
+    }
+    PvmActivity handler = attachedTo.getProcessDefinition().findActivity(caught.handlerActivityId);
+    return handler != null && handler.getEventScope() == attachedTo;
   }
 }

@@ -2655,14 +2655,14 @@ public class AgenticTurnJobTest {
 
     assertThat(toolResults(requestBodies.get(1)))
         .contains("\"status\":\"interrupted\"")
-        .contains("\"interruptedBy\":{")
+        .contains("\"interruptedBy\":[{")
         .contains("\"boundaryEvent\":\"fachfehler\"")
         .contains("\"eventType\":\"error\"")
         .contains("\"errorCode\":\"KEIN_BESTAND\"")
         .contains("\"attachedTo\":\"buchen\"")
         .contains("\"endedAt\":\"fehlerMerken\"")
         .contains("'buchen' did not complete")
-        .contains("whose code is in interruptedBy.errorCode")
+        .contains("whose code is in interruptedBy[0].errorCode")
         .doesNotContain("'KEIN_BESTAND'")
         .doesNotContain("\"status\":\"finished\"");
   }
@@ -2736,7 +2736,7 @@ public class AgenticTurnJobTest {
     assertThat(toolResults(requestBodies.get(1)))
         .as("the error path waits for a person, so the tool still runs, interrupted")
         .contains("\"status\":\"waiting\"")
-        .contains("\"interruptedBy\":{")
+        .contains("\"interruptedBy\":[{")
         .contains("\"errorCode\":\"GESPERRT\"")
         .contains("'buchen' did not complete")
         .contains("Its path still runs. You will get another turn when it finishes.");
@@ -2900,7 +2900,7 @@ public class AgenticTurnJobTest {
     assertThat(toolResults(requestBodies.get(1)))
         .as("the retry waits for a person: the interruption is not repaired yet")
         .contains("\"status\":\"waiting\"")
-        .contains("\"interruptedBy\":{")
+        .contains("\"interruptedBy\":[{")
         .contains("\"attachedTo\":\"buchen\"");
 
     engine.getTaskService().complete(engine.getTaskService().createTaskQuery()
@@ -2999,7 +2999,7 @@ public class AgenticTurnJobTest {
 
     assertThat(toolResults(requestBodies.get(1)))
         .contains("\"status\":\"waiting\"")
-        .contains("\"interruptedBy\":{")
+        .contains("\"interruptedBy\":[{")
         .contains("\"boundaryEvent\":\"zuTeuer\"")
         .contains("\"eventType\":\"escalation\"");
   }
@@ -3197,6 +3197,131 @@ public class AgenticTurnJobTest {
   }
 
   /**
+   * A tool's error whose path is interrupted again, by the timeout of a task on that path: both
+   * interruptions are reported, the tool's own error with its code first, and the tool did not
+   * complete (review round 4). One slot kept only the timeout and called the tool done.
+   */
+  @Test
+  public void aSecondInterruptionOnTheErrorPathKeepsTheToolsError() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Warte auf die Nachfrage."));
+    script.add(answer("Keine Antwort."));
+    startWith(failingTool("KEIN_BESTAND", "<errorEventDefinition />")
+        .replace("<serviceTask id='fehlerMerken' name='Fehler merken'"
+            + " camunda:expression=\"${'kein Bestand'}\" camunda:resultVariable='fehler' />",
+            "<userTask id='fehlerMerken' name='Fehler merken' />"
+            + "<boundaryEvent id='zuLange' attachedToRef='fehlerMerken'><timerEventDefinition>"
+            + "<timeDuration>PT1H</timeDuration></timerEventDefinition></boundaryEvent>"));
+
+    // The turn's steps run every job there is, the boundary timer among them.
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .as("within the call, the error path waits for a person")
+        .contains("\"status\":\"waiting\"")
+        .contains("\"interruptedBy\":[{\"boundaryEvent\":\"fachfehler\"");
+    String later = laterStateBlocks();
+    assertThat(later)
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"interruptedBy\":[{\"boundaryEvent\":\"fachfehler\",\"eventType\":\"error\","
+            + "\"errorCode\":\"KEIN_BESTAND\",\"attachedTo\":\"buchen\"},"
+            + "{\"boundaryEvent\":\"zuLange\",\"eventType\":\"timer\",\"attachedTo\":\"fehlerMerken\"}]")
+        .contains("'buchen' did not complete")
+        .contains("whose code is in interruptedBy[0].errorCode");
+  }
+
+  /**
+   * Another activity with a boundary event of its own completes on the tool's error path: that
+   * repairs nothing of the tool's error, which stays (review round 4).
+   */
+  @Test
+  public void anotherActivityCompletingOnTheErrorPathKeepsTheToolsError() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Kein Bestand."));
+    startWith(failingTool("KEIN_BESTAND", "<errorEventDefinition />")
+        + "      <boundaryEvent id='merkfehler' attachedToRef='fehlerMerken'>"
+        + "<errorEventDefinition /></boundaryEvent>");
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"errorCode\":\"KEIN_BESTAND\"")
+        .contains("\"attachedTo\":\"buchen\"");
+  }
+
+  /**
+   * A retry that throws an error nothing catches: the engine ends the activity as if it had
+   * completed, which repairs nothing, so the first error is still reported (review round 4).
+   */
+  @Test
+  public void anUncaughtErrorOnTheRetryDoesNotRepairTheFirst() throws IOException {
+    script.add(toolCall("anfang", "{}"));
+    script.add(answer("Gescheitert."));
+    startWith("      <serviceTask id='anfang' name='Anfang' camunda:expression='${true}' />"
+        + "      <sequenceFlow id='e0' sourceRef='anfang' targetRef='buchen' />"
+        + "      <serviceTask id='buchen' name='Buchen' camunda:class='"
+        + ThrowsTheCode.class.getName() + "'><extensionElements><camunda:field name='code'"
+        + " expression=\"${execution.getVariable('versuch') == null ? 'ERSTER' : 'UNBEKANNT'}\" />"
+        + "</extensionElements></serviceTask>"
+        + "      <boundaryEvent id='fachfehler' attachedToRef='buchen'>"
+        + "<errorEventDefinition errorRef='ERSTER' /></boundaryEvent>"
+        + "      <sequenceFlow id='e1' sourceRef='fachfehler' targetRef='merken' />"
+        + "      <serviceTask id='merken' name='Merken' camunda:expression='${1}'"
+        + " camunda:resultVariable='versuch' />"
+        + "      <sequenceFlow id='e2' sourceRef='merken' targetRef='buchen' />");
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"errorCode\":\"ERSTER\"")
+        .contains("\"attachedTo\":\"buchen\"")
+        .contains("'anfang' ran; its flow was then interrupted at 'buchen'");
+  }
+
+  /** A signal a sub process tool throws itself, caught on its boundary within the call. */
+  @Test
+  public void aToolEndedByASignalWithinTheCallIsReportedAsInterruptedByIt() throws IOException {
+    script.add(toolCall("pruefen", "{}"));
+    script.add(answer("Gestoppt."));
+    startWith(ESCALATING_TOOL
+        .replace("<escalationEventDefinition escalationRef='esc' />",
+            "<signalEventDefinition signalRef='stoppSig' />"),
+        "  <signal id='stoppSig' name='stopp' />");
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"boundaryEvent\":\"zuTeuer\"")
+        .contains("\"eventType\":\"signal\"");
+  }
+
+  /** A condition a sub process tool makes true itself, caught on its boundary within the call. */
+  @Test
+  public void aToolEndedByAConditionWithinTheCallIsReportedAsInterruptedByIt() throws IOException {
+    script.add(toolCall("pruefen", "{}"));
+    script.add(answer("Abgebrochen."));
+    startWith("      <subProcess id='pruefen' name='Pruefen'><extensionElements>"
+        + "<camunda:inputOutput><camunda:inputParameter name='abbrechen'>${false}"
+        + "</camunda:inputParameter></camunda:inputOutput></extensionElements>"
+        + "<startEvent id='ps' /><sequenceFlow id='ps1' sourceRef='ps' targetRef='setzen' />"
+        + "<serviceTask id='setzen' camunda:expression=\"${execution.setVariable('abbrechen', true)}\" />"
+        + "<sequenceFlow id='ps2' sourceRef='setzen' targetRef='pe' /><endEvent id='pe' />"
+        + "</subProcess>"
+        + "      <boundaryEvent id='abbruch' attachedToRef='pruefen'><conditionalEventDefinition>"
+        + "<condition>${execution.getVariable('abbrechen') == true}</condition>"
+        + "</conditionalEventDefinition></boundaryEvent>");
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"boundaryEvent\":\"abbruch\"")
+        .contains("\"eventType\":\"conditional\"");
+  }
+
+  /**
    * A waiting tool cancelled from outside, by a process instance modification, is listed in the
    * next state block as cancelled, so the agent stops waiting for it (CIB7-2166).
    */
@@ -3209,8 +3334,9 @@ public class AgenticTurnJobTest {
         .contains("\"activityId\":\"freigabe\"")
         .contains("\"status\":\"cancelled\"")
         .contains("cancelled from outside the agent")
-        .as("a cancelled tool declares nothing it could have shown")
-        .doesNotContain("declares no output mapping");
+        .as("a cancelled tool read nothing: no word of what it declares")
+        .doesNotContain("declares no output mapping")
+        .doesNotContain("\"resultsFrom\"");
   }
 
   /** The same for a multi-instance tool, cancelled as a whole: reported once, on the tool. */

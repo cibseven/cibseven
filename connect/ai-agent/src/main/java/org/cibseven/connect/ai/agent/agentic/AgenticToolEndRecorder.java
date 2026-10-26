@@ -44,7 +44,8 @@ import org.slf4j.LoggerFactory;
  * start, because that end runs in the command that caught the error, also when the event itself
  * continues asynchronously;</li>
  * <li>the end of every activity a boundary event is attached to, when it completes, not
- * cancelled: forgets what that activity's events recorded earlier in the same performance. An
+ * cancelled and not ended by a BPMN error nothing caught, which the engine ends it with as if it
+ * had completed: forgets what that activity's events recorded earlier in the same performance. An
  * event's path led back to it, and this time it did its work. Only that repairs an interruption:
  * a flow that goes back to before the interrupted activity and ends without completing it again
  * still reports it, and a retry that is still running does too.</li>
@@ -103,7 +104,8 @@ public class AgenticToolEndRecorder implements ExecutionListener {
         if (caught != null) {
           AdHocResults.recordInterruption(entity, caught.handlerActivityId(),
               attachedTo(activity), ERROR, caught.errorCode(), caught.exceptionClass());
-        } else if (!entity.isCanceled()) {
+        } else if (!AgenticCaughtError.takeUncaughtOn(activity) && !entity.isCanceled()) {
+          // Completed, not cancelled and not ended by an error nothing caught: repaired.
           AdHocResults.forgetInterruption(entity, attachedTo(activity));
         }
         return;
