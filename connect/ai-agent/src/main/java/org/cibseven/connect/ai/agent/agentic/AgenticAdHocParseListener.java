@@ -189,11 +189,12 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
 
     // The tool catalogue: one descriptor per startable child, built here so a broken
     // declaration refuses the deployment rather than a turn. On a parse again a broken tool is
-    // left out of it instead; with every tool left out the agent could only end the scope, so
+    // left out of it instead, as is a nested agent that loads without its agent; with every tool
+    // left out the agent could only end the scope, so
     // the scope loads without the agent, as it was deployed (CIB7-2367). Built before anything
     // here changes the activity, so that it still can.
-    List<AdHocToolDescriptor> catalog =
-        AgenticToolCatalogParser.parse(scopeElement, startable, parsing);
+    List<AdHocToolDescriptor> catalog = withoutAgentsLoadedPlain(scopeElement, activity,
+        AgenticToolCatalogParser.parse(scopeElement, startable, parsing), parsing);
     if (catalog.isEmpty()) {
       parsing.refuse(new BpmnParseException("Ad hoc sub process '" + activity.getId()
           + "': none of its startable children " + startable + " is left as a tool for its"
@@ -375,6 +376,49 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     refuseAConnectorWithoutATask(scopeElement, activity, io);
     refuseAnUndersizedPerActivityMemoryWindow(scopeElement, activity, connector, io, properties);
     return io;
+  }
+
+  /**
+   * The catalogue without a nested ad hoc scope that asks for an agent but loads without one, as a
+   * parse again leaves it plain (CIB7-2367). Started, such a child would wait for ever: nothing
+   * starts its children and no turn ends it, and the agent here could not end its own scope while
+   * it is pending. A deployment never keeps one: the child refuses it first. Children are parsed
+   * before their scope, so whether the child has its agent is known here. An AI agent task is no
+   * scope and needs none, and a plain sub process left so runs to its end on its own.
+   */
+  protected static List<AdHocToolDescriptor> withoutAgentsLoadedPlain(Element scopeElement,
+      ActivityImpl activity, List<AdHocToolDescriptor> catalog,
+      AgenticToolCatalogParser.Parsing parsing) {
+    List<AdHocToolDescriptor> tools = new ArrayList<AdHocToolDescriptor>();
+    for (AdHocToolDescriptor tool : catalog) {
+      String id = tool.getActivityId();
+      Element child = elementWithId(scopeElement, id);
+      ActivityImpl performed = activity.findActivity(id);
+      if (child != null && performed != null && "adHocSubProcess".equals(child.getTagName())
+          && asksForAnAgent(child)
+          && performed.getProperties().get(AGENT_CONNECTOR_IO) == null) {
+        parsing.refuse(new BpmnParseException("Ad hoc sub process '" + activity.getId()
+            + "': its child '" + id + "' asks for an AI agent but has none, so once started"
+            + " nothing would end it.", child),
+            "the tool '" + id + "' is left out of the agent's catalogue");
+        continue;
+      }
+      tools.add(tool);
+    }
+    return tools;
+  }
+
+  /** Whether the model asks for an agent on the element: its connector, template, limits or settings. */
+  protected static boolean asksForAnAgent(Element element) {
+    Map<String, String> properties = BpmnParseUtil.parseCamundaExtensionProperties(element);
+    if (properties == null) {
+      properties = Collections.emptyMap();
+    }
+    return AgenticTurnRunner.AGENT_CONNECTOR_ID.equals(
+            connectorId(BpmnParseUtil.findCamundaExtensionElement(element, "connector")))
+        || AD_HOC_TEMPLATE_ID.equals(
+            element.attributeNS(BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS, "modelerTemplate"))
+        || !presentLimits(properties).isEmpty() || !present(properties, SETTINGS).isEmpty();
   }
 
   /** The activity a child performs: itself, or the activity inside its multi-instance body. */

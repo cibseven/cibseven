@@ -53,6 +53,7 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
@@ -462,6 +463,30 @@ public class AgenticReparseTest {
         .contains("The engine's failedJobRetryTimeCycle '${unbekannt()}' is not a retry cycle, so"
             + " the turns of 'adHoc' are retried by the cycle '"
             + AgenticTurnRetry.DEFAULT_RETRY_TIME_CYCLE + "'."));
+  }
+
+  /**
+   * A nested agent that loads without its agent, as a parse again leaves it, is no tool of the
+   * agent around it (CIB7-2367): started, nothing would end it, and the outer agent could not end
+   * its own scope while it waits. So with the nested scope a multi-instance.
+   */
+  @ParameterizedTest(name = "multi-instance: {0}")
+  @ValueSource(booleans = { false, true })
+  public void aNestedAgentWithoutItsAgentIsNoTool(boolean multiInstance, TestInfo test) {
+    loadsOnceTheAgentIsOn(test,
+        adHoc(connector(MESSAGE), "<userTask id='arbeit' />"
+            + adHoc("innen", connector("<camunda:inputParameter name='instruction'>Be brief."
+                + "</camunda:inputParameter>"),
+                (multiInstance ? "<multiInstanceLoopCharacteristics isSequential='true'>"
+                    + "<loopCardinality>1</loopCardinality></multiInstanceLoopCharacteristics>"
+                    : "")
+                + "<userTask id='innenArbeit' />")),
+        "its child 'innen' asks for an AI agent but has none",
+        "the tool 'innen' is left out of the agent's catalogue",
+        "an agentic scope needs a task for its agent", tools("arbeit"));
+    assertThat(warnings()).anySatisfy(warning -> assertThat(warning)
+        .contains("an agentic scope needs a task for its agent")
+        .contains("so 'innen' loads as it was deployed, without the agent."));
   }
 
   /**
