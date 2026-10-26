@@ -107,25 +107,12 @@
       <dependency>
         <groupId>org.cibseven.bpm.webapp</groupId>
         <artifactId>cibseven-webapp-webjar</artifactId>
-        <version>${version.legacy-webapps}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.cibseven.bpm.webapp</groupId>
-        <artifactId>cibseven-webapp-jakarta</artifactId>
-        <version>${version.legacy-webapps}</version>
-        <type>war</type>
-      </dependency>
-      <dependency>
-        <groupId>org.cibseven.bpm.webapp</groupId>
-        <artifactId>cibseven-webapp-jakarta</artifactId>
-        <version>${version.legacy-webapps}</version>
-        <type>jar</type>
-        <classifier>classes</classifier>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm.webapp</groupId>
         <artifactId>cibseven-webapp-webjar-ee</artifactId>
-        <version>${version.legacy-webapps}</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm.springboot</groupId>
