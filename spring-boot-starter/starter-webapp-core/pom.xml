@@ -27,9 +27,18 @@
 
     <dependency>
       <groupId>org.cibseven.bpm.webapp</groupId>
-      <artifactId>cibseven-webapp</artifactId>
+      <artifactId>cibseven-webapp-jakarta</artifactId>
+      <version>${version.legacy-webapps}</version>
       <type>jar</type>
       <classifier>classes</classifier>
+      <optional>true</optional>
+      <exclusions>
+        <!-- the 2.x POM pulls in 2.x engine-rest artifacts; the current ones come from this build -->
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
