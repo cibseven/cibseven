@@ -217,11 +217,13 @@ public final class AdHocResults {
      * scope's tools records nothing.
      *
      * <p>That activity says little for sure. At the tool itself, the tool did not complete, unless
-     * it had and only waited for its {@code asyncAfter} job. At an activity further along, the tool
-     * ran, but an error path may have led there, so it may not have done its work. And an execution
-     * at a scope, which every activity with a boundary event is, carries no activity at all. So
-     * only the tool itself is taken as "did not complete"; everywhere else the model is told the
-     * activity, if known, and that whether the work took effect is open (see {@link #describeEnd}).
+     * it had and only waited for its {@code asyncAfter} job, which is where an incident leaves it
+     * and an operator cancels it. At an activity further along, the tool ran, but an error path may
+     * have led there, so it may not have done its work. And an execution at a scope, which every
+     * activity with a boundary event is, carries no activity at all. So only the tool itself, and
+     * one without {@code asyncAfter}, is taken as "did not complete"; everywhere else the model is
+     * told the activity, if known, and that whether the work took effect is open (see
+     * {@link #describeEnd}).
      */
     public static void removed(ExecutionEntity scope, ExecutionEntity removed) {
         PvmActivity removedIn = removed.getActivity();
@@ -242,10 +244,17 @@ public final class AdHocResults {
         entry.put(ACTIVATION_ID, removed.getId());
         entry.put(VALUES, new TreeMap<String, Object>());
         entry.put(CANCELLED, Boolean.TRUE);
-        if (activity != null && activity.getId().equals(toolId)) {
+        // A tool with asyncAfter may have run and only wait for its job: at it says nothing then.
+        if (activity != null && activity.getId().equals(toolId)
+                && !isAsyncAfter(removedIn) && !isAsyncAfter(activity)) {
             entry.put(CANCELLED_AT_TOOL, Boolean.TRUE);
         }
         append(scope, entry);
+    }
+
+    /** Whether {@code activity}, a tool or its multi-instance body, continues asynchronously after it ends. */
+    private static boolean isAsyncAfter(PvmActivity activity) {
+        return activity instanceof ActivityImpl && ((ActivityImpl) activity).isAsyncAfter();
     }
 
     private static void append(ExecutionEntity scope, Map<String, Object> entry) {

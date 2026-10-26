@@ -3543,6 +3543,67 @@ public class AgenticTurnJobTest {
   }
 
   /**
+   * A tool with asyncAfter that ran and waits for its continuation job, as an incident on that job
+   * leaves it, cancelled from outside: its execution is still at the tool, but the tool did its
+   * work, so the model is not told it did not complete.
+   */
+  @Test
+  public void aToolWaitingForItsAsyncAfterJobCancelledFromOutsideClaimsNothing()
+      throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Warte."));
+    script.add(answer("Verstanden."));
+    ProcessInstance pi = startWith("      <serviceTask id='buchen' name='Buchen'"
+        + " camunda:expression='${true}' camunda:asyncAfter='true' />"
+        + "      <userTask id='worker' name='Worker' />");
+    runStepsLeavingWaiting(pi, "buchen");
+    assertThat(engine.getManagementService().createJobQuery().activityId("buchen").count())
+        .as("the tool ran and waits for its continuation job").isOne();
+    // Someone else's work keeps the scope: cancelling its only child would cancel the scope too.
+    String scope = engine.getRuntimeService().createExecutionQuery().activityId("adHoc")
+        .singleResult().getId();
+    engine.getRuntimeService().createAdHocSubProcessActivation(scope)
+        .startActivity("worker").execute();
+    int before = requestBodies.size();
+
+    engine.getRuntimeService().createProcessInstanceModification(pi.getId())
+        .cancelAllForActivity("buchen").execute();
+    runStepsLeavingWaiting(pi, "buchen");
+
+    assertThat(requestBodies).hasSizeGreaterThan(before);
+    assertThat(lastUserMessage(requestBodies.get(before)))
+        .contains("\"activityId\":\"buchen\"")
+        .contains("\"status\":\"cancelled\"")
+        .contains("check before repeating it")
+        .doesNotContain("did not complete")
+        .doesNotContain("produced no results");
+  }
+
+  /** Runs the instance's jobs as a turn's steps do, all but those of {@code waiting}. */
+  protected void runStepsLeavingWaiting(ProcessInstance pi, String waiting) {
+    for (int steps = 0; ; steps++) {
+      List<String> left = engine.getManagementService().createJobQuery()
+          .processInstanceId(pi.getId()).activityId(waiting).list().stream()
+          .map(Job::getId).collect(Collectors.toList());
+      Job next = null;
+      for (Job job : engine.getManagementService().createJobQuery()
+          .processInstanceId(pi.getId()).list()) {
+        if (!left.contains(job.getId())) {
+          next = job;
+          break;
+        }
+      }
+      if (next == null) {
+        return;
+      }
+      if (steps > TurnSteps.MAX_STEPS) {
+        throw new AssertionError("more than " + TurnSteps.MAX_STEPS + " steps");
+      }
+      engine.getManagementService().executeJob(next.getId());
+    }
+  }
+
+  /**
    * The agent starts {@code called} from {@code tools}; someone else's work keeps the scope, as
    * cancelling its only child would cancel the scope too; then {@code cancelled} is cancelled. The
    * state block of the turn that brings.
