@@ -28,6 +28,8 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A cron timer implementation that uses cronutils library for parsing and evaluation.
@@ -35,6 +37,11 @@ import java.util.Date;
 public class CronTimer {
 
   private final static EngineUtilLogger LOG = ProcessEngineLogger.UTIL_LOGGER;
+
+  // matches '<start>/<increment>', e.g. '0/60'
+  private static final Pattern INCREMENT_PATTERN = Pattern.compile("(\\d+)/(\\d+)");
+  // max values of second, minute, hour, day-of-month, month and day-of-week in Quartz
+  private static final int[] MAX_FIELD_VALUES = { 59, 59, 23, 31, 12, 7 };
 
   protected final Cron cron;
 
@@ -118,6 +125,21 @@ public class CronTimer {
     } else if ("?".equals(dayOfMonth) && "?".equals(dayOfWeek)) { // both fields cannot be '?'
       parts[3] = "*"; // convert day-of-month to '*'
     }
+
+    // Increments beyond the range of the field (e.g. '0/60' for minutes) were accepted by Quartz 1.8.4
+    // and matched the start value only, so '0 0/60 * * * ?' fired hourly at minute 0.
+    // cron-utils rejects them, so the increment is removed: '0/60' -> '0'
+    for (int i = 0; i < MAX_FIELD_VALUES.length; i++) {
+      parts[i] = patchIncrementOutOfRange(parts[i], MAX_FIELD_VALUES[i]);
+    }
     return String.join(" ", parts);
+  }
+
+  private static String patchIncrementOutOfRange(final String field, final int maxValue) {
+    final Matcher matcher = INCREMENT_PATTERN.matcher(field);
+    if (matcher.matches() && Integer.parseInt(matcher.group(2)) > maxValue) {
+      return matcher.group(1);
+    }
+    return field;
   }
 }
