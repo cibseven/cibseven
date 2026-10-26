@@ -3483,9 +3483,8 @@ public class AgenticTurnJobTest {
 
   /**
    * An activity further along a tool's chain cancelled from outside: reported under the tool the
-   * agent called, not under the activity cancelled. The tool ran, its request is out: the model is
-   * told the flow was cancelled at that activity, not that the tool did not complete, which could
-   * make it send the request again.
+   * agent called, not under the activity cancelled. Whether the tool's work took effect is not
+   * claimed either way: the request may be out, and an error path could have led there too.
    */
   @Test
   public void aChainCancelledFurtherAlongIsReportedUnderTheTool() throws IOException {
@@ -3493,13 +3492,54 @@ public class AgenticTurnJobTest {
 
     assertThat(report)
         .contains("\"activityId\":\"anfragen\"")
+        .contains("\"status\":\"cancelled\"")
         .contains("\"endedAt\":\"warten\"")
-        .contains("'anfragen' ran; its flow was then cancelled at 'warten' from outside the agent")
-        .contains("Do not wait for it.")
+        .contains("The flow of 'anfragen' was cancelled from outside the agent at 'warten'")
+        .contains("check before repeating it")
         .doesNotContain("\"activityId\":\"warten\"")
-        .doesNotContain("\"status\":\"cancelled\"")
+        .doesNotContain("did not complete")
+        .doesNotContain("produced no results")
+        .doesNotContain("' ran;");
+  }
+
+  /**
+   * The same, with a boundary event on the cancelled activity, one that never fires: an activity
+   * with a boundary event is a scope, and the execution at it carries no activity. Where the flow
+   * was is then unknown, and the model is still not told the tool did not complete.
+   */
+  @Test
+  public void aChainCancelledAtAScopeFurtherAlongClaimsNothing() throws IOException {
+    String report = cancelFromOutside(CHAIN
+        + "      <boundaryEvent id='fehler' attachedToRef='warten'><errorEventDefinition />"
+        + "</boundaryEvent>",
+        "anfragen", "warten");
+
+    assertThat(report)
+        .contains("\"activityId\":\"anfragen\"")
+        .contains("\"status\":\"cancelled\"")
+        .contains("The flow of 'anfragen' was cancelled from outside the agent")
+        .contains("check before repeating it")
         .doesNotContain("did not complete")
         .doesNotContain("produced no results");
+  }
+
+  /**
+   * B11 with a waiting error path, cancelled from outside: the tool's error is not turned into
+   * "ran". The interruption cannot be read any more, so nothing is claimed about the work.
+   */
+  @Test
+  public void aWaitingErrorPathCancelledFromOutsideIsNotReportedAsRun() throws IOException {
+    String report = cancelFromOutside(failingTool("KEIN_BESTAND", "<errorEventDefinition />")
+        .replace("<serviceTask id='fehlerMerken' name='Fehler merken'"
+            + " camunda:expression=\"${'kein Bestand'}\" camunda:resultVariable='fehler' />",
+            "<userTask id='fehlerMerken' name='Fehler merken' />"),
+        "buchen", "fehlerMerken");
+
+    assertThat(report)
+        .contains("\"activityId\":\"buchen\"")
+        .contains("\"status\":\"cancelled\"")
+        .contains("check before repeating it")
+        .doesNotContain("' ran;");
   }
 
   /**
