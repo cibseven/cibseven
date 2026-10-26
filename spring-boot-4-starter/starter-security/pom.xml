@@ -25,6 +25,23 @@
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
+
+    <!-- the OAuth2 integration and SSO logout plugins of the legacy webapps; only present in the legacy-webapps tests -->
+    <dependency>
+      <groupId>org.cibseven.bpm.webapp</groupId>
+      <artifactId>cibseven-webapp-jakarta</artifactId>
+      <version>${version.legacy-webapps}</version>
+      <type>jar</type>
+      <classifier>classes</classifier>
+      <optional>true</optional>
+      <exclusions>
+        <!-- the 2.x POM pulls in 2.x engine-rest artifacts; the current ones come from this build -->
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>cibseven-bpm-spring-boot-starter-rest-4</artifactId>
@@ -206,6 +223,31 @@
                   <directory>${project.build.directory}/generated-test-resources/shared</directory>
                 </resource>
               </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <!-- the OAuth2 tests drive the legacy webapps, whose UI files are no longer in the webjar built here -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-legacy-webapps-for-tests</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.cibseven.bpm.webapp</groupId>
+                  <artifactId>cibseven-webapp-webjar</artifactId>
+                  <version>${version.legacy-webapps}</version>
+                  <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
+                  <includes>META-INF/resources/webjars/camunda/**,META-INF/resources/plugin/**</includes>
+                </artifactItem>
+              </artifactItems>
             </configuration>
           </execution>
         </executions>
