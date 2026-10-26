@@ -145,18 +145,6 @@
     </dependency>
 
     <!--
-      A script engine for the tests that run a model as the agentic suite measures it, with a
-      Groovy script task (CIB7-2166, B11). Pinned for the same reason as h2: the connect reactor
-      does not inherit the engine's version.groovy. Keep it in step with parent/pom.xml.
-    -->
-    <dependency>
-      <groupId>org.apache.groovy</groupId>
-      <artifactId>groovy-jsr223</artifactId>
-      <version>5.0.4</version>
-      <scope>test</scope>
-    </dependency>
-
-    <!--
       CIB7-1944. Declared explicitly although it also arrives transitively through
       cibseven-engine: AdHocToolCatalog imports org.cibseven.bpm.model.bpmn types
       directly, and a direct import should not rely on a transitive path.

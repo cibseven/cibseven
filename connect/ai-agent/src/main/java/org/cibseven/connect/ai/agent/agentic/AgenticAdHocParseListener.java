@@ -46,8 +46,6 @@ import org.cibseven.bpm.engine.impl.core.variable.mapping.value.NullValueProvide
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.DeploymentEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
-import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
-import org.cibseven.bpm.engine.impl.pvm.PvmTransition;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityStartBehavior;
 import org.cibseven.bpm.engine.impl.pvm.process.ProcessDefinitionImpl;
@@ -126,8 +124,11 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
   /** Stateless, so one serves every tool of every scope. */
   protected static final AgenticToolResultCarrier RESULT_CARRIER = new AgenticToolResultCarrier();
 
-  /** Stateless as well: one records for every boundary event on every tool (CIB7-2166). */
-  protected static final AgenticToolEndRecorder END_RECORDER = new AgenticToolEndRecorder();
+  /**
+   * Stateless as well: one records for every boundary event on every tool, as a start listener of
+   * the event and an end listener of the activity it is attached to (CIB7-2166).
+   */
+  protected static final AgenticToolEndRecorder RECORDER = new AgenticToolEndRecorder();
 
   @Override
   public void parseSubProcess(Element scopeElement, ScopeImpl scope, ActivityImpl activity) {
@@ -244,14 +245,9 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
 
     // How a tool ended, when an interrupting boundary event on it, or on an activity further along
     // its chain, ended it: which event, of which kind, and for an error, which code (CIB7-2166).
-    List<ActivityImpl> interrupted = new ArrayList<ActivityImpl>();
     for (ActivityImpl child : activity.getActivities()) {
-      ActivityImpl attachedTo = recordInterruptions(child);
-      if (attachedTo != null && !interrupted.contains(attachedTo)) {
-        interrupted.add(attachedTo);
-      }
+      recordInterruptions(child);
     }
-    assignRewinds(activity, startable, interrupted);
 
     // How a failed turn is retried: the scope's cycle, the engine's, or a default that is not
     // immediate (CIB7-2149). A cycle that cannot be read refuses the deployment.
@@ -269,17 +265,18 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
   /**
    * Makes {@code child}, a child of an agentic scope, record how it interrupted a tool's flow, if
    * it is an interrupting boundary event of a kind that does (see {@link AgenticToolEndRecorder}
-   * for where the recorder sits), and returns the activity it is attached to; else null. A boundary
-   * error event's definition on that activity is replaced by one that remembers the code it caught;
-   * the engine hands the code to the event only through a process variable the modeller has to ask
-   * for (see {@link AgenticCaughtError}). A non-interrupting event ends nothing; a compensation or
-   * cancel event is not one the agent's tools are ended by.
+   * for where the recorder sits). A boundary error event's definition on the activity it is
+   * attached to is replaced by one that remembers the code it caught; the engine hands the code to
+   * the event only through a process variable the modeller has to ask for (see {@link
+   * AgenticCaughtError}). A non-interrupting event ends nothing, and the engine refuses one inside
+   * an ad hoc sub process anyway (CIB7-1967); a compensation or cancel event is not one the
+   * agent's tools are ended by.
    */
-  protected static ActivityImpl recordInterruptions(ActivityImpl child) {
+  protected static void recordInterruptions(ActivityImpl child) {
     String kind = AgenticToolEndRecorder.kindOf(child);
     if (child.getActivityStartBehavior() != ActivityStartBehavior.CANCEL_EVENT_SCOPE
         || kind == null || !(child.getEventScope() instanceof ActivityImpl)) {
-      return null;
+      return;
     }
     ActivityImpl attachedTo = (ActivityImpl) child.getEventScope();
     if (AgenticToolEndRecorder.ERROR.equals(kind)) {
@@ -292,76 +289,17 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
             ? new AgenticCaughtError(definition) : definition);
       }
       attachedTo.getProperties().set(BpmnProperties.ERROR_EVENT_DEFINITIONS, replaced);
-      addRecorder(attachedTo, ExecutionListener.EVENTNAME_END);
     } else {
       addRecorder(child, ExecutionListener.EVENTNAME_START);
     }
-    return attachedTo;
-  }
-
-  /**
-   * Where an interruption is forgotten (CIB7-2166): at the start of every activity of the normal
-   * flow from which an interrupted activity can be reached again, that activity included. When
-   * the flow comes back there, it is again before the interruption, and how it ends now is what
-   * counts; an event's path that leads back to the tool, or to the interrupted activity, and then
-   * ends normally, reports no interruption.
-   *
-   * <p>The normal flow is what the sequence flows reach from the startable children. An activity
-   * only an event's own path reaches is not part of it, so the first activity of that path, which
-   * may well lead back, does not forget the interruption it is handling.
-   */
-  protected static void assignRewinds(ActivityImpl scope, List<String> startable,
-      List<ActivityImpl> interrupted) {
-    if (interrupted.isEmpty()) {
-      return;
-    }
-    List<ActivityImpl> normalFlow = new ArrayList<ActivityImpl>();
-    // The scope's child, a multi-instance body for a multi-instance tool: it has the flows.
-    for (ActivityImpl child : scope.getActivities()) {
-      if (startable.contains(innerActivity(child).getId())) {
-        reach(child, true, normalFlow);
-      }
-    }
-    for (ActivityImpl target : interrupted) {
-      List<ActivityImpl> upstream = new ArrayList<ActivityImpl>();
-      reach(target, false, upstream);
-      String forgotten = AgenticToolEndRecorder.attachedTo(target);
-      for (ActivityImpl activity : upstream) {
-        if (!normalFlow.contains(activity)) {
-          continue;
-        }
-        List<String> rewinds = activity.getProperties().get(AgenticToolEndRecorder.REWINDS);
-        if (rewinds == null) {
-          rewinds = new ArrayList<String>();
-          activity.getProperties().set(AgenticToolEndRecorder.REWINDS, rewinds);
-        }
-        if (!rewinds.contains(forgotten)) {
-          rewinds.add(forgotten);
-        }
-        addRecorder(activity, ExecutionListener.EVENTNAME_START);
-      }
-    }
-  }
-
-  /** Adds {@code from} and what its sequence flows reach, forwards or backwards, to {@code reached}. */
-  protected static void reach(ActivityImpl from, boolean forwards, List<ActivityImpl> reached) {
-    if (reached.contains(from)) {
-      return;
-    }
-    reached.add(from);
-    for (PvmTransition transition : forwards
-        ? from.getOutgoingTransitions() : from.getIncomingTransitions()) {
-      PvmActivity next = forwards ? transition.getDestination() : transition.getSource();
-      if (next instanceof ActivityImpl) {
-        reach((ActivityImpl) next, forwards, reached);
-      }
-    }
+    // Records an error where it cancels, and forgets any interruption once the activity completes.
+    addRecorder(attachedTo, ExecutionListener.EVENTNAME_END);
   }
 
   /** The recorder on {@code activity} for {@code event}, once, however many events need it there. */
   protected static void addRecorder(ActivityImpl activity, String event) {
-    if (!activity.getBuiltInListeners(event).contains(END_RECORDER)) {
-      activity.addBuiltInListener(event, END_RECORDER);
+    if (!activity.getBuiltInListeners(event).contains(RECORDER)) {
+      activity.addBuiltInListener(event, RECORDER);
     }
   }
 

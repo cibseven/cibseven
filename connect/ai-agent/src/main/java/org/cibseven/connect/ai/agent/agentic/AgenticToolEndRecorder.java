@@ -16,14 +16,10 @@
  */
 package org.cibseven.connect.ai.agent.agentic;
 
-import java.util.Collections;
-import java.util.List;
-
 import org.cibseven.bpm.engine.ActivityTypes;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.ExecutionListener;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
-import org.cibseven.bpm.engine.impl.core.model.PropertyKey;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.cibseven.connect.ai.agent.impl.AdHocResults;
@@ -38,18 +34,20 @@ import org.slf4j.LoggerFactory;
  * <p>Without it, the agent learnt only where the flow ended, {@code endedAt}; a tool whose error
  * path ran to its end within the call was even reported as finished.
  *
- * <p>Sits in three places, all set by the parse listener, and tells them apart by the activity and
- * the event it is notified of:
+ * <p>Set by the parse listener in two places, the start of a boundary event and the end of the
+ * activity it is attached to, and does three things, told apart by the activity, the event it is
+ * notified of and how that activity ended:
  * <ul>
  * <li>the start of an interrupting boundary event that is no error event: records it;</li>
  * <li>the end of an activity a boundary error event is attached to, as the error cancels it:
  * records the error with the code {@link AgenticCaughtError} caught. Here, not at the event's
  * start, because that end runs in the command that caught the error, also when the event itself
  * continues asynchronously;</li>
- * <li>the start of an activity the flow passes on its way to an activity a boundary event is
- * attached to, that activity included ({@link #REWINDS}): forgets what that activity's events
- * recorded earlier in the same performance. The flow went back to before the interruption, and
- * how it ends now is what counts.</li>
+ * <li>the end of every activity a boundary event is attached to, when it completes, not
+ * cancelled: forgets what that activity's events recorded earlier in the same performance. An
+ * event's path led back to it, and this time it did its work. Only that repairs an interruption:
+ * a flow that goes back to before the interrupted activity and ends without completing it again
+ * still reports it, and a retry that is still running does too.</li>
  * </ul>
  *
  * <p>Built in, so {@code skipCustomListeners} does not skip it.
@@ -60,14 +58,6 @@ public class AgenticToolEndRecorder implements ExecutionListener {
 
   /** The kind of a boundary error event, the one whose interruption is recorded where it cancels. */
   static final String ERROR = "error";
-
-  /**
-   * The activities, by the id the agent knows them under, an interruption of which is forgotten
-   * as the activity carrying this property starts: those a boundary event is attached to that the
-   * flow can reach from it again along sequence flows, set by the parse listener.
-   */
-  public static final PropertyKey<List<String>> REWINDS =
-      new PropertyKey<List<String>>("agenticRewinds");
 
   /** The kind of boundary event, as the agent is told it, or null for one that ends no tool. */
   public static String kindOf(ActivityImpl boundaryEvent) {
@@ -113,13 +103,11 @@ public class AgenticToolEndRecorder implements ExecutionListener {
         if (caught != null) {
           AdHocResults.recordInterruption(entity, caught.handlerActivityId(),
               attachedTo(activity), ERROR, caught.errorCode(), caught.exceptionClass());
+        } else if (!entity.isCanceled()) {
+          AdHocResults.forgetInterruption(entity, attachedTo(activity));
         }
         return;
       }
-      // Forgotten first: a boundary event, too, may lead back to where it was recorded.
-      List<String> rewinds = activity.getProperties().get(REWINDS);
-      AdHocResults.forgetInterruption(entity,
-          rewinds == null ? Collections.<String>emptyList() : rewinds);
       // An error event gets no start listener; it is recorded where it cancels.
       String kind = kindOf(activity);
       if (kind != null && activity.getEventScope() instanceof ActivityImpl) {

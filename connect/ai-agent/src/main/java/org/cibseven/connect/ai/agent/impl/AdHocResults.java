@@ -268,17 +268,15 @@ public final class AdHocResults {
     }
 
     /**
-     * Forgets an interruption recorded on the performance {@code execution} belongs to, if it
-     * interrupted one of {@code rewinds}: the activity starting now in it lies before that one on
-     * the normal flow, so the flow went back to before the interruption, and how it ends now is
-     * what counts (CIB7-2166). An interruption of another activity stays.
+     * Forgets an interruption of the activity {@code attachedTo} recorded on the performance
+     * {@code execution} belongs to, as that activity completes in it (CIB7-2166): an event's path
+     * led back to it, and this time it did its work. Only that repairs the interruption. A flow
+     * that goes back to before it and ends without completing it again still reports it, and so
+     * does a retry that is still running. An interruption of another activity stays.
      */
-    public static void forgetInterruption(ExecutionEntity execution, List<String> rewinds) {
-        if (rewinds.isEmpty()) {
-            return;
-        }
+    public static void forgetInterruption(ExecutionEntity execution, String attachedTo) {
         ExecutionEntity handle = performanceOf(execution);
-        if (handle != null && rewinds.contains(interruption(handle).get(ATTACHED_TO))) {
+        if (handle != null && attachedTo.equals(interruption(handle).get(ATTACHED_TO))) {
             handle.removeVariableLocal(INTERRUPTED);
         }
     }
