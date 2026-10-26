@@ -15,11 +15,6 @@
   <name>CIB seven - Webapp - Assembly (Tests Only)</name>
   <inceptionYear>2014</inceptionYear>
 
-  <properties>
-    <maven.install.skip>true</maven.install.skip>
-    <maven.deploy.skip>true</maven.deploy.skip>
-  </properties>
-
   <dependencyManagement>
     <dependencies>
       <dependency>

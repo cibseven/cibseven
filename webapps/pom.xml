@@ -16,6 +16,10 @@
   <name>CIB seven - Webapp - Root (Tests Only)</name>
 
   <properties>
+    <!-- test-only modules, nothing here is installed or published -->
+    <maven.install.skip>true</maven.install.skip>
+    <maven.deploy.skip>true</maven.deploy.skip>
+
     <version.jetty>11.0.26</version.jetty>
 
     <history.level>full</history.level>

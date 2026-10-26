@@ -421,6 +421,17 @@
 
   <profiles>
     <profile>
+      <!-- Adds the released 2.x legacy webapps (Cockpit, Tasklist, Admin) back for the tests that
+           still drive the engine through them. Anything built with it must never be published.
+           Defined here rather than in the root POM: activating a profile of the root POM would
+           switch off its activeByDefault distro profiles. -->
+      <id>legacy-webapps</id>
+      <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <skip.central.release>true</skip.central.release>
+      </properties>
+    </profile>
+    <profile>
       <id>license-header-check</id>
       <build>
         <plugins>

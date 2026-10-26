@@ -257,8 +257,6 @@
 
         <module>javaee/ejb-client</module>
 
-        <module>webapps</module>
-
         <module>engine-plugins</module>
 
         <module>distro/webjar</module>
