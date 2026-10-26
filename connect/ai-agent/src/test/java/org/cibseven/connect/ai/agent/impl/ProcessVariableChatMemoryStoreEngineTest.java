@@ -29,11 +29,9 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
-import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 
 import dev.langchain4j.data.message.AiMessage;
@@ -75,8 +73,6 @@ public class ProcessVariableChatMemoryStoreEngineTest {
    */
   private static final ProcessEngine ENGINE = buildInMemoryEngine();
 
-  @RegisterExtension
-  public ProcessEngineRule engineRule = new ProcessEngineRule(ENGINE);
 
   private static ProcessEngine buildInMemoryEngine() {
     StandaloneInMemProcessEngineConfiguration configuration =
@@ -102,9 +98,9 @@ public class ProcessVariableChatMemoryStoreEngineTest {
   @AfterEach
   public void tearDown() {
     readBack = null;
-    engineRule.getRepositoryService().createDeploymentQuery().list()
+    ENGINE.getRepositoryService().createDeploymentQuery().list()
         .forEach(deployment ->
-            engineRule.getRepositoryService().deleteDeployment(deployment.getId(), true));
+            ENGINE.getRepositoryService().deleteDeployment(deployment.getId(), true));
   }
 
   /**
@@ -130,11 +126,11 @@ public class ProcessVariableChatMemoryStoreEngineTest {
 
   @Test
   public void shouldStoreConversationOnTheProcessInstanceAndReadItBackInALaterTransaction() {
-    ProcessInstance instance = engineRule.getRuntimeService()
+    ProcessInstance instance = ENGINE.getRuntimeService()
         .startProcessInstanceByKey("chatMemoryStoreEngineTest");
 
     // ── the write landed at process-instance scope, not on the local execution ──
-    VariableInstance variable = engineRule.getRuntimeService()
+    VariableInstance variable = ENGINE.getRuntimeService()
         .createVariableInstanceQuery()
         .processInstanceIdIn(instance.getId())
         .variableName(VARIABLE_NAME)
@@ -150,11 +146,11 @@ public class ProcessVariableChatMemoryStoreEngineTest {
     assertThat(variable.getTypeName()).isEqualTo("object");
 
     // ── second transaction: the async job runs the reading delegate ──
-    Job job = engineRule.getManagementService().createJobQuery()
+    Job job = ENGINE.getManagementService().createJobQuery()
         .processInstanceId(instance.getId())
         .singleResult();
     assertThat(job).isNotNull();
-    engineRule.getManagementService().executeJob(job.getId());
+    ENGINE.getManagementService().executeJob(job.getId());
 
     assertThat(readBack).hasSize(2);
     assertThat(readBack.get(0)).isInstanceOf(UserMessage.class);
@@ -166,12 +162,12 @@ public class ProcessVariableChatMemoryStoreEngineTest {
 
   @Test
   public void shouldRemoveTheVariableWhenTheProcessInstanceIsDeleted() {
-    ProcessInstance instance = engineRule.getRuntimeService()
+    ProcessInstance instance = ENGINE.getRuntimeService()
         .startProcessInstanceByKey("chatMemoryStoreEngineTest");
 
     assertThat(runtimeVariableCount(instance.getId())).isEqualTo(1);
 
-    engineRule.getRuntimeService().deleteProcessInstance(instance.getId(), "test");
+    ENGINE.getRuntimeService().deleteProcessInstance(instance.getId(), "test");
 
     // Chat memory ends with the process instance — this is why the store needs no
     // retention configuration of its own.
@@ -179,7 +175,7 @@ public class ProcessVariableChatMemoryStoreEngineTest {
   }
 
   private long runtimeVariableCount(String processInstanceId) {
-    return engineRule.getRuntimeService().createVariableInstanceQuery()
+    return ENGINE.getRuntimeService().createVariableInstanceQuery()
         .processInstanceIdIn(processInstanceId)
         .variableName(VARIABLE_NAME)
         .count();
@@ -205,12 +201,12 @@ public class ProcessVariableChatMemoryStoreEngineTest {
         + "  </process>"
         + "</definitions>";
 
-    engineRule.getRepositoryService()
+    ENGINE.getRepositoryService()
         .createDeployment()
         .addString("chatMemoryStoreEngineTest.bpmn20.xml", bpmn)
         .deploy();
 
-    ProcessDefinition definition = engineRule.getRepositoryService()
+    ProcessDefinition definition = ENGINE.getRepositoryService()
         .createProcessDefinitionQuery()
         .processDefinitionKey("chatMemoryStoreEngineTest")
         .singleResult();

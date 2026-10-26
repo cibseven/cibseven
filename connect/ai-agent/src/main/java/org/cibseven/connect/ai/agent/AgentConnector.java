@@ -225,7 +225,11 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * active and this parameter is {@code null} or empty, the connector generates
    * a new UUID and exposes it as the {@link #PARAM_NAME_MEMORY_ID} output so
    * the caller can persist it (e.g. into a process variable) and pass it back
-   * on the next invocation.
+   * on the next invocation. An AI agent task that the agent of an agentic ad hoc
+   * sub process calls as a tool gets an id derived from the sub process instead:
+   * with {@code perEntry} its calls share one conversation within an entry, with
+   * {@code perActivity} one across all entries. It stays a process variable until
+   * the process instance ends.
    */
   String PARAM_NAME_MEMORY_ID = "memoryId";
 
