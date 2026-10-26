@@ -154,6 +154,7 @@
   </profiles>
 
   <build>
+    <defaultGoal>clean install</defaultGoal>
     <pluginManagement>
       <plugins>
         <plugin>
@@ -180,8 +181,6 @@
           <configuration>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
             <trimStackTrace>false</trimStackTrace>
-            <systemPropertyVariables>
-            </systemPropertyVariables>
           </configuration>
         </plugin>
         <!-- set jwtSecret for all starter tests -->        
