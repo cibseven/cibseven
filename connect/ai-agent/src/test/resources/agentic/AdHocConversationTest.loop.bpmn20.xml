@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- One ad hoc scope, asked for cibseven.agentic.conversation = perActivity, entered a second
+     time through a gateway loop: a feedback loop's shape without the feedback task itself,
+     which the mechanics under test do not need. The holder lives under "outer", one level
+     above the scope, and survives the scope ending and restarting between the two entries. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-conversation-loop">
+  <process id="conversationLoop" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="outer" />
+    <subProcess id="outer">
+      <startEvent id="outerStart" />
+      <sequenceFlow id="o1" sourceRef="outerStart" targetRef="adHocLoopPerActivity" />
+      <adHocSubProcess id="adHocLoopPerActivity">
+        <serviceTask id="enter"
+            camunda:class="org.cibseven.connect.ai.agent.agentic.AdHocConversationTest$EnterAndRecord" />
+      </adHocSubProcess>
+      <sequenceFlow id="o2" sourceRef="adHocLoopPerActivity" targetRef="gw" />
+      <exclusiveGateway id="gw" />
+      <sequenceFlow id="toLoop" sourceRef="gw" targetRef="adHocLoopPerActivity">
+        <conditionExpression xsi:type="tFormalExpression">${loopAgain}</conditionExpression>
+      </sequenceFlow>
+      <sequenceFlow id="toEnd" sourceRef="gw" targetRef="outerEnd">
+        <conditionExpression xsi:type="tFormalExpression">${!loopAgain}</conditionExpression>
+      </sequenceFlow>
+      <endEvent id="outerEnd" />
+    </subProcess>
+    <sequenceFlow id="f2" sourceRef="outer" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>
