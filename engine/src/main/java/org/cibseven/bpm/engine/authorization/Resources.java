@@ -41,7 +41,17 @@ public enum Resources implements Resource {
   TENANT_MEMBERSHIP(EntityTypes.TENANT_MEMBERSHIP, 12),
   BATCH(EntityTypes.BATCH, 13),
   DECISION_REQUIREMENTS_DEFINITION(EntityTypes.DECISION_REQUIREMENTS_DEFINITION, 14),
+  /**
+   * @deprecated Nothing in CIB seven checks this resource, so authorizations on it have no effect.
+   * It was only used by the reports of the former Cockpit webapp and will be removed in a future major version.
+   */
+  @Deprecated
   REPORT(EntityTypes.REPORT, 15),
+  /**
+   * @deprecated Nothing in CIB seven checks this resource, so authorizations on it have no effect.
+   * It was only used by the dashboards of the former Cockpit webapp and will be removed in a future major version.
+   */
+  @Deprecated
   DASHBOARD(EntityTypes.DASHBOARD, 16),
   OPERATION_LOG_CATEGORY(EntityTypes.OPERATION_LOG_CATEGORY, 17),
   @Deprecated
