@@ -3483,7 +3483,9 @@ public class AgenticTurnJobTest {
 
   /**
    * An activity further along a tool's chain cancelled from outside: reported under the tool the
-   * agent called, not under the activity cancelled.
+   * agent called, not under the activity cancelled. The tool ran, its request is out: the model is
+   * told the flow was cancelled at that activity, not that the tool did not complete, which could
+   * make it send the request again.
    */
   @Test
   public void aChainCancelledFurtherAlongIsReportedUnderTheTool() throws IOException {
@@ -3491,8 +3493,13 @@ public class AgenticTurnJobTest {
 
     assertThat(report)
         .contains("\"activityId\":\"anfragen\"")
-        .contains("\"status\":\"cancelled\"")
-        .doesNotContain("\"activityId\":\"warten\"");
+        .contains("\"endedAt\":\"warten\"")
+        .contains("'anfragen' ran; its flow was then cancelled at 'warten' from outside the agent")
+        .contains("Do not wait for it.")
+        .doesNotContain("\"activityId\":\"warten\"")
+        .doesNotContain("\"status\":\"cancelled\"")
+        .doesNotContain("did not complete")
+        .doesNotContain("produced no results");
   }
 
   /**

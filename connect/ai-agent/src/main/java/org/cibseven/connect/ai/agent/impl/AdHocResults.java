@@ -205,10 +205,14 @@ public final class AdHocResults {
 
     /**
      * Records that the child {@code removed} of the agentic scope {@code scope} was removed without
-     * ending: cancelled from outside, by a process instance modification (CIB7-2166). It produced
-     * nothing the agent can be shown, and its variables are gone; only which tool it was is read.
+     * ending: cancelled from outside, by a process instance modification (CIB7-2166). Its variables
+     * are gone; only which tool it was, and where its flow was when it was cancelled, are read.
      * The agent is told, so it does not go on waiting for it. A child that is not one of the
      * scope's tools records nothing.
+     *
+     * <p>Where the flow was matters: cancelled at an activity further along the tool's chain, the
+     * tool itself ran, and what it did, such as sending a request, is done. Telling the model that
+     * the tool did not complete could make it call the tool again.
      */
     public static void removed(ExecutionEntity scope, ExecutionEntity removed) {
         PvmActivity removedIn = removed.getActivity();
@@ -223,6 +227,9 @@ public final class AdHocResults {
         }
         Map<String, Object> entry = new TreeMap<String, Object>();
         entry.put(ACTIVITY_ID, toolId);
+        if (activity != null && !activity.getId().equals(toolId)) {
+            entry.put(ENDED_AT, activity.getId());
+        }
         entry.put(ACTIVATION_ID, removed.getId());
         entry.put(VALUES, new TreeMap<String, Object>());
         entry.put(CANCELLED, Boolean.TRUE);
@@ -556,7 +563,11 @@ public final class AdHocResults {
      * Puts how the performance of a gathered entry ended into {@code into}, the shape the model is
      * shown, and returns what to tell the model about it, or null (CIB7-2166): where its flow
      * ended, when elsewhere; {@code interruptedBy}, when a boundary event interrupted its flow;
-     * {@code status} {@code cancelled}, when it was removed from outside.
+     * that it was removed from outside, when it was.
+     *
+     * <p>{@code status} {@code cancelled} only when the tool itself was cancelled. Cancelled at an
+     * activity further along its chain, the tool ran: the model is told that its flow was
+     * cancelled there, not that the tool did not complete, as for an interruption further along.
      *
      * <p>{@code interruptedBy} is a list, oldest first, of every interruption nothing repaired.
      * {@code status} {@code interrupted} when one of them sat on the tool itself, which then did
@@ -577,6 +588,12 @@ public final class AdHocResults {
         }
         Object tool = gathered.get(ACTIVITY_ID);
         if (Boolean.TRUE.equals(gathered.get(CANCELLED))) {
+            Object at = gathered.get(ENDED_AT);
+            if (at != null) {
+                return "'" + tool + "' ran; its flow was then cancelled at '" + at + "' from outside"
+                        + " the agent, for example by a process instance modification, so its results"
+                        + " could not be read. Do not wait for it.";
+            }
             into.put("status", "cancelled");
             return "'" + tool + "' did not complete: it was cancelled from outside the agent, for"
                     + " example by a process instance modification, and produced no results. Do not"
