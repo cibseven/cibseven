@@ -58,6 +58,19 @@ import dev.langchain4j.agent.tool.Tool;
  * {@link ProcessStarterToolContext}, populated by {@link AgentConnectorImpl}
  * from {@code IdentityService.getCurrentAuthentication()} at the start of the
  * connector invocation.
+ *
+ * <h3>Lifecycle</h3>
+ * The {@code ENGINE_EXECUTOR} backing the cross-thread engine calls is a
+ * static, JVM-scoped cached daemon-thread pool. In a plain JVM run it dies
+ * with the process. On hot-redeploy environments (Spring Boot DevTools,
+ * Tomcat/Wildfly redeploy, OSGi bundle reload) the daemon threads would
+ * outlive the reloaded JAR and pin the old {@code ClassLoader} — a
+ * Metaspace leak that surfaces only after several reload cycles. To
+ * release the pool deterministically, Spring deployments should call
+ * {@link #shutdownExecutor()} from a {@code @PreDestroy} hook on the
+ * Spring context (see {@code AgentConnectorExecutorLifecycle} in the
+ * {@code distro/run/core} module). The call is idempotent and safe to
+ * invoke from multiple lifecycles.
  */
 public class ProcessStarterTool {
 
@@ -76,17 +89,61 @@ public class ProcessStarterTool {
      * the common pool is sized for CPU-bound parallel work and is shared with
      * the rest of the JVM (e.g. parallel streams), so blocking it would
      * degrade unrelated workloads.
+     *
+     * <p>Field is {@code volatile} so that {@link #resetExecutorForTesting()}
+     * (which swaps in a fresh pool after a shutdown) publishes its write
+     * safely to other threads. See {@link #shutdownExecutor()}.
      */
-    private static final ExecutorService ENGINE_EXECUTOR = Executors.newCachedThreadPool(
-            new ThreadFactory() {
-                private final AtomicInteger seq = new AtomicInteger();
-                @Override
-                public Thread newThread(Runnable r) {
-                    Thread t = new Thread(r, "cibseven-agent-tool-" + seq.incrementAndGet());
-                    t.setDaemon(true);
-                    return t;
-                }
-            });
+    private static volatile ExecutorService ENGINE_EXECUTOR = createEngineExecutor();
+
+    private static ExecutorService createEngineExecutor() {
+        return Executors.newCachedThreadPool(new ThreadFactory() {
+            private final AtomicInteger seq = new AtomicInteger();
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r, "cibseven-agent-tool-" + seq.incrementAndGet());
+                t.setDaemon(true);
+                return t;
+            }
+        });
+    }
+
+    /**
+     * Shuts down the {@code ENGINE_EXECUTOR} thread pool so its worker
+     * threads can be reclaimed by the garbage collector. Spring deployments
+     * should invoke this from a {@code @PreDestroy} hook on the application
+     * context so the pool is released on context close (Spring Boot DevTools
+     * reload, app-server stop, JVM exit). Non-Spring deployments running on
+     * a single long-lived JVM do not need to call this — the daemon threads
+     * die with the process.
+     *
+     * <p>Idempotent and thread-safe: a no-op if the executor is already
+     * terminated. Once shut down, the pool is not automatically re-created;
+     * callers that need a fresh pool (e.g. tests) must use
+     * {@link #resetExecutorForTesting()}.
+     */
+    public static void shutdownExecutor() {
+        ExecutorService current = ENGINE_EXECUTOR;
+        if (current == null || current.isShutdown()) {
+            return;
+        }
+        LOG.debug("Shutting down ProcessStarterTool ENGINE_EXECUTOR");
+        current.shutdownNow();
+    }
+
+    /**
+     * Replaces the {@code ENGINE_EXECUTOR} with a fresh pool. Test-only
+     * seam — production code never resets the pool. The previous pool is
+     * shut down first to release its threads. Package-private; do not
+     * call from outside the test source set.
+     */
+    static void resetExecutorForTesting() {
+        ExecutorService previous = ENGINE_EXECUTOR;
+        ENGINE_EXECUTOR = createEngineExecutor();
+        if (previous != null && !previous.isShutdown()) {
+            previous.shutdownNow();
+        }
+    }
 
     @Tool("Starts a CIB seven process by its definition key, polls until it ends (or until the "
             + "retry budget is exhausted) and returns its output variables. The result map "
