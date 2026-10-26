@@ -160,7 +160,8 @@ setlocal disabledelayedexpansion
 
 REM AI Agent connector: shipped separately in configuration\userlib-ai and only
 REM added to the classpath when enabled (default mode on; --production off unless
-REM --ai / --agent or the AI_AGENT_ENABLED env var is set).
+REM --ai / --agent or the AI_AGENT_ENABLED env var is set). The same switch covers
+REM agentic ad hoc sub processes: their engine plugin ships in the same jar (CIB7-2145).
 SET aiAgentEnabled=true
 IF [%productionChosen%]==[true] SET aiAgentEnabled=false
 IF [%aiAgentChosen%]==[true] SET aiAgentEnabled=true
@@ -204,7 +205,8 @@ ECHO   --oauth2     - Enables the CIB seven Spring Security OAuth2 integration
 ECHO   --rest       - Enables the REST API
 ECHO   --example    - Enables the example application
 ECHO   --production - Applies the production.yaml configuration file
-ECHO   --ai         - Enables the AI Agent connector (on by default; off under --production unless set)
+ECHO   --ai         - Enables the AI Agent connector and agentic ad hoc sub processes
+ECHO                  (on by default; off under --production unless set)
 ECHO   --detached   - Starts CIB seven Run as a detached process
 
 :End

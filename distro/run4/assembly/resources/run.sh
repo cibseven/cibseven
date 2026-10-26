@@ -15,7 +15,8 @@ OPTIONS_HELP="Options:
   --rest       - Enables the REST API
   --example    - Enables the example application
   --production - Applies the production.yaml configuration file
-  --ai         - Enables the AI Agent connector (on by default; off under --production unless set)
+  --ai         - Enables the AI Agent connector and agentic ad hoc sub processes
+                 (on by default; off under --production unless set)
   --detached   - Starts CIB seven Run as a detached process
 "
 
@@ -131,7 +132,8 @@ if [ "$1" = "start" ] ; then
   # added to the classpath when enabled. Enabled by default in default/dev mode,
   # disabled under --production unless re-enabled with --ai / --agent. The
   # AI_AGENT_ENABLED environment variable (true/false) overrides the above and is
-  # the control surface used by the docker image.
+  # the control surface used by the docker image. The same switch covers agentic ad
+  # hoc sub processes: their engine plugin ships in the same jar (CIB7-2145).
   aiAgentEnabled=true
   if [ "$productionChosen" = "true" ]; then
     aiAgentEnabled=false
