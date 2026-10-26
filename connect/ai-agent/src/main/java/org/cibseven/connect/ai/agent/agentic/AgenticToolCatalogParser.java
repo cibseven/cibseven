@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -146,6 +147,12 @@ public final class AgenticToolCatalogParser {
    * hoc scope it was deployed as, and a broken tool, parameter or setting is left out. The engine
    * treats its own checks that depend on the configuration the same way, as the history time to
    * live.
+   *
+   * <p>The rule for a check added after a release: on a parse again it leaves out the part it
+   * refuses, a tool, a parameter or a setting, never the agent. "Loads as it was deployed, without
+   * the agent" holds only for a model deployed while the agent was off. One deployed with the agent
+   * on, before the check existed, ran with its agent, and its instances wait for turns that only
+   * the agent gives; without it they would wait for ever.
    */
   public static final class Parsing {
 
@@ -154,10 +161,18 @@ public final class AgenticToolCatalogParser {
 
     protected final String processKey;
     protected final boolean newDeployment;
+    /** Which definition is parsed again, in words for the log, read only when it logs. */
+    protected final Supplier<String> definition;
 
     public Parsing(String processKey, boolean newDeployment) {
+      this(processKey, newDeployment, null);
+    }
+
+    /** @param definition which definition is parsed again, in words for the log, or null */
+    public Parsing(String processKey, boolean newDeployment, Supplier<String> definition) {
       this.processKey = processKey;
       this.newDeployment = newDeployment;
+      this.definition = definition;
     }
 
     /** Runs the check: it refuses a deployment, and only logs on a parse again. */
@@ -189,9 +204,11 @@ public final class AgenticToolCatalogParser {
       if (newDeployment) {
         throw refusal;
       }
-      LOG.warn("Process '{}' is parsed again, not deployed, and a deployment of it would now be"
+      LOG.warn("Process '{}'{} is parsed again, not deployed, and a deployment of it would now be"
           + " refused: {} It was deployed when nothing checked this, so {}."
-          + " Deploy a corrected version.", processKey, refusal.getMessage(), instead);
+          + " Deploy a corrected version.", processKey,
+          (definition == null) ? "" : " (" + definition.get() + ")", refusal.getMessage(),
+          instead);
     }
   }
 

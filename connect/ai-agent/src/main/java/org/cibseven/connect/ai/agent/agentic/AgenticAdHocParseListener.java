@@ -80,7 +80,8 @@ import org.slf4j.LoggerFactory;
  * made while the agent was off, after a restart, a cache eviction or on another node, is not
  * refused: that would stop every instance of it. Its refusals are logged instead, and it loads
  * without what they refuse: a scope no agent can run as the plain scope it was deployed as, a
- * broken tool or setting left out (CIB7-2136, CIB7-2367).
+ * broken tool or setting left out (CIB7-2136, CIB7-2367). A check added after a release leaves
+ * out the part, never the agent: see {@link AgenticToolCatalogParser.Parsing}.
  *
  * <p>Registered as a <em>post</em> parse listener. It needs the behaviour, the children and their
  * sequence flows, none of which exist while the scope is being built.
@@ -530,18 +531,34 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
    * in the same command, before it parses it ({@code ResourceDefinitionCache}); a new one carries
    * the mark from its deployment. Outside a command, as when a model is only validated, it counts
    * as a deployment.
+   *
+   * <p>A definition parsed again is named in the log by its version, id, deployment and tenant, so
+   * an operator finds which one to correct. The version is not parsed but stored, so it is read
+   * only when something is logged.
    */
   protected static AgenticToolCatalogParser.Parsing parsing(ProcessDefinitionImpl definition) {
     if (!(definition instanceof ProcessDefinitionEntity)) {
       return new AgenticToolCatalogParser.Parsing(definition.getId(), true);
     }
     ProcessDefinitionEntity entity = (ProcessDefinitionEntity) definition;
-    CommandContext commandContext = Context.getCommandContext();
-    DeploymentEntity deployment = (commandContext == null || entity.getDeploymentId() == null)
+    final CommandContext commandContext = Context.getCommandContext();
+    final String key = entity.getKey();
+    final String deploymentId = entity.getDeploymentId();
+    final String tenantId = entity.getTenantId();
+    DeploymentEntity deployment = (commandContext == null || deploymentId == null)
         ? null
-        : commandContext.getDeploymentManager().findDeploymentById(entity.getDeploymentId());
-    return new AgenticToolCatalogParser.Parsing(entity.getKey(),
-        deployment == null || deployment.isNew());
+        : commandContext.getDeploymentManager().findDeploymentById(deploymentId);
+    if (deployment == null || deployment.isNew()) {
+      return new AgenticToolCatalogParser.Parsing(key, true);
+    }
+    return new AgenticToolCatalogParser.Parsing(key, false, () -> {
+      ProcessDefinitionEntity stored = commandContext.getProcessDefinitionManager()
+          .findProcessDefinitionByDeploymentAndKey(deploymentId, key);
+      return ((stored == null) ? ""
+              : "version " + stored.getVersion() + ", definition '" + stored.getId() + "', ")
+          + "deployment '" + deploymentId + "', "
+          + ((tenantId == null) ? "no tenant" : "tenant '" + tenantId + "'");
+    });
   }
 
   /**

@@ -41,6 +41,7 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.cibseven.bpm.engine.impl.pvm.process.ProcessDefinitionImpl;
+import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.ActivityInstance;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
@@ -109,7 +110,10 @@ public class AgenticReparseTest {
     }
   }
 
-  /** A plain process that uses the function outside every agent, deployed with the agent off. */
+  /**
+   * A plain process that uses the function outside every agent, deployed with the agent off. The
+   * log names the definition parsed again: its version, id, deployment and tenant.
+   */
   @Test
   public void aPlainModelDeployedWithTheAgentOffGoesOnOnceTheAgentIsOn(TestInfo test) {
     ProcessEngine off = engineWithoutTheAgent(test);
@@ -117,10 +121,15 @@ public class AgenticReparseTest {
         + "<camunda:inputOutput><camunda:inputParameter name='vorschlag'>"
         + "${toolParameter(toolCall.betrag)}</camunda:inputParameter></camunda:inputOutput>"
         + "</extensionElements></userTask>");
-    deploy(off, model);
-    ProcessInstance pi = off.getRuntimeService().startProcessInstanceByKey("plainProcess",
-        Collections.<String, Object>singletonMap("toolCall",
-            Collections.<String, Object>singletonMap("betrag", 5L)));
+    off.getRepositoryService().createDeployment().tenantId("mandant")
+        .addString("reparse.bpmn20.xml", model).deploy();
+    ProcessDefinition definition =
+        off.getRepositoryService().createProcessDefinitionQuery().singleResult();
+    ProcessInstance pi = off.getRuntimeService().createProcessInstanceByKey("plainProcess")
+        .processDefinitionTenantId("mandant")
+        .setVariables(Collections.<String, Object>singletonMap("toolCall",
+            Collections.<String, Object>singletonMap("betrag", 5L)))
+        .execute();
     ProcessEngine on = engineWithTheAgent(test);
     recordWarnings();
 
@@ -130,8 +139,10 @@ public class AgenticReparseTest {
     assertThat(on.getRuntimeService().createProcessInstanceQuery()
         .processInstanceId(pi.getId()).count()).as("the instance went on, and ended").isZero();
     assertThat(warnings()).anySatisfy(warning -> assertThat(warning)
-        .contains("Process 'plainProcess' is parsed again, not deployed, and a deployment of it"
-            + " would now be refused: Process 'plainProcess', element 'plain':"
+        .contains("Process 'plainProcess' (version 1, definition '" + definition.getId()
+            + "', deployment '" + definition.getDeploymentId() + "', tenant 'mandant') is parsed"
+            + " again, not deployed, and a deployment of it would now be refused: Process"
+            + " 'plainProcess', element 'plain':"
             + " toolParameter(...) in inputParameter 'vorschlag' declares nothing.")
         .contains("so it loads as it is. Deploy a corrected version."));
     assertThatThrownBy(() -> deploy(on, model)).as("a new deployment is still refused")
@@ -170,7 +181,8 @@ public class AgenticReparseTest {
     assertThat(catalog.get(0).getParameters()).extracting(AdHocToolDescriptor.Parameter::getName)
         .as("'menge' with its unknown type is left out").containsExactly("preis");
     assertThat(warnings()).anySatisfy(warning -> assertThat(warning)
-        .contains("Process 'agenticScope' is parsed again")
+        .contains("Process 'agenticScope' (version 1, definition '" + definitionId + "'")
+        .contains("is parsed again")
         .contains("the type 'money' is not supported"));
     assertThat(warnings()).anySatisfy(warning -> assertThat(warning)
         .contains("toolCall.prei is read, but no toolParameter(toolCall.prei, ...) of this tool"
@@ -502,8 +514,10 @@ public class AgenticReparseTest {
     ProcessEngine off = engineWithoutTheAgent(test);
     String model = process("agenticScope", scope);
     deploy(off, model);
-    String definitionId = off.getRepositoryService().createProcessDefinitionQuery()
-        .singleResult().getId();
+    ProcessDefinition definition =
+        off.getRepositoryService().createProcessDefinitionQuery().singleResult();
+    String definitionId = definition.getId();
+    String deploymentId = definition.getDeploymentId();
     ProcessInstance goesOn = off.getRuntimeService().startProcessInstanceByKey("agenticScope");
     ProcessInstance deleted = off.getRuntimeService().startProcessInstanceByKey("agenticScope");
     ProcessEngine on = engineWithTheAgent(test);
@@ -528,8 +542,9 @@ public class AgenticReparseTest {
     assertThat(on.getRuntimeService().createProcessInstanceQuery()
         .processInstanceId(deleted.getId()).count()).as("the instance is deleted").isZero();
     assertThat(warnings()).anySatisfy(warning -> assertThat(warning)
-        .contains("Process 'agenticScope' is parsed again, not deployed, and a deployment of it"
-            + " would now be refused")
+        .contains("Process 'agenticScope' (version 1, definition '" + definitionId
+            + "', deployment '" + deploymentId + "', no tenant) is parsed again, not deployed, and"
+            + " a deployment of it would now be refused")
         .contains(refused)
         .contains("so " + instead + ". Deploy a corrected version."));
     assertThatThrownBy(() -> deploy(on, model)).as("a new deployment is still refused")
