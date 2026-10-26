@@ -47,32 +47,37 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
   org.cibseven.webapp.SevenWebclientContext.class
 })
 @Configuration
+@ConditionalOnProperty(prefix = WebappProperty.PREFIX, name = "enabled", matchIfMissing = true)
 @ConditionalOnBean(CamundaBpmProperties.class)
 @ConditionalOnWebApplication
 @AutoConfigureAfter(CamundaBpmAutoConfiguration.class)
 public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer, WebMvcRegistrations {
 
   @Autowired
-  private ResourceLoader resourceLoader;
-
-  @Autowired
   private CamundaBpmProperties properties;
 
-  // This conditionally enabled/disabled LegacyWebappConfiguration should be completely removed 
-  // when the legacy webapps is completely removed and the webapps related tests are ported to the webclient
+  // The legacy webapps (Cockpit, Tasklist, Admin) are no longer shipped. This configuration only
+  // serves the tests that still drive the engine through them (-Plegacy-webapps) and goes away
+  // together with those tests.
   @Configuration
   @ConditionalOnProperty(prefix = WebappProperty.PREFIX, name = "installed", havingValue = "true")
   @ConditionalOnResource(resources = "classpath:/META-INF/resources/webjars/camunda/securityFilterRules.json")
   @ConditionalOnClass(name = "org.cibseven.bpm.cockpit.impl.web.bootstrap.CockpitContainerBootstrap")
-  static class LegacyWebappConfiguration {
+  static class LegacyWebappConfiguration implements WebMvcConfigurer {
+
+    private final CamundaBpmProperties properties;
+
+    LegacyWebappConfiguration(CamundaBpmProperties properties) {
+      this.properties = properties;
+    }
 
     @Bean
-    public CamundaBpmWebappInitializer camundaBpmWebappInitializer(CamundaBpmProperties properties) {
+    public CamundaBpmWebappInitializer camundaBpmWebappInitializer() {
       return new CamundaBpmWebappInitializer(properties);
     }
 
     @Bean(name = "resourceLoaderDependingInitHook")
-    public InitHook<ResourceLoaderDependingFilter> resourceLoaderDependingInitHook(ResourceLoader resourceLoader, CamundaBpmProperties properties) {
+    public InitHook<ResourceLoaderDependingFilter> resourceLoaderDependingInitHook(ResourceLoader resourceLoader) {
       return filter -> {
         filter.setResourceLoader(resourceLoader);
         filter.setWebappProperty(properties.getWebapp());
@@ -83,11 +88,30 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer, WebM
     public LazyInitRegistration lazyInitRegistration() {
       return new LazyInitRegistration();
     }
-  }
 
-  @Bean
-  public FaviconResourceResolver faviconResourceResolver() {
-    return new FaviconResourceResolver();
+    @Bean
+    public FaviconResourceResolver faviconResourceResolver() {
+      return new FaviconResourceResolver();
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+      final String legacyClasspath = "classpath:" + properties.getWebapp().getLegacyWebjarClasspath();
+      String legacyApplicationPath = properties.getWebapp().getLegacyApplicationPath();
+
+      registry.addResourceHandler(legacyApplicationPath + "/lib/**")
+          .addResourceLocations(legacyClasspath + "/lib/");
+      registry.addResourceHandler(legacyApplicationPath + "/api/**")
+          .addResourceLocations("classpath:/api/");
+      registry.addResourceHandler(legacyApplicationPath + "/app/**")
+          .addResourceLocations(legacyClasspath + "/app/");
+      registry.addResourceHandler(legacyApplicationPath + "/assets/**")
+          .addResourceLocations(legacyClasspath + "/assets/");
+      registry.addResourceHandler(legacyApplicationPath + "/favicon.ico")
+          .addResourceLocations(legacyClasspath + "/") // add slash to get rid of the WARN log
+          .resourceChain(true)
+          .addResolver(faviconResourceResolver());
+    }
   }
 
   @Override
@@ -100,25 +124,8 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer, WebM
 
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
-    final String legacyClasspath = "classpath:" + properties.getWebapp().getLegacyWebjarClasspath();
     WebappProperty webapp = properties.getWebapp();
-    String legacyApplicationPath = webapp.getLegacyApplicationPath();
-
-    registry.addResourceHandler(legacyApplicationPath + "/lib/**")
-        .addResourceLocations(legacyClasspath + "/lib/");
-    registry.addResourceHandler(legacyApplicationPath + "/api/**")
-        .addResourceLocations("classpath:/api/");
-    registry.addResourceHandler(legacyApplicationPath + "/app/**")
-        .addResourceLocations(legacyClasspath + "/app/");
-    registry.addResourceHandler(legacyApplicationPath + "/assets/**")
-        .addResourceLocations(legacyClasspath + "/assets/");
-    registry.addResourceHandler(legacyApplicationPath + "/favicon.ico")
-        .addResourceLocations(legacyClasspath + "/") // add slash to get rid of the WARN log
-        .resourceChain(true)
-        .addResolver(faviconResourceResolver());
-
-     registry.addResourceHandler(webapp.getApplicationPath() + "/**").addResourceLocations("classpath:" + webapp.getWebjarClasspath()+ "/");
-
+    registry.addResourceHandler(webapp.getApplicationPath() + "/**").addResourceLocations("classpath:" + webapp.getWebjarClasspath()+ "/");
   }
 
   @Override
