@@ -47,6 +47,10 @@ import org.cibseven.bpm.application.ProcessApplicationExecutionException;
 import org.cibseven.bpm.application.ProcessApplicationInterface;
 import org.cibseven.bpm.application.impl.EmbeddedProcessApplication;
 import org.cibseven.bpm.engine.OptimisticLockingException;
+import org.cibseven.bpm.engine.delegate.BpmnError;
+import org.cibseven.bpm.engine.delegate.DelegateExecution;
+import org.cibseven.bpm.engine.delegate.Expression;
+import org.cibseven.bpm.engine.delegate.JavaDelegate;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.history.HistoricVariableInstance;
@@ -2550,6 +2554,177 @@ public class AgenticTurnJobTest {
         .contains("\"endedAt\":\"warten\"")
         .contains("\"status\":\"gesendet\"");
     assertThat(alive(pi)).isFalse();
+  }
+
+  /** Throws the BPMN error whose code its field {@code code} names. */
+  public static class ThrowsTheCode implements JavaDelegate {
+    private Expression code;
+
+    public void setCode(Expression code) {
+      this.code = code;
+    }
+
+    @Override
+    public void execute(DelegateExecution execution) {
+      throw new BpmnError(String.valueOf(code.getValue(execution)));
+    }
+  }
+
+  /** A tool that throws {@code code}, the boundary event {@code catching} on it, and its path. */
+  protected static String failingTool(String code, String catching) {
+    return "      <serviceTask id='buchen' name='Buchen' camunda:class='"
+        + ThrowsTheCode.class.getName() + "'><extensionElements>"
+        + "<camunda:field name='code' stringValue='" + code + "' /></extensionElements>"
+        + "</serviceTask>"
+        + "      <boundaryEvent id='fachfehler' attachedToRef='buchen'>" + catching
+        + "</boundaryEvent>"
+        + "      <sequenceFlow id='e1' sourceRef='fachfehler' targetRef='fehlerMerken' />"
+        + "      <serviceTask id='fehlerMerken' name='Fehler merken'"
+        + " camunda:expression=\"${'kein Bestand'}\" camunda:resultVariable='fehler' />";
+  }
+
+  /**
+   * B11: a tool whose BPMN error is caught on its boundary, and whose error path runs to its end
+   * within the call, is not reported as finished: the tool result names the error's code and the
+   * boundary event (CIB7-2166).
+   */
+  @Test
+  public void aToolEndedByABpmnErrorWithinItsCallIsReportedWithTheErrorsCode() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Kein Bestand."));
+    startWith(failingTool("KEIN_BESTAND", "<errorEventDefinition errorRef='KEIN_BESTAND' />"));
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"boundaryEvent\":\"fachfehler\"")
+        .contains("\"eventType\":\"error\"")
+        .contains("\"errorCode\":\"KEIN_BESTAND\"")
+        .contains("\"endedAt\":\"fehlerMerken\"")
+        .doesNotContain("\"status\":\"finished\"");
+  }
+
+  /**
+   * A boundary event that catches every error is told the code that was thrown, which the model
+   * names nowhere, without an errorCodeVariable (CIB7-2166).
+   */
+  @Test
+  public void aCatchAllBoundaryEventReportsTheCodeThatWasThrown() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Gescheitert."));
+    startWith(failingTool("GESPERRT", "<errorEventDefinition />"));
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"errorCode\":\"GESPERRT\"");
+  }
+
+  /**
+   * The modeller's errorCodeVariable still gets the code: the agent's own definition takes it over
+   * with everything else the engine's had.
+   */
+  @Test
+  public void theModellersErrorCodeVariableStillGetsTheCode() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Gescheitert."));
+    ProcessInstance pi = startWith(failingTool("GESPERRT",
+        "<errorEventDefinition camunda:errorCodeVariable='grund' />")
+        .replace("<serviceTask id='fehlerMerken' name='Fehler merken'",
+            "<userTask id='fehlerMerken' name='Fehler merken'")
+        .replace(" camunda:expression=\"${'kein Bestand'}\" camunda:resultVariable='fehler' />",
+            " />"));
+
+    runWaitingTurn();
+
+    assertThat(engine.getRuntimeService().getVariable(pi.getId(), "grund")).isEqualTo("GESPERRT");
+    assertThat(toolResults(requestBodies.get(1)))
+        .as("the error path waits for a person, so the tool still runs, interrupted")
+        .contains("\"status\":\"waiting\"")
+        .contains("\"interruptedBy\"")
+        .contains("\"errorCode\":\"GESPERRT\"");
+  }
+
+  /** A tool that completes is reported as before: finished, with no word of an interruption. */
+  @Test
+  public void aToolThatCompletesIsStillReportedAsFinished() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Gebucht."));
+    startWith("      <serviceTask id='buchen' name='Buchen' camunda:expression='${true}' />"
+        + "      <boundaryEvent id='fachfehler' attachedToRef='buchen'>"
+        + "<errorEventDefinition /></boundaryEvent>");
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"finished\"")
+        .doesNotContain("interrupted")
+        .doesNotContain("endedBy");
+  }
+
+  /**
+   * B12: a waiting tool ended by the timer on its boundary is reported in a later state block as
+   * interrupted by that timer, and still says where its flow ended (CIB7-2147, CIB7-2166).
+   */
+  @Test
+  public void aToolEndedByItsTimerIsReportedAsInterruptedByIt() throws IOException {
+    script.add(toolCall("freigabe", "{}"));
+    script.add(answer("Warte auf die Freigabe."));
+    script.add(answer("Die Freigabe kam nicht."));
+    startWith("      <userTask id='freigabe' name='Freigabe' />"
+        + "      <boundaryEvent id='zuLange' attachedToRef='freigabe'><timerEventDefinition>"
+        + "<timeDuration>PT1H</timeDuration></timerEventDefinition></boundaryEvent>");
+
+    // The turn's steps run every job there is, the boundary timer among them.
+    runWaitingTurn();
+
+    String later = requestBodies.subList(1, requestBodies.size()).stream()
+        .map(body -> {
+          try {
+            return lastUserMessage(body);
+          } catch (IOException e) {
+            throw new IllegalStateException(e);
+          }
+        })
+        .collect(Collectors.joining("\n"));
+    assertThat(later)
+        .contains("\"activityId\":\"freigabe\"")
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"boundaryEvent\":\"zuLange\"")
+        .contains("\"eventType\":\"timer\"")
+        .contains("\"endedAt\":\"zuLange\"");
+  }
+
+  /**
+   * A waiting tool cancelled from outside, by a process instance modification, is listed in the
+   * next state block as cancelled, so the agent stops waiting for it (CIB7-2166).
+   */
+  @Test
+  public void aToolCancelledFromOutsideIsReportedAsCancelled() throws IOException {
+    script.add(toolCall("freigabe", "{}"));
+    script.add(answer("Warte auf die Freigabe."));
+    script.add(answer("Verstanden."));
+    ProcessInstance pi = startWith("      <userTask id='freigabe' name='Freigabe' />"
+        + "      <userTask id='worker' name='Worker' />");
+    runWaitingTurn();
+    // Someone else's work keeps the scope: cancelling its only child would cancel the scope too.
+    String scope = engine.getRuntimeService().createExecutionQuery().activityId("adHoc")
+        .singleResult().getId();
+    engine.getRuntimeService().createAdHocSubProcessActivation(scope)
+        .startActivity("worker").execute();
+    int before = requestBodies.size();
+
+    engine.getRuntimeService().createProcessInstanceModification(pi.getId())
+        .cancelAllForActivity("freigabe").execute();
+    runWaitingTurn();
+
+    assertThat(requestBodies).hasSizeGreaterThan(before);
+    assertThat(lastUserMessage(requestBodies.get(before)))
+        .contains("\"activityId\":\"freigabe\"")
+        .contains("\"status\":\"cancelled\"")
+        .contains("cancelled from outside the agent");
   }
 
   /** A chain along an inner flow: a tool that ends at once and a person who has to act after it. */

@@ -105,6 +105,21 @@ public final class AdHocResults {
     private static final String VALUES = "values";
     private static final String MULTI_INSTANCE = "multiInstance";
     private static final String ENDED_AT = "endedAt";
+    private static final String ENDED_BY = "endedBy";
+    private static final String CANCELLED = "cancelled";
+
+    /**
+     * How an interrupting boundary event ended a performance (CIB7-2166): a local variable of the
+     * execution the activation created, as {@link #CARRIED} is, written as the event starts and
+     * read as the performance ends. It goes with the performance.
+     */
+    private static final String INTERRUPTED = "adHocAgentEndedBy";
+
+    /** Keys of what {@link #INTERRUPTED} holds, as the agent is shown it under {@code endedBy}. */
+    private static final String BOUNDARY_EVENT = "boundaryEvent";
+    private static final String EVENT_TYPE = "eventType";
+    private static final String ATTACHED_TO = "attachedTo";
+    private static final String ERROR_CODE = "errorCode";
 
     /**
      * The value types whose value {@link #safe} shows: those whose value is a string, a number or a
@@ -172,10 +187,112 @@ public final class AdHocResults {
         if (multiInstance) {
             entry.put(MULTI_INSTANCE, Boolean.TRUE);
         }
+        Map<?, ?> interrupted = interruption(ended);
+        if (!interrupted.isEmpty()) {
+            entry.put(ENDED_BY, interrupted);
+        }
+        append(scope, entry);
+    }
+
+    /**
+     * Records that the child {@code removed} of the agentic scope {@code scope} was removed without
+     * ending: cancelled from outside, by a process instance modification (CIB7-2166). It produced
+     * nothing the agent can be shown, and its variables are gone; only which tool it was is read.
+     * The agent is told, so it does not go on waiting for it. A child that is not one of the
+     * scope's tools records nothing.
+     */
+    public static void removed(ExecutionEntity scope, ExecutionEntity removed) {
+        PvmActivity removedIn = removed.getActivity();
+        boolean multiInstance = removedIn != null
+                && removedIn.getActivityBehavior() instanceof MultiInstanceActivityBehavior
+                && !removedIn.getActivities().isEmpty();
+        PvmActivity activity = multiInstance ? removedIn.getActivities().get(0) : removedIn;
+        String called = calledTool(scope, removed);
+        String toolId = (called != null) ? called : (activity == null ? null : activity.getId());
+        if (toolId == null || descriptorOf(scope, toolId) == null) {
+            return;
+        }
+        Map<String, Object> entry = new TreeMap<String, Object>();
+        entry.put(ACTIVITY_ID, toolId);
+        entry.put(ACTIVATION_ID, removed.getId());
+        entry.put(VALUES, new TreeMap<String, Object>());
+        entry.put(CANCELLED, Boolean.TRUE);
+        append(scope, entry);
+    }
+
+    private static void append(ExecutionEntity scope, Map<String, Object> entry) {
         List<Map<String, Object>> entries = entries(scope);
         entries.add(entry);
         AdHocAgentState.findOrCreate(scope).setVariableLocal(RESULTS,
                 Variables.objectValue(stored(entries)).create());
+    }
+
+    /**
+     * Records on the performance {@code execution} belongs to that the interrupting boundary event
+     * {@code boundaryEventId}, attached to {@code attachedTo}, of kind {@code eventType}, ended it;
+     * for an error, with the code it caught (CIB7-2166). Called as the event starts. An execution
+     * outside every agentic scope, or on the event scope of one that has left, records nothing.
+     *
+     * <p>The performance is the agentic scope's child the execution runs under, the one the
+     * activation created and the scope's observer is told about. A later event on the same
+     * performance, one further along the event's own path, replaces what an earlier one recorded:
+     * the last interruption is how the performance ended.
+     */
+    public static void recordInterruption(ExecutionEntity execution, String boundaryEventId,
+            String attachedTo, String eventType, String errorCode) {
+        ExecutionEntity handle = execution;
+        while (handle.getParent() != null && !isAgentic(handle.getParent())) {
+            handle = handle.getParent();
+        }
+        ExecutionEntity scope = handle.getParent();
+        if (scope == null || scope.isEventScope()) {
+            return;
+        }
+        Map<String, Object> endedBy = new TreeMap<String, Object>();
+        endedBy.put(BOUNDARY_EVENT, boundaryEventId);
+        endedBy.put(EVENT_TYPE, eventType);
+        if (attachedTo != null) {
+            endedBy.put(ATTACHED_TO, attachedTo);
+        }
+        if (errorCode != null) {
+            // A code is what a script or a delegate threw: process data, capped like a name.
+            endedBy.put(ERROR_CODE,
+                    AdHocSubProcessTool.truncate(errorCode, AdHocSubProcessTool.MAX_NAME_CHARS));
+        }
+        handle.setVariableLocal(INTERRUPTED, Variables.objectValue(endedBy).create());
+    }
+
+    /** Whether {@code execution} is the execution of an agentic scope: one with a catalogue. */
+    private static boolean isAgentic(ExecutionEntity execution) {
+        PvmActivity activity = execution.getActivity();
+        return activity instanceof ScopeImpl
+                && ((ScopeImpl) activity).getProperties().get(AdHocToolDescriptor.CATALOG) != null;
+    }
+
+    /** What {@link #recordInterruption} recorded on the performance {@code handle}, or nothing. */
+    private static Map<?, ?> interruption(ExecutionEntity handle) {
+        Object raw = (handle == null) ? null : handle.getVariableLocal(INTERRUPTED);
+        return (raw instanceof Map) ? (Map<?, ?>) raw : Collections.emptyMap();
+    }
+
+    /**
+     * For the performance {@code handle} of {@code toolId}, still running: if a boundary event has
+     * interrupted it, puts {@code interruptedBy} into {@code into} and returns what to tell the
+     * model, else null (CIB7-2166).
+     */
+    static String describeInterruption(ExecutionEntity handle, String toolId,
+            Map<String, Object> into) {
+        Map<?, ?> endedBy = interruption(handle);
+        if (endedBy.isEmpty()) {
+            return null;
+        }
+        Map<String, Object> gathered = new TreeMap<String, Object>();
+        gathered.put(ACTIVITY_ID, toolId);
+        gathered.put(ENDED_BY, endedBy);
+        Map<String, Object> described = new LinkedHashMap<String, Object>();
+        String note = describeEnd(gathered, described);
+        into.put("interruptedBy", described.get("endedBy"));
+        return note;
     }
 
     /**
@@ -275,13 +392,14 @@ public final class AdHocResults {
     }
 
     /**
-     * The values gathered, from entry {@code from} on, for a performance of {@code activityId}
+     * The entry gathered, from entry {@code from} on, for a performance of {@code activityId}
      * that ended within the call that started it, or null when none was gathered (CIB7-2215).
      *
-     * <p>The observer took them as the child ended, from where the tool held them: a sub process
-     * tool's own scope included, which is gone by the time the call returns, so the scope's
-     * variables would read null for it. A performance the agent started earlier is pending; its
-     * entry is not this call's.
+     * <p>The observer took its values as the child ended, from where the tool held them: a sub
+     * process tool's own scope included, which is gone by the time the call returns, so the
+     * scope's variables would read null for it. It also says how the performance ended: where,
+     * and which boundary event interrupted it (CIB7-2166). A performance the agent started earlier
+     * is pending; its entry is not this call's.
      */
     static Map<String, Object> gatheredWithinTheCall(ExecutionEntity scope, int from,
             String activityId) {
@@ -289,20 +407,77 @@ public final class AdHocResults {
         Map<String, String> pending = AdHocLoopState.pending(scope);
         for (int index = entries.size() - 1; index >= from; index--) {
             Map<String, Object> entry = entries.get(index);
-            if (!activityId.equals(entry.get(ACTIVITY_ID))
-                    || pending.containsKey(activationIdOf(entry))) {
-                continue;
+            if (activityId.equals(entry.get(ACTIVITY_ID))
+                    && !pending.containsKey(activationIdOf(entry))) {
+                return entry;
             }
-            Map<String, Object> values = new LinkedHashMap<String, Object>();
-            Object declared = entry.get(VALUES);
-            if (declared instanceof Map) {
-                for (Map.Entry<?, ?> value : ((Map<?, ?>) declared).entrySet()) {
-                    values.put(String.valueOf(value.getKey()), value.getValue());
-                }
-            }
-            return values;
         }
         return null;
+    }
+
+    /** The values of a gathered entry, by name, or null for no entry. */
+    static Map<String, Object> valuesOf(Map<String, Object> gathered) {
+        if (gathered == null) {
+            return null;
+        }
+        Map<String, Object> values = new LinkedHashMap<String, Object>();
+        Object declared = gathered.get(VALUES);
+        if (declared instanceof Map) {
+            for (Map.Entry<?, ?> value : ((Map<?, ?>) declared).entrySet()) {
+                values.put(String.valueOf(value.getKey()), value.getValue());
+            }
+        }
+        return values;
+    }
+
+    /**
+     * Puts how the performance of a gathered entry ended into {@code into}, the shape the model is
+     * shown, and returns what to tell the model about it, or null (CIB7-2166): where its flow
+     * ended, when elsewhere; {@code status} {@code interrupted} with {@code endedBy}, when a
+     * boundary event ended it; {@code status} {@code cancelled}, when it was removed from outside.
+     * A performance that completed gets no status here: the state block shows it as it did before,
+     * and a tool result says {@code finished} itself.
+     */
+    static String describeEnd(Map<String, Object> gathered, Map<String, Object> into) {
+        if (gathered.get(ENDED_AT) != null) {
+            into.put("endedAt", gathered.get(ENDED_AT));
+        }
+        Object tool = gathered.get(ACTIVITY_ID);
+        if (Boolean.TRUE.equals(gathered.get(CANCELLED))) {
+            into.put("status", "cancelled");
+            return "'" + tool + "' did not complete: it was cancelled from outside the agent, for"
+                    + " example by a process instance modification, and produced no results. Do not"
+                    + " treat its work as done and do not wait for it.";
+        }
+        Object raw = gathered.get(ENDED_BY);
+        if (!(raw instanceof Map) || ((Map<?, ?>) raw).isEmpty()) {
+            return null;
+        }
+        Map<?, ?> endedBy = (Map<?, ?>) raw;
+        Map<String, Object> shown = new LinkedHashMap<String, Object>();
+        for (String key : Arrays.asList(BOUNDARY_EVENT, EVENT_TYPE, ERROR_CODE, ATTACHED_TO)) {
+            if (endedBy.get(key) != null) {
+                shown.put(key, endedBy.get(key));
+            }
+        }
+        into.put("status", "interrupted");
+        into.put("endedBy", shown);
+        StringBuilder note = new StringBuilder("'").append(tool).append("' did not complete: ");
+        note.append("the ").append(endedBy.get(EVENT_TYPE)).append(" boundary event '")
+                .append(endedBy.get(BOUNDARY_EVENT)).append("'");
+        if (endedBy.get(ATTACHED_TO) != null) {
+            note.append(" on '").append(endedBy.get(ATTACHED_TO)).append("'");
+        }
+        note.append(" interrupted it");
+        if (endedBy.get(ERROR_CODE) != null) {
+            note.append(" with the BPMN error '").append(endedBy.get(ERROR_CODE)).append("'");
+        }
+        note.append(", and the process took that event's path");
+        if (gathered.get(ENDED_AT) != null) {
+            note.append(", which ended at '").append(gathered.get(ENDED_AT)).append("'");
+        }
+        note.append(". Do not treat its work as done.");
+        return note.toString();
     }
 
     /**
@@ -442,26 +617,22 @@ public final class AdHocResults {
         Map<String, Object> entry = new LinkedHashMap<String, Object>();
         entry.put("activityId", gathered.get(ACTIVITY_ID));
         entry.put("activityInstanceId", gathered.get(ACTIVATION_ID));
-        if (gathered.get(ENDED_AT) != null) {
-            entry.put("endedAt", gathered.get(ENDED_AT));
-        }
+        String ending = describeEnd(gathered, entry);
 
-        Map<String, Object> values = new LinkedHashMap<String, Object>();
-        Object declared = gathered.get(VALUES);
-        if (declared instanceof Map) {
-            for (Map.Entry<?, ?> value : ((Map<?, ?>) declared).entrySet()) {
-                values.put(String.valueOf(value.getKey()), value.getValue());
-            }
-        }
+        Map<String, Object> values = valuesOf(gathered);
         entry.put("results", values);
         entry.put("resultsFrom", values.isEmpty() ? "nothing declared" : "model declaration");
         // Both can hold: a multi-instance activity that declares nothing is still reported once.
         List<String> notes = new ArrayList<String>();
+        if (ending != null) {
+            notes.add(ending);
+        }
         if (Boolean.TRUE.equals(gathered.get(MULTI_INSTANCE))) {
             notes.add("A multi-instance activity, reported once, when its last instance ended. A "
                     + "variable every instance writes holds the last value.");
         }
-        if (values.isEmpty()) {
+        // A cancelled performance has no results to declare; its note says so.
+        if (values.isEmpty() && !Boolean.TRUE.equals(gathered.get(CANCELLED))) {
             notes.add("This activity declares no output mapping, result variable or editable form "
                     + "field, so nothing is reported even if it wrote something. Only declared "
                     + "variables are shown. Add one of those, or camunda:property "

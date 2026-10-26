@@ -47,6 +47,7 @@ import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.DeploymentEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
+import org.cibseven.bpm.engine.impl.pvm.process.ActivityStartBehavior;
 import org.cibseven.bpm.engine.impl.pvm.process.ProcessDefinitionImpl;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.cibseven.bpm.engine.impl.util.xml.Element;
@@ -122,6 +123,9 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
 
   /** Stateless, so one serves every tool of every scope. */
   protected static final AgenticToolResultCarrier RESULT_CARRIER = new AgenticToolResultCarrier();
+
+  /** Stateless as well: one records for every boundary event on every tool (CIB7-2166). */
+  protected static final AgenticToolEndRecorder END_RECORDER = new AgenticToolEndRecorder();
 
   @Override
   public void parseSubProcess(Element scopeElement, ScopeImpl scope, ActivityImpl activity) {
@@ -236,6 +240,12 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
       }
     }
 
+    // How a tool ended, when an interrupting boundary event on it, or on an activity further along
+    // its chain, ended it: which event, of which kind, and for an error, which code (CIB7-2166).
+    for (ActivityImpl child : activity.getActivities()) {
+      recordInterruptions(child);
+    }
+
     // How a failed turn is retried: the scope's cycle, the engine's, or a default that is not
     // immediate (CIB7-2149). A cycle that cannot be read refuses the deployment.
     AgenticTurnRetry.configure(scopeElement, activity);
@@ -247,6 +257,35 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     // Every further turn: the behaviour tells the trigger of each child that ends or is removed,
     // once per performance and at the end of a chain, whatever listeners are skipped.
     behavior.addObserver(new AgenticTurnTrigger());
+  }
+
+  /**
+   * Makes {@code boundaryEvent}, a child of an agentic scope, record how it ended a tool, if it is
+   * an interrupting boundary event of a kind that ends one. A boundary error event's definition on
+   * the activity it is attached to is replaced by one that remembers the code it caught; the engine
+   * hands the code to the event only through a process variable (see {@link AgenticCaughtError}).
+   * A non-interrupting event ends nothing; a compensation or cancel event is not one the agent's
+   * tools are ended by.
+   */
+  protected static void recordInterruptions(ActivityImpl boundaryEvent) {
+    if (boundaryEvent.getActivityStartBehavior() != ActivityStartBehavior.CANCEL_EVENT_SCOPE
+        || AgenticToolEndRecorder.kindOf(boundaryEvent) == null
+        || !(boundaryEvent.getEventScope() instanceof ActivityImpl)) {
+      return;
+    }
+    if ("error".equals(AgenticToolEndRecorder.kindOf(boundaryEvent))) {
+      ActivityImpl attachedTo = (ActivityImpl) boundaryEvent.getEventScope();
+      List<ErrorEventDefinition> definitions =
+          attachedTo.getProperties().get(BpmnProperties.ERROR_EVENT_DEFINITIONS);
+      List<ErrorEventDefinition> replaced = new ArrayList<ErrorEventDefinition>();
+      for (ErrorEventDefinition definition : definitions) {
+        replaced.add(boundaryEvent.getId().equals(definition.getHandlerActivityId())
+            && !(definition instanceof AgenticCaughtError)
+            ? new AgenticCaughtError(definition) : definition);
+      }
+      attachedTo.getProperties().set(BpmnProperties.ERROR_EVENT_DEFINITIONS, replaced);
+    }
+    boundaryEvent.addBuiltInListener(ExecutionListener.EVENTNAME_START, END_RECORDER);
   }
 
   /** The activity a child performs: itself, or the activity inside its multi-instance body. */
