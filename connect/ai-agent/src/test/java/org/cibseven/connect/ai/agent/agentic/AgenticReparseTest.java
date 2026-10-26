@@ -54,7 +54,6 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
@@ -478,27 +477,72 @@ public class AgenticReparseTest {
   }
 
   /**
-   * A nested agent that loads without its agent, as a parse again leaves it, is no tool of the
-   * agent around it (CIB7-2367): started, nothing would end it, and the outer agent could not end
-   * its own scope while it waits. So with the nested scope a multi-instance.
+   * A nested agent that loads without its agent, as a parse again leaves it, makes no tool of the
+   * agent around it that reaches it (CIB7-2367): the nested scope starts nothing and nothing ends
+   * it, so the tool would never end, and the outer agent could not end its own scope while it
+   * waits. The tool is the nested scope, a multi-instance of it, a sub process it is in, or one
+   * whose flow leads to it.
    */
-  @ParameterizedTest(name = "multi-instance: {0}")
-  @ValueSource(booleans = { false, true })
-  public void aNestedAgentWithoutItsAgentIsNoTool(boolean multiInstance, TestInfo test) {
-    loadsOnceTheAgentIsOn(test,
-        adHoc(connector(MESSAGE), "<userTask id='arbeit' />"
-            + adHoc("innen", connector("<camunda:inputParameter name='instruction'>Be brief."
-                + "</camunda:inputParameter>"),
-                (multiInstance ? "<multiInstanceLoopCharacteristics isSequential='true'>"
-                    + "<loopCardinality>1</loopCardinality></multiInstanceLoopCharacteristics>"
-                    : "")
-                + "<userTask id='innenArbeit' />")),
-        "its child 'innen' asks for an AI agent but has none",
-        "the tool 'innen' is left out of the agent's catalogue",
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("nestedAgentsWithoutTheirAgent")
+  public void aToolThatReachesANestedAgentWithoutItsAgentIsLeftOut(String form, String children,
+      String refused, String tool, TestInfo test) {
+    loadsOnceTheAgentIsOn(test, adHoc(connector(MESSAGE), "<userTask id='arbeit' />" + children),
+        refused, "the tool '" + tool + "' is left out of the agent's catalogue",
         "an agentic scope needs a task for its agent", tools("arbeit"));
     assertThat(warnings()).anySatisfy(warning -> assertThat(warning)
         .contains("an agentic scope needs a task for its agent")
         .contains("so 'innen' loads as it was deployed, without the agent."));
+  }
+
+  static Stream<Arguments> nestedAgentsWithoutTheirAgent() {
+    String withoutATask = connector("<camunda:inputParameter name='instruction'>Be brief."
+        + "</camunda:inputParameter>");
+    String innen = adHoc("innen", withoutATask, "<userTask id='innenArbeit' />");
+    String plain = " asks for an AI agent but has none, so once started nothing would end it.";
+    return Stream.of(
+        Arguments.of("the tool is the nested scope", innen,
+            "its child 'innen'" + plain, "innen"),
+        Arguments.of("the tool is a multi-instance of it",
+            adHoc("innen", withoutATask, "<multiInstanceLoopCharacteristics isSequential='true'>"
+                + "<loopCardinality>1</loopCardinality></multiInstanceLoopCharacteristics>"
+                + "<userTask id='innenArbeit' />"),
+            "its child 'innen'" + plain, "innen"),
+        Arguments.of("the tool is a sub process it is in",
+            "<subProcess id='bereich'><startEvent id='bs' />"
+                + "<sequenceFlow id='b1' sourceRef='bs' targetRef='innen' />" + innen
+                + "<sequenceFlow id='b2' sourceRef='innen' targetRef='be' /><endEvent id='be' />"
+                + "</subProcess>",
+            "its child 'bereich' reaches the ad hoc sub process 'innen', which" + plain,
+            "bereich"),
+        Arguments.of("the tool's flow leads to it",
+            "<userTask id='anfragen' />"
+                + "<sequenceFlow id='weiter' sourceRef='anfragen' targetRef='innen' />" + innen,
+            "its child 'anfragen' reaches the ad hoc sub process 'innen', which" + plain,
+            "anfragen"));
+  }
+
+  /**
+   * A nested agent that has its agent is its own: the sub process it is in stays a tool of the
+   * agent around it, and what is inside it is left to its own catalogue.
+   */
+  @Test
+  public void aToolWithANestedAgentThatHasItsAgentStays(TestInfo test) {
+    ProcessEngine off = engineWithoutTheAgent(test);
+    deploy(off, process("agenticScope", adHoc(connector(MESSAGE), "<userTask id='arbeit' />"
+        + "<subProcess id='bereich'><startEvent id='bs' />"
+        + "<sequenceFlow id='b1' sourceRef='bs' targetRef='innen' />"
+        + adHoc("innen", connector(MESSAGE), "<userTask id='innenArbeit' />")
+        + "<sequenceFlow id='b2' sourceRef='innen' targetRef='be' /><endEvent id='be' />"
+        + "</subProcess>")));
+    String definitionId = off.getRepositoryService().createProcessDefinitionQuery()
+        .singleResult().getId();
+    ProcessEngine on = engineWithTheAgent(test);
+    recordWarnings();
+
+    tools("arbeit", "bereich").accept(scopeOf(on, definitionId, "adHoc"));
+    tools("innenArbeit").accept(scopeOf(on, definitionId, "innen"));
+    assertThat(warnings()).noneSatisfy(warning -> assertThat(warning).contains("'bereich'"));
   }
 
   /**

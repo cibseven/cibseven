@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import jakarta.el.ELException;
 
@@ -380,33 +381,86 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
   }
 
   /**
-   * The catalogue without a nested ad hoc scope that asks for an agent but loads without one, as a
-   * parse again leaves it plain (CIB7-2367). Started, such a child would wait for ever: nothing
-   * starts its children and no turn ends it, and the agent here could not end its own scope while
-   * it is pending. A deployment never keeps one: the child refuses it first. Children are parsed
-   * before their scope, so whether the child has its agent is known here. An AI agent task is no
-   * scope and needs none, and a plain sub process left so runs to its end on its own.
+   * The catalogue without a tool that reaches a nested ad hoc scope that asks for an agent but
+   * loads without one, as a parse again leaves it plain (CIB7-2367): the tool itself, a scope
+   * inside it, or one its flow leads to. Such a scope starts nothing on entry and no turn ends it,
+   * so the tool would never end, and the agent here could not end its own scope while it is
+   * pending. A deployment never keeps one: that scope refuses it first. Children are parsed before
+   * their scope, so whether a nested scope has its agent is known here.
+   *
+   * <p>A nested scope that has its agent is its own: what is inside it is left to its catalogue.
+   * An AI agent task is no scope and needs none, and a plain sub process runs to its end on its
+   * own. An agent behind a call activity is in another definition, not known here.
    */
   protected static List<AdHocToolDescriptor> withoutAgentsLoadedPlain(Element scopeElement,
       ActivityImpl activity, List<AdHocToolDescriptor> catalog,
       AgenticToolCatalogParser.Parsing parsing) {
+    Map<String, List<String>> chains = new LinkedHashMap<String, List<String>>();
+    List<String> startable = new ArrayList<String>();
+    for (AdHocToolDescriptor tool : catalog) {
+      startable.add(tool.getActivityId());
+      chains.put(tool.getActivityId(), new ArrayList<String>());
+    }
+    for (Map.Entry<String, Set<String>> reached
+        : AgenticToolCatalogParser.reachedFrom(scopeElement, startable).entrySet()) {
+      for (String tool : reached.getValue()) {
+        chains.get(tool).add(reached.getKey());
+      }
+    }
     List<AdHocToolDescriptor> tools = new ArrayList<AdHocToolDescriptor>();
     for (AdHocToolDescriptor tool : catalog) {
       String id = tool.getActivityId();
-      Element child = elementWithId(scopeElement, id);
-      ActivityImpl performed = activity.findActivity(id);
-      if (child != null && performed != null && "adHocSubProcess".equals(child.getTagName())
-          && asksForAnAgent(child)
-          && performed.getProperties().get(AGENT_CONNECTOR_IO) == null) {
-        parsing.refuse(new BpmnParseException("Ad hoc sub process '" + activity.getId()
-            + "': its child '" + id + "' asks for an AI agent but has none, so once started"
-            + " nothing would end it.", child),
-            "the tool '" + id + "' is left out of the agent's catalogue");
+      Element plain = null;
+      for (String along : chainOf(id, chains.get(id))) {
+        Element element = elementWithId(scopeElement, along);
+        plain = (element == null) ? null : agentLoadedPlain(activity, element);
+        if (plain != null) {
+          break;
+        }
+      }
+      if (plain == null) {
+        tools.add(tool);
         continue;
       }
-      tools.add(tool);
+      String plainId = plain.attribute("id");
+      parsing.refuse(new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': "
+          + (id.equals(plainId)
+              ? "its child '" + id + "'"
+              : "its child '" + id + "' reaches the ad hoc sub process '" + plainId + "', which")
+          + " asks for an AI agent but has none, so once started nothing would end it.", plain),
+          "the tool '" + id + "' is left out of the agent's catalogue");
     }
     return tools;
+  }
+
+  /** The tool's id first, then what its flow reaches. */
+  protected static List<String> chainOf(String tool, List<String> reached) {
+    List<String> chain = new ArrayList<String>();
+    chain.add(tool);
+    chain.addAll(reached);
+    return chain;
+  }
+
+  /**
+   * The ad hoc scope at or inside {@code element} that asks for an agent but loads without one, or
+   * {@code null}. A scope that has its agent is not looked into.
+   */
+  protected static Element agentLoadedPlain(ActivityImpl scope, Element element) {
+    String id = element.attribute("id");
+    if (id != null && "adHocSubProcess".equals(element.getTagName()) && asksForAnAgent(element)) {
+      ActivityImpl nested = scope.findActivity(id);
+      if (nested != null && nested.getProperties().get(AGENT_CONNECTOR_IO) == null) {
+        return element;
+      }
+      return null;
+    }
+    for (Element inside : element.elements()) {
+      Element plain = agentLoadedPlain(scope, inside);
+      if (plain != null) {
+        return plain;
+      }
+    }
+    return null;
   }
 
   /** Whether the model asks for an agent on the element: its connector, template, limits or settings. */

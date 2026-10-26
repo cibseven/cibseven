@@ -286,6 +286,44 @@ public final class AgenticToolCatalogParser {
    */
   protected static void refuseUndeclaredReadsInFollowers(Element scopeElement,
       Collection<String> startableIds, Map<String, List<AdHocToolDescriptor.Parameter>> declared) {
+    Map<String, Set<String>> reachedFrom = reachedFrom(scopeElement, startableIds);
+    for (Element child : scopeElement.elements()) {
+      String id = child.attribute("id");
+      if (id == null || startableIds.contains(id) || NO_CODE.contains(child.getTagName())) {
+        continue;
+      }
+      Set<String> tools = reachedFrom.get(id);
+      // Reached from a tool left out on a parse again (CIB7-2367): its declarations are gone with
+      // it, and every read here would be named undeclared only for that.
+      if (tools != null && !declared.keySet().containsAll(tools)) {
+        continue;
+      }
+      Map<String, AdHocToolDescriptor.Parameter> byName =
+          new HashMap<String, AdHocToolDescriptor.Parameter>();
+      String declaredBy = null;
+      if (tools != null) {
+        for (String tool : tools) {
+          List<AdHocToolDescriptor.Parameter> parameters = declared.get(tool);
+          for (AdHocToolDescriptor.Parameter parameter : (parameters == null)
+              ? Collections.<AdHocToolDescriptor.Parameter>emptyList() : parameters) {
+            byName.put(parameter.getName(), parameter);
+          }
+        }
+        declaredBy = quoted(tools)
+            + ((tools.size() == 1) ? ", whose flow reaches it," : ", whose flows reach it,");
+      }
+      refuseUndeclaredReadsIn(scopeElement, child, child, byName, declaredBy);
+    }
+  }
+
+  /**
+   * Which tools' flows reach each element of the scope, by the element's id: an activity an inner
+   * flow leads to from a tool, the flow itself, a boundary event on such an activity, and on from
+   * a throwing link event to the catching one of its name, as the engine links them. A tool is
+   * never reached from another; it is started by the agent.
+   */
+  public static Map<String, Set<String>> reachedFrom(Element scopeElement,
+      Collection<String> startableIds) {
     Map<String, List<String>> next = new HashMap<String, List<String>>();
     Map<String, String> linkThrows = new HashMap<String, String>();
     Map<String, String> linkCatches = new HashMap<String, String>();
@@ -325,33 +363,7 @@ public final class AgenticToolCatalogParser {
         todo.addAll(followers(next, id));
       }
     }
-    for (Element child : scopeElement.elements()) {
-      String id = child.attribute("id");
-      if (id == null || startableIds.contains(id) || NO_CODE.contains(child.getTagName())) {
-        continue;
-      }
-      Set<String> tools = reachedFrom.get(id);
-      // Reached from a tool left out on a parse again (CIB7-2367): its declarations are gone with
-      // it, and every read here would be named undeclared only for that.
-      if (tools != null && !declared.keySet().containsAll(tools)) {
-        continue;
-      }
-      Map<String, AdHocToolDescriptor.Parameter> byName =
-          new HashMap<String, AdHocToolDescriptor.Parameter>();
-      String declaredBy = null;
-      if (tools != null) {
-        for (String tool : tools) {
-          List<AdHocToolDescriptor.Parameter> parameters = declared.get(tool);
-          for (AdHocToolDescriptor.Parameter parameter : (parameters == null)
-              ? Collections.<AdHocToolDescriptor.Parameter>emptyList() : parameters) {
-            byName.put(parameter.getName(), parameter);
-          }
-        }
-        declaredBy = quoted(tools)
-            + ((tools.size() == 1) ? ", whose flow reaches it," : ", whose flows reach it,");
-      }
-      refuseUndeclaredReadsIn(scopeElement, child, child, byName, declaredBy);
-    }
+    return reachedFrom;
   }
 
   protected static void follows(Map<String, List<String>> next, String from, String to) {
