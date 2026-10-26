@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.cibseven.connect.ai.agent.agentic.AdHocAgentState;
+import org.cibseven.connect.ai.agent.agentic.AgenticToolEndRecorder;
 import org.cibseven.connect.ai.agent.agentic.AdHocToolDescriptor;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.MultiInstanceActivityBehavior;
 import org.cibseven.bpm.engine.impl.core.variable.mapping.IoMapping;
@@ -35,6 +36,7 @@ import org.cibseven.bpm.engine.impl.core.variable.mapping.OutputParameter;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
+import org.cibseven.bpm.engine.impl.pvm.process.ActivityStartBehavior;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
 import org.cibseven.bpm.engine.variable.Variables;
@@ -121,6 +123,7 @@ public final class AdHocResults {
     private static final String EVENT_TYPE = "eventType";
     private static final String ATTACHED_TO = "attachedTo";
     private static final String ERROR_CODE = "errorCode";
+    private static final String EXCEPTION_CLASS = "exceptionClass";
 
     /**
      * The value types whose value {@link #safe} shows: those whose value is a string, a number or a
@@ -231,8 +234,9 @@ public final class AdHocResults {
     /**
      * Records on the performance {@code execution} belongs to that the interrupting boundary event
      * {@code boundaryEventId}, attached to {@code attachedTo}, of kind {@code eventType},
-     * interrupted its flow; for an error, with the code it caught (CIB7-2166). An execution outside
-     * every agentic scope, or on the event scope of one that has left, records nothing.
+     * interrupted its flow; for an error, with the code it caught, and for a Java exception
+     * mapped to one, the class thrown (CIB7-2166). An execution outside every agentic scope, or
+     * on the event scope of one that has left, records nothing.
      *
      * <p>The performance is the agentic scope's child the execution runs under, the one the
      * activation created and the scope's observer is told about. A later event on the same
@@ -240,7 +244,7 @@ public final class AdHocResults {
      * the last interruption is how the performance ended.
      */
     public static void recordInterruption(ExecutionEntity execution, String boundaryEventId,
-            String attachedTo, String eventType, String errorCode) {
+            String attachedTo, String eventType, String errorCode, String exceptionClass) {
         ExecutionEntity handle = performanceOf(execution);
         if (handle == null) {
             return;
@@ -256,19 +260,25 @@ public final class AdHocResults {
             endedBy.put(ERROR_CODE,
                     AdHocSubProcessTool.truncate(errorCode, AdHocSubProcessTool.MAX_NAME_CHARS));
         }
+        if (exceptionClass != null) {
+            endedBy.put(EXCEPTION_CLASS,
+                    AdHocSubProcessTool.truncate(exceptionClass, AdHocSubProcessTool.MAX_NAME_CHARS));
+        }
         handle.setVariableLocal(INTERRUPTED, Variables.objectValue(endedBy).create());
     }
 
     /**
-     * Forgets an interruption of the activity {@code attachedTo} recorded on the performance
-     * {@code execution} belongs to, as that activity starts again in it (CIB7-2166): the event's
-     * path led back to it, and how it ends now is what counts. An interruption of another activity
-     * stays.
+     * Forgets an interruption recorded on the performance {@code execution} belongs to, if it
+     * interrupted one of {@code rewinds}: the activity starting now in it lies before that one on
+     * the normal flow, so the flow went back to before the interruption, and how it ends now is
+     * what counts (CIB7-2166). An interruption of another activity stays.
      */
-    public static void forgetInterruption(ExecutionEntity execution, String attachedTo) {
+    public static void forgetInterruption(ExecutionEntity execution, List<String> rewinds) {
+        if (rewinds.isEmpty()) {
+            return;
+        }
         ExecutionEntity handle = performanceOf(execution);
-        if (handle != null && attachedTo != null
-                && attachedTo.equals(interruption(handle).get(ATTACHED_TO))) {
+        if (handle != null && rewinds.contains(interruption(handle).get(ATTACHED_TO))) {
             handle.removeVariableLocal(INTERRUPTED);
         }
     }
@@ -293,6 +303,26 @@ public final class AdHocResults {
                 && ((ScopeImpl) activity).getProperties().get(AdHocToolDescriptor.CATALOG) != null;
     }
 
+    /**
+     * The interruption of a performance whose interrupting boundary event, no error event, has
+     * cancelled the activity it is attached to and waits for its own job, {@code asyncBefore}: it
+     * records itself only as it starts, in that job. Read off the execution, which is at the
+     * event by then. An error event recorded itself already, where it cancelled.
+     */
+    private static Map<?, ?> waitingToContinue(ExecutionEntity handle) {
+        ActivityImpl at = handle.getActivity();
+        String kind = (at == null) ? null : AgenticToolEndRecorder.kindOf(at);
+        if (kind == null || at.getActivityStartBehavior() != ActivityStartBehavior.CANCEL_EVENT_SCOPE
+                || !(at.getEventScope() instanceof ActivityImpl)) {
+            return Collections.emptyMap();
+        }
+        Map<String, Object> interrupted = new TreeMap<String, Object>();
+        interrupted.put(BOUNDARY_EVENT, at.getId());
+        interrupted.put(EVENT_TYPE, kind);
+        interrupted.put(ATTACHED_TO, AgenticToolEndRecorder.attachedTo((ActivityImpl) at.getEventScope()));
+        return interrupted;
+    }
+
     /** What {@link #recordInterruption} recorded on the performance {@code handle}, or nothing. */
     private static Map<?, ?> interruption(ExecutionEntity handle) {
         Object raw = (handle == null) ? null : handle.getVariableLocal(INTERRUPTED);
@@ -308,6 +338,9 @@ public final class AdHocResults {
     static String describeInterruption(ExecutionEntity handle, String toolId,
             Map<String, Object> into) {
         Map<?, ?> interrupted = interruption(handle);
+        if (interrupted.isEmpty()) {
+            interrupted = waitingToContinue(handle);
+        }
         if (interrupted.isEmpty()) {
             return null;
         }
@@ -490,7 +523,8 @@ public final class AdHocResults {
         }
         Map<?, ?> interrupted = (Map<?, ?>) raw;
         Map<String, Object> shown = new LinkedHashMap<String, Object>();
-        for (String key : Arrays.asList(BOUNDARY_EVENT, EVENT_TYPE, ERROR_CODE, ATTACHED_TO)) {
+        for (String key : Arrays.asList(BOUNDARY_EVENT, EVENT_TYPE, ERROR_CODE, EXCEPTION_CLASS,
+                ATTACHED_TO)) {
             if (interrupted.get(key) != null) {
                 shown.put(key, interrupted.get(key));
             }
@@ -501,8 +535,11 @@ public final class AdHocResults {
         boolean onTheTool = attachedTo == null || attachedTo.equals(tool);
         String event = "the " + interrupted.get(EVENT_TYPE) + " boundary event '"
                 + interrupted.get(BOUNDARY_EVENT) + "'";
-        String error = (interrupted.get(ERROR_CODE) != null)
-                ? " with a BPMN error, whose code is in interruptedBy.errorCode" : "";
+        String error = (interrupted.get(EXCEPTION_CLASS) != null)
+                ? " with a Java exception the model maps to a BPMN error, whose class is in"
+                        + " interruptedBy.exceptionClass"
+                : (interrupted.get(ERROR_CODE) != null)
+                        ? " with a BPMN error, whose code is in interruptedBy.errorCode" : "";
         String path = (gathered.get(ENDED_AT) != null)
                 ? ", which ended at '" + gathered.get(ENDED_AT) + "'" : "";
         if (onTheTool) {

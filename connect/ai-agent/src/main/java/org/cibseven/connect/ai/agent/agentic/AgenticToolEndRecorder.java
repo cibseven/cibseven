@@ -16,10 +16,14 @@
  */
 package org.cibseven.connect.ai.agent.agentic;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.cibseven.bpm.engine.ActivityTypes;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.ExecutionListener;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
+import org.cibseven.bpm.engine.impl.core.model.PropertyKey;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.cibseven.connect.ai.agent.impl.AdHocResults;
@@ -42,9 +46,10 @@ import org.slf4j.LoggerFactory;
  * records the error with the code {@link AgenticCaughtError} caught. Here, not at the event's
  * start, because that end runs in the command that caught the error, also when the event itself
  * continues asynchronously;</li>
- * <li>the start of an activity a boundary event is attached to: forgets what that activity's
- * events recorded earlier in the same performance. A path that leads back to it and on to a
- * normal end did not end in that interruption.</li>
+ * <li>the start of an activity the flow passes on its way to an activity a boundary event is
+ * attached to, that activity included ({@link #REWINDS}): forgets what that activity's events
+ * recorded earlier in the same performance. The flow went back to before the interruption, and
+ * how it ends now is what counts.</li>
  * </ul>
  *
  * <p>Built in, so {@code skipCustomListeners} does not skip it.
@@ -52,6 +57,17 @@ import org.slf4j.LoggerFactory;
 public class AgenticToolEndRecorder implements ExecutionListener {
 
   private static final Logger LOG = LoggerFactory.getLogger(AgenticToolEndRecorder.class);
+
+  /** The kind of a boundary error event, the one whose interruption is recorded where it cancels. */
+  static final String ERROR = "error";
+
+  /**
+   * The activities, by the id the agent knows them under, an interruption of which is forgotten
+   * as the activity carrying this property starts: those a boundary event is attached to that the
+   * flow can reach from it again along sequence flows, set by the parse listener.
+   */
+  public static final PropertyKey<List<String>> REWINDS =
+      new PropertyKey<List<String>>("agenticRewinds");
 
   /** The kind of boundary event, as the agent is told it, or null for one that ends no tool. */
   public static String kindOf(ActivityImpl boundaryEvent) {
@@ -77,8 +93,6 @@ public class AgenticToolEndRecorder implements ExecutionListener {
     return null;
   }
 
-  static final String ERROR = "error";
-
   /**
    * Never fails what it listens to: that is the process handling a timer, an error or a message,
    * or a tool starting, and telling the agent about it must not undo it.
@@ -94,20 +108,23 @@ public class AgenticToolEndRecorder implements ExecutionListener {
       return;
     }
     try {
-      String kind = kindOf(activity);
       if (EVENTNAME_END.equals(execution.getEventName())) {
         AgenticCaughtError.Caught caught = AgenticCaughtError.takeCaughtOn(activity);
         if (caught != null) {
           AdHocResults.recordInterruption(entity, caught.handlerActivityId(),
-              attachedTo(activity), ERROR, caught.errorCode());
+              attachedTo(activity), ERROR, caught.errorCode(), caught.exceptionClass());
         }
-      } else if (kind != null) {
-        if (!ERROR.equals(kind) && activity.getEventScope() instanceof ActivityImpl) {
-          AdHocResults.recordInterruption(entity, activity.getId(),
-              attachedTo((ActivityImpl) activity.getEventScope()), kind, null);
-        }
-      } else {
-        AdHocResults.forgetInterruption(entity, attachedTo(activity));
+        return;
+      }
+      // Forgotten first: a boundary event, too, may lead back to where it was recorded.
+      List<String> rewinds = activity.getProperties().get(REWINDS);
+      AdHocResults.forgetInterruption(entity,
+          rewinds == null ? Collections.<String>emptyList() : rewinds);
+      // An error event gets no start listener; it is recorded where it cancels.
+      String kind = kindOf(activity);
+      if (kind != null && activity.getEventScope() instanceof ActivityImpl) {
+        AdHocResults.recordInterruption(entity, activity.getId(),
+            attachedTo((ActivityImpl) activity.getEventScope()), kind, null, null);
       }
     } catch (RuntimeException e) {
       LOG.warn("Could not record how a boundary event on '{}' interrupted a tool; the agent is"
@@ -116,7 +133,7 @@ public class AgenticToolEndRecorder implements ExecutionListener {
   }
 
   /** The activity a boundary event is attached to as the agent knows it, not its multi-instance body. */
-  private static String attachedTo(ActivityImpl activity) {
+  public static String attachedTo(ActivityImpl activity) {
     return AgenticAdHocParseListener.innerActivity(activity).getId();
   }
 }

@@ -2588,11 +2588,20 @@ public class AgenticTurnJobTest {
     }
   }
 
-  /** Throws a Java exception, which a boundary error event may name by its class. */
+  /** A subclass of the exception a boundary error event names: what is thrown, not what is caught. */
+  public static class LagerGesperrt extends IllegalStateException {
+    private static final long serialVersionUID = 1L;
+
+    public LagerGesperrt() {
+      super("Lager gesperrt");
+    }
+  }
+
+  /** Throws a Java exception, which a boundary error event may name by a class it extends. */
   public static class ThrowsAnIllegalState implements JavaDelegate {
     @Override
     public void execute(DelegateExecution execution) {
-      throw new IllegalStateException("Lager gesperrt");
+      throw new LagerGesperrt();
     }
   }
 
@@ -2728,10 +2737,16 @@ public class AgenticTurnJobTest {
         .as("the error path waits for a person, so the tool still runs, interrupted")
         .contains("\"status\":\"waiting\"")
         .contains("\"interruptedBy\":{")
-        .contains("\"errorCode\":\"GESPERRT\"");
+        .contains("\"errorCode\":\"GESPERRT\"")
+        .contains("'buchen' did not complete")
+        .contains("Its path still runs. You will get another turn when it finishes.");
   }
 
-  /** A Java exception a boundary error event names by its class reports that class as the code. */
+  /**
+   * A Java exception a boundary error event names by a class it extends: the code is the class the
+   * model names, the class thrown is reported beside it, and the note does not call it a BPMN
+   * error.
+   */
   @Test
   public void aJavaExceptionMappedToAnErrorReportsItsClassAsTheCode() throws IOException {
     script.add(toolCall("buchen", "{}"));
@@ -2746,7 +2761,10 @@ public class AgenticTurnJobTest {
 
     assertThat(toolResults(requestBodies.get(1)))
         .contains("\"status\":\"interrupted\"")
-        .contains("\"errorCode\":\"java.lang.IllegalStateException\"");
+        .contains("\"errorCode\":\"java.lang.IllegalStateException\"")
+        .contains("\"exceptionClass\":\"" + LagerGesperrt.class.getName() + "\"")
+        .contains("with a Java exception the model maps to a BPMN error")
+        .doesNotContain("with a BPMN error,");
   }
 
   /** A code is process data: a long one is cut to the length of a name, and says so. */
@@ -2809,6 +2827,103 @@ public class AgenticTurnJobTest {
         .contains("\"status\":\"finished\"")
         .contains("\"endedAt\":\"buchen\"")
         .doesNotContain("interrupted");
+  }
+
+  /**
+   * An error path that leads back to an activity before the one it interrupted, and from there to
+   * a normal end without passing that one again: the flow went back to before the interruption, so
+   * none is reported. The path's own first activity, which leads back, does not forget it.
+   */
+  @Test
+  public void anErrorPathBackToAnEarlierActivityOfTheChainIsForgotten() throws IOException {
+    script.add(toolCall("anfang", "{}"));
+    script.add(answer("Erledigt."));
+    ProcessInstance pi = startWith(
+        "      <serviceTask id='anfang' name='Anfang' camunda:expression='${true}' />"
+        + "      <sequenceFlow id='e0' sourceRef='anfang' targetRef='pruefen' />"
+        + "      <serviceTask id='pruefen' name='Pruefen' camunda:expression='${true}' />"
+        + "      <sequenceFlow id='e1' sourceRef='pruefen' targetRef='weiche' />"
+        + "      <exclusiveGateway id='weiche' default='e3' />"
+        + "      <sequenceFlow id='e2' sourceRef='weiche' targetRef='buchen'>"
+        + "<conditionExpression>${execution.getVariable('nochmal') == null}</conditionExpression>"
+        + "</sequenceFlow>"
+        + "      <sequenceFlow id='e3' sourceRef='weiche' targetRef='fertig' />"
+        + "      <serviceTask id='fertig' name='Fertig' camunda:expression='${true}' />"
+        + "      <serviceTask id='buchen' name='Buchen' camunda:class='"
+        + ThrowsTheCode.class.getName() + "'><extensionElements>"
+        + "<camunda:field name='code' stringValue='GESPERRT' /></extensionElements></serviceTask>"
+        + "      <boundaryEvent id='fachfehler' attachedToRef='buchen'>"
+        + "<errorEventDefinition /></boundaryEvent>"
+        + "      <sequenceFlow id='e4' sourceRef='fachfehler' targetRef='merken' />"
+        + "      <serviceTask id='merken' name='Merken' camunda:expression='${1}'"
+        + " camunda:resultVariable='nochmal' />"
+        + "      <sequenceFlow id='e5' sourceRef='merken' targetRef='pruefen' />");
+
+    runWaitingTurn();
+
+    assertThat(engine.getHistoryService().createHistoricActivityInstanceQuery()
+        .processInstanceId(pi.getId()).activityId("merken").count())
+        .as("the error path ran once").isOne();
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"finished\"")
+        .contains("\"endedAt\":\"fertig\"")
+        .doesNotContain("interrupted");
+  }
+
+  /**
+   * An interrupting boundary event that is no error event and continues asynchronously: within the
+   * call, its activity is cancelled and the event waits for its job; the call result already says
+   * which event interrupted the tool, not only that it still runs.
+   */
+  @Test
+  public void anAsynchronousEscalationEventIsReportedWithinTheCall() throws IOException {
+    script.add(toolCall("pruefen", "{}"));
+    script.add(answer("Warte."));
+    script.add(answer("Zu teuer."));
+    startWith(ESCALATING_TOOL.replace("<boundaryEvent id='zuTeuer'",
+        "<boundaryEvent id='zuTeuer' camunda:asyncBefore='true'"), ESCALATION);
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"waiting\"")
+        .contains("\"interruptedBy\":{")
+        .contains("\"boundaryEvent\":\"zuTeuer\"")
+        .contains("\"eventType\":\"escalation\"");
+  }
+
+  /**
+   * B11 as the agentic suite measures it: an error declared with its code, thrown by a Groovy
+   * script task, caught on the tool's boundary, whose path ends within the call (CIB7-2166).
+   */
+  @Test
+  public void b11AsTheSuiteMeasuresIt() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(toolCall("completeScope", "{}"));
+    script.add(answer("Fertig."));
+    ProcessInstance pi = startWith(
+        "      <scriptTask id='buchen' name='buchen' scriptFormat='groovy'>"
+        + "<documentation>Bucht; kann mit einem Fachfehler scheitern.</documentation>"
+        + "<script>throw new org.cibseven.bpm.engine.delegate.BpmnError(\"KEIN_BESTAND\")</script>"
+        + "</scriptTask>"
+        + "      <boundaryEvent id='fachfehler' attachedToRef='buchen'>"
+        + "<errorEventDefinition errorRef='errKeinBestand' /></boundaryEvent>"
+        + "      <serviceTask id='fehlerMerken' name='fehlerMerken'"
+        + " camunda:expression=\"${'kein Bestand'}\" camunda:resultVariable='fehler' />"
+        + "      <sequenceFlow id='e1' sourceRef='fachfehler' targetRef='fehlerMerken' />",
+        "  <error id='errKeinBestand' errorCode='KEIN_BESTAND' />");
+
+    runWaitingTurn();
+
+    assertThat(engine.getHistoryService().createHistoricVariableInstanceQuery()
+        .processInstanceId(pi.getId()).variableName("fehler").singleResult().getValue())
+        .as("the error path on the boundary ran").isEqualTo("kein Bestand");
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"errorCode\":\"KEIN_BESTAND\"")
+        .contains("\"boundaryEvent\":\"fachfehler\"")
+        .contains("\"endedAt\":\"fehlerMerken\"");
+    assertThat(alive(pi)).isFalse();
   }
 
   /**
@@ -2912,20 +3027,24 @@ public class AgenticTurnJobTest {
     return later;
   }
 
+  /** A sub process tool that throws an escalation, caught by an interrupting event on its boundary. */
+  protected static final String ESCALATING_TOOL = "      <subProcess id='pruefen' name='Pruefen'>"
+      + "<startEvent id='ps' /><sequenceFlow id='ps1' sourceRef='ps' targetRef='melden' />"
+      + "<intermediateThrowEvent id='melden'><escalationEventDefinition escalationRef='esc' />"
+      + "</intermediateThrowEvent>"
+      + "<sequenceFlow id='ps2' sourceRef='melden' targetRef='pe' /><endEvent id='pe' />"
+      + "</subProcess>"
+      + "      <boundaryEvent id='zuTeuer' attachedToRef='pruefen' cancelActivity='true'>"
+      + "<escalationEventDefinition escalationRef='esc' /></boundaryEvent>";
+
+  protected static final String ESCALATION = "  <escalation id='esc' escalationCode='ZU_TEUER' />";
+
   /** An escalation thrown inside a sub process tool and caught on its boundary, within the call. */
   @Test
   public void aToolEndedByAnEscalationIsReportedAsInterruptedByIt() throws IOException {
     script.add(toolCall("pruefen", "{}"));
     script.add(answer("Zu teuer."));
-    startWith("      <subProcess id='pruefen' name='Pruefen'>"
-        + "<startEvent id='ps' /><sequenceFlow id='ps1' sourceRef='ps' targetRef='melden' />"
-        + "<intermediateThrowEvent id='melden'><escalationEventDefinition escalationRef='esc' />"
-        + "</intermediateThrowEvent>"
-        + "<sequenceFlow id='ps2' sourceRef='melden' targetRef='pe' /><endEvent id='pe' />"
-        + "</subProcess>"
-        + "      <boundaryEvent id='zuTeuer' attachedToRef='pruefen' cancelActivity='true'>"
-        + "<escalationEventDefinition escalationRef='esc' /></boundaryEvent>",
-        "  <escalation id='esc' escalationCode='ZU_TEUER' />");
+    startWith(ESCALATING_TOOL, ESCALATION);
 
     runWaitingTurn();
 
@@ -2970,7 +3089,9 @@ public class AgenticTurnJobTest {
     assertThat(report)
         .contains("\"activityId\":\"freigabe\"")
         .contains("\"status\":\"cancelled\"")
-        .contains("cancelled from outside the agent");
+        .contains("cancelled from outside the agent")
+        .as("a cancelled tool declares nothing it could have shown")
+        .doesNotContain("declares no output mapping");
   }
 
   /** The same for a multi-instance tool, cancelled as a whole: reported once, on the tool. */
@@ -2981,7 +3102,8 @@ public class AgenticTurnJobTest {
     assertThat(report)
         .contains("\"activityId\":\"freigabe\"")
         .contains("\"status\":\"cancelled\"")
-        .doesNotContain("multiInstanceBody");
+        .doesNotContain("multiInstanceBody")
+        .doesNotContain("declares no output mapping");
   }
 
   /**

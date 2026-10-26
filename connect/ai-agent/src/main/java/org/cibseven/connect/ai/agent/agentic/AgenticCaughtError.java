@@ -16,6 +16,9 @@
  */
 package org.cibseven.connect.ai.agent.agentic;
 
+import javax.script.ScriptException;
+
+import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.bpmn.parser.ErrorEventDefinition;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
@@ -65,16 +68,22 @@ public class AgenticCaughtError extends ErrorEventDefinition {
     }
   };
 
-  /** What a definition caught: in which command, which boundary event handles it, which code. */
+  /**
+   * What a definition caught: in which command, which boundary event handles it, which code, and
+   * for a Java exception mapped to an error, the class actually thrown.
+   */
   static final class Caught {
     private final CommandContext command;
     private final String handlerActivityId;
     private final String errorCode;
+    private final String exceptionClass;
 
-    private Caught(CommandContext command, String handlerActivityId, String errorCode) {
+    private Caught(CommandContext command, String handlerActivityId, String errorCode,
+        String exceptionClass) {
       this.command = command;
       this.handlerActivityId = handlerActivityId;
       this.errorCode = errorCode;
+      this.exceptionClass = exceptionClass;
     }
 
     String handlerActivityId() {
@@ -83,6 +92,11 @@ public class AgenticCaughtError extends ErrorEventDefinition {
 
     String errorCode() {
       return errorCode;
+    }
+
+    /** The class of the Java exception thrown, or null for a BPMN error. */
+    String exceptionClass() {
+      return exceptionClass;
     }
   }
 
@@ -99,25 +113,34 @@ public class AgenticCaughtError extends ErrorEventDefinition {
   public boolean catchesError(String errorCode) {
     boolean catches = super.catchesError(errorCode);
     if (catches) {
-      remember(errorCode);
+      remember(errorCode, null);
     }
     return catches;
   }
 
-  /** A Java exception mapped to an error: its code is the class name this definition names. */
+  /**
+   * A Java exception mapped to an error: its code is the class this definition names, which may
+   * be a superclass of the one thrown. That one is kept too, unwrapped as the engine unwraps it
+   * to match.
+   */
   @Override
   public boolean catchesException(Exception ex) {
     boolean catches = super.catchesException(ex);
     if (catches) {
-      remember(getErrorCode());
+      Exception thrown = ex;
+      while ((thrown instanceof ProcessEngineException || thrown instanceof ScriptException)
+          && thrown.getCause() instanceof Exception) {
+        thrown = (Exception) thrown.getCause();
+      }
+      remember(getErrorCode(), thrown.getClass().getName());
     }
     return catches;
   }
 
-  private void remember(String errorCode) {
+  private void remember(String errorCode, String exceptionClass) {
     CommandContext command = Context.getCommandContext();
     if (command != null) {
-      CAUGHT.set(new Caught(command, getHandlerActivityId(), errorCode));
+      CAUGHT.set(new Caught(command, getHandlerActivityId(), errorCode, exceptionClass));
       command.registerCommandContextListener(FORGET);
     }
   }
