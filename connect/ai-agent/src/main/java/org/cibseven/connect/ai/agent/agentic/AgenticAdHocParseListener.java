@@ -268,9 +268,10 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
    * for where the recorder sits). A boundary error event's definition on the activity it is
    * attached to is replaced by one that remembers the code it caught; the engine hands the code to
    * the event only through a process variable the modeller has to ask for (see {@link
-   * AgenticCaughtError}). A non-interrupting event ends nothing, and the engine refuses one inside
-   * an ad hoc sub process anyway (CIB7-1967); a compensation or cancel event is not one the
-   * agent's tools are ended by.
+   * AgenticCaughtError}). An activity with boundary events of other kinds only gets a watch, which
+   * catches nothing and notes an error that found no handler. A non-interrupting event ends
+   * nothing, and the engine refuses one inside an ad hoc sub process anyway (CIB7-1967); a
+   * compensation or cancel event is not one the agent's tools are ended by.
    */
   protected static void recordInterruptions(ActivityImpl child) {
     String kind = AgenticToolEndRecorder.kindOf(child);
@@ -279,17 +280,24 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
       return;
     }
     ActivityImpl attachedTo = (ActivityImpl) child.getEventScope();
-    if (AgenticToolEndRecorder.ERROR.equals(kind)) {
-      List<ErrorEventDefinition> definitions =
-          attachedTo.getProperties().get(BpmnProperties.ERROR_EVENT_DEFINITIONS);
-      List<ErrorEventDefinition> replaced = new ArrayList<ErrorEventDefinition>();
-      for (ErrorEventDefinition definition : definitions) {
-        replaced.add(child.getId().equals(definition.getHandlerActivityId())
-            && !(definition instanceof AgenticCaughtError)
-            ? new AgenticCaughtError(definition) : definition);
+    List<ErrorEventDefinition> replaced = new ArrayList<ErrorEventDefinition>();
+    boolean watched = false;
+    for (ErrorEventDefinition definition : attachedTo.getProperties()
+        .get(BpmnProperties.ERROR_EVENT_DEFINITIONS)) {
+      if (AgenticToolEndRecorder.ERROR.equals(kind)
+          && child.getId().equals(definition.getHandlerActivityId())
+          && !(definition instanceof AgenticCaughtError)) {
+        definition = new AgenticCaughtError(definition, attachedTo);
       }
-      attachedTo.getProperties().set(BpmnProperties.ERROR_EVENT_DEFINITIONS, replaced);
-    } else {
+      watched |= definition instanceof AgenticCaughtError;
+      replaced.add(definition);
+    }
+    if (!watched) {
+      // Last, since it catches nothing: an error is offered to it only after every handler here.
+      replaced.add(AgenticCaughtError.watch(attachedTo, child));
+    }
+    attachedTo.getProperties().set(BpmnProperties.ERROR_EVENT_DEFINITIONS, replaced);
+    if (!AgenticToolEndRecorder.ERROR.equals(kind)) {
       addRecorder(child, ExecutionListener.EVENTNAME_START);
     }
     // Records an error where it cancels, and forgets any interruption once the activity completes.
