@@ -19,22 +19,27 @@ package org.cibseven.connect.ai.agent.agentic;
 import org.cibseven.bpm.engine.impl.bpmn.parser.ErrorEventDefinition;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
+import org.cibseven.bpm.engine.impl.interceptor.CommandContextListener;
+import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
+import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 
 /**
  * The error definition of a boundary error event on a tool, which remembers the code it caught
  * (CIB7-2166).
  *
  * <p>The engine hands the code of a BPMN error to the boundary event that catches it only through
- * {@code camunda:errorCodeVariable}, a variable written into the process, and a boundary event
- * without an error reference catches every code. Which one it was is asked of this definition,
- * though: the engine offers the error to the definitions of each scope in turn, and the first that
- * catches it is the one whose boundary event runs next, in the same command. So this definition
- * keeps the code it said yes to, and the boundary event's start listener ({@link
- * AgenticToolEndRecorder}) takes it, before anything else runs. Nothing reaches the process's
- * variables, and the engine does not learn about the agent.
+ * {@code camunda:errorCodeVariable}, a process variable the modeller has to ask for, and a boundary
+ * event without an error reference catches every code. Which one it was is asked of this
+ * definition, though: the engine offers the error to the definitions of each scope in turn, and
+ * the first that catches it is the one whose boundary event runs next. Before it does, in the same
+ * command, the activity the event is attached to is cancelled, and its end listener ({@link
+ * AgenticToolEndRecorder}) takes the code from here: also when the boundary event itself continues
+ * asynchronously. The engine does not learn about the agent, and the code is kept only on the
+ * tool's performance, as an execution-local variable that goes with it.
  *
  * <p>Put in place of the engine's own definition by the parse listener, with the same handler,
- * code, precedence and variables, so it catches exactly what that one caught.
+ * code, precedence and variables, so it catches exactly what that one caught and the modeller's
+ * {@code errorCodeVariable} and {@code errorMessageVariable} are still written.
  */
 public class AgenticCaughtError extends ErrorEventDefinition {
 
@@ -42,12 +47,26 @@ public class AgenticCaughtError extends ErrorEventDefinition {
 
   /**
    * The last code a definition of this kind caught on this thread, with the command it was caught
-   * in. Taken and cleared by the boundary event's start listener; the command and the handler are
-   * compared, so a code left behind by a command that failed in between is never taken for another.
+   * in. Taken by the end listener of the activity the catching event is attached to, and cleared
+   * when the command closes or fails, so no command holds on to another one's context.
    */
   private static final ThreadLocal<Caught> CAUGHT = new ThreadLocal<Caught>();
 
-  private static final class Caught {
+  /** Clears what this thread caught, as its command closes. Stateless, so one serves them all. */
+  private static final CommandContextListener FORGET = new CommandContextListener() {
+    @Override
+    public void onCommandContextClose(CommandContext commandContext) {
+      CAUGHT.remove();
+    }
+
+    @Override
+    public void onCommandFailed(CommandContext commandContext, Throwable t) {
+      CAUGHT.remove();
+    }
+  };
+
+  /** What a definition caught: in which command, which boundary event handles it, which code. */
+  static final class Caught {
     private final CommandContext command;
     private final String handlerActivityId;
     private final String errorCode;
@@ -56,6 +75,14 @@ public class AgenticCaughtError extends ErrorEventDefinition {
       this.command = command;
       this.handlerActivityId = handlerActivityId;
       this.errorCode = errorCode;
+    }
+
+    String handlerActivityId() {
+      return handlerActivityId;
+    }
+
+    String errorCode() {
+      return errorCode;
     }
   }
 
@@ -91,20 +118,24 @@ public class AgenticCaughtError extends ErrorEventDefinition {
     CommandContext command = Context.getCommandContext();
     if (command != null) {
       CAUGHT.set(new Caught(command, getHandlerActivityId(), errorCode));
+      command.registerCommandContextListener(FORGET);
     }
   }
 
   /**
-   * The code the boundary event {@code handlerActivityId} caught in the running command, or null
-   * when it caught none in it. Cleared either way.
+   * What a boundary event attached to {@code attachedTo} caught in the running command, or null
+   * when none did. Taken, so it is reported once; what belongs to another activity stays.
    */
-  static String takeCaughtCode(String handlerActivityId) {
+  static Caught takeCaughtOn(ActivityImpl attachedTo) {
     Caught caught = CAUGHT.get();
-    CAUGHT.remove();
-    if (caught == null || caught.command != Context.getCommandContext()
-        || !caught.handlerActivityId.equals(handlerActivityId)) {
+    if (caught == null || caught.command != Context.getCommandContext()) {
       return null;
     }
-    return caught.errorCode;
+    PvmActivity handler = attachedTo.getProcessDefinition().findActivity(caught.handlerActivityId);
+    if (handler == null || handler.getEventScope() != attachedTo) {
+      return null;
+    }
+    CAUGHT.remove();
+    return caught;
   }
 }

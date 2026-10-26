@@ -105,17 +105,18 @@ public final class AdHocResults {
     private static final String VALUES = "values";
     private static final String MULTI_INSTANCE = "multiInstance";
     private static final String ENDED_AT = "endedAt";
-    private static final String ENDED_BY = "endedBy";
+    private static final String INTERRUPTED_BY = "interruptedBy";
     private static final String CANCELLED = "cancelled";
 
     /**
-     * How an interrupting boundary event ended a performance (CIB7-2166): a local variable of the
-     * execution the activation created, as {@link #CARRIED} is, written as the event starts and
-     * read as the performance ends. It goes with the performance.
+     * Which interrupting boundary event interrupted a performance's flow (CIB7-2166): a local
+     * variable of the execution the activation created, as {@link #CARRIED} is, written as the
+     * event interrupts and read as the performance ends. It goes with the performance, and, at
+     * history level full, is in the history as that execution's variable.
      */
-    private static final String INTERRUPTED = "adHocAgentEndedBy";
+    private static final String INTERRUPTED = "adHocAgentInterruptedBy";
 
-    /** Keys of what {@link #INTERRUPTED} holds, as the agent is shown it under {@code endedBy}. */
+    /** Keys of what {@link #INTERRUPTED} holds, as the agent is shown it under {@code interruptedBy}. */
     private static final String BOUNDARY_EVENT = "boundaryEvent";
     private static final String EVENT_TYPE = "eventType";
     private static final String ATTACHED_TO = "attachedTo";
@@ -189,7 +190,7 @@ public final class AdHocResults {
         }
         Map<?, ?> interrupted = interruption(ended);
         if (!interrupted.isEmpty()) {
-            entry.put(ENDED_BY, interrupted);
+            entry.put(INTERRUPTED_BY, interrupted);
         }
         append(scope, entry);
     }
@@ -229,9 +230,9 @@ public final class AdHocResults {
 
     /**
      * Records on the performance {@code execution} belongs to that the interrupting boundary event
-     * {@code boundaryEventId}, attached to {@code attachedTo}, of kind {@code eventType}, ended it;
-     * for an error, with the code it caught (CIB7-2166). Called as the event starts. An execution
-     * outside every agentic scope, or on the event scope of one that has left, records nothing.
+     * {@code boundaryEventId}, attached to {@code attachedTo}, of kind {@code eventType},
+     * interrupted its flow; for an error, with the code it caught (CIB7-2166). An execution outside
+     * every agentic scope, or on the event scope of one that has left, records nothing.
      *
      * <p>The performance is the agentic scope's child the execution runs under, the one the
      * activation created and the scope's observer is told about. A later event on the same
@@ -240,12 +241,8 @@ public final class AdHocResults {
      */
     public static void recordInterruption(ExecutionEntity execution, String boundaryEventId,
             String attachedTo, String eventType, String errorCode) {
-        ExecutionEntity handle = execution;
-        while (handle.getParent() != null && !isAgentic(handle.getParent())) {
-            handle = handle.getParent();
-        }
-        ExecutionEntity scope = handle.getParent();
-        if (scope == null || scope.isEventScope()) {
+        ExecutionEntity handle = performanceOf(execution);
+        if (handle == null) {
             return;
         }
         Map<String, Object> endedBy = new TreeMap<String, Object>();
@@ -260,6 +257,33 @@ public final class AdHocResults {
                     AdHocSubProcessTool.truncate(errorCode, AdHocSubProcessTool.MAX_NAME_CHARS));
         }
         handle.setVariableLocal(INTERRUPTED, Variables.objectValue(endedBy).create());
+    }
+
+    /**
+     * Forgets an interruption of the activity {@code attachedTo} recorded on the performance
+     * {@code execution} belongs to, as that activity starts again in it (CIB7-2166): the event's
+     * path led back to it, and how it ends now is what counts. An interruption of another activity
+     * stays.
+     */
+    public static void forgetInterruption(ExecutionEntity execution, String attachedTo) {
+        ExecutionEntity handle = performanceOf(execution);
+        if (handle != null && attachedTo != null
+                && attachedTo.equals(interruption(handle).get(ATTACHED_TO))) {
+            handle.removeVariableLocal(INTERRUPTED);
+        }
+    }
+
+    /**
+     * The agentic scope's child {@code execution} runs under, or null outside every agentic scope
+     * and on the event scope of one that has left.
+     */
+    private static ExecutionEntity performanceOf(ExecutionEntity execution) {
+        ExecutionEntity handle = execution;
+        while (handle.getParent() != null && !isAgentic(handle.getParent())) {
+            handle = handle.getParent();
+        }
+        ExecutionEntity scope = handle.getParent();
+        return (scope == null || scope.isEventScope()) ? null : handle;
     }
 
     /** Whether {@code execution} is the execution of an agentic scope: one with a catalogue. */
@@ -277,21 +301,22 @@ public final class AdHocResults {
 
     /**
      * For the performance {@code handle} of {@code toolId}, still running: if a boundary event has
-     * interrupted it, puts {@code interruptedBy} into {@code into} and returns what to tell the
-     * model, else null (CIB7-2166).
+     * interrupted its flow, puts {@code interruptedBy} into {@code into}, under the same key as for
+     * a performance that ended, and returns what to tell the model, else null (CIB7-2166). The
+     * status is left as it is: the event's path still runs.
      */
     static String describeInterruption(ExecutionEntity handle, String toolId,
             Map<String, Object> into) {
-        Map<?, ?> endedBy = interruption(handle);
-        if (endedBy.isEmpty()) {
+        Map<?, ?> interrupted = interruption(handle);
+        if (interrupted.isEmpty()) {
             return null;
         }
         Map<String, Object> gathered = new TreeMap<String, Object>();
         gathered.put(ACTIVITY_ID, toolId);
-        gathered.put(ENDED_BY, endedBy);
+        gathered.put(INTERRUPTED_BY, interrupted);
         Map<String, Object> described = new LinkedHashMap<String, Object>();
         String note = describeEnd(gathered, described);
-        into.put("interruptedBy", described.get("endedBy"));
+        into.put(INTERRUPTED_BY, described.get(INTERRUPTED_BY));
         return note;
     }
 
@@ -433,10 +458,20 @@ public final class AdHocResults {
     /**
      * Puts how the performance of a gathered entry ended into {@code into}, the shape the model is
      * shown, and returns what to tell the model about it, or null (CIB7-2166): where its flow
-     * ended, when elsewhere; {@code status} {@code interrupted} with {@code endedBy}, when a
-     * boundary event ended it; {@code status} {@code cancelled}, when it was removed from outside.
-     * A performance that completed gets no status here: the state block shows it as it did before,
-     * and a tool result says {@code finished} itself.
+     * ended, when elsewhere; {@code interruptedBy}, when a boundary event interrupted its flow;
+     * {@code status} {@code cancelled}, when it was removed from outside.
+     *
+     * <p>{@code status} {@code interrupted} only when the event sat on the tool itself, which then
+     * did not complete. On an activity further along the tool's chain it did, and its results are
+     * real: only its flow was interrupted later, and the model is told so, not that the tool's work
+     * is undone (review D1), which could make it call the tool again.
+     *
+     * <p>A performance that completed gets no status here: the state block shows it as it did
+     * before, and a tool result says {@code finished} itself.
+     *
+     * <p>The error's code is shown only in {@code interruptedBy.errorCode}, never in the note: it
+     * is whatever a script, a delegate or an external task worker threw, and has no place in text
+     * the model reads as an explanation.
      */
     static String describeEnd(Map<String, Object> gathered, Map<String, Object> into) {
         if (gathered.get(ENDED_AT) != null) {
@@ -449,35 +484,35 @@ public final class AdHocResults {
                     + " example by a process instance modification, and produced no results. Do not"
                     + " treat its work as done and do not wait for it.";
         }
-        Object raw = gathered.get(ENDED_BY);
+        Object raw = gathered.get(INTERRUPTED_BY);
         if (!(raw instanceof Map) || ((Map<?, ?>) raw).isEmpty()) {
             return null;
         }
-        Map<?, ?> endedBy = (Map<?, ?>) raw;
+        Map<?, ?> interrupted = (Map<?, ?>) raw;
         Map<String, Object> shown = new LinkedHashMap<String, Object>();
         for (String key : Arrays.asList(BOUNDARY_EVENT, EVENT_TYPE, ERROR_CODE, ATTACHED_TO)) {
-            if (endedBy.get(key) != null) {
-                shown.put(key, endedBy.get(key));
+            if (interrupted.get(key) != null) {
+                shown.put(key, interrupted.get(key));
             }
         }
-        into.put("status", "interrupted");
-        into.put("endedBy", shown);
-        StringBuilder note = new StringBuilder("'").append(tool).append("' did not complete: ");
-        note.append("the ").append(endedBy.get(EVENT_TYPE)).append(" boundary event '")
-                .append(endedBy.get(BOUNDARY_EVENT)).append("'");
-        if (endedBy.get(ATTACHED_TO) != null) {
-            note.append(" on '").append(endedBy.get(ATTACHED_TO)).append("'");
+        into.put(INTERRUPTED_BY, shown);
+
+        Object attachedTo = interrupted.get(ATTACHED_TO);
+        boolean onTheTool = attachedTo == null || attachedTo.equals(tool);
+        String event = "the " + interrupted.get(EVENT_TYPE) + " boundary event '"
+                + interrupted.get(BOUNDARY_EVENT) + "'";
+        String error = (interrupted.get(ERROR_CODE) != null)
+                ? " with a BPMN error, whose code is in interruptedBy.errorCode" : "";
+        String path = (gathered.get(ENDED_AT) != null)
+                ? ", which ended at '" + gathered.get(ENDED_AT) + "'" : "";
+        if (onTheTool) {
+            into.put("status", "interrupted");
+            return "'" + tool + "' did not complete: " + event + " interrupted it" + error
+                    + ", and the process took that event's path" + path
+                    + ". Do not treat its work as done.";
         }
-        note.append(" interrupted it");
-        if (endedBy.get(ERROR_CODE) != null) {
-            note.append(" with the BPMN error '").append(endedBy.get(ERROR_CODE)).append("'");
-        }
-        note.append(", and the process took that event's path");
-        if (gathered.get(ENDED_AT) != null) {
-            note.append(", which ended at '").append(gathered.get(ENDED_AT)).append("'");
-        }
-        note.append(". Do not treat its work as done.");
-        return note.toString();
+        return "'" + tool + "' ran; its flow was then interrupted at '" + attachedTo + "' by "
+                + event + error + ", and the process took that event's path" + path + ".";
     }
 
     /**

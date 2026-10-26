@@ -38,6 +38,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -47,12 +48,12 @@ import org.cibseven.bpm.application.ProcessApplicationExecutionException;
 import org.cibseven.bpm.application.ProcessApplicationInterface;
 import org.cibseven.bpm.application.impl.EmbeddedProcessApplication;
 import org.cibseven.bpm.engine.OptimisticLockingException;
+import org.cibseven.bpm.engine.ProcessEngine;
+import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.delegate.BpmnError;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.Expression;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
-import org.cibseven.bpm.engine.ProcessEngine;
-import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.history.HistoricVariableInstance;
 import org.cibseven.bpm.engine.history.HistoricVariableUpdate;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
@@ -2556,17 +2557,42 @@ public class AgenticTurnJobTest {
     assertThat(alive(pi)).isFalse();
   }
 
-  /** Throws the BPMN error whose code its field {@code code} names. */
+  /** Throws the BPMN error whose code its field {@code code} names, with {@code message} if set. */
   public static class ThrowsTheCode implements JavaDelegate {
     private Expression code;
+    private Expression message;
 
     public void setCode(Expression code) {
       this.code = code;
     }
 
+    public void setMessage(Expression message) {
+      this.message = message;
+    }
+
     @Override
     public void execute(DelegateExecution execution) {
-      throw new BpmnError(String.valueOf(code.getValue(execution)));
+      String thrown = String.valueOf(code.getValue(execution));
+      throw (message == null) ? new BpmnError(thrown)
+          : new BpmnError(thrown, String.valueOf(message.getValue(execution)));
+    }
+  }
+
+  /** Throws a BPMN error until the variable {@code versuch} is set, then completes. */
+  public static class ThrowsOnTheFirstAttempt implements JavaDelegate {
+    @Override
+    public void execute(DelegateExecution execution) {
+      if (execution.getVariable("versuch") == null) {
+        throw new BpmnError("ERSTER_VERSUCH");
+      }
+    }
+  }
+
+  /** Throws a Java exception, which a boundary error event may name by its class. */
+  public static class ThrowsAnIllegalState implements JavaDelegate {
+    @Override
+    public void execute(DelegateExecution execution) {
+      throw new IllegalStateException("Lager gesperrt");
     }
   }
 
@@ -2583,10 +2609,32 @@ public class AgenticTurnJobTest {
         + " camunda:expression=\"${'kein Bestand'}\" camunda:resultVariable='fehler' />";
   }
 
+  /** As {@link #startWith(String)}, with {@code declarations} before the process: messages, signals. */
+  protected ProcessInstance startWith(String children, String declarations) {
+    return start(connectorModel("",
+        "<camunda:inputParameter name='message'>Erledige das.</camunda:inputParameter>", "",
+        "stub-key", children).replace("  <process id='agenticTurn'",
+            declarations + "  <process id='agenticTurn'"),
+        Collections.<String, Object>emptyMap());
+  }
+
+  /** The state blocks of every request after the first, one after the other. */
+  protected String laterStateBlocks() {
+    return requestBodies.subList(1, requestBodies.size()).stream()
+        .map(body -> {
+          try {
+            return lastUserMessage(body);
+          } catch (IOException e) {
+            throw new IllegalStateException(e);
+          }
+        })
+        .collect(Collectors.joining("\n"));
+  }
+
   /**
    * B11: a tool whose BPMN error is caught on its boundary, and whose error path runs to its end
    * within the call, is not reported as finished: the tool result names the error's code and the
-   * boundary event (CIB7-2166).
+   * boundary event (CIB7-2166). The code is in the structured field only, not in the note's text.
    */
   @Test
   public void aToolEndedByABpmnErrorWithinItsCallIsReportedWithTheErrorsCode() throws IOException {
@@ -2598,10 +2646,15 @@ public class AgenticTurnJobTest {
 
     assertThat(toolResults(requestBodies.get(1)))
         .contains("\"status\":\"interrupted\"")
+        .contains("\"interruptedBy\":{")
         .contains("\"boundaryEvent\":\"fachfehler\"")
         .contains("\"eventType\":\"error\"")
         .contains("\"errorCode\":\"KEIN_BESTAND\"")
+        .contains("\"attachedTo\":\"buchen\"")
         .contains("\"endedAt\":\"fehlerMerken\"")
+        .contains("'buchen' did not complete")
+        .contains("whose code is in interruptedBy.errorCode")
+        .doesNotContain("'KEIN_BESTAND'")
         .doesNotContain("\"status\":\"finished\"");
   }
 
@@ -2623,15 +2676,44 @@ public class AgenticTurnJobTest {
   }
 
   /**
-   * The modeller's errorCodeVariable still gets the code: the agent's own definition takes it over
-   * with everything else the engine's had.
+   * A boundary error event that continues asynchronously still reports the code: it is taken as
+   * the error cancels the tool, in the command that caught it, not as the event starts in a job.
    */
   @Test
-  public void theModellersErrorCodeVariableStillGetsTheCode() throws IOException {
+  public void anAsynchronousBoundaryErrorEventStillReportsTheCode() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Warte."));
+    script.add(answer("Gescheitert."));
+    startWith(failingTool("GESPERRT", "<errorEventDefinition />")
+        .replace("<boundaryEvent id='fachfehler'",
+            "<boundaryEvent id='fachfehler' camunda:asyncBefore='true'"));
+
+    // Runs the boundary event's job too, and the turn its path's end brings.
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .as("within the call, the event waits for its job: the tool is interrupted and waits")
+        .contains("\"status\":\"waiting\"")
+        .contains("\"errorCode\":\"GESPERRT\"");
+    assertThat(laterStateBlocks())
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"errorCode\":\"GESPERRT\"")
+        .contains("\"endedAt\":\"fehlerMerken\"");
+  }
+
+  /**
+   * The modeller's errorCodeVariable and errorMessageVariable still get the code and the message:
+   * the agent's own definition takes them over with everything else the engine's had.
+   */
+  @Test
+  public void theModellersErrorVariablesStillGetTheCodeAndTheMessage() throws IOException {
     script.add(toolCall("buchen", "{}"));
     script.add(answer("Gescheitert."));
     ProcessInstance pi = startWith(failingTool("GESPERRT",
-        "<errorEventDefinition camunda:errorCodeVariable='grund' />")
+        "<errorEventDefinition camunda:errorCodeVariable='grund'"
+            + " camunda:errorMessageVariable='meldung' />")
+        .replace("</extensionElements>",
+            "<camunda:field name='message' stringValue='Lager gesperrt' /></extensionElements>")
         .replace("<serviceTask id='fehlerMerken' name='Fehler merken'",
             "<userTask id='fehlerMerken' name='Fehler merken'")
         .replace(" camunda:expression=\"${'kein Bestand'}\" camunda:resultVariable='fehler' />",
@@ -2640,11 +2722,46 @@ public class AgenticTurnJobTest {
     runWaitingTurn();
 
     assertThat(engine.getRuntimeService().getVariable(pi.getId(), "grund")).isEqualTo("GESPERRT");
+    assertThat(engine.getRuntimeService().getVariable(pi.getId(), "meldung"))
+        .isEqualTo("Lager gesperrt");
     assertThat(toolResults(requestBodies.get(1)))
         .as("the error path waits for a person, so the tool still runs, interrupted")
         .contains("\"status\":\"waiting\"")
-        .contains("\"interruptedBy\"")
+        .contains("\"interruptedBy\":{")
         .contains("\"errorCode\":\"GESPERRT\"");
+  }
+
+  /** A Java exception a boundary error event names by its class reports that class as the code. */
+  @Test
+  public void aJavaExceptionMappedToAnErrorReportsItsClassAsTheCode() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Gescheitert."));
+    startWith(failingTool("unused",
+        "<errorEventDefinition errorRef='java.lang.IllegalStateException' />")
+        .replace(ThrowsTheCode.class.getName(), ThrowsAnIllegalState.class.getName())
+        .replace("<extensionElements><camunda:field name='code' stringValue='unused' />"
+            + "</extensionElements>", ""));
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"errorCode\":\"java.lang.IllegalStateException\"");
+  }
+
+  /** A code is process data: a long one is cut to the length of a name, and says so. */
+  @Test
+  public void aLongErrorCodeIsCut() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Gescheitert."));
+    String code = String.join("", Collections.nCopies(300, "X"));
+    startWith(failingTool(code, "<errorEventDefinition />"));
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("truncated, 300 characters total")
+        .doesNotContain(code);
   }
 
   /** A tool that completes is reported as before: finished, with no word of an interruption. */
@@ -2660,8 +2777,64 @@ public class AgenticTurnJobTest {
 
     assertThat(toolResults(requestBodies.get(1)))
         .contains("\"status\":\"finished\"")
-        .doesNotContain("interrupted")
-        .doesNotContain("endedBy");
+        .doesNotContain("interrupted");
+  }
+
+  /**
+   * An error path that leads back to the activity it interrupted, which then completes: the
+   * interruption no longer says how the performance ended, so none is reported (review).
+   */
+  @Test
+  public void anErrorPathBackToTheActivityItInterruptedIsForgotten() throws IOException {
+    script.add(toolCall("anfang", "{}"));
+    script.add(answer("Gebucht."));
+    ProcessInstance pi = startWith(
+        "      <serviceTask id='anfang' name='Anfang' camunda:expression='${true}' />"
+        + "      <sequenceFlow id='e0' sourceRef='anfang' targetRef='buchen' />"
+        + "      <serviceTask id='buchen' name='Buchen' camunda:class='"
+        + ThrowsOnTheFirstAttempt.class.getName() + "' />"
+        + "      <boundaryEvent id='fachfehler' attachedToRef='buchen'>"
+        + "<errorEventDefinition /></boundaryEvent>"
+        + "      <sequenceFlow id='e1' sourceRef='fachfehler' targetRef='merken' />"
+        + "      <serviceTask id='merken' name='Merken' camunda:expression='${1}'"
+        + " camunda:resultVariable='versuch' />"
+        + "      <sequenceFlow id='e2' sourceRef='merken' targetRef='buchen' />");
+
+    runWaitingTurn();
+
+    assertThat(engine.getHistoryService().createHistoricActivityInstanceQuery()
+        .processInstanceId(pi.getId()).activityId("merken").count())
+        .as("the error path ran once").isOne();
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"finished\"")
+        .contains("\"endedAt\":\"buchen\"")
+        .doesNotContain("interrupted");
+  }
+
+  /**
+   * Review D1: a timer on an activity further along the tool's chain interrupts the chain, not
+   * the tool, which ran: its results stand, and the model is not told its work is undone.
+   */
+  @Test
+  public void aTimerFurtherAlongTheChainDoesNotUndoTheToolThatRan() throws IOException {
+    script.add(toolCall("anfragen", "{}"));
+    script.add(answer("Gestartet."));
+    script.add(answer("Keine Antwort."));
+    startWith(CHAIN
+        + "      <boundaryEvent id='zuLange' attachedToRef='warten'><timerEventDefinition>"
+        + "<timeDuration>PT1H</timeDuration></timerEventDefinition></boundaryEvent>");
+
+    // The turn's steps run every job there is, the boundary timer among them.
+    runWaitingTurn();
+
+    assertThat(laterStateBlocks())
+        .contains("\"activityId\":\"anfragen\"")
+        .contains("\"status\":\"gesendet\"")
+        .contains("\"attachedTo\":\"warten\"")
+        .contains("\"eventType\":\"timer\"")
+        .contains("'anfragen' ran; its flow was then interrupted at 'warten'")
+        .doesNotContain("did not complete")
+        .doesNotContain("\"status\":\"interrupted\"");
   }
 
   /**
@@ -2670,31 +2843,119 @@ public class AgenticTurnJobTest {
    */
   @Test
   public void aToolEndedByItsTimerIsReportedAsInterruptedByIt() throws IOException {
+    String later = interruptAWaitingTool(
+        "<timerEventDefinition><timeDuration>PT1H</timeDuration></timerEventDefinition>", "",
+        pi -> { });
+
+    assertThat(later)
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"eventType\":\"timer\"")
+        .contains("\"endedAt\":\"zuLange\"");
+  }
+
+  @Test
+  public void aToolEndedByAMessageIsReportedAsInterruptedByIt() throws IOException {
+    String later = interruptAWaitingTool("<messageEventDefinition messageRef='abbruchMsg' />",
+        "  <message id='abbruchMsg' name='abbruch' />",
+        pi -> engine.getRuntimeService().correlateMessage("abbruch"));
+
+    assertThat(later).contains("\"status\":\"interrupted\"").contains("\"eventType\":\"message\"");
+  }
+
+  @Test
+  public void aToolEndedByASignalIsReportedAsInterruptedByIt() throws IOException {
+    String later = interruptAWaitingTool("<signalEventDefinition signalRef='stoppSig' />",
+        "  <signal id='stoppSig' name='stopp' />",
+        pi -> engine.getRuntimeService().signalEventReceived("stopp"));
+
+    assertThat(later).contains("\"status\":\"interrupted\"").contains("\"eventType\":\"signal\"");
+  }
+
+  @Test
+  public void aToolEndedByAConditionIsReportedAsInterruptedByIt() throws IOException {
+    String later = interruptAWaitingTool("<conditionalEventDefinition><condition>"
+        + "${execution.getVariable('abbrechen') == true}</condition></conditionalEventDefinition>",
+        "", pi -> engine.getRuntimeService().setVariable(pi.getId(), "abbrechen", true));
+
+    assertThat(later)
+        .contains("\"status\":\"interrupted\"").contains("\"eventType\":\"conditional\"");
+  }
+
+  /**
+   * The tool {@code freigabe} waits for a person, with the interrupting boundary event
+   * {@code zuLange} of {@code definition} on it; {@code trigger} fires it after the first turn,
+   * unless it is a timer the turn's steps already ran. The state blocks after the first request,
+   * which say freigabe ended by it.
+   */
+  protected String interruptAWaitingTool(String definition, String declarations,
+      Consumer<ProcessInstance> trigger) throws IOException {
     script.add(toolCall("freigabe", "{}"));
     script.add(answer("Warte auf die Freigabe."));
     script.add(answer("Die Freigabe kam nicht."));
-    startWith("      <userTask id='freigabe' name='Freigabe' />"
+    ProcessInstance pi = startWith("      <userTask id='freigabe' name='Freigabe' />"
+        + "      <boundaryEvent id='zuLange' attachedToRef='freigabe'>" + definition
+        + "</boundaryEvent>", declarations);
+    runWaitingTurn();
+    trigger.accept(pi);
+    if (engine.getManagementService().createJobQuery().count() > 0) {
+      runWaitingTurn();
+    }
+
+    // A timer's job may run between the steps of the first turn, which then reports it itself.
+    assertThat(requestBodies).hasSizeGreaterThan(1);
+    String later = laterStateBlocks();
+    assertThat(later)
+        .contains("\"activityId\":\"freigabe\"")
+        .contains("\"boundaryEvent\":\"zuLange\"")
+        .contains("\"attachedTo\":\"freigabe\"")
+        .contains("'freigabe' did not complete");
+    return later;
+  }
+
+  /** An escalation thrown inside a sub process tool and caught on its boundary, within the call. */
+  @Test
+  public void aToolEndedByAnEscalationIsReportedAsInterruptedByIt() throws IOException {
+    script.add(toolCall("pruefen", "{}"));
+    script.add(answer("Zu teuer."));
+    startWith("      <subProcess id='pruefen' name='Pruefen'>"
+        + "<startEvent id='ps' /><sequenceFlow id='ps1' sourceRef='ps' targetRef='melden' />"
+        + "<intermediateThrowEvent id='melden'><escalationEventDefinition escalationRef='esc' />"
+        + "</intermediateThrowEvent>"
+        + "<sequenceFlow id='ps2' sourceRef='melden' targetRef='pe' /><endEvent id='pe' />"
+        + "</subProcess>"
+        + "      <boundaryEvent id='zuTeuer' attachedToRef='pruefen' cancelActivity='true'>"
+        + "<escalationEventDefinition escalationRef='esc' /></boundaryEvent>",
+        "  <escalation id='esc' escalationCode='ZU_TEUER' />");
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"boundaryEvent\":\"zuTeuer\"")
+        .contains("\"eventType\":\"escalation\"");
+  }
+
+  /** A multi-instance tool's boundary event is reported on the tool, not on its multi-instance body. */
+  protected static final String TWO_APPROVALS = "      <userTask id='freigabe' name='Freigabe'>"
+      + "<multiInstanceLoopCharacteristics><loopCardinality>2</loopCardinality>"
+      + "</multiInstanceLoopCharacteristics></userTask>";
+
+  @Test
+  public void aMultiInstanceToolEndedByItsTimerIsReportedOnTheTool() throws IOException {
+    script.add(toolCall("freigabe", "{}"));
+    script.add(answer("Warte auf die Freigaben."));
+    script.add(answer("Die Freigaben kamen nicht."));
+    startWith(TWO_APPROVALS
         + "      <boundaryEvent id='zuLange' attachedToRef='freigabe'><timerEventDefinition>"
         + "<timeDuration>PT1H</timeDuration></timerEventDefinition></boundaryEvent>");
 
-    // The turn's steps run every job there is, the boundary timer among them.
     runWaitingTurn();
 
-    String later = requestBodies.subList(1, requestBodies.size()).stream()
-        .map(body -> {
-          try {
-            return lastUserMessage(body);
-          } catch (IOException e) {
-            throw new IllegalStateException(e);
-          }
-        })
-        .collect(Collectors.joining("\n"));
-    assertThat(later)
+    assertThat(laterStateBlocks())
         .contains("\"activityId\":\"freigabe\"")
         .contains("\"status\":\"interrupted\"")
-        .contains("\"boundaryEvent\":\"zuLange\"")
-        .contains("\"eventType\":\"timer\"")
-        .contains("\"endedAt\":\"zuLange\"");
+        .contains("\"attachedTo\":\"freigabe\"")
+        .doesNotContain("multiInstanceBody");
   }
 
   /**
@@ -2703,13 +2964,37 @@ public class AgenticTurnJobTest {
    */
   @Test
   public void aToolCancelledFromOutsideIsReportedAsCancelled() throws IOException {
+    String report = cancelFromOutside("      <userTask id='freigabe' name='Freigabe' />",
+        "freigabe");
+
+    assertThat(report)
+        .contains("\"activityId\":\"freigabe\"")
+        .contains("\"status\":\"cancelled\"")
+        .contains("cancelled from outside the agent");
+  }
+
+  /** The same for a multi-instance tool, cancelled as a whole: reported once, on the tool. */
+  @Test
+  public void aMultiInstanceToolCancelledFromOutsideIsReportedAsCancelled() throws IOException {
+    String report = cancelFromOutside(TWO_APPROVALS, "freigabe#multiInstanceBody");
+
+    assertThat(report)
+        .contains("\"activityId\":\"freigabe\"")
+        .contains("\"status\":\"cancelled\"")
+        .doesNotContain("multiInstanceBody");
+  }
+
+  /**
+   * The agent starts {@code freigabe} from {@code tool}; someone else's work keeps the scope, as
+   * cancelling its only child would cancel the scope too; then {@code cancelled} is cancelled. The
+   * state block of the turn that brings.
+   */
+  protected String cancelFromOutside(String tool, String cancelled) throws IOException {
     script.add(toolCall("freigabe", "{}"));
     script.add(answer("Warte auf die Freigabe."));
     script.add(answer("Verstanden."));
-    ProcessInstance pi = startWith("      <userTask id='freigabe' name='Freigabe' />"
-        + "      <userTask id='worker' name='Worker' />");
+    ProcessInstance pi = startWith(tool + "      <userTask id='worker' name='Worker' />");
     runWaitingTurn();
-    // Someone else's work keeps the scope: cancelling its only child would cancel the scope too.
     String scope = engine.getRuntimeService().createExecutionQuery().activityId("adHoc")
         .singleResult().getId();
     engine.getRuntimeService().createAdHocSubProcessActivation(scope)
@@ -2717,14 +3002,11 @@ public class AgenticTurnJobTest {
     int before = requestBodies.size();
 
     engine.getRuntimeService().createProcessInstanceModification(pi.getId())
-        .cancelAllForActivity("freigabe").execute();
+        .cancelAllForActivity(cancelled).execute();
     runWaitingTurn();
 
     assertThat(requestBodies).hasSizeGreaterThan(before);
-    assertThat(lastUserMessage(requestBodies.get(before)))
-        .contains("\"activityId\":\"freigabe\"")
-        .contains("\"status\":\"cancelled\"")
-        .contains("cancelled from outside the agent");
+    return lastUserMessage(requestBodies.get(before));
   }
 
   /** A chain along an inner flow: a tool that ends at once and a person who has to act after it. */

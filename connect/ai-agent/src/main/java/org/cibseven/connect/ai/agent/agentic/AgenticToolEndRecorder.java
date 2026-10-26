@@ -27,13 +27,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * At the start of an interrupting boundary event on a tool, or on an activity further along a
- * tool's chain: records on the tool's performance that this event ended it, of which kind, and for
- * an error, which code (CIB7-2166). The scope's observer takes it into the entry the agent is told
- * about, and a tool result into what the call returns.
+ * Records on a tool's performance which interrupting boundary event interrupted its flow: on the
+ * tool itself, or on an activity further along its chain (CIB7-2166). The scope's observer takes
+ * it into the entry the agent is told about, and a tool result into what the call returns.
  *
  * <p>Without it, the agent learnt only where the flow ended, {@code endedAt}; a tool whose error
  * path ran to its end within the call was even reported as finished.
+ *
+ * <p>Sits in three places, all set by the parse listener, and tells them apart by the activity and
+ * the event it is notified of:
+ * <ul>
+ * <li>the start of an interrupting boundary event that is no error event: records it;</li>
+ * <li>the end of an activity a boundary error event is attached to, as the error cancels it:
+ * records the error with the code {@link AgenticCaughtError} caught. Here, not at the event's
+ * start, because that end runs in the command that caught the error, also when the event itself
+ * continues asynchronously;</li>
+ * <li>the start of an activity a boundary event is attached to: forgets what that activity's
+ * events recorded earlier in the same performance. A path that leads back to it and on to a
+ * normal end did not end in that interruption.</li>
+ * </ul>
  *
  * <p>Built in, so {@code skipCustomListeners} does not skip it.
  */
@@ -45,7 +57,7 @@ public class AgenticToolEndRecorder implements ExecutionListener {
   public static String kindOf(ActivityImpl boundaryEvent) {
     String type = boundaryEvent.getProperties().get(BpmnProperties.TYPE);
     if (ActivityTypes.BOUNDARY_ERROR.equals(type)) {
-      return "error";
+      return ERROR;
     }
     if (ActivityTypes.BOUNDARY_TIMER.equals(type)) {
       return "timer";
@@ -65,9 +77,11 @@ public class AgenticToolEndRecorder implements ExecutionListener {
     return null;
   }
 
+  static final String ERROR = "error";
+
   /**
-   * Never fails the event it listens to: that event is the process handling a timer, an error or
-   * a message, and telling the agent about it must not undo it.
+   * Never fails what it listens to: that is the process handling a timer, an error or a message,
+   * or a tool starting, and telling the agent about it must not undo it.
    */
   @Override
   public void notify(DelegateExecution execution) {
@@ -75,24 +89,34 @@ public class AgenticToolEndRecorder implements ExecutionListener {
       return;
     }
     ExecutionEntity entity = (ExecutionEntity) execution;
-    ActivityImpl boundaryEvent = entity.getActivity();
-    // Taken whatever happens next, so no code is left on the thread.
-    String errorCode = (boundaryEvent == null)
-        ? null : AgenticCaughtError.takeCaughtCode(boundaryEvent.getId());
-    String kind = (boundaryEvent == null) ? null : kindOf(boundaryEvent);
-    if (kind == null) {
+    ActivityImpl activity = entity.getActivity();
+    if (activity == null) {
       return;
     }
-    // The activity the event is attached to, not its multi-instance body.
-    String attachedTo = (boundaryEvent.getEventScope() instanceof ActivityImpl)
-        ? AgenticAdHocParseListener.innerActivity((ActivityImpl) boundaryEvent.getEventScope())
-            .getId()
-        : null;
     try {
-      AdHocResults.recordInterruption(entity, boundaryEvent.getId(), attachedTo, kind, errorCode);
+      String kind = kindOf(activity);
+      if (EVENTNAME_END.equals(execution.getEventName())) {
+        AgenticCaughtError.Caught caught = AgenticCaughtError.takeCaughtOn(activity);
+        if (caught != null) {
+          AdHocResults.recordInterruption(entity, caught.handlerActivityId(),
+              attachedTo(activity), ERROR, caught.errorCode());
+        }
+      } else if (kind != null) {
+        if (!ERROR.equals(kind) && activity.getEventScope() instanceof ActivityImpl) {
+          AdHocResults.recordInterruption(entity, activity.getId(),
+              attachedTo((ActivityImpl) activity.getEventScope()), kind, null);
+        }
+      } else {
+        AdHocResults.forgetInterruption(entity, attachedTo(activity));
+      }
     } catch (RuntimeException e) {
-      LOG.warn("Could not record that '{}' interrupted a tool; the agent is told only where its"
-          + " flow ended.", boundaryEvent.getId(), e);
+      LOG.warn("Could not record how a boundary event on '{}' interrupted a tool; the agent is"
+          + " told only where its flow ended.", activity.getId(), e);
     }
+  }
+
+  /** The activity a boundary event is attached to as the agent knows it, not its multi-instance body. */
+  private static String attachedTo(ActivityImpl activity) {
+    return AgenticAdHocParseListener.innerActivity(activity).getId();
   }
 }

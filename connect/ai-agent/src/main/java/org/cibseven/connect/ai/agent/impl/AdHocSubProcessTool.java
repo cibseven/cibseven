@@ -331,7 +331,7 @@ public class AdHocSubProcessTool {
             result.put("status", "finished");
             // The entry the observer gathered as the activity ended, within this call: its values
             // taken where the tool held them, its own scope included (CIB7-2215), and how it
-            // ended, which is not finished when a boundary event interrupted it (CIB7-2166). A
+            // ended, which is not finished when a boundary event on it interrupted it (CIB7-2166). A
             // chain that goes on to an activity that is no tool is gathered too, under this tool.
             // Only without an entry are the values read from the scope (readResult), a fallback no
             // model is known to reach within a call.
@@ -523,7 +523,7 @@ public class AdHocSubProcessTool {
      * For a performance still running after its call: if a boundary event interrupted it within
      * the call, puts {@code interruptedBy} into {@code result} and returns what to tell the model,
      * else null (CIB7-2166). Its status stays waiting, since the event's path still runs; the
-     * entry gathered when that path ends says the same as {@code endedBy}.
+     * entry gathered when that path ends carries the same {@code interruptedBy}.
      */
     private static String interruptedWhileRunning(ExecutionEntity scope, String trackingId,
                                                   String activityId, Map<String, Object> result) {

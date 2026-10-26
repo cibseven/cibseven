@@ -260,21 +260,22 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
   }
 
   /**
-   * Makes {@code boundaryEvent}, a child of an agentic scope, record how it ended a tool, if it is
-   * an interrupting boundary event of a kind that ends one. A boundary error event's definition on
+   * Makes {@code boundaryEvent}, a child of an agentic scope, record how it interrupted a tool's
+   * flow, if it is an interrupting boundary event of a kind that does (see {@link
+   * AgenticToolEndRecorder} for where the recorder sits). A boundary error event's definition on
    * the activity it is attached to is replaced by one that remembers the code it caught; the engine
-   * hands the code to the event only through a process variable (see {@link AgenticCaughtError}).
-   * A non-interrupting event ends nothing; a compensation or cancel event is not one the agent's
-   * tools are ended by.
+   * hands the code to the event only through a process variable the modeller has to ask for (see
+   * {@link AgenticCaughtError}). A non-interrupting event ends nothing; a compensation or cancel
+   * event is not one the agent's tools are ended by.
    */
   protected static void recordInterruptions(ActivityImpl boundaryEvent) {
+    String kind = AgenticToolEndRecorder.kindOf(boundaryEvent);
     if (boundaryEvent.getActivityStartBehavior() != ActivityStartBehavior.CANCEL_EVENT_SCOPE
-        || AgenticToolEndRecorder.kindOf(boundaryEvent) == null
-        || !(boundaryEvent.getEventScope() instanceof ActivityImpl)) {
+        || kind == null || !(boundaryEvent.getEventScope() instanceof ActivityImpl)) {
       return;
     }
-    if ("error".equals(AgenticToolEndRecorder.kindOf(boundaryEvent))) {
-      ActivityImpl attachedTo = (ActivityImpl) boundaryEvent.getEventScope();
+    ActivityImpl attachedTo = (ActivityImpl) boundaryEvent.getEventScope();
+    if (AgenticToolEndRecorder.ERROR.equals(kind)) {
       List<ErrorEventDefinition> definitions =
           attachedTo.getProperties().get(BpmnProperties.ERROR_EVENT_DEFINITIONS);
       List<ErrorEventDefinition> replaced = new ArrayList<ErrorEventDefinition>();
@@ -284,8 +285,18 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
             ? new AgenticCaughtError(definition) : definition);
       }
       attachedTo.getProperties().set(BpmnProperties.ERROR_EVENT_DEFINITIONS, replaced);
+      addRecorder(attachedTo, ExecutionListener.EVENTNAME_END);
+    } else {
+      addRecorder(boundaryEvent, ExecutionListener.EVENTNAME_START);
     }
-    boundaryEvent.addBuiltInListener(ExecutionListener.EVENTNAME_START, END_RECORDER);
+    addRecorder(attachedTo, ExecutionListener.EVENTNAME_START);
+  }
+
+  /** The recorder on {@code activity} for {@code event}, once, however many events need it there. */
+  protected static void addRecorder(ActivityImpl activity, String event) {
+    if (!activity.getBuiltInListeners(event).contains(END_RECORDER)) {
+      activity.addBuiltInListener(event, END_RECORDER);
+    }
   }
 
   /** The activity a child performs: itself, or the activity inside its multi-instance body. */
