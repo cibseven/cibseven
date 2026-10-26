@@ -30,7 +30,7 @@
     <version.uuid-generator>4.3.0</version.uuid-generator>
     <version.feel-scala>1.19.3</version.feel-scala>
     <version.license-maven-plugin>2.4.0</version.license-maven-plugin>
-    <!-- Version for cibseven-webclient-web -->
+    <!-- Version for cibseven-webclient-web and cibseven-interfaces -->
     <cibseven-webapp.version>${project.version}</cibseven-webapp.version>
     <version.junit5>5.13.4</version.junit5>
     <!-- The Spring Framework 7 / Spring Boot 4 trees run on JUnit 6; spring-test 7 is
@@ -94,6 +94,7 @@
         <module>engine-cdi</module>
         <module>engine-spring</module>
         <module>engine-rest</module>
+        <module>direct-provider</module>
 
         <module>webapps</module>
 
@@ -247,6 +248,8 @@
         <module>engine-cdi</module>
         <module>engine-spring</module>
         <module>engine-rest</module>
+        <!-- the spring-boot starters depend on it -->
+        <module>direct-provider</module>
 
         <module>engine-dmn</module>
         <module>connect</module>

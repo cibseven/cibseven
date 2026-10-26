@@ -1,0 +1,115 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.cibseven.bpm</groupId>
+    <artifactId>cibseven-database-settings</artifactId>
+    <relativePath>../database</relativePath>
+    <version>3.0.0-SNAPSHOT</version>
+  </parent>
+
+  <!-- Keeps the coordinates and the package (org.cibseven.webapp.providers) it had in
+       cibseven-webclient: the webclient selects it by class name through
+       cibseven.webclient.bpm.provider=org.cibseven.webapp.providers.SevenDirectProvider -->
+  <groupId>org.cibseven.webapp</groupId>
+  <artifactId>cibseven-direct-provider</artifactId>
+  <name>CIB seven - Webclient direct provider</name>
+  <description>Provider for the CIB seven webclient that calls the engine in the same JVM instead of its REST API</description>
+
+  <properties>
+    <!-- Runs only inside the webclient, which needs Java 17 -->
+    <version.java>17</version.java>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- Must stay FIRST, ahead of spring-boot-dependencies: among imported BOMs the earliest
+           declaration wins. See spring-boot-starter/pom.xml. -->
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${version.junit5}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${version.spring-boot}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!-- The provider interfaces (org.cibseven.webapp.providers) and the model they use stay in
+         cibseven-webclient. The webclient does not depend on the engine, so there is no cycle. -->
+    <dependency>
+      <groupId>org.cibseven.webapp</groupId>
+      <artifactId>cibseven-interfaces</artifactId>
+      <version>${cibseven-webapp.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine-rest-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+    </dependency>
+
+    <!-- Provided by the webclient the provider runs in -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-web</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+</project>
