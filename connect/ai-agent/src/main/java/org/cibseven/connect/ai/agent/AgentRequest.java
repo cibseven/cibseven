@@ -100,7 +100,8 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
   /**
    * Optional. Memory identifier to reuse across invocations. When unset and
    * {@link #useChatMemory(boolean)} is {@code true}, the connector generates a
-   * new UUID on first call.
+   * new UUID on every call — except for a tool of an agentic ad hoc sub process,
+   * which gets an id derived from the sub process instead.
    */
   AgentRequest memoryId(String memoryId);
 
