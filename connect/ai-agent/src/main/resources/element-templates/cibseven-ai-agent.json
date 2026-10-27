@@ -99,7 +99,7 @@
           "label": "Optional context variables",
           "type": "Text",
           "group": "context",
-          "description": "Comma-separated subset of 'Context variables' that is allowed to be missing. Such a variable renders as (absent) and the agent runs on. Use it for context that exists on only some paths — an escalation reason from a branch that is often skipped, a value from a previous loop iteration. This list only modifies names from 'Context variables'; a name that is not declared there is ignored with a warning. An empty string counts as a value. A variable not listed here fails the activity when it is not set, holds null, cannot be read, or was dropped because the context block reached its size limit — list it here if any of these is acceptable.",
+          "description": "Comma-separated subset of 'Context variables' that is allowed to be missing. If such a variable does not reach the model, the agent runs on and the block says why: (absent) when it is not set, null when it holds no value, (unreadable) when reading it failed. Use it for context that exists on only some paths — an escalation reason from a branch that is often skipped, a value from a previous loop iteration. This list only modifies names from 'Context variables'; a name that is not declared there is ignored with a warning. An empty string counts as a value. A variable not listed here fails the activity when it is not set, holds null, cannot be read, or was dropped because the context block reached its size limit — list it here if any of these is acceptable.",
           "placeholder": "escalationReason",
           "binding": {
             "type": "camunda:inputParameter",
@@ -110,7 +110,7 @@
           "label": "Documents",
           "type": "Text",
           "group": "documents",
-          "description": "Comma-separated NAMES of file or bytes process variables sent to the model as native attachments — a PDF as a PDF, an image as an image, not as text pasted into the prompt. Names, not ${expressions}: Connect strips the filename and mime type off a file value before the connector sees it. Every declared document must exist; a missing one fails the activity. Supported: application/pdf, image/png, image/jpeg, image/gif, image/webp, text/*, application/json, application/xml, application/yaml. Limits: 5 MB per document, 20 MB total, 10 documents.",
+          "description": "Comma-separated NAMES of file or bytes process variables sent to the model as native attachments — a PDF as a PDF, an image as an image, not as text pasted into the prompt. Names, not ${expressions}: Connect strips the filename and mime type off a file value before the connector sees it. Every declared document must exist; a missing one fails the activity. Supported: application/pdf, image/png, image/jpeg, image/gif, image/webp, text/*, application/json, application/xml, application/yaml, application/x-yaml, and any */*+json or */*+xml type. Limits: 5 MB per document, 20 MB total, 10 documents.",
           "placeholder": "invoicePdf,signatureScan",
           "binding": {
             "type": "camunda:inputParameter",
@@ -137,9 +137,7 @@
           "choices": [
             { "name": "Auto (default)", "value": ""           },
             { "name": "Low",            "value": "LOW"        },
-            { "name": "Medium",         "value": "MEDIUM"     },
-            { "name": "High",           "value": "HIGH"       },
-            { "name": "Ultra high",     "value": "ULTRA_HIGH" }
+            { "name": "High",           "value": "HIGH"       }
           ],
           "binding": {
             "type": "camunda:inputParameter",

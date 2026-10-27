@@ -198,6 +198,48 @@ public class ProcessContextEngineTest {
   }
 
   /**
+   * P15: the block cap, end to end. Twelve values at the per-value limit exceed
+   * the block limit, so the trailing ones are dropped — which fails the run when
+   * they are required, and is tolerated when they are optional.
+   */
+  @Test
+  public void shouldFailWhenTheBlockCapDropsARequiredVariable() {
+    Throwable thrown = catchThrowable(() -> start(oversizedContext(null)));
+
+    assertThat(thrown).isNotNull();
+    Throwable root = thrown;
+    while (root.getCause() != null && root.getCause() != root) {
+      root = root.getCause();
+    }
+    assertThat(root)
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("omitted: context block size limit reached");
+    assertThat(capturedSystemMessage).isNull();
+  }
+
+  @Test
+  public void shouldStayWithinTheBlockCapWhenTheDroppedVariablesAreOptional() {
+    start(oversizedContext("v01,v02,v03,v04,v05,v06,v07,v08,v09,v10,v11,v12"));
+
+    String block = capturedSystemMessage.substring(
+        capturedSystemMessage.indexOf(AgentConnectorConstants.CONTEXT_BLOCK_OPEN));
+    assertThat(block.length())
+        .isLessThanOrEqualTo(AgentConnectorConstants.DEFAULT_MAX_CONTEXT_BLOCK_CHARS);
+    assertThat(block).contains("v01 (string)").doesNotContain("v12 (string)");
+  }
+
+  private static VariableMap oversizedContext(String optional) {
+    VariableMap variables = Variables.createVariables()
+        .putValue("_declared", "v01,v02,v03,v04,v05,v06,v07,v08,v09,v10,v11,v12")
+        .putValue("_optional", optional);
+    String value = "x".repeat(AgentConnectorConstants.DEFAULT_MAX_CONTEXT_VALUE_CHARS);
+    for (int i = 1; i <= 12; i++) {
+      variables.putValue(String.format("v%02d", i), value);
+    }
+    return variables;
+  }
+
+  /**
    * Review finding (Dmitry, PR #447): the context block used to be returned from
    * the {@code systemMessageProvider}, and LangChain4j runs that output through
    * {@link dev.langchain4j.model.input.PromptTemplate}

@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -186,6 +187,11 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     // its finally is what clears them again, and a leaked caller Authentication
     // would be visible to the next, unrelated task on this pooled thread.
     try {
+      // Both features read variables straight off the execution, which checks
+      // nothing. Check the caller's read permission once, before the first read.
+      ProcessVariableAuthorization.Outcome variableAccess = authorizeVariableReads(request,
+          callerAuth);
+
       // Read the declared process-variable allowlist before any model object
       // exists — the read is local and cheap, and a mis-declared context should
       // not first build a chat model. The audit event and the required-variable
@@ -194,6 +200,21 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       // at all.
       List<ProcessContextResolver.ContextVariable> contextVariables =
           resolveProcessContext(request);
+
+      // With an empty message LangChain4j has no user-message template, builds
+      // the user message from the content arguments, and then appends the same
+      // arguments again (DefaultAiServices.prepareUserMessage followed by
+      // addContentsToUserMessage) — every attachment would go out twice, with
+      // twice the payload and input tokens. request.execute() already rejects
+      // an empty message via isRequestValid(); this covers direct callers and a
+      // blank message. Checked before the documents are read, which can mean up
+      // to 20 MB read and encoded for nothing.
+      if (isDeclared(request.getDocuments())
+          && (request.getMessage() == null || request.getMessage().isBlank())) {
+        throw new AgentConnectorException("'documents' is configured but 'message' is empty. "
+            + "Documents are attached to the user message, so the agent task needs a message"
+            + " that says what to do with them.");
+      }
 
       ChatModel chatModel = createChatModel(request, apiKey, baseUrl, customHeaders);
 
@@ -209,36 +230,26 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       if (!contextVariables.isEmpty()) {
         AgentChatListener contextListener = ProcessStarterToolContext.getActiveListener();
         if (contextListener != null) {
-          contextListener.recordContextEvent(
-              ProcessContextResolver.describe(contextVariables, contextBlock));
+          contextListener.recordContextEvent(withAuthorization(
+              ProcessContextResolver.describe(contextVariables, contextBlock), variableAccess));
         }
         ProcessContextResolver.failOnMissingRequired(contextVariables);
       }
 
-      // Documents resolve after the listener exists for the same reason as the
-      // context block: a failure here should still be preceded by a record of
-      // what was attempted, and the descriptors have to reach the listener
-      // before the first model turn so a multi-content user message renders as
-      // descriptors instead of Base64.
+      // Documents resolve after the listener exists so the descriptors can reach
+      // it before the first model turn, and a multi-content user message renders
+      // as descriptors instead of Base64. The documents event is recorded only
+      // once every document resolved: a document that fails to resolve leaves
+      // no event, and the exception message, which names the variable, is the
+      // record — like the context event, it would be rolled back anyway.
       List<DocumentContentResolver.ResolvedDocument> documents = resolveDocuments(request);
       if (!documents.isEmpty()) {
-        // With an empty message LangChain4j has no user-message template, builds
-        // the user message from the content arguments, and then appends the same
-        // arguments again (DefaultAiServices.prepareUserMessage followed by
-        // addContentsToUserMessage) — every attachment would go out twice, with
-        // twice the payload and input tokens. request.execute() already rejects
-        // an empty message via isRequestValid(); this covers direct callers.
-        String message = request.getMessage();
-        if (message == null || message.isEmpty()) {
-          throw new AgentConnectorException("'documents' is configured but 'message' is empty. "
-              + "Documents are attached to the user message, so the agent task needs a message"
-              + " that says what to do with them.");
-        }
         AgentChatListener documentListener = ProcessStarterToolContext.getActiveListener();
         if (documentListener != null) {
           documentListener.setDocumentDescriptors(
               DocumentContentResolver.describeByContent(documents));
-          documentListener.recordDocumentsEvent(DocumentContentResolver.describe(documents));
+          documentListener.recordDocumentsEvent(withAuthorization(
+              DocumentContentResolver.describe(documents), variableAccess));
         }
       }
 
@@ -274,7 +285,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       Class<?> agentClass = selectAgentInterface(memoryId != null, hasDocuments);
       AiServices<?> builder = AiServices.builder(agentClass)
           .chatModel(chatModel)
-          .systemMessageProvider(chatMemoryId -> buildSystemPrompt(request, null));
+          .systemMessageProvider(chatMemoryId -> buildSystemPrompt(request));
       if (contextBlock != null && !contextBlock.isEmpty()) {
         // The block is appended here rather than inside the provider because
         // LangChain4j runs the provider's output through PromptTemplate
@@ -297,7 +308,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         // the default would write megabytes of Base64 into the engine database
         // on every turn — and replay them to the provider on the next one.
         // Trade-off: RAG-retrieved context is then no longer persisted in memory
-        // for these runs either. Documented in the manual.
+        // for these runs either.
         LOG.debug("Documents attached — not storing the augmented user message in chat memory");
         builder.storeRetrievedContentInChatMemory(false);
       }
@@ -696,8 +707,38 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
           + "runs from a service task inside the engine.");
     }
     return ProcessContextResolver.resolve(declared, optional,
+        new HashSet<>(ProcessContextResolver.parseNames(request.getDocuments())),
         name -> execution.getVariableTyped(name, false),
         AgentConnectorConstants.DEFAULT_MAX_CONTEXT_VALUE_CHARS);
+  }
+
+  /**
+   * Runs {@link ProcessVariableAuthorization} when {@code contextVariables} or
+   * {@code documents} is declared and a BPMN execution is on the thread.
+   * Returns {@code null} when there is nothing to check; without an execution
+   * the resolvers fail with their own, more specific message.
+   */
+  private static ProcessVariableAuthorization.Outcome authorizeVariableReads(
+      AgentRequest request, Authentication caller) {
+    if (!isDeclared(request.getContextVariables()) && !isDeclared(request.getDocuments())) {
+      return null;
+    }
+    ExecutionEntity execution = currentExecution();
+    return (execution == null) ? null : ProcessVariableAuthorization.check(execution, caller);
+  }
+
+  /** Adds the authorization outcome to a {@code context} or {@code documents} event. */
+  private static Map<String, Object> withAuthorization(Map<String, Object> payload,
+      ProcessVariableAuthorization.Outcome outcome) {
+    Map<String, Object> event = new LinkedHashMap<>(payload);
+    if (outcome != null) {
+      event.put("authorization", outcome.name());
+    }
+    return event;
+  }
+
+  private static boolean isDeclared(String nameList) {
+    return nameList != null && !nameList.isBlank();
   }
 
   /**
@@ -755,7 +796,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     }
   }
 
-  private String buildSystemPrompt(AgentRequest request, String contextBlock) {
+  private String buildSystemPrompt(AgentRequest request) {
     String description = request.getAgentDescription();
     String callerInstruction = request.getInstruction();
     String mode = request.getInstructionMode();
@@ -770,10 +811,9 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     LOG.debug("buildSystemPrompt: resolved instruction length={}, description length={}",
         hasInstruction ? instruction.length() : 0,
         hasDescription ? description.length() : 0);
-    String prompt = (hasDescription && hasInstruction)
+    return (hasDescription && hasInstruction)
         ? description + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR + instruction
         : (hasInstruction ? instruction : description);
-    return appendContextBlock(prompt, contextBlock);
   }
 
   /**
@@ -788,8 +828,6 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    * <p>Called from a {@code systemMessageTransformer}, not from
    * {@link #buildSystemPrompt}, so that the block bypasses LangChain4j's
    * templating of the system message. See the call site for why that matters.
-   * {@code buildSystemPrompt} keeps its second parameter for the tests and for
-   * callers that have no templating in play.
    */
   private static String appendContextBlock(String prompt, String contextBlock) {
     if (contextBlock == null || contextBlock.isEmpty()) {

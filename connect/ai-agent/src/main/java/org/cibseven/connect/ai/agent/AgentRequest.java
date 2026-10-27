@@ -104,7 +104,7 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
    */
   AgentRequest documentMimeTypes(String documentMimeTypes);
 
-  /** Optional. Image detail level: AUTO, LOW, MEDIUM, HIGH, ULTRA_HIGH. */
+  /** Optional. Image detail level: AUTO, LOW or HIGH. */
   AgentRequest documentDetailLevel(String documentDetailLevel);
 
   /**

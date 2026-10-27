@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
@@ -180,7 +181,8 @@ public class DocumentEngineTest {
           .message(message)
           .instruction("be brief")
           .documents((String) execution.getVariable("_documents"))
-          .documentMimeTypes((String) execution.getVariable("_mimeTypes"));
+          .documentMimeTypes((String) execution.getVariable("_mimeTypes"))
+          .documentDetailLevel((String) execution.getVariable("_detailLevel"));
       String memoryId = (String) execution.getVariable("_memoryId");
       if (memoryId != null) {
         request.useChatMemory(true).memoryId(memoryId);
@@ -226,6 +228,44 @@ public class DocumentEngineTest {
     assertThat(rootCause(thrown))
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("invoice");
+    assertThat(capturedUserMessage).isNull();
+  }
+
+  /**
+   * P15: documentMimeTypes and the detail level, end to end through the
+   * connector — a bytes variable gets its type from the override, and the
+   * requested detail level reaches the image content.
+   */
+  @Test
+  public void shouldApplyTheMimeTypeOverrideAndDetailLevelThroughTheConnector() {
+    start(Variables.createVariables()
+        .putValue("_documents", "scan")
+        .putValue("_mimeTypes", "{\"scan\": \"image/png\"}")
+        .putValue("_detailLevel", "high")
+        .putValueTyped("scan", Variables.byteArrayValue(PNG_BYTES)));
+
+    List<Content> images = capturedUserMessage.contents().stream()
+        .filter(ImageContent.class::isInstance)
+        .collect(Collectors.toList());
+    assertThat(images).hasSize(1);
+    ImageContent image = (ImageContent) images.get(0);
+    assertThat(image.image().mimeType()).isEqualTo("image/png");
+    assertThat(image.detailLevel()).isEqualTo(ImageContent.DetailLevel.HIGH);
+  }
+
+  /** B1: a level the OpenAI mapping throws on fails before any model call. */
+  @Test
+  public void shouldRefuseADetailLevelOpenAiCannotTakeBeforeCallingTheModel() {
+    Throwable thrown = catchThrowable(() ->
+        start(Variables.createVariables()
+            .putValue("_documents", "scan")
+            .putValue("_detailLevel", "MEDIUM")
+            .putValueTyped("scan", Variables.fileValue("scan.png")
+                .file(PNG_BYTES).mimeType("image/png").create())));
+
+    assertThat(rootCause(thrown))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("MEDIUM");
     assertThat(capturedUserMessage).isNull();
   }
 

@@ -147,6 +147,56 @@ public class AgentConnectorImplContextTest {
         .hasMessageContaining("ByteArrayInputStream");
   }
 
+  /** Review finding (P3): the same unchecked cast sat behind the other two getters. */
+  @Test
+  public void shouldNameTheParameterWhenMimeTypesOrDetailLevelAreNotText() {
+    AgentRequest request = connector.createRequest();
+    request.setRequestParameter(AgentConnector.PARAM_NAME_DOCUMENT_MIME_TYPES,
+        Map.of("scan", "image/png"));
+    request.setRequestParameter(AgentConnector.PARAM_NAME_DOCUMENT_DETAIL_LEVEL, 2);
+
+    assertThatThrownBy(request::getDocumentMimeTypes)
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("'documentMimeTypes' must be a JSON object as text");
+    assertThatThrownBy(request::getDocumentDetailLevel)
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("'documentDetailLevel' must be one of AUTO, LOW, HIGH")
+        .hasMessageContaining("java.lang.Integer");
+  }
+
+  /** P15: documents, like context, must not silently degrade outside the engine. */
+  @Test
+  public void shouldFailWhenDocumentsAreDeclaredOutsideABpmnExecution() {
+    AgentRequest request = connector.createRequest()
+        .agentName("agent")
+        .message("hello")
+        .documents("invoice");
+
+    assertThatThrownBy(() -> connector.execute(request))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("no BPMN execution")
+        .hasMessageContaining("'documents'");
+    assertThat(connector.model.captured).isNull();
+  }
+
+  /**
+   * Review finding (P1): the empty-message check now runs before any document is
+   * read, and treats a blank message as empty. Outside an execution the document
+   * read would fail with its own message, so seeing the message error proves the
+   * order.
+   */
+  @Test
+  public void shouldRefuseABlankMessageWithDocumentsBeforeReadingThem() {
+    AgentRequest request = connector.createRequest()
+        .agentName("agent")
+        .message("   ")
+        .documents("invoice");
+
+    assertThatThrownBy(() -> connector.execute(request))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("'message' is empty");
+  }
+
   /**
    * Regression: context resolution used to sit between the
    * {@link ProcessStarterToolContext} writes and the {@code try}, so throwing
@@ -213,11 +263,15 @@ public class AgentConnectorImplContextTest {
     assertThat(m.invoke(null, "prompt", "")).isEqualTo("prompt");
   }
 
+  /** The same composition the systemMessageTransformer applies in execute(). */
   private String invokeBuildSystemPrompt(AgentRequest request, String contextBlock)
       throws Exception {
-    Method m = AgentConnectorImpl.class.getDeclaredMethod("buildSystemPrompt",
-        AgentRequest.class, String.class);
-    m.setAccessible(true);
-    return (String) m.invoke(connector, request, contextBlock);
+    Method build = AgentConnectorImpl.class.getDeclaredMethod("buildSystemPrompt",
+        AgentRequest.class);
+    build.setAccessible(true);
+    Method append = AgentConnectorImpl.class.getDeclaredMethod("appendContextBlock",
+        String.class, String.class);
+    append.setAccessible(true);
+    return (String) append.invoke(null, build.invoke(connector, request), contextBlock);
   }
 }

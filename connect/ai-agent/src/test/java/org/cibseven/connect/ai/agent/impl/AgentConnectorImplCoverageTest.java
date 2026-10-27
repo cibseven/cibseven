@@ -756,17 +756,11 @@ public class AgentConnectorImplCoverageTest {
 
   // ── Reflection helper for buildSystemPrompt ─────────────────────────────
 
-  /** Invokes {@code buildSystemPrompt} without a process-context block. */
   private String invokeBuildSystemPrompt(AgentRequest request) throws Exception {
-    return invokeBuildSystemPrompt(request, null);
-  }
-
-  private String invokeBuildSystemPrompt(AgentRequest request, String contextBlock)
-      throws Exception {
     Method m = AgentConnectorImpl.class.getDeclaredMethod("buildSystemPrompt",
-        AgentRequest.class, String.class);
+        AgentRequest.class);
     m.setAccessible(true);
-    return (String) m.invoke(connector, request, contextBlock);
+    return (String) m.invoke(connector, request);
   }
 
   // ── Stubs ────────────────────────────────────────────────────────────────

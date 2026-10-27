@@ -319,24 +319,36 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
    * {@code ClassCastException} that names neither the parameter nor the cause.
    */
   private String getNameList(String parameterName) {
-    Object value = getRequestParameter(parameterName);
-    if (value == null || value instanceof String) {
-      return (String) value;
-    }
-    throw new AgentConnectorException("'" + parameterName + "' must list variable names, e.g."
-        + " \"invoice, contract\", but received a value of type "
-        + value.getClass().getName() + ". Write the names themselves, not an expression such"
-        + " as ${invoice} that evaluates to the variable.");
+    return getText(parameterName, "must list variable names, e.g. \"invoice, contract\"",
+        "Write the names themselves, not an expression such as ${invoice} that evaluates to"
+        + " the variable.");
   }
 
   @Override
   public String getDocumentMimeTypes() {
-    return getRequestParameter(AgentConnector.PARAM_NAME_DOCUMENT_MIME_TYPES);
+    return getText(AgentConnector.PARAM_NAME_DOCUMENT_MIME_TYPES,
+        "must be a JSON object as text, e.g. {\"scan\": \"image/png\"}",
+        "Write the JSON itself, not an expression that evaluates to a map or another value.");
   }
 
   @Override
   public String getDocumentDetailLevel() {
-    return getRequestParameter(AgentConnector.PARAM_NAME_DOCUMENT_DETAIL_LEVEL);
+    return getText(AgentConnector.PARAM_NAME_DOCUMENT_DETAIL_LEVEL,
+        "must be one of AUTO, LOW, HIGH", "Pick a value from the template's dropdown.");
+  }
+
+  /**
+   * Reads a parameter that must arrive as text, failing with a message that names
+   * the parameter instead of the {@code ClassCastException} the plain unchecked
+   * cast in {@code getRequestParameter} would produce.
+   */
+  private String getText(String parameterName, String expected, String hint) {
+    Object value = getRequestParameter(parameterName);
+    if (value == null || value instanceof String) {
+      return (String) value;
+    }
+    throw new AgentConnectorException("'" + parameterName + "' " + expected
+        + ", but received a value of type " + value.getClass().getName() + ". " + hint);
   }
 
   @Override

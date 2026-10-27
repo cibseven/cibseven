@@ -144,7 +144,53 @@ public class DocumentContentResolverTest {
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("archive")
         .hasMessageContaining("application/zip")
-        .hasMessageContaining("Supported");
+        .hasMessageContaining("Supported")
+        // Review finding (P10): the list must name every type isTextual accepts.
+        .hasMessageContaining("application/x-yaml")
+        .hasMessageContaining("+json")
+        .hasMessageContaining("+xml");
+  }
+
+  /** Review finding (P6): an empty attachment gives the model nothing to read. */
+  @Test
+  public void shouldRejectAnEmptyDocument() {
+    putFile("blank", "blank.pdf", "application/pdf", new byte[0]);
+
+    assertThatThrownBy(() -> resolve("blank"))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("blank")
+        .hasMessageContaining("0 bytes");
+  }
+
+  /**
+   * Review finding (P2): a charset parameter on a binary type is meaningless, so
+   * even an unusable one must not fail the activity.
+   */
+  @Test
+  public void shouldIgnoreAnUnusableCharsetParameterOnABinaryType() {
+    putFile("scan", "scan.pdf", null, "%PDF-1.7".getBytes(StandardCharsets.US_ASCII));
+
+    ResolvedDocument document =
+        resolve("scan", "{\"scan\": \"application/pdf; charset=definitely-not-a-charset\"}")
+            .get(0);
+
+    assertThat(document.kind).isEqualTo("PDF");
+    assertThat(document.charset).isNull();
+  }
+
+  /** Review finding (P5): a JSON null used to end in a NullPointerException. */
+  @Test
+  public void shouldTreatAJsonNullAsNoMimeTypeOverrides() {
+    assertThat(DocumentContentResolver.parseMimeTypeOverrides("null")).isEmpty();
+  }
+
+  /** Review finding (P5): a non-string value used to slip through via toString(). */
+  @Test
+  public void shouldRejectAMimeTypeOverrideThatIsNotAString() {
+    assertThatThrownBy(() -> DocumentContentResolver.parseMimeTypeOverrides("{\"scan\": 42}"))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("'scan'")
+        .hasMessageContaining("not a string");
   }
 
   // ── audio and video are unsupported ────────────────────────────────────────
@@ -730,7 +776,22 @@ public class DocumentContentResolverTest {
     assertThatThrownBy(() -> DocumentContentResolver.parseDetailLevel("enormous"))
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("enormous")
-        .hasMessageContaining("ULTRA_HIGH");
+        .hasMessageContaining("AUTO, LOW, HIGH");
+  }
+
+  /**
+   * LangChain4j defines MEDIUM and ULTRA_HIGH, but its OpenAI mapping throws on
+   * both, on either API path. Rejecting them here names the setting; letting
+   * them through failed every image run at the first model call.
+   */
+  @Test
+  public void shouldRejectTheDetailLevelsOpenAiCannotTake() {
+    for (String level : new String[] {"MEDIUM", "ultra_high"}) {
+      assertThatThrownBy(() -> DocumentContentResolver.parseDetailLevel(level))
+          .isInstanceOf(AgentConnectorException.class)
+          .hasMessageContaining(level)
+          .hasMessageContaining("only AUTO, LOW and HIGH");
+    }
   }
 
   private static int countOccurrences(String haystack, String needle) {

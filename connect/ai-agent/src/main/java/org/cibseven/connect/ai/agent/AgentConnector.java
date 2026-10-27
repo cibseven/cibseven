@@ -234,9 +234,10 @@ public interface AgentConnector extends Connector<AgentRequest> {
 
   /**
    * Optional. Comma-separated subset of {@link #PARAM_NAME_CONTEXT_VARIABLES}
-   * that is allowed to be missing. Such a variable renders as {@code (absent)}
-   * and the agent runs on; everything else declared fails the activity when it
-   * cannot reach the model.
+   * that is allowed to be missing. Such a variable renders as {@code (absent)},
+   * {@code null} or {@code (unreadable)}, whichever applies, and the agent runs
+   * on; everything else declared fails the activity when it cannot reach the
+   * model.
    *
    * <p>Use it for context that legitimately exists on only some paths — an
    * escalation reason written by a branch that is often skipped, a decision from
@@ -298,8 +299,12 @@ public interface AgentConnector extends Connector<AgentRequest> {
 
   /**
    * Optional. Detail level requested for image attachments — {@code AUTO}
-   * (default), {@code LOW}, {@code MEDIUM}, {@code HIGH} or {@code ULTRA_HIGH}.
-   * Higher levels cost more input tokens. Ignored for non-image documents.
+   * (default), {@code LOW} or {@code HIGH}. Higher levels cost more input tokens.
+   * Ignored for non-image documents.
+   *
+   * <p>LangChain4j also defines {@code MEDIUM} and {@code ULTRA_HIGH}, but its
+   * OpenAI mapping — on the chat-completions and the Responses path alike —
+   * throws on both, so they are rejected here instead of at the first model call.
    */
   String PARAM_NAME_DOCUMENT_DETAIL_LEVEL = "documentDetailLevel";
 

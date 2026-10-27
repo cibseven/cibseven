@@ -192,6 +192,13 @@ public final class DocumentContentResolver {
           + ". Attach fewer documents to this agent task.");
     }
     Map<String, String> overrides = parseMimeTypeOverrides(mimeTypeOverridesJson);
+    for (String key : overrides.keySet()) {
+      if (!names.contains(key)) {
+        LOG.warn("'documentMimeTypes' has an entry for '{}', which is not listed in 'documents' "
+            + "— ignored. Check for a typo, otherwise the document you meant keeps its own mime "
+            + "type.", key);
+      }
+    }
 
     // Two passes on purpose. Reading and size-checking every document first
     // means an over-budget attachment set is rejected before a single byte has
@@ -306,6 +313,11 @@ public final class DocumentContentResolver {
     MimeTypeSpec spec = parseMimeType(name, mimeType.trim());
     mimeType = spec.baseType;
 
+    if (bytes.length == 0) {
+      throw new AgentConnectorException("Document variable '" + name + "' is empty (0 bytes). "
+          + "An empty attachment gives the model nothing to read; check the step that wrote it.");
+    }
+
     // Reached only by the bytes path: the file path was already capped while
     // reading, by readBoundedBytes. A BytesValue is handed to us as a finished
     // array, so there is nothing to stop early — but its length is free, which
@@ -384,6 +396,7 @@ public final class DocumentContentResolver {
   private static MimeTypeSpec parseMimeType(String variable, String raw) {
     String[] parts = raw.split(";");
     String baseType = parts[0].trim();
+    boolean textual = isTextual(baseType.toLowerCase(Locale.ROOT));
     Charset charset = null;
     for (int i = 1; i < parts.length; i++) {
       String parameter = parts[i].trim();
@@ -392,6 +405,14 @@ public final class DocumentContentResolver {
         continue;
       }
       String value = parameter.substring(eq + 1).trim().replace("\"", "");
+      if (!textual) {
+        // A binary document is sent as Base64 and never decoded, so its charset
+        // is meaningless — not worth failing over even when it is malformed.
+        // Still worth a word: it suggests the modeler expected text handling.
+        LOG.warn("Document '{}' is '{}' and carries a charset ({}), which is ignored — a charset "
+            + "only applies to textual mime types.", variable, baseType, value);
+        continue;
+      }
       try {
         charset = Charset.forName(value);
       } catch (RuntimeException e) {
@@ -432,14 +453,6 @@ public final class DocumentContentResolver {
           TextContent.from(wrapTextDocument(variable, filename, mimeType, bytes.length, text)));
     }
 
-    if (raw.charset != null) {
-      // Harmless, but say so: a charset on a binary type is a sign the modeler
-      // expected this document to be treated as text, and silence would let that
-      // misunderstanding survive all the way to a confusing answer.
-      LOG.warn("Document '{}' is '{}' and carries a charset ({}), which is ignored — a charset "
-          + "only applies to textual mime types.", variable, mimeType, raw.charset.name());
-    }
-
     // Encoded exactly once and reused for every branch below. Encoding twice
     // doubled peak memory for every binary attachment.
     String base64 = Base64.getEncoder().encodeToString(bytes);
@@ -455,7 +468,8 @@ public final class DocumentContentResolver {
     throw new AgentConnectorException("Document '" + variable + "' has mime type '" + mimeType
         + "', which cannot be sent to the model. Supported: application/pdf, "
         + String.join(", ", SUPPORTED_IMAGE_TYPES)
-        + ", text/*, application/json, application/xml, application/yaml."
+        + ", text/*, application/json, application/xml, application/yaml,"
+        + " application/x-yaml, and any */*+json or */*+xml type."
         + " Audio and video are not supported: whether a gateway accepts them cannot be"
         + " established from here, and sending them blind is worse than refusing.");
   }
@@ -506,8 +520,7 @@ public final class DocumentContentResolver {
     // the lower-case closing tag would leave "</DOCUMENT>" intact and would not
     // touch a forged "<document …>" header at all — either is enough to break
     // out of the block.
-    String safe = ProcessContextResolver.neuterTag(
-        ProcessContextResolver.neuterDelimiters(text), "document");
+    String safe = ProcessContextResolver.neuterDelimiters(text);
     return AgentConnectorConstants.DOCUMENT_BLOCK_OPEN
         + " variable=\"" + xmlAttribute(variable) + "\""
         + " name=\"" + xmlAttribute(filename) + "\""
@@ -598,8 +611,10 @@ public final class DocumentContentResolver {
 
   /**
    * Parses the {@code documentMimeTypes} JSON object. Returns an empty map for
-   * null or blank input; throws on malformed JSON so a typo surfaces as a clear
+   * null or blank input, and for a JSON {@code null}; throws on malformed JSON
+   * and on a value that is not a string, so a typo surfaces as a clear
    * configuration error rather than as "mime type missing" on some variable.
+   * An entry whose value is {@code null} is skipped.
    */
   static Map<String, String> parseMimeTypeOverrides(String raw) {
     Map<String, String> overrides = new LinkedHashMap<>();
@@ -613,25 +628,46 @@ public final class DocumentContentResolver {
       throw new AgentConnectorException("Could not parse 'documentMimeTypes': expected a JSON "
           + "object of variable name → mime type, e.g. {\"scan\": \"image/png\"}", e);
     }
+    if (parsed == null) {
+      return overrides;
+    }
     for (Map.Entry<String, Object> entry : parsed.entrySet()) {
       if (entry.getKey() == null || entry.getValue() == null) {
         continue;
       }
-      overrides.put(entry.getKey().trim(), entry.getValue().toString());
+      if (!(entry.getValue() instanceof String)) {
+        throw new AgentConnectorException("'documentMimeTypes' maps '" + entry.getKey()
+            + "' to " + entry.getValue() + ", which is not a string. Each value must be a mime "
+            + "type in quotes, e.g. {\"" + entry.getKey() + "\": \"application/pdf\"}.");
+      }
+      overrides.put(entry.getKey().trim(), (String) entry.getValue());
     }
     return overrides;
   }
 
-  /** Resolves the {@code documentDetailLevel} input, defaulting to {@code AUTO}. */
+  /**
+   * Resolves the {@code documentDetailLevel} input, defaulting to {@code AUTO}.
+   *
+   * <p>Only {@code AUTO}, {@code LOW} and {@code HIGH} are accepted. LangChain4j's
+   * enum also has {@code MEDIUM} and {@code ULTRA_HIGH}, but the connector builds
+   * OpenAI models only, and both OpenAI mappings ({@code OpenAiUtils.toDetail}
+   * and {@code OpenAiResponsesClient.toDetailString}) throw on them — every run
+   * with an image would fail at the first model call.
+   */
   static ImageContent.DetailLevel parseDetailLevel(String raw) {
     if (raw == null || raw.trim().isEmpty()) {
       return ImageContent.DetailLevel.AUTO;
     }
+    String level = raw.trim().toUpperCase(Locale.ROOT);
+    if (level.equals("MEDIUM") || level.equals("ULTRA_HIGH")) {
+      throw new AgentConnectorException("documentDetailLevel '" + raw + "' is not supported: "
+          + "the OpenAI API accepts only AUTO, LOW and HIGH. Use HIGH for the most detail.");
+    }
     try {
-      return ImageContent.DetailLevel.valueOf(raw.trim().toUpperCase(Locale.ROOT));
+      return ImageContent.DetailLevel.valueOf(level);
     } catch (IllegalArgumentException e) {
       throw new AgentConnectorException("Unknown documentDetailLevel '" + raw + "'. Allowed: "
-          + "AUTO, LOW, MEDIUM, HIGH, ULTRA_HIGH.");
+          + "AUTO, LOW, HIGH.");
     }
   }
 

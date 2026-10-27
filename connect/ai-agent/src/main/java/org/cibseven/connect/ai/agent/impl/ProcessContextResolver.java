@@ -16,8 +16,10 @@
  */
 package org.cibseven.connect.ai.agent.impl;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -144,6 +146,18 @@ public final class ProcessContextResolver {
    */
   static List<ContextVariable> resolve(String contextVariablesCsv, String optionalCsv,
       TypedVariableReader reader, int maxValueChars) {
+    return resolve(contextVariablesCsv, optionalCsv, Collections.emptySet(), reader,
+        maxValueChars);
+  }
+
+  /**
+   * As {@link #resolve(String, String, TypedVariableReader, int)}, for a task
+   * that also attaches documents. A file or bytes variable named in
+   * {@code attachedDocuments} is described as attached rather than as "content
+   * not sent to the model", which would be false for it.
+   */
+  static List<ContextVariable> resolve(String contextVariablesCsv, String optionalCsv,
+      Set<String> attachedDocuments, TypedVariableReader reader, int maxValueChars) {
     List<String> declared = parseNames(contextVariablesCsv);
     if (declared.isEmpty()) {
       return Collections.emptyList();
@@ -163,12 +177,13 @@ public final class ProcessContextResolver {
     // a required variable dropped by the block cap fails the run anyway.
     List<ContextVariable> resolved = new ArrayList<>(declared.size());
     for (String name : declared) {
-      resolved.add(readOne(name, optionalNames.contains(name), reader, maxValueChars));
+      resolved.add(readOne(name, optionalNames.contains(name),
+          attachedDocuments.contains(name), reader, maxValueChars));
     }
     return resolved;
   }
 
-  private static ContextVariable readOne(String name, boolean optional,
+  private static ContextVariable readOne(String name, boolean optional, boolean attached,
       TypedVariableReader reader, int maxValueChars) {
     // The guard spans reading *and* rendering. Rendering is not the safe part:
     // typeLabel() and renderValue() touch provider-specific value implementations
@@ -180,7 +195,7 @@ public final class ProcessContextResolver {
         return ContextVariable.absent(name, optional);
       }
       String type = typeLabel(typed);
-      Rendered rendered = renderValue(typed);
+      Rendered rendered = renderValue(typed, attached);
       if (rendered == null) {
         return ContextVariable.nullValued(name, optional, type);
       }
@@ -392,24 +407,31 @@ public final class ProcessContextResolver {
    * <p>Binary and opaque values are rendered as descriptors rather than content:
    * a {@code FileValue} in a context variable is a Scope-2 concern (see
    * CIB7-1843's documents half) and inlining bytes here would blow up both the
-   * prompt and the audit log.
+   * prompt and the audit log. When the same variable is also listed in
+   * {@code documents} ({@code attached}), the descriptor says so — its content
+   * does reach the model, as an attachment.
+   *
+   * <p>Dates render as ISO-8601 in UTC and doubles in plain notation, so the
+   * text the model reads depends neither on the server's time zone nor on
+   * {@code Double.toString} switching to scientific notation.
    */
-  private static Rendered renderValue(TypedValue typed) {
+  private static Rendered renderValue(TypedValue typed, boolean attached) {
+    String sent = attached ? "attached as a document" : "content not sent to the model";
     if (typed instanceof FileValue) {
       // Filename and mime type only. The byte count is deliberately absent: the
       // FileValue contract exposes the payload as an InputStream, and the only
-      // way to size it is to drain it. No forward reference to a documents
-      // feature either — this release cannot send file content to the model.
+      // way to size it is to drain it.
       FileValue file = (FileValue) typed;
       return new Rendered("(file " + quote(nullToUnknown(file.getFilename())) + ", "
-          + nullToUnknown(file.getMimeType()) + ", content not sent to the model)", false);
+          + nullToUnknown(file.getMimeType()) + ", " + sent + ")", false);
     }
     if (typed instanceof BytesValue) {
       byte[] bytes = ((BytesValue) typed).getValue();
       if (bytes == null) {
         return null;
       }
-      return new Rendered("(bytes, " + bytes.length + " bytes)", false);
+      return new Rendered("(bytes, " + bytes.length + " bytes"
+          + (attached ? ", " + sent : "") + ")", false);
     }
     if (typed instanceof ObjectValue) {
       return renderObjectValue((ObjectValue) typed);
@@ -423,6 +445,13 @@ public final class ProcessContextResolver {
     }
     if (value instanceof CharSequence) {
       return new Rendered(value.toString(), true);
+    }
+    if (value instanceof Date) {
+      return new Rendered(((Date) value).toInstant().toString(), false);
+    }
+    if ((value instanceof Double || value instanceof Float)
+        && Double.isFinite(((Number) value).doubleValue())) {
+      return new Rendered(new BigDecimal(value.toString()).toPlainString(), false);
     }
     return new Rendered(String.valueOf(value), false);
   }
@@ -547,7 +576,11 @@ public final class ProcessContextResolver {
    * Escapes a value for single-line rendering inside the block.
    *
    * <p>Line breaks and tabs always become escape sequences, so no value can
-   * forge an additional {@code name (type) = value} entry line. Backslash and
+   * forge an additional {@code name (type) = value} entry line. That includes
+   * the Unicode line terminators — NEL (U+0085), LINE SEPARATOR (U+2028),
+   * PARAGRAPH SEPARATOR (U+2029) — and vertical tab and form feed, which a
+   * model or a renderer may treat as a line break just like a newline.
+   * Backslash and
    * double quote are escaped only for quoted (string) values — doing it for
    * unquoted ones would turn readable JSON into backslash noise for no gain,
    * since an unquoted value has no closing quote to break out of.
@@ -564,6 +597,9 @@ public final class ProcessContextResolver {
         case '\n': sb.append("\\n");  break;
         case '\r': sb.append("\\r");  break;
         case '\t': sb.append("\\t");  break;
+        case '\u000B': case '\u000C': case '\u0085': case ' ': case ' ':
+          sb.append(String.format("\\u%04X", (int) c));
+          break;
         default:   sb.append(c);
       }
     }
@@ -574,9 +610,13 @@ public final class ProcessContextResolver {
    * Replaces the leading {@code <} of any literal block delimiter with
    * {@code &lt;}, preserving the original casing of the rest of the token. The
    * text stays readable for the model; the token stops being a delimiter.
+   *
+   * <p>Covers the {@code <document>} tag of text attachments as well: a context
+   * value must not be able to open or close a document block, just as a text
+   * document cannot forge a process-context block.
    */
   static String neuterDelimiters(String value) {
-    return neuterTag(value, "process-context");
+    return neuterTag(neuterTag(value, "process-context"), "document");
   }
 
   /**
