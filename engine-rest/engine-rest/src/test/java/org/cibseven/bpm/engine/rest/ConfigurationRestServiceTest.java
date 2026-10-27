@@ -19,6 +19,7 @@ package org.cibseven.bpm.engine.rest;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -55,6 +56,7 @@ public class ConfigurationRestServiceTest extends AbstractRestServiceTest {
     when(mockEngineConfiguration.getHistory()).thenReturn("full");
     when(mockEngineConfiguration.isAuthorizationEnabled()).thenReturn(true);
     when(mockEngineConfiguration.isEnablePasswordPolicy()).thenReturn(false);
+    when(mockEngineConfiguration.getWebappSchemaVersion()).thenReturn("3.0.0");
     when(mockEngineConfiguration.getHistoryTimeToLive()).thenReturn("180");
     when(mockEngineConfiguration.isEnforceHistoryTimeToLive()).thenReturn(true);
   }
@@ -69,6 +71,7 @@ public class ConfigurationRestServiceTest extends AbstractRestServiceTest {
       .body("historyLevel", equalTo("full"))
       .body("authorizationEnabled", equalTo(true))
       .body("enablePasswordPolicy", equalTo(false))
+      .body("webappSchemaVersion", equalTo("3.0.0"))
       .body("historyTimeToLive", equalTo(180))
       .body("enforceHistoryTimeToLive", equalTo(true))
     .when().get(CONFIGURATION_URL);
@@ -85,6 +88,7 @@ public class ConfigurationRestServiceTest extends AbstractRestServiceTest {
       .body("historyLevel", equalTo("full"))
       .body("authorizationEnabled", equalTo(true))
       .body("enablePasswordPolicy", equalTo(false))
+      .body("webappSchemaVersion", equalTo("3.0.0"))
       .body("historyTimeToLive", equalTo(180))
       .body("enforceHistoryTimeToLive", equalTo(true))
     .when().get(NAMED_ENGINE_CONFIGURATION_URL);
@@ -236,6 +240,32 @@ public class ConfigurationRestServiceTest extends AbstractRestServiceTest {
       .body("historyTimeToLive", equalTo(-1))
       .body("enforceHistoryTimeToLive", equalTo(true))
     .when().get(CONFIGURATION_URL);
+  }
+
+  /** No row in ACT_GE_PROPERTY means the webclient tables are not in the database. */
+  @Test
+  public void testGetConfigurationWithoutWebappSchema() {
+    when(mockEngineConfiguration.getWebappSchemaVersion()).thenReturn(null);
+
+    given()
+      .header(ACCEPT_JSON_HEADER)
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+      .body("webappSchemaVersion", nullValue())
+    .when().get(CONFIGURATION_URL);
+  }
+
+  @Test
+  public void testGetConfigurationWithoutWebappSchemaWithNamedEngine() {
+    when(mockEngineConfiguration.getWebappSchemaVersion()).thenReturn(null);
+
+    given()
+      .header(ACCEPT_JSON_HEADER)
+      .pathParam("name", "default")
+    .then().expect()
+      .statusCode(Status.OK.getStatusCode())
+      .body("webappSchemaVersion", nullValue())
+    .when().get(NAMED_ENGINE_CONFIGURATION_URL);
   }
 
 }

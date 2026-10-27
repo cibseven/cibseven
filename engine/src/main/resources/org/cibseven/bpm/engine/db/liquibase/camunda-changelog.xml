@@ -280,6 +280,19 @@
              stripComments="true"/>
   </changeSet>
 
+  <!-- The webclient tables (MOD_, CHAT_, NOTIF_) are not engine schema. This step runs only where
+       they are already present, so an installation without them is left as it is. -->
+  <changeSet author="CIB" id="2.2-to-3.0-webapp">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="MOD_ELEMENT_TEMPLATES"/>
+    </preConditions>
+    <sqlFile path="upgrade/${db.name}_webapp_2.2_to_3.0.sql"
+             encoding="UTF-8"
+             relativeToChangelogFile="true"
+             splitStatements="true"
+             stripComments="true"/>
+  </changeSet>
+
   <changeSet author="CIB" id="3.0.0-tag">
     <tagDatabase tag="3.0.0"/>
   </changeSet>

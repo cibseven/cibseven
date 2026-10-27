@@ -37,6 +37,7 @@ public class SchemaLogUpgradeScriptPatternTest extends SchemaLogTestCase {
     /**
      * valid patterns:
      * h2_engine_7.2_to_7.3.sql,
+     * h2_webapp_2.2_to_3.0.sql,
      * oracle_engine_7.3_patch_7.3.0_to_7.3.1.sql,
      * postgres_engine_7.3_patch_7.3.2_to_7.3.3_1.sql,
      */
@@ -47,7 +48,8 @@ public class SchemaLogUpgradeScriptPatternTest extends SchemaLogTestCase {
 
       String[] nameParts = file.split("_");
       assertThat(nameParts[0]).isIn((Object[]) DATABASES);
-      assertThat(nameParts[1]).isEqualTo("engine");
+      // engine is the process engine schema, webapp the tables the webclient owns
+      assertThat(nameParts[1]).isIn("engine", "webapp");
       String minorVersion = nameParts[2];
       assertTrue(isMinorLevel(minorVersion));
       if (nameParts[3].equals("to")) {
