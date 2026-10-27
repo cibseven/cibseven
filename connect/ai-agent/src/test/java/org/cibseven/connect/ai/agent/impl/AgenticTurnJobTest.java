@@ -38,6 +38,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -49,6 +50,10 @@ import org.cibseven.bpm.application.impl.EmbeddedProcessApplication;
 import org.cibseven.bpm.engine.OptimisticLockingException;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
+import org.cibseven.bpm.engine.delegate.BpmnError;
+import org.cibseven.bpm.engine.delegate.DelegateExecution;
+import org.cibseven.bpm.engine.delegate.Expression;
+import org.cibseven.bpm.engine.delegate.JavaDelegate;
 import org.cibseven.bpm.engine.history.HistoricVariableInstance;
 import org.cibseven.bpm.engine.history.HistoricVariableUpdate;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
@@ -56,6 +61,7 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.el.ReadOnlyMapELResolver;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
+import org.cibseven.bpm.engine.impl.persistence.deploy.cache.DeploymentCache;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.repository.DeploymentBuilder;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
@@ -1468,6 +1474,55 @@ public class AgenticTurnJobTest {
   }
 
   /**
+   * A nested agent with onLimit = error that completes in a step whose command parsed its
+   * definition again, after a restart or when it left the cache, is reported as it completed:
+   * checking at parse time which handler takes a limit notes no caught code (CIB7-2166, review).
+   */
+  @Test
+  public void aNestedAgentCompletingAfterItsDefinitionWasParsedAgainIsNotInterrupted()
+      throws IOException {
+    script.add(toolCall("helfer", "{}"));
+    script.add(answer("Geprueft."));
+    script.add(answer("Fertig."));
+    ProcessInstance pi = startWith("      <adHocSubProcess id='helfer' name='Helfer'>"
+        + "<extensionElements>" + limits("onLimit", "error") + "<camunda:connector>"
+        + "<camunda:connectorId>cibseven-ai-agent</camunda:connectorId><camunda:inputOutput>"
+        + "<camunda:inputParameter name='message'>Pruefe das.</camunda:inputParameter>"
+        + "<camunda:inputParameter name='model'>stub</camunda:inputParameter>"
+        + "<camunda:inputParameter name='apiKey'>stub-key-innen</camunda:inputParameter>"
+        + "<camunda:inputParameter name='baseUrl'>http://127.0.0.1:" + STUB_PORT
+        + "/v1</camunda:inputParameter>"
+        + "</camunda:inputOutput></camunda:connector></extensionElements>"
+        + "<userTask id='notieren' /></adHocSubProcess>"
+        + "      <boundaryEvent id='helferLimit' attachedToRef='helfer'>"
+        + "<errorEventDefinition /></boundaryEvent>");
+
+    // Every step parses the definition again, the one that completes helfer included.
+    DeploymentCache cache = ((ProcessEngineConfigurationImpl) engine
+        .getProcessEngineConfiguration()).getDeploymentCache();
+    for (int steps = 0;; steps++) {
+      List<Job> jobs = engine.getManagementService().createJobQuery()
+          .processInstanceId(pi.getId()).list();
+      if (jobs.isEmpty()) {
+        break;
+      }
+      assertThat(steps).as("the turn ends").isLessThan(TurnSteps.MAX_STEPS);
+      cache.discardProcessDefinitionCache();
+      engine.getManagementService().executeJob(jobs.get(0).getId());
+    }
+
+    assertThat(requestBodies).anySatisfy(body -> assertThat(body).contains("Pruefe das."));
+    String report = lastUserMessage(requestBodies.get(requestBodies.size() - 1));
+    assertThat(report)
+        .contains("\"finishedSinceLastTurn\":[{\"activityId\":\"helfer\"")
+        .doesNotContain("callLimit")
+        .doesNotContain("interruptedBy")
+        .doesNotContain("did not complete");
+    assertThat(engine.getHistoryService().createHistoricActivityInstanceQuery()
+        .processInstanceId(pi.getId()).activityId("helferLimit").count()).isZero();
+  }
+
+  /**
    * A parameter declared in the inputs of an embedded sub process tool reaches the activities
    * inside it (CIB7-2136).
    */
@@ -2550,6 +2605,1128 @@ public class AgenticTurnJobTest {
         .contains("\"endedAt\":\"warten\"")
         .contains("\"status\":\"gesendet\"");
     assertThat(alive(pi)).isFalse();
+  }
+
+  /** Throws the BPMN error whose code its field {@code code} names, with {@code message} if set. */
+  public static class ThrowsTheCode implements JavaDelegate {
+    private Expression code;
+    private Expression message;
+
+    public void setCode(Expression code) {
+      this.code = code;
+    }
+
+    public void setMessage(Expression message) {
+      this.message = message;
+    }
+
+    @Override
+    public void execute(DelegateExecution execution) {
+      String thrown = String.valueOf(code.getValue(execution));
+      throw (message == null) ? new BpmnError(thrown)
+          : new BpmnError(thrown, String.valueOf(message.getValue(execution)));
+    }
+  }
+
+  /** Throws a BPMN error until the variable {@code versuch} is set, then completes. */
+  public static class ThrowsOnTheFirstAttempt implements JavaDelegate {
+    @Override
+    public void execute(DelegateExecution execution) {
+      if (execution.getVariable("versuch") == null) {
+        throw new BpmnError("ERSTER_VERSUCH");
+      }
+    }
+  }
+
+  /**
+   * A subclass of the exception a boundary error event names: what is thrown, not what is caught.
+   */
+  public static class LagerGesperrt extends IllegalStateException {
+    private static final long serialVersionUID = 1L;
+
+    public LagerGesperrt() {
+      super("Lager gesperrt");
+    }
+  }
+
+  /** Throws a Java exception, which a boundary error event may name by a class it extends. */
+  public static class ThrowsAnIllegalState implements JavaDelegate {
+    @Override
+    public void execute(DelegateExecution execution) {
+      throw new LagerGesperrt();
+    }
+  }
+
+  /** A tool that throws {@code code}, the boundary event {@code catching} on it, and its path. */
+  protected static String failingTool(String code, String catching) {
+    return "      <serviceTask id='buchen' name='Buchen' camunda:class='"
+        + ThrowsTheCode.class.getName() + "'><extensionElements>"
+        + "<camunda:field name='code' stringValue='" + code + "' /></extensionElements>"
+        + "</serviceTask>"
+        + "      <boundaryEvent id='fachfehler' attachedToRef='buchen'>" + catching
+        + "</boundaryEvent>"
+        + "      <sequenceFlow id='e1' sourceRef='fachfehler' targetRef='fehlerMerken' />"
+        + "      <serviceTask id='fehlerMerken' name='Fehler merken'"
+        + " camunda:expression=\"${'kein Bestand'}\" camunda:resultVariable='fehler' />";
+  }
+
+  /**
+   * As {@link #startWith(String)}, with {@code declarations} before the process: messages,
+   * signals.
+   */
+  protected ProcessInstance startWith(String children, String declarations) {
+    return start(connectorModel("",
+        "<camunda:inputParameter name='message'>Erledige das.</camunda:inputParameter>", "",
+        "stub-key", children).replace("  <process id='agenticTurn'",
+            declarations + "  <process id='agenticTurn'"),
+        Collections.<String, Object>emptyMap());
+  }
+
+  /** The state blocks of every request after the first, one after the other. */
+  protected String laterStateBlocks() {
+    return requestBodies.subList(1, requestBodies.size()).stream()
+        .map(body -> {
+          try {
+            return lastUserMessage(body);
+          } catch (IOException e) {
+            throw new IllegalStateException(e);
+          }
+        })
+        .collect(Collectors.joining("\n"));
+  }
+
+  /**
+   * B11: a tool whose BPMN error is caught on its boundary, and whose error path runs to its end
+   * within the call, is not reported as finished: the tool result names the error's code and the
+   * boundary event (CIB7-2166). The code is in the structured field only, not in the note's text.
+   */
+  @Test
+  public void aToolEndedByABpmnErrorWithinItsCallIsReportedWithTheErrorsCode() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Kein Bestand."));
+    startWith(failingTool("KEIN_BESTAND", "<errorEventDefinition errorRef='KEIN_BESTAND' />"));
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"interruptedBy\":[{")
+        .contains("\"boundaryEvent\":\"fachfehler\"")
+        .contains("\"eventType\":\"error\"")
+        .contains("\"errorCode\":\"KEIN_BESTAND\"")
+        .contains("\"attachedTo\":\"buchen\"")
+        .contains("\"endedAt\":\"fehlerMerken\"")
+        .contains("'buchen' did not complete")
+        .contains("whose code is in interruptedBy[0].errorCode")
+        .doesNotContain("'KEIN_BESTAND'")
+        .doesNotContain("\"status\":\"finished\"");
+  }
+
+  /**
+   * A boundary event that catches every error is told the code that was thrown, which the model
+   * names nowhere, without an errorCodeVariable (CIB7-2166).
+   */
+  @Test
+  public void aCatchAllBoundaryEventReportsTheCodeThatWasThrown() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Gescheitert."));
+    startWith(failingTool("GESPERRT", "<errorEventDefinition />"));
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"errorCode\":\"GESPERRT\"");
+  }
+
+  /**
+   * A boundary error event that continues asynchronously still reports the code: it is taken as
+   * the error cancels the tool, in the command that caught it, not as the event starts in a job.
+   */
+  @Test
+  public void anAsynchronousBoundaryErrorEventStillReportsTheCode() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Warte."));
+    script.add(answer("Gescheitert."));
+    startWith(failingTool("GESPERRT", "<errorEventDefinition />")
+        .replace("<boundaryEvent id='fachfehler'",
+            "<boundaryEvent id='fachfehler' camunda:asyncBefore='true'"));
+
+    // Runs the boundary event's job too, and the turn its path's end brings.
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .as("within the call, the event waits for its job: the tool is interrupted and waits")
+        .contains("\"status\":\"waiting\"")
+        .contains("\"interruptedBy\":[{\"boundaryEvent\":\"fachfehler\",\"eventType\":\"error\","
+            + "\"errorCode\":\"GESPERRT\",\"attachedTo\":\"buchen\"}]");
+    assertThat(laterStateBlocks())
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"errorCode\":\"GESPERRT\"")
+        .contains("\"endedAt\":\"fehlerMerken\"");
+  }
+
+  /**
+   * The modeller's errorCodeVariable and errorMessageVariable still get the code and the message:
+   * the agent's own definition takes them over with everything else the engine's had.
+   */
+  @Test
+  public void theModellersErrorVariablesStillGetTheCodeAndTheMessage() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Gescheitert."));
+    ProcessInstance pi = startWith(failingTool("GESPERRT",
+        "<errorEventDefinition camunda:errorCodeVariable='grund'"
+            + " camunda:errorMessageVariable='meldung' />")
+        .replace("</extensionElements>",
+            "<camunda:field name='message' stringValue='Lager gesperrt' /></extensionElements>")
+        .replace("<serviceTask id='fehlerMerken' name='Fehler merken'",
+            "<userTask id='fehlerMerken' name='Fehler merken'")
+        .replace(" camunda:expression=\"${'kein Bestand'}\" camunda:resultVariable='fehler' />",
+            " />"));
+
+    runWaitingTurn();
+
+    assertThat(engine.getRuntimeService().getVariable(pi.getId(), "grund")).isEqualTo("GESPERRT");
+    assertThat(engine.getRuntimeService().getVariable(pi.getId(), "meldung"))
+        .isEqualTo("Lager gesperrt");
+    assertThat(toolResults(requestBodies.get(1)))
+        .as("the error path waits for a person, so the tool still runs, interrupted")
+        .contains("\"status\":\"waiting\"")
+        .contains("\"interruptedBy\":[{")
+        .contains("\"errorCode\":\"GESPERRT\"")
+        .contains("'buchen' did not complete")
+        .contains("Its path still runs. You will get another turn when it finishes.");
+  }
+
+  /**
+   * A Java exception a boundary error event names by a class it extends: the code is the class the
+   * model names, the class thrown is reported beside it, and the note does not call it a BPMN
+   * error.
+   */
+  @Test
+  public void aJavaExceptionMappedToAnErrorReportsItsClassAsTheCode() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Gescheitert."));
+    startWith(failingTool("unused",
+        "<errorEventDefinition errorRef='java.lang.IllegalStateException' />")
+        .replace(ThrowsTheCode.class.getName(), ThrowsAnIllegalState.class.getName())
+        .replace("<extensionElements><camunda:field name='code' stringValue='unused' />"
+            + "</extensionElements>", ""));
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"errorCode\":\"java.lang.IllegalStateException\"")
+        .contains("\"exceptionClass\":\"" + LagerGesperrt.class.getName() + "\"")
+        .contains("with a Java exception the process model maps to a BPMN error")
+        .doesNotContain("with a BPMN error,");
+  }
+
+  /** A code is process data: a long one is cut to the length of a name, and says so. */
+  @Test
+  public void aLongErrorCodeIsCut() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Gescheitert."));
+    String code = String.join("", Collections.nCopies(300, "X"));
+    startWith(failingTool(code, "<errorEventDefinition />"));
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("truncated, 300 characters total")
+        .doesNotContain(code);
+  }
+
+  /** A tool that completes is reported as before: finished, with no word of an interruption. */
+  @Test
+  public void aToolThatCompletesIsStillReportedAsFinished() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Gebucht."));
+    startWith("      <serviceTask id='buchen' name='Buchen' camunda:expression='${true}' />"
+        + "      <boundaryEvent id='fachfehler' attachedToRef='buchen'>"
+        + "<errorEventDefinition /></boundaryEvent>");
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"finished\"")
+        .doesNotContain("interrupted");
+  }
+
+  /**
+   * An error path that leads back to the activity it interrupted, which then completes: the
+   * interruption no longer says how the performance ended, so none is reported.
+   */
+  @Test
+  public void anErrorPathBackToTheActivityItInterruptedIsForgotten() throws IOException {
+    script.add(toolCall("anfang", "{}"));
+    script.add(answer("Gebucht."));
+    ProcessInstance pi = startWith(
+        "      <serviceTask id='anfang' name='Anfang' camunda:expression='${true}' />"
+        + "      <sequenceFlow id='e0' sourceRef='anfang' targetRef='buchen' />"
+        + "      <serviceTask id='buchen' name='Buchen' camunda:class='"
+        + ThrowsOnTheFirstAttempt.class.getName() + "' />"
+        + "      <boundaryEvent id='fachfehler' attachedToRef='buchen'>"
+        + "<errorEventDefinition /></boundaryEvent>"
+        + "      <sequenceFlow id='e1' sourceRef='fachfehler' targetRef='merken' />"
+        + "      <serviceTask id='merken' name='Merken' camunda:expression='${1}'"
+        + " camunda:resultVariable='versuch' />"
+        + "      <sequenceFlow id='e2' sourceRef='merken' targetRef='buchen' />");
+
+    runWaitingTurn();
+
+    assertThat(engine.getHistoryService().createHistoricActivityInstanceQuery()
+        .processInstanceId(pi.getId()).activityId("merken").count())
+        .as("the error path ran once").isOne();
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"finished\"")
+        .contains("\"endedAt\":\"buchen\"")
+        .doesNotContain("interrupted");
+  }
+
+  /**
+   * An error path that leads back to an activity before the one it interrupted, and from there to
+   * a normal end without completing that one again: the error was never repaired, so it is still
+   * reported, as an interruption of the chain. Only a later completion of the
+   * interrupted activity itself forgets it.
+   */
+  @Test
+  public void anErrorPathBackToAnEarlierActivityStillReportsTheUnrepairedError()
+      throws IOException {
+    script.add(toolCall("anfang", "{}"));
+    script.add(answer("Erledigt."));
+    ProcessInstance pi = startWith(
+        "      <serviceTask id='anfang' name='Anfang' camunda:expression='${true}' />"
+        + "      <sequenceFlow id='e0' sourceRef='anfang' targetRef='pruefen' />"
+        + "      <serviceTask id='pruefen' name='Pruefen' camunda:expression='${true}' />"
+        + "      <sequenceFlow id='e1' sourceRef='pruefen' targetRef='weiche' />"
+        + "      <exclusiveGateway id='weiche' default='e3' />"
+        + "      <sequenceFlow id='e2' sourceRef='weiche' targetRef='buchen'>"
+        + "<conditionExpression>${execution.getVariable('nochmal') == null}</conditionExpression>"
+        + "</sequenceFlow>"
+        + "      <sequenceFlow id='e3' sourceRef='weiche' targetRef='fertig' />"
+        + "      <serviceTask id='fertig' name='Fertig' camunda:expression='${true}' />"
+        + "      <serviceTask id='buchen' name='Buchen' camunda:class='"
+        + ThrowsTheCode.class.getName() + "'><extensionElements>"
+        + "<camunda:field name='code' stringValue='GESPERRT' /></extensionElements></serviceTask>"
+        + "      <boundaryEvent id='fachfehler' attachedToRef='buchen'>"
+        + "<errorEventDefinition /></boundaryEvent>"
+        + "      <sequenceFlow id='e4' sourceRef='fachfehler' targetRef='merken' />"
+        + "      <serviceTask id='merken' name='Merken' camunda:expression='${1}'"
+        + " camunda:resultVariable='nochmal' />"
+        + "      <sequenceFlow id='e5' sourceRef='merken' targetRef='pruefen' />");
+
+    runWaitingTurn();
+
+    assertThat(engine.getHistoryService().createHistoricActivityInstanceQuery()
+        .processInstanceId(pi.getId()).activityId("merken").count())
+        .as("the error path ran once").isOne();
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"finished\"")
+        .contains("\"endedAt\":\"fertig\"")
+        .contains("\"attachedTo\":\"buchen\"")
+        .contains("\"errorCode\":\"GESPERRT\"")
+        .contains("'anfang' ran; its flow was then interrupted at 'buchen'")
+        .doesNotContain("\"status\":\"interrupted\"");
+  }
+
+  /**
+   * An error path that leads back to the activity it interrupted through a person: while the retry
+   * waits, the interruption is still reported, since nothing has repaired it yet; once the activity
+   * completes, it is forgotten.
+   */
+  @Test
+  public void anInterruptionStaysUntilTheRetryCompletes() throws IOException {
+    script.add(toolCall("anfang", "{}"));
+    script.add(answer("Warte auf die Nachfrage."));
+    script.add(answer("Gebucht."));
+    ProcessInstance pi = startWith(
+        "      <serviceTask id='anfang' name='Anfang' camunda:expression='${true}' />"
+        + "      <sequenceFlow id='e0' sourceRef='anfang' targetRef='buchen' />"
+        + "      <serviceTask id='buchen' name='Buchen' camunda:class='"
+        + ThrowsOnTheFirstAttempt.class.getName() + "' />"
+        + "      <boundaryEvent id='fachfehler' attachedToRef='buchen'>"
+        + "<errorEventDefinition /></boundaryEvent>"
+        + "      <sequenceFlow id='e1' sourceRef='fachfehler' targetRef='nachfragen' />"
+        + "      <userTask id='nachfragen' name='Nachfragen' />"
+        + "      <sequenceFlow id='e2' sourceRef='nachfragen' targetRef='buchen' />");
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .as("the retry waits for a person: the interruption is not repaired yet")
+        .contains("\"status\":\"waiting\"")
+        .contains("\"interruptedBy\":[{")
+        .contains("\"attachedTo\":\"buchen\"");
+
+    engine.getTaskService().complete(engine.getTaskService().createTaskQuery()
+        .processInstanceId(pi.getId()).taskDefinitionKey("nachfragen").singleResult().getId(),
+        Collections.<String, Object>singletonMap("versuch", 2));
+    runWaitingTurn();
+
+    assertThat(lastUserMessage(requestBodies.get(2)))
+        .contains("\"activityId\":\"anfang\"")
+        .contains("\"endedAt\":\"buchen\"")
+        .doesNotContain("interrupted");
+  }
+
+  /**
+   * An error on an activity further along the tool's chain, whose path ends within the call: the
+   * tool ran, so its result says finished, and says where its flow was interrupted and by which
+   * error.
+   */
+  @Test
+  public void anErrorFurtherAlongTheChainWithinTheCallKeepsTheToolFinished() throws IOException {
+    script.add(toolCall("anfang", "{}"));
+    script.add(answer("Kein Bestand."));
+    startWith("      <serviceTask id='anfang' name='Anfang' camunda:expression='${true}' />"
+        + "      <sequenceFlow id='e0' sourceRef='anfang' targetRef='buchen' />"
+        + failingTool("KEIN_BESTAND", "<errorEventDefinition />"));
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"finished\"")
+        .contains("\"attachedTo\":\"buchen\"")
+        .contains("\"errorCode\":\"KEIN_BESTAND\"")
+        .contains("\"endedAt\":\"fehlerMerken\"")
+        .contains("'anfang' ran; its flow was then interrupted at 'buchen'")
+        .doesNotContain("did not complete");
+  }
+
+  /** A multi-instance tool whose instances throw: the error is reported on the tool. */
+  @Test
+  public void aMultiInstanceToolEndedByABpmnErrorIsReportedOnTheTool() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Kein Bestand."));
+    startWith(failingTool("KEIN_BESTAND", "<errorEventDefinition />").replace(
+        "</extensionElements></serviceTask>",
+        "</extensionElements><multiInstanceLoopCharacteristics><loopCardinality>2"
+            + "</loopCardinality></multiInstanceLoopCharacteristics></serviceTask>"));
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"attachedTo\":\"buchen\"")
+        .contains("\"errorCode\":\"KEIN_BESTAND\"")
+        .as("the tool, not its multi-instance body; the activity instance id still names the body")
+        .doesNotContain("\"attachedTo\":\"buchen#multiInstanceBody\"");
+  }
+
+  /** An escalation thrown after the tool waited: reported in the state block of a later turn. */
+  @Test
+  public void anEscalationAfterAWaitIsReportedInALaterStateBlock() throws IOException {
+    script.add(toolCall("pruefen", "{}"));
+    script.add(answer("Warte."));
+    script.add(answer("Zu teuer."));
+    ProcessInstance pi = startWith(ESCALATING_TOOL.replace(
+        "<sequenceFlow id='ps1' sourceRef='ps' targetRef='melden' />",
+        "<sequenceFlow id='ps0' sourceRef='ps' targetRef='frage' /><userTask id='frage' />"
+            + "<sequenceFlow id='ps1' sourceRef='frage' targetRef='melden' />"), ESCALATION);
+    runWaitingTurn();
+    assertThat(toolResults(requestBodies.get(1))).contains("\"status\":\"waiting\"");
+
+    engine.getTaskService().complete(engine.getTaskService().createTaskQuery()
+        .processInstanceId(pi.getId()).taskDefinitionKey("frage").singleResult().getId());
+    runWaitingTurn();
+
+    assertThat(lastUserMessage(requestBodies.get(2)))
+        .contains("\"activityId\":\"pruefen\"")
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"eventType\":\"escalation\"")
+        .contains("\"boundaryEvent\":\"zuTeuer\"");
+  }
+
+  /**
+   * An interrupting boundary event that is no error event and continues asynchronously: within the
+   * call, its activity is cancelled and the event waits for its job; the call result already says
+   * which event interrupted the tool, not only that it still runs.
+   */
+  @Test
+  public void anAsynchronousEscalationEventIsReportedWithinTheCall() throws IOException {
+    script.add(toolCall("pruefen", "{}"));
+    script.add(answer("Warte."));
+    script.add(answer("Zu teuer."));
+    startWith(ESCALATING_TOOL.replace("<boundaryEvent id='zuTeuer'",
+        "<boundaryEvent id='zuTeuer' camunda:asyncBefore='true'"), ESCALATION);
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"waiting\"")
+        .contains("\"interruptedBy\":[{")
+        .contains("\"boundaryEvent\":\"zuTeuer\"")
+        .contains("\"eventType\":\"escalation\"");
+  }
+
+  /**
+   * B11 with its error declared as the agentic suite models it, {@code <error id errorCode>}, and
+   * caught on the tool's boundary, whose path ends within the call (CIB7-2166). The suite throws it
+   * from a Groovy script task; this module has no script engine on its test classpath, so a
+   * delegate throws it here. The script task itself is left to the run on the distribution.
+   */
+  @Test
+  public void b11WithItsDeclaredError() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(toolCall("completeScope", "{}"));
+    script.add(answer("Fertig."));
+    ProcessInstance pi = startWith(
+        failingTool("KEIN_BESTAND", "<errorEventDefinition errorRef='errKeinBestand' />"),
+        "  <error id='errKeinBestand' errorCode='KEIN_BESTAND' />");
+
+    runWaitingTurn();
+
+    assertThat(engine.getHistoryService().createHistoricVariableInstanceQuery()
+        .processInstanceId(pi.getId()).variableName("fehler").singleResult().getValue())
+        .as("the error path on the boundary ran").isEqualTo("kein Bestand");
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"errorCode\":\"KEIN_BESTAND\"")
+        .contains("\"boundaryEvent\":\"fachfehler\"")
+        .contains("\"endedAt\":\"fehlerMerken\"");
+    assertThat(alive(pi)).isFalse();
+  }
+
+  /**
+   * A non-interrupting boundary event inside the scope never reaches the recorder: the engine
+   * refuses the deployment (CIB7-1967), so nothing beside a tool can be taken for its end.
+   */
+  @Test
+  public void aNonInterruptingBoundaryEventOnAToolIsRefused() {
+    assertThatThrownBy(() -> startWith("      <userTask id='freigabe' name='Freigabe' />"
+        + "      <boundaryEvent id='erinnern' attachedToRef='freigabe' cancelActivity='false'>"
+        + "<timerEventDefinition><timeDuration>PT1H</timeDuration></timerEventDefinition>"
+        + "</boundaryEvent>"))
+        .hasMessageContaining("erinnern");
+  }
+
+  /**
+   * A timer on an activity further along the tool's chain interrupts the chain, not
+   * the tool, which ran: its results stand, and the model is not told its work is undone.
+   */
+  @Test
+  public void aTimerFurtherAlongTheChainDoesNotUndoTheToolThatRan() throws IOException {
+    script.add(toolCall("anfragen", "{}"));
+    script.add(answer("Gestartet."));
+    script.add(answer("Keine Antwort."));
+    startWith(CHAIN
+        + "      <boundaryEvent id='zuLange' attachedToRef='warten'><timerEventDefinition>"
+        + "<timeDuration>PT1H</timeDuration></timerEventDefinition></boundaryEvent>");
+
+    // The turn's steps run every job there is, the boundary timer among them.
+    runWaitingTurn();
+
+    assertThat(laterStateBlocks())
+        .contains("\"activityId\":\"anfragen\"")
+        .contains("\"status\":\"gesendet\"")
+        .contains("\"attachedTo\":\"warten\"")
+        .contains("\"eventType\":\"timer\"")
+        .contains("'anfragen' ran; its flow was then interrupted at 'warten'")
+        .doesNotContain("did not complete")
+        .doesNotContain("\"status\":\"interrupted\"");
+  }
+
+  /**
+   * B12: a waiting tool ended by the timer on its boundary is reported in a later state block as
+   * interrupted by that timer, and still says where its flow ended (CIB7-2147, CIB7-2166).
+   */
+  @Test
+  public void aToolEndedByItsTimerIsReportedAsInterruptedByIt() throws IOException {
+    String later = interruptAWaitingTool(
+        "<timerEventDefinition><timeDuration>PT1H</timeDuration></timerEventDefinition>", "",
+        pi -> { });
+
+    assertThat(later)
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"eventType\":\"timer\"")
+        .contains("\"endedAt\":\"zuLange\"");
+  }
+
+  @Test
+  public void aToolEndedByAMessageIsReportedAsInterruptedByIt() throws IOException {
+    String later = interruptAWaitingTool("<messageEventDefinition messageRef='abbruchMsg' />",
+        "  <message id='abbruchMsg' name='abbruch' />",
+        pi -> engine.getRuntimeService().correlateMessage("abbruch"));
+
+    assertThat(later).contains("\"status\":\"interrupted\"").contains("\"eventType\":\"message\"");
+  }
+
+  @Test
+  public void aToolEndedByASignalIsReportedAsInterruptedByIt() throws IOException {
+    String later = interruptAWaitingTool("<signalEventDefinition signalRef='stoppSig' />",
+        "  <signal id='stoppSig' name='stopp' />",
+        pi -> engine.getRuntimeService().signalEventReceived("stopp"));
+
+    assertThat(later).contains("\"status\":\"interrupted\"").contains("\"eventType\":\"signal\"");
+  }
+
+  @Test
+  public void aToolEndedByAConditionIsReportedAsInterruptedByIt() throws IOException {
+    String later = interruptAWaitingTool("<conditionalEventDefinition><condition>"
+        + "${execution.getVariable('abbrechen') == true}</condition></conditionalEventDefinition>",
+        "", pi -> engine.getRuntimeService().setVariable(pi.getId(), "abbrechen", true));
+
+    assertThat(later)
+        .contains("\"status\":\"interrupted\"").contains("\"eventType\":\"conditional\"");
+  }
+
+  /**
+   * The tool {@code freigabe} waits for a person, with the interrupting boundary event
+   * {@code zuLange} of {@code definition} on it; {@code trigger} fires it after the first turn,
+   * unless it is a timer the turn's steps already ran. The state blocks after the first request,
+   * which say freigabe ended by it.
+   */
+  protected String interruptAWaitingTool(String definition, String declarations,
+      Consumer<ProcessInstance> trigger) throws IOException {
+    script.add(toolCall("freigabe", "{}"));
+    script.add(answer("Warte auf die Freigabe."));
+    script.add(answer("Die Freigabe kam nicht."));
+    ProcessInstance pi = startWith("      <userTask id='freigabe' name='Freigabe' />"
+        + "      <boundaryEvent id='zuLange' attachedToRef='freigabe'>" + definition
+        + "</boundaryEvent>", declarations);
+    runWaitingTurn();
+    trigger.accept(pi);
+    if (engine.getManagementService().createJobQuery().count() > 0) {
+      runWaitingTurn();
+    }
+
+    // A timer's job may run between the steps of the first turn, which then reports it itself.
+    assertThat(requestBodies).hasSizeGreaterThan(1);
+    String later = laterStateBlocks();
+    assertThat(later)
+        .contains("\"activityId\":\"freigabe\"")
+        .contains("\"boundaryEvent\":\"zuLange\"")
+        .contains("\"attachedTo\":\"freigabe\"")
+        .contains("'freigabe' did not complete");
+    return later;
+  }
+
+  /** A sub process tool throwing an escalation, caught by an interrupting event on its boundary. */
+  protected static final String ESCALATING_TOOL = "      <subProcess id='pruefen' name='Pruefen'>"
+      + "<startEvent id='ps' /><sequenceFlow id='ps1' sourceRef='ps' targetRef='melden' />"
+      + "<intermediateThrowEvent id='melden'><escalationEventDefinition escalationRef='esc' />"
+      + "</intermediateThrowEvent>"
+      + "<sequenceFlow id='ps2' sourceRef='melden' targetRef='pe' /><endEvent id='pe' />"
+      + "</subProcess>"
+      + "      <boundaryEvent id='zuTeuer' attachedToRef='pruefen' cancelActivity='true'>"
+      + "<escalationEventDefinition escalationRef='esc' /></boundaryEvent>";
+
+  protected static final String ESCALATION = "  <escalation id='esc' escalationCode='ZU_TEUER' />";
+
+  /** An escalation thrown inside a sub process tool and caught on its boundary, within the call. */
+  @Test
+  public void aToolEndedByAnEscalationIsReportedAsInterruptedByIt() throws IOException {
+    script.add(toolCall("pruefen", "{}"));
+    script.add(answer("Zu teuer."));
+    startWith(ESCALATING_TOOL, ESCALATION);
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"boundaryEvent\":\"zuTeuer\"")
+        .contains("\"eventType\":\"escalation\"");
+  }
+
+  /** A multi-instance tool's boundary event is reported on the tool, not on its body. */
+  protected static final String TWO_APPROVALS = "      <userTask id='freigabe' name='Freigabe'>"
+      + "<multiInstanceLoopCharacteristics><loopCardinality>2</loopCardinality>"
+      + "</multiInstanceLoopCharacteristics></userTask>";
+
+  @Test
+  public void aMultiInstanceToolEndedByItsTimerIsReportedOnTheTool() throws IOException {
+    script.add(toolCall("freigabe", "{}"));
+    script.add(answer("Warte auf die Freigaben."));
+    script.add(answer("Die Freigaben kamen nicht."));
+    startWith(TWO_APPROVALS
+        + "      <boundaryEvent id='zuLange' attachedToRef='freigabe'><timerEventDefinition>"
+        + "<timeDuration>PT1H</timeDuration></timerEventDefinition></boundaryEvent>");
+
+    runWaitingTurn();
+
+    assertThat(laterStateBlocks())
+        .contains("\"activityId\":\"freigabe\"")
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"attachedTo\":\"freigabe\"")
+        .doesNotContain("multiInstanceBody");
+  }
+
+  /**
+   * A tool's error whose path is interrupted again, by the timeout of a task on that path: both
+   * interruptions are reported, the tool's own error with its code first, and the tool did not
+   * complete. One slot would keep only the timeout and call the tool done.
+   */
+  @Test
+  public void aSecondInterruptionOnTheErrorPathKeepsTheToolsError() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Warte auf die Nachfrage."));
+    script.add(answer("Keine Antwort."));
+    startWith(failingTool("KEIN_BESTAND", "<errorEventDefinition />")
+        .replace("<serviceTask id='fehlerMerken' name='Fehler merken'"
+            + " camunda:expression=\"${'kein Bestand'}\" camunda:resultVariable='fehler' />",
+            "<userTask id='fehlerMerken' name='Fehler merken' />"
+            + "<boundaryEvent id='zuLange' attachedToRef='fehlerMerken'><timerEventDefinition>"
+            + "<timeDuration>PT1H</timeDuration></timerEventDefinition></boundaryEvent>"));
+
+    // The turn's steps run every job there is, the boundary timer among them.
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .as("within the call, the error path waits for a person")
+        .contains("\"status\":\"waiting\"")
+        .contains("\"interruptedBy\":[{\"boundaryEvent\":\"fachfehler\"");
+    String later = laterStateBlocks();
+    assertThat(later)
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"interruptedBy\":[{\"boundaryEvent\":\"fachfehler\",\"eventType\":\"error\","
+            + "\"errorCode\":\"KEIN_BESTAND\",\"attachedTo\":\"buchen\"},"
+            + "{\"boundaryEvent\":\"zuLange\",\"eventType\":\"timer\","
+            + "\"attachedTo\":\"fehlerMerken\"}]")
+        .contains("'buchen' did not complete")
+        .contains("whose code is in interruptedBy[0].errorCode");
+  }
+
+  /**
+   * Another activity with a boundary event of its own completes on the tool's error path: that
+   * repairs nothing of the tool's error, which stays.
+   */
+  @Test
+  public void anotherActivityCompletingOnTheErrorPathKeepsTheToolsError() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Kein Bestand."));
+    startWith(failingTool("KEIN_BESTAND", "<errorEventDefinition />")
+        + "      <boundaryEvent id='merkfehler' attachedToRef='fehlerMerken'>"
+        + "<errorEventDefinition /></boundaryEvent>");
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"errorCode\":\"KEIN_BESTAND\"")
+        .contains("\"attachedTo\":\"buchen\"");
+  }
+
+  /**
+   * A retry that throws an error nothing catches: the engine ends the activity as if it had
+   * completed, which repairs nothing, so the first error is still reported, and the uncaught one
+   * is no interruption: nothing on the boundary caught it.
+   */
+  @Test
+  public void anUncaughtErrorOnTheRetryDoesNotRepairTheFirst() throws IOException {
+    script.add(toolCall("anfang", "{}"));
+    script.add(answer("Gescheitert."));
+    startWith("      <serviceTask id='anfang' name='Anfang' camunda:expression='${true}' />"
+        + "      <sequenceFlow id='e0' sourceRef='anfang' targetRef='buchen' />"
+        + "      <serviceTask id='buchen' name='Buchen' camunda:class='"
+        + ThrowsTheCode.class.getName() + "'><extensionElements><camunda:field name='code'"
+        + " expression=\"${execution.getVariable('versuch') == null ? 'ERSTER' : 'UNBEKANNT'}\" />"
+        + "</extensionElements></serviceTask>"
+        + "      <boundaryEvent id='fachfehler' attachedToRef='buchen'>"
+        + "<errorEventDefinition errorRef='ERSTER' /></boundaryEvent>"
+        + "      <sequenceFlow id='e1' sourceRef='fachfehler' targetRef='merken' />"
+        + "      <serviceTask id='merken' name='Merken' camunda:expression='${1}'"
+        + " camunda:resultVariable='versuch' />"
+        + "      <sequenceFlow id='e2' sourceRef='merken' targetRef='buchen' />");
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"errorCode\":\"ERSTER\"")
+        .contains("\"attachedTo\":\"buchen\"")
+        .contains("'anfang' ran; its flow was then interrupted at 'buchen'")
+        .doesNotContain("UNBEKANNT")
+        .doesNotContain("\"status\":\"interrupted\"");
+  }
+
+  /**
+   * The same activity interrupted twice in one performance: the newer interruption replaces the
+   * older one of that activity, rather than both being listed.
+   */
+  @Test
+  public void aSecondInterruptionOfTheSameActivityReplacesTheFirst() throws IOException {
+    script.add(toolCall("anfang", "{}"));
+    script.add(answer("Gescheitert."));
+    startWith("      <serviceTask id='anfang' name='Anfang' camunda:expression='${true}' />"
+        + "      <sequenceFlow id='e0' sourceRef='anfang' targetRef='buchen' />"
+        + "      <serviceTask id='buchen' name='Buchen' camunda:class='"
+        + ThrowsTheCode.class.getName() + "'><extensionElements><camunda:field name='code'"
+        + " expression=\"${execution.getVariable('versuch') == null ? 'ERSTER' : 'ZWEITER'}\" />"
+        + "</extensionElements></serviceTask>"
+        + "      <boundaryEvent id='fachfehler' attachedToRef='buchen'>"
+        + "<errorEventDefinition /></boundaryEvent>"
+        + "      <sequenceFlow id='e1' sourceRef='fachfehler' targetRef='weiche' />"
+        + "      <exclusiveGateway id='weiche' default='e3' />"
+        + "      <sequenceFlow id='e2' sourceRef='weiche' targetRef='merken'>"
+        + "<conditionExpression>${execution.getVariable('versuch') == null}</conditionExpression>"
+        + "</sequenceFlow>"
+        + "      <sequenceFlow id='e3' sourceRef='weiche' targetRef='aufgeben' />"
+        + "      <serviceTask id='aufgeben' name='Aufgeben' camunda:expression='${true}' />"
+        + "      <serviceTask id='merken' name='Merken' camunda:expression='${1}'"
+        + " camunda:resultVariable='versuch' />"
+        + "      <sequenceFlow id='e4' sourceRef='merken' targetRef='buchen' />");
+
+    runWaitingTurn();
+
+    String result = toolResults(requestBodies.get(1));
+    assertThat(result)
+        .contains("\"interruptedBy\":[{\"boundaryEvent\":\"fachfehler\",\"eventType\":\"error\","
+            + "\"errorCode\":\"ZWEITER\",\"attachedTo\":\"buchen\"}]")
+        .doesNotContain("ERSTER");
+  }
+
+  /**
+   * An activity with a timer on its boundary and no error event, interrupted by the timer, then
+   * entered again and ended by an error nothing catches: the engine ends it as if it had completed,
+   * which repairs nothing, so the timer is still reported.
+   */
+  @Test
+  public void anUncaughtErrorOnAnActivityWithoutAnErrorEventRepairsNothing() throws IOException {
+    script.add(toolCall("anfang", "{}"));
+    script.add(answer("Warte."));
+    script.add(answer("Gescheitert."));
+    ProcessInstance pi = startWith(
+        "      <serviceTask id='anfang' name='Anfang' camunda:expression='${true}' />"
+        + "      <sequenceFlow id='e0' sourceRef='anfang' targetRef='teil' />"
+        + "      <subProcess id='teil' name='Teil'>"
+        + "<startEvent id='ts' /><sequenceFlow id='t1' sourceRef='ts' targetRef='tw' />"
+        + "<exclusiveGateway id='tw' default='t3' />"
+        + "<sequenceFlow id='t2' sourceRef='tw' targetRef='warten'>"
+        + "<conditionExpression>${execution.getVariable('versuch') == null}</conditionExpression>"
+        + "</sequenceFlow>"
+        + "<userTask id='warten' name='Warten' />"
+        + "<sequenceFlow id='t3' sourceRef='tw' targetRef='werfen' />"
+        + "<serviceTask id='werfen' name='Werfen' camunda:class='"
+        + ThrowsTheCode.class.getName() + "'><extensionElements>"
+        + "<camunda:field name='code' stringValue='UNBEKANNT' /></extensionElements></serviceTask>"
+        + "</subProcess>"
+        + "      <boundaryEvent id='zuLange' attachedToRef='teil'><timerEventDefinition>"
+        + "<timeDuration>PT1H</timeDuration></timerEventDefinition></boundaryEvent>"
+        + "      <sequenceFlow id='e1' sourceRef='zuLange' targetRef='merken' />"
+        + "      <serviceTask id='merken' name='Merken' camunda:expression='${1}'"
+        + " camunda:resultVariable='versuch' />"
+        + "      <sequenceFlow id='e2' sourceRef='merken' targetRef='teil' />");
+
+    // The turn's steps run every job there is, the boundary timer among them.
+    runWaitingTurn();
+
+    assertThat(engine.getHistoryService().createHistoricActivityInstanceQuery()
+        .processInstanceId(pi.getId()).activityId("werfen").count())
+        .as("the second entry threw").isOne();
+    assertThat(laterStateBlocks())
+        .contains("\"activityId\":\"anfang\"")
+        .contains("\"boundaryEvent\":\"zuLange\"")
+        .contains("\"attachedTo\":\"teil\"")
+        .contains("'anfang' ran; its flow was then interrupted at 'teil'")
+        .doesNotContain("UNBEKANNT");
+  }
+
+  /**
+   * An activity interrupted by an error, entered again, and interrupted by an event that waits
+   * for its job: the waiting event is the newer interruption of that activity and replaces the
+   * error, rather than the error hiding it.
+   */
+  @Test
+  public void aWaitingEventReplacesAnOlderInterruptionOfItsActivity() throws IOException {
+    script.add(toolCall("anfang", "{}"));
+    script.add(answer("Warte."));
+    script.add(answer("Zu teuer."));
+    startWith("      <serviceTask id='anfang' name='Anfang' camunda:expression='${true}' />"
+        + "      <sequenceFlow id='e0' sourceRef='anfang' targetRef='pruefen' />"
+        + "      <subProcess id='pruefen' name='Pruefen'>"
+        + "<startEvent id='ps' /><sequenceFlow id='p1' sourceRef='ps' targetRef='pw' />"
+        + "<exclusiveGateway id='pw' default='p3' />"
+        + "<sequenceFlow id='p2' sourceRef='pw' targetRef='werfen'>"
+        + "<conditionExpression>${execution.getVariable('versuch') == null}</conditionExpression>"
+        + "</sequenceFlow>"
+        + "<serviceTask id='werfen' name='Werfen' camunda:class='"
+        + ThrowsTheCode.class.getName() + "'><extensionElements>"
+        + "<camunda:field name='code' stringValue='ERSTER' /></extensionElements></serviceTask>"
+        + "<sequenceFlow id='p3' sourceRef='pw' targetRef='melden' />"
+        + "<intermediateThrowEvent id='melden'><escalationEventDefinition escalationRef='esc' />"
+        + "</intermediateThrowEvent>"
+        + "</subProcess>"
+        + "      <boundaryEvent id='fachfehler' attachedToRef='pruefen'>"
+        + "<errorEventDefinition /></boundaryEvent>"
+        + "      <sequenceFlow id='e1' sourceRef='fachfehler' targetRef='merken' />"
+        + "      <serviceTask id='merken' name='Merken' camunda:expression='${1}'"
+        + " camunda:resultVariable='versuch' />"
+        + "      <sequenceFlow id='e2' sourceRef='merken' targetRef='pruefen' />"
+        + "      <boundaryEvent id='zuTeuer' attachedToRef='pruefen' cancelActivity='true'"
+        + " camunda:asyncBefore='true'><escalationEventDefinition escalationRef='esc' />"
+        + "</boundaryEvent>", ESCALATION);
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"waiting\"")
+        .contains("\"interruptedBy\":[{\"boundaryEvent\":\"zuTeuer\",\"eventType\":\"escalation\","
+            + "\"attachedTo\":\"pruefen\"}]")
+        .doesNotContain("ERSTER");
+  }
+
+  /** A signal a sub process tool throws itself, caught on its boundary within the call. */
+  @Test
+  public void aToolEndedByASignalWithinTheCallIsReportedAsInterruptedByIt() throws IOException {
+    script.add(toolCall("pruefen", "{}"));
+    script.add(answer("Gestoppt."));
+    startWith(ESCALATING_TOOL
+        .replace("<escalationEventDefinition escalationRef='esc' />",
+            "<signalEventDefinition signalRef='stoppSig' />"),
+        "  <signal id='stoppSig' name='stopp' />");
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"boundaryEvent\":\"zuTeuer\"")
+        .contains("\"eventType\":\"signal\"");
+  }
+
+  /** A condition a sub process tool makes true itself, caught on its boundary within the call. */
+  @Test
+  public void aToolEndedByAConditionWithinTheCallIsReportedAsInterruptedByIt() throws IOException {
+    script.add(toolCall("pruefen", "{}"));
+    script.add(answer("Abgebrochen."));
+    startWith("      <subProcess id='pruefen' name='Pruefen'><extensionElements>"
+        + "<camunda:inputOutput><camunda:inputParameter name='abbrechen'>${false}"
+        + "</camunda:inputParameter></camunda:inputOutput></extensionElements>"
+        + "<startEvent id='ps' /><sequenceFlow id='ps1' sourceRef='ps' targetRef='setzen' />"
+        + "<serviceTask id='setzen'"
+        + " camunda:expression=\"${execution.setVariable('abbrechen', true)}\" />"
+        + "<sequenceFlow id='ps2' sourceRef='setzen' targetRef='pe' /><endEvent id='pe' />"
+        + "</subProcess>"
+        + "      <boundaryEvent id='abbruch' attachedToRef='pruefen'><conditionalEventDefinition>"
+        + "<condition>${execution.getVariable('abbrechen') == true}</condition>"
+        + "</conditionalEventDefinition></boundaryEvent>");
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("\"status\":\"interrupted\"")
+        .contains("\"boundaryEvent\":\"abbruch\"")
+        .contains("\"eventType\":\"conditional\"");
+  }
+
+  /**
+   * A waiting tool cancelled from outside, by a process instance modification, is listed in the
+   * next state block as cancelled, so the agent stops waiting for it (CIB7-2166).
+   */
+  @Test
+  public void aToolCancelledFromOutsideIsReportedAsCancelled() throws IOException {
+    String report = cancelFromOutside("      <userTask id='freigabe' name='Freigabe' />",
+        "freigabe", "freigabe");
+
+    assertThat(report)
+        .contains("\"activityId\":\"freigabe\"")
+        .contains("\"status\":\"cancelled\"")
+        .contains("'freigabe' did not complete: it was cancelled from outside the agent")
+        .doesNotContain("check before repeating it")
+        .as("a cancelled tool read nothing: no word of what it declares")
+        .doesNotContain("declares no output mapping")
+        .doesNotContain("\"resultsFrom\"");
+  }
+
+  /** The same for a multi-instance tool, cancelled as a whole: reported once, on the tool. */
+  @Test
+  public void aMultiInstanceToolCancelledFromOutsideIsReportedAsCancelled() throws IOException {
+    String report = cancelFromOutside(TWO_APPROVALS, "freigabe", "freigabe#multiInstanceBody");
+
+    assertThat(report)
+        .contains("\"activityId\":\"freigabe\"")
+        .contains("\"status\":\"cancelled\"")
+        .doesNotContain("multiInstanceBody")
+        .doesNotContain("declares no output mapping");
+  }
+
+  /**
+   * An activity further along a tool's chain cancelled from outside: reported under the tool the
+   * agent called, not under the activity cancelled. The tool has no boundary events, so only its
+   * completion led there: it ran, its request is out, and the model is told so, not that the tool
+   * did not complete, which could make it send the request again (review D1).
+   */
+  @Test
+  public void aChainCancelledFurtherAlongIsReportedUnderTheTool() throws IOException {
+    String report = cancelFromOutside(CHAIN, "anfragen", "warten");
+
+    assertThat(report)
+        .contains("\"activityId\":\"anfragen\"")
+        .contains("\"endedAt\":\"warten\"")
+        .contains("'anfragen' ran; its flow was then cancelled at 'warten' from outside the agent")
+        .contains("Do not wait for it.")
+        .doesNotContain("\"activityId\":\"warten\"")
+        .doesNotContain("\"status\":\"cancelled\"")
+        .doesNotContain("did not complete")
+        .doesNotContain("produced no results")
+        .doesNotContain("check before repeating it");
+  }
+
+  /**
+   * The same chain, with a boundary event on the tool, one that never fires: its path could have
+   * led further along as well, so the model is not told the tool ran.
+   */
+  @Test
+  public void aChainCancelledFurtherAlongAToolWithABoundaryEventClaimsNothing()
+      throws IOException {
+    String report = cancelFromOutside(CHAIN
+        + "      <boundaryEvent id='fehler' attachedToRef='anfragen'><errorEventDefinition />"
+        + "</boundaryEvent>",
+        "anfragen", "warten");
+
+    assertThat(report)
+        .contains("\"activityId\":\"anfragen\"")
+        .contains("\"status\":\"cancelled\"")
+        .contains("The flow of 'anfragen' was cancelled from outside the agent at 'warten'")
+        .contains("check before repeating it")
+        .doesNotContain("did not complete")
+        .doesNotContain("' ran;");
+  }
+
+  /**
+   * An activity inside a sub process tool cancelled from outside: the tool did not get past it,
+   * so the model is not told it ran.
+   */
+  @Test
+  public void anActivityInsideASubProcessToolCancelledFromOutsideIsNotReportedAsRun()
+      throws IOException {
+    String report = cancelFromOutside("      <subProcess id='pruefen' name='Pruefen'>"
+        + "<startEvent id='ps' /><sequenceFlow id='ps1' sourceRef='ps' targetRef='innen' />"
+        + "<userTask id='innen' name='Innen' />"
+        + "<sequenceFlow id='ps2' sourceRef='innen' targetRef='pe' /><endEvent id='pe' />"
+        + "</subProcess>",
+        "pruefen", "innen");
+
+    assertThat(report)
+        .contains("\"activityId\":\"pruefen\"")
+        .contains("\"status\":\"cancelled\"")
+        .doesNotContain("' ran;");
+  }
+
+  /**
+   * The same, with a boundary event on the cancelled activity, one that never fires: an activity
+   * with a boundary event is a scope, and the execution at it carries no activity. Where the flow
+   * was is then unknown, and the model is still not told the tool did not complete.
+   */
+  @Test
+  public void aChainCancelledAtAScopeFurtherAlongClaimsNothing() throws IOException {
+    String report = cancelFromOutside(CHAIN
+        + "      <boundaryEvent id='fehler' attachedToRef='warten'><errorEventDefinition />"
+        + "</boundaryEvent>",
+        "anfragen", "warten");
+
+    assertThat(report)
+        .contains("\"activityId\":\"anfragen\"")
+        .contains("\"status\":\"cancelled\"")
+        .contains("The flow of 'anfragen' was cancelled from outside the agent")
+        .contains("check before repeating it")
+        .doesNotContain("did not complete")
+        .doesNotContain("produced no results");
+  }
+
+  /**
+   * B11 with a waiting error path, cancelled from outside: the tool's error is not turned into
+   * "ran". The interruption cannot be read any more, so nothing is claimed about the work.
+   */
+  @Test
+  public void aWaitingErrorPathCancelledFromOutsideIsNotReportedAsRun() throws IOException {
+    String report = cancelFromOutside(failingTool("KEIN_BESTAND", "<errorEventDefinition />")
+        .replace("<serviceTask id='fehlerMerken' name='Fehler merken'"
+            + " camunda:expression=\"${'kein Bestand'}\" camunda:resultVariable='fehler' />",
+            "<userTask id='fehlerMerken' name='Fehler merken' />"),
+        "buchen", "fehlerMerken");
+
+    assertThat(report)
+        .contains("\"activityId\":\"buchen\"")
+        .contains("\"status\":\"cancelled\"")
+        .contains("check before repeating it")
+        .doesNotContain("' ran;");
+  }
+
+  /**
+   * A tool with asyncAfter that ran and waits for its continuation job, as an incident on that job
+   * leaves it, cancelled from outside: its execution is still at the tool, but the tool did its
+   * work, so the model is not told it did not complete.
+   */
+  @Test
+  public void aToolWaitingForItsAsyncAfterJobCancelledFromOutsideClaimsNothing()
+      throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Warte."));
+    script.add(answer("Verstanden."));
+    ProcessInstance pi = startWith("      <serviceTask id='buchen' name='Buchen'"
+        + " camunda:expression='${true}' camunda:asyncAfter='true' />"
+        + "      <userTask id='worker' name='Worker' />");
+    runStepsLeavingWaiting(pi, "buchen");
+    assertThat(engine.getManagementService().createJobQuery().activityId("buchen").count())
+        .as("the tool ran and waits for its continuation job").isOne();
+    // Someone else's work keeps the scope: cancelling its only child would cancel the scope too.
+    String scope = engine.getRuntimeService().createExecutionQuery().activityId("adHoc")
+        .singleResult().getId();
+    engine.getRuntimeService().createAdHocSubProcessActivation(scope)
+        .startActivity("worker").execute();
+    int before = requestBodies.size();
+
+    engine.getRuntimeService().createProcessInstanceModification(pi.getId())
+        .cancelAllForActivity("buchen").execute();
+    runStepsLeavingWaiting(pi, "buchen");
+
+    assertThat(requestBodies).hasSizeGreaterThan(before);
+    assertThat(lastUserMessage(requestBodies.get(before)))
+        .contains("\"activityId\":\"buchen\"")
+        .contains("\"status\":\"cancelled\"")
+        .contains("check before repeating it")
+        .doesNotContain("did not complete")
+        .doesNotContain("produced no results");
+  }
+
+  /** Runs the instance's jobs as a turn's steps do, all but those of {@code waiting}. */
+  protected void runStepsLeavingWaiting(ProcessInstance pi, String waiting) {
+    for (int steps = 0; ; steps++) {
+      List<String> left = engine.getManagementService().createJobQuery()
+          .processInstanceId(pi.getId()).activityId(waiting).list().stream()
+          .map(Job::getId).collect(Collectors.toList());
+      Job next = null;
+      for (Job job : engine.getManagementService().createJobQuery()
+          .processInstanceId(pi.getId()).list()) {
+        if (!left.contains(job.getId())) {
+          next = job;
+          break;
+        }
+      }
+      if (next == null) {
+        return;
+      }
+      if (steps > TurnSteps.MAX_STEPS) {
+        throw new AssertionError("more than " + TurnSteps.MAX_STEPS + " steps");
+      }
+      engine.getManagementService().executeJob(next.getId());
+    }
+  }
+
+  /**
+   * The agent starts {@code called} from {@code tools}; someone else's work keeps the scope, as
+   * cancelling its only child would cancel the scope too; then {@code cancelled} is cancelled. The
+   * state block of the turn that brings.
+   */
+  protected String cancelFromOutside(String tools, String called, String cancelled)
+      throws IOException {
+    script.add(toolCall(called, "{}"));
+    script.add(answer("Warte."));
+    script.add(answer("Verstanden."));
+    ProcessInstance pi = startWith(tools + "      <userTask id='worker' name='Worker' />");
+    runWaitingTurn();
+    String scope = engine.getRuntimeService().createExecutionQuery().activityId("adHoc")
+        .singleResult().getId();
+    engine.getRuntimeService().createAdHocSubProcessActivation(scope)
+        .startActivity("worker").execute();
+    int before = requestBodies.size();
+
+    engine.getRuntimeService().createProcessInstanceModification(pi.getId())
+        .cancelAllForActivity(cancelled).execute();
+    runWaitingTurn();
+
+    assertThat(requestBodies).hasSizeGreaterThan(before);
+    return lastUserMessage(requestBodies.get(before));
   }
 
   /** A chain along an inner flow: a tool that ends at once and a person who has to act after it. */

@@ -317,20 +317,30 @@ public class AdHocSubProcessTool {
         if (stillRunning) {
             AdHocLoopState.addPending(scope, trackingId, activityId);
             result.put("status", "waiting");
+            // A boundary event may have interrupted the tool already, within this call, and its
+            // path is what still runs: said now, not only when that path ends (CIB7-2166).
+            String interrupted = interruptedWhileRunning(scope, trackingId, activityId, result);
             result.put("results", Collections.emptyMap());
-            result.put("resultsNote", "Still running. You will get another turn when it finishes.");
+            result.put("resultsNote", interrupted != null
+                    ? interrupted
+                            + " Its path still runs. You will get another turn when it finishes."
+                    : "Still running. You will get another turn when it finishes.");
         } else {
             // Not recorded as pending: there is nothing to wait for, and an entry that
             // is already finished would refuse completeScope until a later turn
             // reconciled it away.
             result.put("status", "finished");
-            // The values the observer gathered as the activity ended, within this call: taken
-            // where the tool held them, its own scope included (CIB7-2215). A chain that goes on
-            // to an activity that is no tool is gathered too, under this tool. Only without an
-            // entry are they read from the scope (readResult), a fallback no model is known to
-            // reach within a call.
-            Map<String, Object> gathered =
+            // The entry the observer gathered as the activity ended, within this call: its values
+            // taken where the tool held them, its own scope included (CIB7-2215), and how it
+            // ended, which is not finished when a boundary event on it interrupted it
+            // (CIB7-2166). A chain that goes on to an activity that is no tool is gathered too,
+            // under this tool. Only without an entry are the values read from the scope
+            // (readResult), a fallback no model is known to reach within a call.
+            Map<String, Object> gatheredEntry =
                     AdHocResults.gatheredWithinTheCall(scope, gatheredBefore, activityId);
+            String ending = (gatheredEntry == null)
+                    ? null : AdHocResults.describeEnd(gatheredEntry, result);
+            Map<String, Object> gathered = AdHocResults.valuesOf(gatheredEntry);
             // This result is the report of what was gathered meanwhile; the next state block
             // must not repeat it.
             AdHocResults.markReported(scope, gatheredBefore);
@@ -343,13 +353,20 @@ public class AdHocSubProcessTool {
             ResultBlock block = readResults(scope, names, gathered, MAX_RESULT_BLOCK_CHARS);
             result.put("results", block.values);
             result.put("resultsFrom", names.isEmpty() ? "nothing declared" : "model declaration");
+            List<String> notes = new ArrayList<>();
+            if (ending != null) {
+                notes.add(ending);
+            }
             if (block.note != null) {
-                result.put("resultsNote", block.note);
+                notes.add(block.note);
             } else if (names.isEmpty()) {
-                result.put("resultsNote", "This activity declares no output mapping, result variable "
+                notes.add("This activity declares no output mapping, result variable "
                         + "or editable form field, so what it wrote cannot be determined from the "
                         + "model. Add one of those, or camunda:property adHocResultVariables, if the "
                         + "agent needs its values.");
+            }
+            if (!notes.isEmpty()) {
+                result.put("resultsNote", String.join(" ", notes));
             }
         }
 
@@ -501,6 +518,23 @@ public class AdHocSubProcessTool {
             }
         }
         return movedOn;
+    }
+
+    /**
+     * For a performance still running after its call: if a boundary event interrupted it within
+     * the call, puts {@code interruptedBy} into {@code result} and returns what to tell the model,
+     * else null (CIB7-2166). Its status stays waiting, since the event's path still runs; the
+     * entry gathered when that path ends carries the same {@code interruptedBy}.
+     */
+    private static String interruptedWhileRunning(ExecutionEntity scope, String trackingId,
+                                                  String activityId, Map<String, Object> result) {
+        for (PvmExecutionImpl child : ((PvmExecutionImpl) scope).getNonEventScopeExecutions()) {
+            if (child.getId().equals(trackingId)) {
+                return AdHocResults.describeInterruption((ExecutionEntity) child, activityId,
+                        result);
+            }
+        }
+        return null;
     }
 
     /**
