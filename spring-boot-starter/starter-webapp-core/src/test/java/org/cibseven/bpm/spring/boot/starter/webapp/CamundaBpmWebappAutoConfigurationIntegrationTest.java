@@ -24,7 +24,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
+import org.springframework.core.io.ClassPathResource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -34,9 +36,9 @@ public class CamundaBpmWebappAutoConfigurationIntegrationTest {
 
   private String bpmDisabled = CamundaBpmProperties.PREFIX + ".enabled=false";
 
-  private String webappEnabled = WebappProperty.PREFIX + ".enabled=true";
+  private String webappEnabled = WebappProperty.PREFIX + ".installed=true";
 
-  private String webappDisabled = WebappProperty.PREFIX + ".enabled=false";
+  private String webappDisabled = WebappProperty.PREFIX + ".installed=false";
 
   private String webclientPrefix = "cibseven.webclient";
   // ToDo: add tests for webclient enabled/disabled
@@ -53,19 +55,19 @@ public class CamundaBpmWebappAutoConfigurationIntegrationTest {
   }
 
   @Test
-  public void test_bpmIsNotDisabled_and_webappIsNotDisabled_shouldInitWebapp() {
+  public void test_bpmIsNotDisabled_and_webappIsDefault_shouldNotInitWebapp() {
     contextRunner.run(context -> {
       assertThat(context).hasNotFailed();
-      assertThat(context).hasSingleBean(CamundaBpmWebappInitializer.class);
+      assertThat(context).doesNotHaveBean(CamundaBpmWebappInitializer.class);
       assertThat(context).hasSingleBean(FaviconResourceResolver.class);
     });
   }
 
   @Test
-  public void test_bpmIsEnabled_and_webappIsNotDisabled_shouldInitWebapp() {
+  public void test_bpmIsEnabled_and_webappIsDefault_shouldNotInitWebapp() {
     contextRunner.withPropertyValues(bpmEnabled).run(context -> {
       assertThat(context).hasNotFailed();
-      assertThat(context).hasSingleBean(CamundaBpmWebappInitializer.class);
+      assertThat(context).doesNotHaveBean(CamundaBpmWebappInitializer.class);
       assertThat(context).hasSingleBean(FaviconResourceResolver.class);
     });
   }
@@ -101,6 +103,30 @@ public class CamundaBpmWebappAutoConfigurationIntegrationTest {
   }
 
   @Test
+  public void test_webappIsInstalled_and_legacyClassesAreAbsent_shouldNotInitWebapp() {
+    contextRunner.withPropertyValues(webappEnabled)
+      .withClassLoader(new FilteredClassLoader("org.cibseven.bpm.cockpit"))
+      .run(context -> {
+        assertThat(context).hasNotFailed();
+        assertThat(context).doesNotHaveBean(CamundaBpmWebappInitializer.class);
+        assertThat(context).doesNotHaveBean("resourceLoaderDependingInitHook");
+        assertThat(context).hasSingleBean(FaviconResourceResolver.class);
+      });
+  }
+
+  @Test
+  public void test_webappIsInstalled_and_legacyResourcesAreAbsent_shouldNotInitWebapp() {
+    contextRunner.withPropertyValues(webappEnabled)
+      .withClassLoader(new FilteredClassLoader(new ClassPathResource("META-INF/resources/webjars/camunda/securityFilterRules.json")))
+      .run(context -> {
+        assertThat(context).hasNotFailed();
+        assertThat(context).doesNotHaveBean(CamundaBpmWebappInitializer.class);
+        assertThat(context).doesNotHaveBean("resourceLoaderDependingInitHook");
+        assertThat(context).hasSingleBean(FaviconResourceResolver.class);
+      });
+  }
+
+  @Test
   public void test_bpmIsDisabled_and_webappIsEnabled_shouldNotInitWebapp() {
     contextRunner
     .withPropertyValues(bpmDisabled, webappEnabled)
@@ -117,7 +143,7 @@ public class CamundaBpmWebappAutoConfigurationIntegrationTest {
     contextRunner.withPropertyValues(webappDisabled).run(context -> {
       assertThat(context).hasNotFailed();
       assertThat(context).doesNotHaveBean(CamundaBpmWebappInitializer.class);
-      assertThat(context).doesNotHaveBean(FaviconResourceResolver.class);
+      assertThat(context).hasSingleBean(FaviconResourceResolver.class);
     });
   }
 
@@ -126,13 +152,16 @@ public class CamundaBpmWebappAutoConfigurationIntegrationTest {
     contextRunner.withPropertyValues(bpmEnabled, webappDisabled).run(context -> {
       assertThat(context).hasNotFailed();
       assertThat(context).doesNotHaveBean(CamundaBpmWebappInitializer.class);
-      assertThat(context).doesNotHaveBean(FaviconResourceResolver.class);
+      assertThat(context).hasSingleBean(FaviconResourceResolver.class);
     });
   }
 
   @Test
   public void test_bpmIsDisabled_and_webappIsDisabled_shouldNotInitWebapp() {
-    contextRunner.withPropertyValues(bpmDisabled, webappDisabled).run(context -> {
+    contextRunner
+    .withPropertyValues(bpmDisabled, webappDisabled)
+    .withPropertyValues(webclientDisabled)
+    .run(context -> {
       assertThat(context).hasNotFailed();
       assertThat(context).doesNotHaveBean(CamundaBpmWebappInitializer.class);
       assertThat(context).doesNotHaveBean(FaviconResourceResolver.class);

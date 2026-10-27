@@ -3,6 +3,7 @@ camunda.bpm:
     id: demo
     password: demo
   run.example.enabled: true 
+  webapp.installed: true
 
 spring.datasource:
   url: jdbc:h2:mem:process-engine;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE

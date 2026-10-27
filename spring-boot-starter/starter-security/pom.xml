@@ -14,6 +14,31 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.cibseven.bpm.webapp</groupId>
+      <artifactId>cibseven-webapp-webjar</artifactId>
+      <version>${version.legacy-webapps}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.cibseven.bpm.webapp</groupId>
+      <artifactId>cibseven-webapp-jakarta</artifactId>
+      <version>${version.legacy-webapps}</version>
+      <classifier>classes</classifier>
+      <optional>true</optional>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>cibseven-bpm-spring-boot-starter</artifactId>
       <version>${project.version}</version>
