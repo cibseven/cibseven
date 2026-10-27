@@ -57,7 +57,7 @@ public class AgenticToolEndRecorder implements ExecutionListener {
 
   private static final Logger LOG = LoggerFactory.getLogger(AgenticToolEndRecorder.class);
 
-  /** The kind of a boundary error event, the one whose interruption is recorded where it cancels. */
+  /** The kind of a boundary error event, whose interruption is recorded where it cancels. */
   static final String ERROR = "error";
 
   /** The kind of boundary event, as the agent is told it, or null for one that ends no tool. */
@@ -122,7 +122,10 @@ public class AgenticToolEndRecorder implements ExecutionListener {
     }
   }
 
-  /** The activity a boundary event is attached to as the agent knows it, not its multi-instance body. */
+  /**
+   * The activity a boundary event is attached to as the agent knows it, not its multi-instance
+   * body.
+   */
   public static String attachedTo(ActivityImpl activity) {
     return AgenticAdHocParseListener.innerActivity(activity).getId();
   }

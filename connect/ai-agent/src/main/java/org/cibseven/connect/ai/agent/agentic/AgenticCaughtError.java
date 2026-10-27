@@ -145,7 +145,7 @@ public class AgenticCaughtError extends ErrorEventDefinition {
     }
   }
 
-  /** The id of the activity this definition sits on, the one its boundary events are attached to. */
+  /** The id of the activity this definition sits on, the one its boundary events attach to. */
   private final String attachedTo;
 
   /** Whether this is a watch, which catches nothing. */

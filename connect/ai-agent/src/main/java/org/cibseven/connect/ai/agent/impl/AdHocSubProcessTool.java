@@ -322,7 +322,8 @@ public class AdHocSubProcessTool {
             String interrupted = interruptedWhileRunning(scope, trackingId, activityId, result);
             result.put("results", Collections.emptyMap());
             result.put("resultsNote", interrupted != null
-                    ? interrupted + " Its path still runs. You will get another turn when it finishes."
+                    ? interrupted
+                            + " Its path still runs. You will get another turn when it finishes."
                     : "Still running. You will get another turn when it finishes.");
         } else {
             // Not recorded as pending: there is nothing to wait for, and an entry that
@@ -331,10 +332,10 @@ public class AdHocSubProcessTool {
             result.put("status", "finished");
             // The entry the observer gathered as the activity ended, within this call: its values
             // taken where the tool held them, its own scope included (CIB7-2215), and how it
-            // ended, which is not finished when a boundary event on it interrupted it (CIB7-2166). A
-            // chain that goes on to an activity that is no tool is gathered too, under this tool.
-            // Only without an entry are the values read from the scope (readResult), a fallback no
-            // model is known to reach within a call.
+            // ended, which is not finished when a boundary event on it interrupted it
+            // (CIB7-2166). A chain that goes on to an activity that is no tool is gathered too,
+            // under this tool. Only without an entry are the values read from the scope
+            // (readResult), a fallback no model is known to reach within a call.
             Map<String, Object> gatheredEntry =
                     AdHocResults.gatheredWithinTheCall(scope, gatheredBefore, activityId);
             String ending = (gatheredEntry == null)
@@ -529,7 +530,8 @@ public class AdHocSubProcessTool {
                                                   String activityId, Map<String, Object> result) {
         for (PvmExecutionImpl child : ((PvmExecutionImpl) scope).getNonEventScopeExecutions()) {
             if (child.getId().equals(trackingId)) {
-                return AdHocResults.describeInterruption((ExecutionEntity) child, activityId, result);
+                return AdHocResults.describeInterruption((ExecutionEntity) child, activityId,
+                        result);
             }
         }
         return null;

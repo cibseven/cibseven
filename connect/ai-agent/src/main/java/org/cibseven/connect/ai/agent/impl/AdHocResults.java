@@ -29,8 +29,8 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.cibseven.connect.ai.agent.agentic.AdHocAgentState;
-import org.cibseven.connect.ai.agent.agentic.AgenticToolEndRecorder;
 import org.cibseven.connect.ai.agent.agentic.AdHocToolDescriptor;
+import org.cibseven.connect.ai.agent.agentic.AgenticToolEndRecorder;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.MultiInstanceActivityBehavior;
 import org.cibseven.bpm.engine.impl.core.variable.mapping.IoMapping;
 import org.cibseven.bpm.engine.impl.core.variable.mapping.OutputParameter;
@@ -121,15 +121,16 @@ public final class AdHocResults {
      * The interruptions of a performance's flow nothing has repaired yet (CIB7-2166): a list, at
      * most one per interrupted activity, oldest first. A local variable of the execution the
      * activation created, as {@link #CARRIED} is, written as an event interrupts and read as the
-     * performance ends. It goes with the performance, and, at history level full, is in the history
-     * as that execution's variable.
+     * performance ends. It goes with the performance, and, at history level full, is in the
+     * history as that execution's variable.
      *
-     * <p>A list, not the last interruption alone: a tool's error whose path is interrupted again, by a timeout on a task of that path, would otherwise be reported as the
-     * path's timeout only, the tool as having run, and the error's code lost.
+     * <p>A list, not the last interruption alone: a tool's error whose path is interrupted again,
+     * by a timeout on a task of that path, would otherwise be reported as the path's timeout only,
+     * the tool as having run, and the error's code lost.
      */
     private static final String INTERRUPTED = "adHocAgentInterruptedBy";
 
-    /** Keys of what {@link #INTERRUPTED} holds, as the agent is shown it under {@code interruptedBy}. */
+    /** Keys of what {@link #INTERRUPTED} holds, as the agent is shown them under interruptedBy. */
     private static final String BOUNDARY_EVENT = "boundaryEvent";
     private static final String EVENT_TYPE = "eventType";
     private static final String ATTACHED_TO = "attachedTo";
@@ -252,7 +253,10 @@ public final class AdHocResults {
         append(scope, entry);
     }
 
-    /** Whether {@code activity}, a tool or its multi-instance body, continues asynchronously after it ends. */
+    /**
+     * Whether {@code activity}, a tool or its multi-instance body, continues asynchronously after
+     * it ends.
+     */
     private static boolean isAsyncAfter(PvmActivity activity) {
         return activity instanceof ActivityImpl && ((ActivityImpl) activity).isAsyncAfter();
     }
@@ -294,8 +298,8 @@ public final class AdHocResults {
                     AdHocSubProcessTool.truncate(errorCode, AdHocSubProcessTool.MAX_NAME_CHARS));
         }
         if (exceptionClass != null) {
-            endedBy.put(EXCEPTION_CLASS,
-                    AdHocSubProcessTool.truncate(exceptionClass, AdHocSubProcessTool.MAX_NAME_CHARS));
+            endedBy.put(EXCEPTION_CLASS, AdHocSubProcessTool.truncate(exceptionClass,
+                    AdHocSubProcessTool.MAX_NAME_CHARS));
         }
         List<Map<String, Object>> interrupted = interruptions(handle);
         removeOf(interrupted, attachedTo);
@@ -327,7 +331,10 @@ public final class AdHocResults {
         }
     }
 
-    /** Whether {@code interrupted} holds {@code event}: the same boundary event on the same activity. */
+    /**
+     * Whether {@code interrupted} holds {@code event}: the same boundary event on the same
+     * activity.
+     */
     private static boolean recordedAlready(List<Map<String, Object>> interrupted,
             Map<String, Object> event) {
         for (Map<String, Object> one : interrupted) {
@@ -340,7 +347,10 @@ public final class AdHocResults {
         return false;
     }
 
-    /** Removes the interruptions of {@code attachedTo} from {@code interrupted}; whether there was one. */
+    /**
+     * Removes the interruptions of {@code attachedTo} from {@code interrupted}; whether there was
+     * one.
+     */
     private static boolean removeOf(List<Map<String, Object>> interrupted, String attachedTo) {
         boolean removed = false;
         for (Iterator<Map<String, Object>> it = interrupted.iterator(); it.hasNext();) {
@@ -382,21 +392,23 @@ public final class AdHocResults {
     private static Map<String, Object> waitingToContinue(ExecutionEntity handle) {
         ActivityImpl at = handle.getActivity();
         String kind = (at == null) ? null : AgenticToolEndRecorder.kindOf(at);
-        if (kind == null || at.getActivityStartBehavior() != ActivityStartBehavior.CANCEL_EVENT_SCOPE
+        if (kind == null
+                || at.getActivityStartBehavior() != ActivityStartBehavior.CANCEL_EVENT_SCOPE
                 || !(at.getEventScope() instanceof ActivityImpl)) {
             return null;
         }
         Map<String, Object> interrupted = new TreeMap<String, Object>();
         interrupted.put(BOUNDARY_EVENT, at.getId());
         interrupted.put(EVENT_TYPE, kind);
-        interrupted.put(ATTACHED_TO, AgenticToolEndRecorder.attachedTo((ActivityImpl) at.getEventScope()));
+        interrupted.put(ATTACHED_TO,
+                AgenticToolEndRecorder.attachedTo((ActivityImpl) at.getEventScope()));
         return interrupted;
     }
 
     /**
      * What {@link #recordInterruption} recorded on the performance {@code handle} and nothing has
-     * repaired, oldest first; a copy, each entry a {@link TreeMap}, so the bytes written back depend
-     * only on what it holds.
+     * repaired, oldest first; a copy, each entry a {@link TreeMap}, so the bytes written back
+     * depend only on what it holds.
      */
     private static List<Map<String, Object>> interruptions(ExecutionEntity handle) {
         Object raw = (handle == null) ? null : handle.getVariableLocal(INTERRUPTED);
@@ -601,9 +613,9 @@ public final class AdHocResults {
      * <p>A performance that completed gets no status here: the state block shows it as it did
      * before, and a tool result says {@code finished} itself.
      *
-     * <p>The error's code is shown only in {@code interruptedBy[i].errorCode}, never in the note: it
-     * is whatever a script, a delegate or an external task worker threw, and has no place in text
-     * the model reads as an explanation.
+     * <p>The error's code is shown only in {@code interruptedBy[i].errorCode}, never in the note:
+     * it is whatever a script, a delegate or an external task worker threw, and has no place in
+     * text the model reads as an explanation.
      */
     static String describeEnd(Map<String, Object> gathered, Map<String, Object> into) {
         if (gathered.get(ENDED_AT) != null) {
@@ -613,15 +625,16 @@ public final class AdHocResults {
         if (Boolean.TRUE.equals(gathered.get(CANCELLED))) {
             into.put("status", "cancelled");
             if (Boolean.TRUE.equals(gathered.get(CANCELLED_AT_TOOL))) {
-                return "'" + tool + "' did not complete: it was cancelled from outside the agent, for"
-                        + " example by a process instance modification, and produced no results. Do"
-                        + " not treat its work as done and do not wait for it.";
+                return "'" + tool + "' did not complete: it was cancelled from outside the agent,"
+                        + " for example by a process instance modification, and produced no"
+                        + " results. Do not treat its work as done and do not wait for it.";
             }
             Object at = gathered.get(ENDED_AT);
             return "The flow of '" + tool + "' was cancelled from outside the agent"
-                    + (at != null ? " at '" + at + "'" : "") + ", for example by a process instance"
-                    + " modification, and its results could not be read. The process does not say"
-                    + " whether its work took effect: check before repeating it. Do not wait for it.";
+                    + (at != null ? " at '" + at + "'" : "") + ", for example by a process"
+                    + " instance modification, and its results could not be read. The process"
+                    + " does not say whether its work took effect: check before repeating it. Do"
+                    + " not wait for it.";
         }
         Object raw = gathered.get(INTERRUPTED_BY);
         List<Map<?, ?>> interrupted = new ArrayList<Map<?, ?>>();
@@ -661,7 +674,8 @@ public final class AdHocResults {
                     ? " with a Java exception the process model maps to a BPMN error, whose class"
                             + " is in interruptedBy[" + i + "].exceptionClass"
                     : (one.get(ERROR_CODE) != null)
-                            ? " with a BPMN error, whose code is in interruptedBy[" + i + "].errorCode"
+                            ? " with a BPMN error, whose code is in interruptedBy[" + i
+                                    + "].errorCode"
                             : "";
             what.add(onIt ? event + " interrupted it" + error
                     : "its flow was " + (i == 0 ? "then " : "") + "interrupted at '" + attachedTo
@@ -675,7 +689,8 @@ public final class AdHocResults {
                 + (interrupted.size() == 1 ? "that event's" : "the last event's") + " path" + path;
         if (onTheTool) {
             into.put("status", "interrupted");
-            return "'" + tool + "' did not complete: " + events + ". Do not treat its work as done.";
+            return "'" + tool + "' did not complete: " + events
+                    + ". Do not treat its work as done.";
         }
         return "'" + tool + "' ran; " + events + ".";
     }

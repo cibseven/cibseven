@@ -304,7 +304,7 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     addRecorder(attachedTo, ExecutionListener.EVENTNAME_END);
   }
 
-  /** The recorder on {@code activity} for {@code event}, once, however many events need it there. */
+  /** The recorder on {@code activity} for {@code event}, once, however many events need it. */
   protected static void addRecorder(ActivityImpl activity, String event) {
     if (!activity.getBuiltInListeners(event).contains(RECORDER)) {
       activity.addBuiltInListener(event, RECORDER);
