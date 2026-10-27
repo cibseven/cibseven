@@ -346,6 +346,12 @@ public final class DocumentContentResolver {
                 + " override it via 'documentMimeTypes'.");
     }
 
+    // The encoding declared on the variable is consulted for text only. A PDF or
+    // an image is sent as Base64 and never decoded, so a malformed encoding on
+    // one must not fail the activity over a value buildContent would discard.
+    if (!isTextual(raw.mimeType.toLowerCase(Locale.ROOT))) {
+      return raw;
+    }
     Charset declared = charsetOf(raw.variable, typed);
     if (declared != null) {
       return new RawDocument(raw.variable, raw.filename, raw.mimeType, raw.bytes, declared,

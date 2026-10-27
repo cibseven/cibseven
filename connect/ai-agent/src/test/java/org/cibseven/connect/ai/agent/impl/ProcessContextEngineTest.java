@@ -32,10 +32,10 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.cibseven.connect.ai.agent.AgentRequest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -73,13 +73,13 @@ public class ProcessContextEngineTest {
   static volatile RuntimeException capturedFailure;
 
   /**
-   * Built once for the whole class. JUnit 4 instantiates the test class per test
+   * Built once for the whole class. JUnit instantiates the test class per test
    * method, so a per-instance engine would try to create the schema again on the
    * same in-memory database and fail on the second test.
    */
   private static final ProcessEngine ENGINE = buildInMemoryEngine();
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProcessEngineRule(ENGINE);
 
   private static ProcessEngine buildInMemoryEngine() {
@@ -90,14 +90,14 @@ public class ProcessContextEngineTest {
     return configuration.buildProcessEngine();
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     capturedSystemMessage = null;
     capturedFailure = null;
     deployProcess();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     capturedSystemMessage = null;
     capturedFailure = null;

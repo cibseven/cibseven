@@ -19,13 +19,15 @@ package org.cibseven.connect.ai.agent.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.io.ByteArrayInputStream;
 import java.lang.reflect.Method;
 import java.util.Map;
 
+import org.cibseven.connect.ai.agent.AgentConnector;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.cibseven.connect.ai.agent.AgentRequest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -69,7 +71,7 @@ public class AgentConnectorImplContextTest {
 
   private CapturingConnector connector;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     connector = new CapturingConnector();
   }
@@ -124,6 +126,25 @@ public class AgentConnectorImplContextTest {
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("no BPMN execution")
         .hasMessageContaining("contextVariables");
+  }
+
+  /**
+   * Writing {@code ${invoice}} instead of {@code invoice} hands the connector
+   * the variable's value — an {@code InputStream} for a file. That used to fail
+   * with a bare {@code ClassCastException} naming neither parameter nor cause.
+   */
+  @Test
+  public void shouldExplainThatDocumentsTakeNamesWhenGivenAValue() {
+    AgentRequest request = connector.createRequest()
+        .agentName("agent")
+        .message("hello");
+    request.setRequestParameter(AgentConnector.PARAM_NAME_DOCUMENTS,
+        new ByteArrayInputStream(new byte[] {1}));
+
+    assertThatThrownBy(() -> connector.execute(request))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("'documents' must list variable names")
+        .hasMessageContaining("ByteArrayInputStream");
   }
 
   /**

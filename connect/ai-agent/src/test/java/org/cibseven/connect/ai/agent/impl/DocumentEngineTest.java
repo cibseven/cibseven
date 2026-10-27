@@ -34,10 +34,10 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.cibseven.connect.ai.agent.AgentRequest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -83,7 +83,7 @@ public class DocumentEngineTest {
 
   private static final ProcessEngine ENGINE = buildInMemoryEngine();
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProcessEngineRule(ENGINE);
 
   private ChatMemoryStore originalStore;
@@ -96,7 +96,7 @@ public class DocumentEngineTest {
     return configuration.buildProcessEngine();
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     capturedUserMessage = null;
     capturedSystemMessage = null;
@@ -106,7 +106,7 @@ public class DocumentEngineTest {
     deployProcess();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     capturedUserMessage = null;
     capturedSystemMessage = null;
@@ -172,9 +172,12 @@ public class DocumentEngineTest {
     public void execute(DelegateExecution execution) {
       boolean withRag = Boolean.TRUE.equals(execution.getVariable("_rag"));
       AgentConnectorImpl connector = withRag ? new RagConnector() : new CapturingConnector();
+      String message = execution.hasVariable("_message")
+          ? (String) execution.getVariable("_message")
+          : "Read the attached invoice.";
       AgentRequest request = connector.createRequest()
           .agentName("doc-agent")
-          .message("Read the attached invoice.")
+          .message(message)
           .instruction("be brief")
           .documents((String) execution.getVariable("_documents"))
           .documentMimeTypes((String) execution.getVariable("_mimeTypes"));
@@ -223,6 +226,26 @@ public class DocumentEngineTest {
     assertThat(rootCause(thrown))
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("invoice");
+    assertThat(capturedUserMessage).isNull();
+  }
+
+  /**
+   * With an empty message LangChain4j builds the user message from the content
+   * arguments and then appends them a second time, so every attachment would be
+   * sent twice. The connector refuses instead of paying double.
+   */
+  @Test
+  public void shouldFailTheActivityWhenDocumentsComeWithAnEmptyMessage() {
+    Throwable thrown = catchThrowable(() ->
+        start(Variables.createVariables()
+            .putValue("_documents", "invoice")
+            .putValue("_message", "")
+            .putValueTyped("invoice", Variables.fileValue("invoice.pdf")
+                .file(PDF_BYTES).mimeType("application/pdf").create())));
+
+    assertThat(rootCause(thrown))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("'message' is empty");
     assertThat(capturedUserMessage).isNull();
   }
 

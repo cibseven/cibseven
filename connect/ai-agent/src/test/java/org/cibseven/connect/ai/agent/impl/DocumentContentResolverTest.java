@@ -33,7 +33,7 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.cibseven.connect.ai.agent.impl.DocumentContentResolver.Limits;
 import org.cibseven.connect.ai.agent.impl.DocumentContentResolver.ResolvedDocument;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.data.message.PdfFileContent;
@@ -462,6 +462,24 @@ public class DocumentContentResolverTest {
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("odd")
         .hasMessageContaining("definitely-not-a-charset");
+  }
+
+  /**
+   * The same unusable encoding on a PDF is irrelevant: binary documents are sent
+   * as Base64 and never decoded, so the declaration must not fail the activity.
+   */
+  @Test
+  public void shouldIgnoreAnUnusableDeclaredEncodingOnABinaryDocument() {
+    variables.put("scan", Variables.fileValue("scan.pdf")
+        .file("%PDF-1.7 body".getBytes(StandardCharsets.US_ASCII))
+        .mimeType("application/pdf")
+        .encoding("definitely-not-a-charset")
+        .create());
+
+    ResolvedDocument document = resolve("scan").get(0);
+
+    assertThat(document.kind).isEqualTo("PDF");
+    assertThat(document.charset).isNull();
   }
 
   /**

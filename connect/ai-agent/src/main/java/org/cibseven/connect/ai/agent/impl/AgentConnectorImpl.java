@@ -222,6 +222,18 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       // descriptors instead of Base64.
       List<DocumentContentResolver.ResolvedDocument> documents = resolveDocuments(request);
       if (!documents.isEmpty()) {
+        // With an empty message LangChain4j has no user-message template, builds
+        // the user message from the content arguments, and then appends the same
+        // arguments again (DefaultAiServices.prepareUserMessage followed by
+        // addContentsToUserMessage) — every attachment would go out twice, with
+        // twice the payload and input tokens. request.execute() already rejects
+        // an empty message via isRequestValid(); this covers direct callers.
+        String message = request.getMessage();
+        if (message == null || message.isEmpty()) {
+          throw new AgentConnectorException("'documents' is configured but 'message' is empty. "
+              + "Documents are attached to the user message, so the agent task needs a message"
+              + " that says what to do with them.");
+        }
         AgentChatListener documentListener = ProcessStarterToolContext.getActiveListener();
         if (documentListener != null) {
           documentListener.setDocumentDescriptors(

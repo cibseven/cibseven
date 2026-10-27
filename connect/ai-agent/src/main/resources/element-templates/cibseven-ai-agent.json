@@ -99,7 +99,7 @@
           "label": "Optional context variables",
           "type": "Text",
           "group": "context",
-          "description": "Comma-separated subset of 'Context variables' that is allowed to be missing. Such a variable renders as (absent) and the agent runs on. Use it for context that exists on only some paths — an escalation reason from a branch that is often skipped, a value from a previous loop iteration. This list only modifies names from 'Context variables'; a name that is not declared there is ignored with a warning. An empty string counts as a value, so only never-written variables need to be listed.",
+          "description": "Comma-separated subset of 'Context variables' that is allowed to be missing. Such a variable renders as (absent) and the agent runs on. Use it for context that exists on only some paths — an escalation reason from a branch that is often skipped, a value from a previous loop iteration. This list only modifies names from 'Context variables'; a name that is not declared there is ignored with a warning. An empty string counts as a value. A variable not listed here fails the activity when it is not set, holds null, cannot be read, or was dropped because the context block reached its size limit — list it here if any of these is acceptable.",
           "placeholder": "escalationReason",
           "binding": {
             "type": "camunda:inputParameter",

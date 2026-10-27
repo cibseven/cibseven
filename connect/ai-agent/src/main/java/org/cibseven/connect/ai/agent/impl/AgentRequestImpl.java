@@ -298,17 +298,35 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
 
   @Override
   public String getContextVariables() {
-    return getRequestParameter(AgentConnector.PARAM_NAME_CONTEXT_VARIABLES);
+    return getNameList(AgentConnector.PARAM_NAME_CONTEXT_VARIABLES);
   }
 
   @Override
   public String getOptionalContextVariables() {
-    return getRequestParameter(AgentConnector.PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES);
+    return getNameList(AgentConnector.PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES);
   }
 
   @Override
   public String getDocuments() {
-    return getRequestParameter(AgentConnector.PARAM_NAME_DOCUMENTS);
+    return getNameList(AgentConnector.PARAM_NAME_DOCUMENTS);
+  }
+
+  /**
+   * Reads a parameter that holds variable <em>names</em>. The natural mistake is
+   * to write an expression such as {@code ${invoice}} instead of {@code invoice}:
+   * the engine then hands over the variable's value — an {@code InputStream}
+   * for a file — and the plain unchecked cast fails with a
+   * {@code ClassCastException} that names neither the parameter nor the cause.
+   */
+  private String getNameList(String parameterName) {
+    Object value = getRequestParameter(parameterName);
+    if (value == null || value instanceof String) {
+      return (String) value;
+    }
+    throw new AgentConnectorException("'" + parameterName + "' must list variable names, e.g."
+        + " \"invoice, contract\", but received a value of type "
+        + value.getClass().getName() + ". Write the names themselves, not an expression such"
+        + " as ${invoice} that evaluates to the variable.");
   }
 
   @Override

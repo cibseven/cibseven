@@ -249,8 +249,12 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * {@link #PARAM_NAME_CONTEXT_VARIABLES} is ignored with a warning, so there is
    * exactly one place that decides what the agent sees.
    *
-   * <p>Note that an <em>empty string</em> counts as a value. Only variables that
-   * were never written are affected by this list.
+   * <p>Note that an <em>empty string</em> counts as a value. A required variable
+   * fails the activity in four cases, not only when it was never written: it is
+   * not set, it holds {@code null}, it cannot be read, or it was omitted because
+   * the block reached
+   * {@value AgentConnectorConstants#DEFAULT_MAX_CONTEXT_BLOCK_CHARS} characters.
+   * List a variable here if any of these is acceptable for the task.
    */
   String PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES = "optionalContextVariables";
 
