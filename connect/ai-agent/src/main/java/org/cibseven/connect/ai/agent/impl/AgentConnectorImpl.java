@@ -692,7 +692,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       AgentRequest request) {
     String declared = request.getContextVariables();
     String optional = request.getOptionalContextVariables();
-    if (declared == null || declared.trim().isEmpty()) {
+    if (!isDeclared(declared)) {
       if (optional != null && !optional.trim().isEmpty()) {
         LOG.warn("'optionalContextVariables' is set but 'contextVariables' is empty — no process "
             + "context is passed. The optional list only modifies declared names.");
@@ -737,8 +737,9 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     return event;
   }
 
+  /** True when the list names at least one variable — " , " names none. */
   private static boolean isDeclared(String nameList) {
-    return nameList != null && !nameList.isBlank();
+    return !ProcessContextResolver.parseNames(nameList).isEmpty();
   }
 
   /**
@@ -765,7 +766,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    */
   private List<DocumentContentResolver.ResolvedDocument> resolveDocuments(AgentRequest request) {
     String declared = request.getDocuments();
-    if (declared == null || declared.trim().isEmpty()) {
+    if (!isDeclared(declared)) {
       return List.of();
     }
     ExecutionEntity execution = currentExecution();

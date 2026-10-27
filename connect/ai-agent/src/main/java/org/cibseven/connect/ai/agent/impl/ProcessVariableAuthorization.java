@@ -19,11 +19,15 @@ package org.cibseven.connect.ai.agent.impl;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ_INSTANCE;
 import static org.cibseven.bpm.engine.authorization.ProcessDefinitionPermissions.READ_INSTANCE_VARIABLE;
+import static org.cibseven.bpm.engine.authorization.ProcessDefinitionPermissions.READ_TASK;
+import static org.cibseven.bpm.engine.authorization.ProcessDefinitionPermissions.READ_TASK_VARIABLE;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_INSTANCE;
 
-import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
+import org.cibseven.bpm.engine.identity.Tenant;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.db.CompositePermissionCheck;
@@ -40,29 +44,42 @@ import org.slf4j.LoggerFactory;
  * instance it runs in, before {@code contextVariables} or {@code documents}
  * read them off the execution.
  *
- * <p>The connector reads with {@code getVariableTyped(name, false)} straight off
- * the {@link ExecutionEntity}, which performs no authorization check at all —
- * and inside a job the engine runs without an authenticated user anyway. Without
- * this check, an agent task would hand the model data the triggering principal
- * could not read through the API. The rule applied is the engine's own for
- * reading process-instance variables ({@code checkReadProcessInstanceVariable}):
+ * <h3>Why the connector checks at all</h3>
+ * The connector reads with {@code getVariableTyped(name, false)} straight off
+ * the {@link ExecutionEntity}. The engine does not check delegate code either:
+ * with the default {@code authorizationEnabledForCustomCode=false} any
+ * JavaDelegate or connector reads every variable of its process instance
+ * unchecked. This class is therefore deliberately <em>stricter than the
+ * engine</em>, not a copy of it: the agent passes process data on to an external
+ * model, so it should pass on only what the triggering user could read anyway.
+ *
+ * <h3>The rule</h3>
+ * Any one of the ways the engine's API lets a user read these variables
+ * suffices — through the process instance or through its user tasks, since in
+ * the Tasklist the user who completes a task sees exactly these variables:
  * <ul>
  *   <li>with {@code enforceSpecificVariablePermission}: {@code READ_INSTANCE_VARIABLE}
- *       on the process definition;</li>
+ *       or {@code READ_TASK_VARIABLE} on the process definition;</li>
  *   <li>otherwise: {@code READ} on the process instance, or {@code READ_INSTANCE}
- *       on the process definition;</li>
- *   <li>plus the tenant check, when the instance belongs to a tenant.</li>
+ *       or {@code READ_TASK} on the process definition.</li>
  * </ul>
- * It is evaluated for the caller captured by {@link AgentConnectorImpl} — the
- * authenticated user, or else the start user of the process instance — not for
- * whoever happens to be authenticated on the job thread.
+ * Grants to any of the caller's groups count. Admin membership does not replace
+ * a grant — {@code AuthorizationManager.isAuthCheckExecuted} does not waive the
+ * check for admins either — but it does skip the tenant check, as in
+ * {@code TenantManager}.
  *
- * <p>As in the engine, a call without an identifiable caller is not checked, and
- * admin membership skips only the tenant check — not the permission check,
- * which {@code AuthorizationManager.isAuthCheckExecuted} does not waive for
- * admins either; they read through their grants like everyone else. The outcome
- * is returned so it can be recorded in the audit trail; the unchecked case is
- * also logged at WARN.
+ * <h3>Who the caller is</h3>
+ * The caller captured by {@link AgentConnectorImpl}: the authenticated user when
+ * the task runs synchronously, otherwise — for a job — the start user of the
+ * process instance, who is not necessarily the user whose action led to the job.
+ * Tenant membership is read from the identity service rather than from the
+ * {@link Authentication}, so a caller derived from the process instance cannot
+ * pass the tenant check merely because the instance's tenant was copied into it.
+ *
+ * <p>Without an identifiable caller nothing can be checked; the variables are
+ * then read as before, which is logged at WARN and recorded as the outcome. The
+ * tenant check applies whenever tenant checks are enabled, independently of
+ * whether authorization is.
  */
 final class ProcessVariableAuthorization {
 
@@ -70,9 +87,9 @@ final class ProcessVariableAuthorization {
 
   /** How the check concluded; written verbatim into the audit events. */
   enum Outcome {
-    /** The caller holds the permissions. */
+    /** The caller holds one of the permissions. */
     GRANTED,
-    /** Authorization is disabled on the engine. */
+    /** Authorization is disabled on the engine; the tenant check, if any, passed. */
     AUTHORIZATION_DISABLED,
     /** No caller could be identified, so nothing could be checked. */
     NO_CALLER
@@ -89,30 +106,29 @@ final class ProcessVariableAuthorization {
   static Outcome check(ExecutionEntity execution, Authentication caller) {
     CommandContext commandContext = Context.getCommandContext();
     ProcessEngineConfigurationImpl configuration = commandContext.getProcessEngineConfiguration();
-    if (!configuration.isAuthorizationEnabled()) {
+    String tenantId = execution.getTenantId();
+    boolean authorizationEnabled = configuration.isAuthorizationEnabled();
+    boolean tenantCheck = tenantId != null && configuration.isTenantCheckEnabled();
+    if (!authorizationEnabled && !tenantCheck) {
       return Outcome.AUTHORIZATION_DISABLED;
     }
     if (caller == null || caller.getUserId() == null) {
       LOG.warn("Process instance '{}': no authenticated user and no start user, so the read "
           + "permission for 'contextVariables'/'documents' cannot be checked. The variables are "
-          + "read unchecked, as the engine itself does for unauthenticated calls.",
-          execution.getProcessInstanceId());
+          + "read unchecked.", execution.getProcessInstanceId());
       return Outcome.NO_CALLER;
     }
     AuthorizationManager authorizationManager = commandContext.getAuthorizationManager();
 
-    // Same conditions as TenantManager.isAuthenticatedTenant, evaluated for the
-    // caller instead of the thread's authentication.
-    String tenantId = execution.getTenantId();
-    if (tenantId != null && configuration.isTenantCheckEnabled()
-        && !authorizationManager.isCamundaAdmin(caller)) {
-      List<String> tenantIds = caller.getTenantIds();
-      if (tenantIds == null || !tenantIds.contains(tenantId)) {
-        throw new AgentConnectorException("User '" + caller.getUserId() + "' may not read the "
-            + "variables of process instance '" + execution.getProcessInstanceId()
-            + "': it belongs to tenant '" + tenantId + "', which the user is not a member of. "
-            + "'contextVariables' and 'documents' are only read with the caller's permissions.");
-      }
+    if (tenantCheck && !authorizationManager.isCamundaAdmin(caller)
+        && !tenantMemberships(commandContext, caller).contains(tenantId)) {
+      throw new AgentConnectorException("User '" + caller.getUserId() + "' may not read the "
+          + "variables of process instance '" + execution.getProcessInstanceId()
+          + "': it belongs to tenant '" + tenantId + "', which the user is not a member of. "
+          + "'contextVariables' and 'documents' are only read with the caller's permissions.");
+    }
+    if (!authorizationEnabled) {
+      return Outcome.AUTHORIZATION_DISABLED;
     }
 
     String definitionKey = execution.getProcessDefinition().getKey();
@@ -122,23 +138,46 @@ final class ProcessVariableAuthorization {
         ? new PermissionCheckBuilder()
             .disjunctive()
             .atomicCheckForResourceId(PROCESS_DEFINITION, definitionKey, READ_INSTANCE_VARIABLE)
+            .atomicCheckForResourceId(PROCESS_DEFINITION, definitionKey, READ_TASK_VARIABLE)
             .build()
         : new PermissionCheckBuilder()
             .disjunctive()
             .atomicCheckForResourceId(PROCESS_INSTANCE, processInstanceId, READ)
             .atomicCheckForResourceId(PROCESS_DEFINITION, definitionKey, READ_INSTANCE)
+            .atomicCheckForResourceId(PROCESS_DEFINITION, definitionKey, READ_TASK)
             .build();
 
     if (!authorizationManager.isAuthorized(caller.getUserId(), caller.getGroupIds(),
         permissionCheck)) {
       String required = specific
-          ? "READ_INSTANCE_VARIABLE on process definition '" + definitionKey + "'"
-          : "READ on process instance '" + processInstanceId + "' or READ_INSTANCE on process "
-            + "definition '" + definitionKey + "'";
+          ? "READ_INSTANCE_VARIABLE or READ_TASK_VARIABLE on process definition '"
+            + definitionKey + "'"
+          : "READ on process instance '" + processInstanceId + "', or READ_INSTANCE or "
+            + "READ_TASK on process definition '" + definitionKey + "'";
       throw new AgentConnectorException("User '" + caller.getUserId() + "' may not read the "
           + "variables of process instance '" + processInstanceId + "', which 'contextVariables' "
           + "and 'documents' would pass to the model. Required: " + required + ".");
     }
     return Outcome.GRANTED;
+  }
+
+  /**
+   * The tenants the caller is a member of, directly or through a group, as the
+   * identity service records them. Read without authorization: whether the
+   * caller may list tenants has nothing to do with whether they belong to one.
+   */
+  private static Set<String> tenantMemberships(CommandContext commandContext,
+      Authentication caller) {
+    return commandContext.runWithoutAuthorization(() -> {
+      Set<String> tenantIds = new TreeSet<>();
+      for (Tenant tenant : commandContext.getProcessEngineConfiguration().getIdentityService()
+          .createTenantQuery()
+          .userMember(caller.getUserId())
+          .includingGroupsOfUser(true)
+          .list()) {
+        tenantIds.add(tenant.getId());
+      }
+      return tenantIds;
+    });
   }
 }

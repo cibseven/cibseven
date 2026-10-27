@@ -311,7 +311,7 @@ public class ProcessContextEngineTest {
             .create()));
 
     assertThat(capturedSystemMessage)
-        .contains("invoice (file) = (file \"invoice.pdf\", application/pdf, "
+        .contains("invoice (file) = (file \"invoice.pdf\", \"application/pdf\", "
             + "content not sent to the model)")
         .doesNotContain("%PDF-1.7");
   }

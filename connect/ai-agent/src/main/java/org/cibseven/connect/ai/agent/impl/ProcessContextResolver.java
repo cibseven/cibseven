@@ -17,6 +17,7 @@
 package org.cibseven.connect.ai.agent.impl;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -423,7 +424,7 @@ public final class ProcessContextResolver {
       // way to size it is to drain it.
       FileValue file = (FileValue) typed;
       return new Rendered("(file " + quote(nullToUnknown(file.getFilename())) + ", "
-          + nullToUnknown(file.getMimeType()) + ", " + sent + ")", false);
+          + quote(nullToUnknown(file.getMimeType())) + ", " + sent + ")", false);
     }
     if (typed instanceof BytesValue) {
       byte[] bytes = ((BytesValue) typed).getValue();
@@ -447,7 +448,9 @@ public final class ProcessContextResolver {
       return new Rendered(value.toString(), true);
     }
     if (value instanceof Date) {
-      return new Rendered(((Date) value).toInstant().toString(), false);
+      // Not Date.toInstant(): java.sql.Date throws UnsupportedOperationException
+      // there, which would turn a perfectly good value into (unreadable).
+      return new Rendered(Instant.ofEpochMilli(((Date) value).getTime()).toString(), false);
     }
     if ((value instanceof Double || value instanceof Float)
         && Double.isFinite(((Number) value).doubleValue())) {
@@ -465,10 +468,12 @@ public final class ProcessContextResolver {
   private static Rendered renderObjectValue(ObjectValue object) {
     String format = object.getSerializationDataFormat();
     String serialized = null;
+    RuntimeException readFailure = null;
     try {
       serialized = object.getValueSerialized();
     } catch (RuntimeException e) {
       LOG.debug("Could not read serialized form of object value: {}", e.toString());
+      readFailure = e;
     }
     if (serialized == null) {
       // Deserialized-only object values (e.g. built in memory and never stored)
@@ -476,13 +481,19 @@ public final class ProcessContextResolver {
       if (object.isDeserialized() && object.getValue() != null) {
         return new Rendered(String.valueOf(object.getValue()), true);
       }
+      if (readFailure != null) {
+        // A value that failed to read is not a null value. Rethrown so readOne
+        // reports it as (unreadable), as for every other read failure.
+        throw readFailure;
+      }
       return null;
     }
     if (isTextualFormat(format)) {
       return new Rendered(serialized, false);
     }
-    return new Rendered("(object " + nullToUnknown(object.getObjectTypeName()) + ", "
-        + nullToUnknown(format) + ", " + serialized.length() + " chars serialized)", false);
+    return new Rendered("(object " + quote(nullToUnknown(object.getObjectTypeName())) + ", "
+        + quote(nullToUnknown(format)) + ", " + serialized.length() + " chars serialized)",
+        false);
   }
 
   private static boolean isTextualFormat(String format) {
@@ -555,6 +566,18 @@ public final class ProcessContextResolver {
     if (Character.isHighSurrogate(escaped.charAt(end - 1))) {
       end--;
     }
+    // Never end inside a six-character unicode escape written by escape(): a
+    // half escape is neither the character nor readable text. A backslash
+    // starts an escape only when it is not itself escaped, i.e. preceded by an
+    // even number of backslashes.
+    for (int start = end - 1; start >= Math.max(0, end - 5); start--) {
+      if (escaped.charAt(start) == '\\' && start + 1 < escaped.length()
+          && escaped.charAt(start + 1) == 'u' && start + 6 > end
+          && precedingBackslashes(escaped, start) % 2 == 0) {
+        end = start;
+        break;
+      }
+    }
     int backslashes = 0;
     for (int i = end - 1; i >= 0 && escaped.charAt(i) == '\\'; i--) {
       backslashes++;
@@ -570,6 +593,14 @@ public final class ProcessContextResolver {
       end = amp;
     }
     return escaped.substring(0, Math.max(0, end));
+  }
+
+  private static int precedingBackslashes(String text, int index) {
+    int count = 0;
+    for (int i = index - 1; i >= 0 && text.charAt(i) == '\\'; i--) {
+      count++;
+    }
+    return count;
   }
 
   /**
@@ -597,7 +628,7 @@ public final class ProcessContextResolver {
         case '\n': sb.append("\\n");  break;
         case '\r': sb.append("\\r");  break;
         case '\t': sb.append("\\t");  break;
-        case '\u000B': case '\u000C': case '\u0085': case ' ': case ' ':
+        case '\u000B': case '\u000C': case '\u0085': case '\u2028': case '\u2029':
           sb.append(String.format("\\u%04X", (int) c));
           break;
         default:   sb.append(c);

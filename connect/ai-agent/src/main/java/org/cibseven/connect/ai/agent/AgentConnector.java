@@ -226,6 +226,16 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * per block); truncation and omission are visible in the block and in the
    * {@code context} audit event.
    *
+   * <p><b>Authorization:</b> when authorization is enabled, the variables are
+   * read only if the caller may read them through the engine's API: one of
+   * {@code READ} on the process instance, or {@code READ_INSTANCE} or
+   * {@code READ_TASK} on the process definition — with
+   * {@code enforceSpecificVariablePermission}, {@code READ_INSTANCE_VARIABLE} or
+   * {@code READ_TASK_VARIABLE} on the definition. The caller is the
+   * authenticated user, or for an asynchronous task the start user of the
+   * process instance. Otherwise the activity fails. The same check covers
+   * {@link #PARAM_NAME_DOCUMENTS}.
+   *
    * <p><b>Security:</b> process variables routinely hold user- or
    * document-sourced text. Everything listed here becomes part of the prompt of
    * a possibly tool-enabled agent — declare the minimum the task needs.
@@ -280,6 +290,9 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * {@link #PARAM_NAME_CONTEXT_VARIABLES} there is no optional variant: an
    * agent asked to read an invoice that was not attached is not working on
    * degraded input, it is working on a different task.
+   *
+   * <p>Needs the same read permission as
+   * {@link #PARAM_NAME_CONTEXT_VARIABLES}; see there.
    *
    * <p>Example: {@code "invoicePdf,signatureScan"}
    */
