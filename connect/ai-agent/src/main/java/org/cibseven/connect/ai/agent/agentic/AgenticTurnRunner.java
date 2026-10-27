@@ -389,7 +389,9 @@ public final class AgenticTurnRunner {
 
   /**
    * Applies the contextual default and validates the resolved perActivity window before the
-   * connector is invoked. Other scopes retain the connector's existing global default.
+   * connector is invoked. Other scopes retain the connector's existing global default: a perEntry
+   * window left empty reaches the connector unset, so it keeps 20 messages (CIB7-2234). Sizing it
+   * is the modeller's choice; perActivity alone has a minimum that needs a default of its own.
    */
   private static void normalizeAndValidateMemoryWindow(ExecutionEntity scopeExecution,
       ConnectorRequest<?> request) {
