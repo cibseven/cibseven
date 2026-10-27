@@ -24,8 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import jakarta.el.ELException;
-
 import org.cibseven.bpm.engine.ActivityTypes;
 import org.cibseven.bpm.engine.BpmnParseException;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
@@ -54,6 +52,7 @@ import org.cibseven.bpm.engine.impl.pvm.process.ActivityStartBehavior;
 import org.cibseven.bpm.engine.impl.pvm.process.ProcessDefinitionImpl;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.cibseven.bpm.engine.impl.util.xml.Element;
+import org.cibseven.bpm.impl.juel.TreeBuilderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -364,13 +363,17 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
 
     // The connector's own mapping, applied on every turn. Its message is the task. Its presence
     // on the scope is what makes the scope agentic at runtime (AgenticScopes.isAgentic). An
-    // expression in it that does not parse, a missing brace or an unknown function, throws an EL
-    // error rather than a refusal: on a parse again it would block the definition, and a
-    // deployment would name neither the element nor its line (CIB7-2367).
+    // expression in it that does not parse, a missing brace, throws an EL error rather than a
+    // refusal: on a parse again it would block the definition, and a deployment would name
+    // neither the element nor its line (CIB7-2367). That is the model's own error, the same on
+    // every node, so it is refused here. Any other EL error, a function this node does not have,
+    // depends on the node: it fails as it did, as for any other element, and the definition
+    // loads again once the node has the function, its waiting turn intact. As a refusal it would
+    // leave the scope without its agent on this node, and its waiting turn would be lost.
     IoMapping io;
     try {
       io = BpmnParseUtil.parseInputOutput(connector);
-    } catch (ELException e) {
+    } catch (TreeBuilderException e) {
       throw new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': an expression"
           + " of the connector '" + AgenticTurnRunner.AGENT_CONNECTOR_ID + "' cannot be read: "
           + e.getMessage(), scopeElement);

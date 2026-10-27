@@ -19,6 +19,7 @@ package org.cibseven.connect.ai.agent.agentic;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -546,6 +547,59 @@ public class AgenticReparseTest {
   }
 
   /**
+   * A function the agent's task calls that this node does not have is no refusal (CIB7-2367): it
+   * depends on the node, not on the model. The definition does not load here, as for any other
+   * element, rather than lose the agent and its waiting turn; on a node that has the function it
+   * loads with its agent. A new deployment without the function fails as it always did.
+   */
+  @Test
+  public void aFunctionThisNodeLacksKeepsTheAgentForTheNodeThatHasIt(TestInfo test) {
+    ProcessEngine off = engineWithoutTheAgent(test);
+    String model = process("agenticScope", adHoc(connector(
+        "<camunda:inputParameter name='message'>${formatiere('B-17')}</camunda:inputParameter>"),
+        "<userTask id='arbeit' />"));
+    deploy(off, model);
+    String definitionId = off.getRepositoryService().createProcessDefinitionQuery()
+        .singleResult().getId();
+    ProcessInstance pi = off.getRuntimeService().startProcessInstanceByKey("agenticScope");
+    ProcessEngine lacking = engineWithTheAgent(test);
+    recordWarnings();
+
+    assertThatThrownBy(() -> lacking.getRuntimeService().getActivityInstance(pi.getId()))
+        .as("not loaded on the node that lacks the function")
+        .hasStackTraceContaining("Could not resolve function 'formatiere'");
+    assertThat(warnings()).noneSatisfy(warning -> assertThat(warning).contains("parsed again"));
+    assertThatThrownBy(() -> deploy(lacking, model)).as("a new deployment fails as before")
+        .hasStackTraceContaining("Could not resolve function 'formatiere'");
+
+    ProcessEngine having = engine(test, "having", new ConnectProcessEnginePlugin(),
+        configuration -> configuration.setProcessEnginePlugins(Arrays.<ProcessEnginePlugin>asList(
+            new ConnectProcessEnginePlugin(), new AbstractProcessEnginePlugin() {
+              @Override
+              public void postInit(ProcessEngineConfigurationImpl configured) {
+                configured.getExpressionManager().addFunction("formatiere", formatiere());
+              }
+            })));
+    assertThat(having.getRuntimeService().getActivityInstance(pi.getId())
+        .getActivityInstances("adHoc")).hasSize(1);
+    assertThat(scopeOf(having, definitionId, "adHoc").getProperties()
+        .get(AgenticAdHocParseListener.AGENT_CONNECTOR_IO)).as("with its agent").isNotNull();
+  }
+
+  /** What the test's plugin registers as {@code formatiere}. */
+  public static String formatiere(String order) {
+    return "Bestellung " + order;
+  }
+
+  protected static Method formatiere() {
+    try {
+      return AgenticReparseTest.class.getMethod("formatiere", String.class);
+    } catch (NoSuchMethodException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  /**
    * Deploys the scope with the agent off and starts two instances; with the agent on, the model
    * loads and logs what a deployment would refuse, one instance is read and goes on, the other is
    * deleted, and a new deployment is still refused.
@@ -727,11 +781,6 @@ public class AgenticReparseTest {
             withoutOnLimit()),
         Arguments.of("a message that does not parse",
             adHoc(connector("<camunda:inputParameter name='message'>Handle ${order."
-                + "</camunda:inputParameter>"), "<userTask id='arbeit' />"),
-            "an expression of the connector 'cibseven-ai-agent' cannot be read", plain,
-            withoutTheAgent),
-        Arguments.of("an unknown function in the connector",
-            adHoc(connector("<camunda:inputParameter name='message'>${unbekannt(1)}"
                 + "</camunda:inputParameter>"), "<userTask id='arbeit' />"),
             "an expression of the connector 'cibseven-ai-agent' cannot be read", plain,
             withoutTheAgent),
