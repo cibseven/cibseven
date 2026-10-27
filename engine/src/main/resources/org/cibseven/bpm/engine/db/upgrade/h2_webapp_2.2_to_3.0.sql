@@ -55,7 +55,6 @@ CREATE TABLE MOD_FORMS_AUD (
 CREATE TABLE MOD_FOLDERS (
     ID VARCHAR(36) PRIMARY KEY,
     PARENT_ID VARCHAR(36),
-    -- The project of the folder: the top-level folder it lies under, itself at the top level
     PROJECT_ID VARCHAR(36),
     NAME VARCHAR(255) NOT NULL,
     CREATED TIMESTAMP,

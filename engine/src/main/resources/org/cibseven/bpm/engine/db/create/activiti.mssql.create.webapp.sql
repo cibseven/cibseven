@@ -32,7 +32,6 @@ CREATE TABLE MOD_ELEMENT_TEMPLATES (
 CREATE TABLE MOD_FOLDERS (
     ID NVARCHAR(36) NOT NULL PRIMARY KEY,
     PARENT_ID NVARCHAR(36),
-    -- The project of the folder: the top-level folder it lies under, itself at the top level
     PROJECT_ID NVARCHAR(36),
     NAME NVARCHAR(255) NOT NULL,
     CREATED DATETIME2,
