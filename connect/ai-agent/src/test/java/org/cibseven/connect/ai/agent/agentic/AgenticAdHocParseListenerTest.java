@@ -2116,6 +2116,39 @@ public class AgenticAdHocParseListenerTest {
         + innerErrorHandler("toolFailed"), onLimit("error"), ""), limitBoundary("onLimit", null)));
   }
 
+  /**
+   * Checking at parse time which handler takes a limit notes nothing as caught or uncaught
+   * (CIB7-2166, review): a definition parsed again in a command, after a restart or when it left
+   * the cache, would otherwise report a nested agent that then completes in that command as
+   * interrupted by {@code callLimit}, or its end as one by an error nothing caught.
+   */
+  @Test
+  public void parsingANestedAgentWithOnLimitErrorAgainNotesNoCaughtError() {
+    deploy(agentic("<adHocSubProcess id='helfer'><extensionElements>" + onLimit("error")
+        + connectorElement(message()) + "</extensionElements><userTask id='innen' />"
+        + "</adHocSubProcess>"
+        + "<boundaryEvent id='helferLimit' attachedToRef='helfer'><errorEventDefinition />"
+        + "</boundaryEvent>"));
+    final String definitionId = engine.getRepositoryService()
+        .createProcessDefinitionQuery().latestVersion().singleResult().getId();
+
+    boolean[] noted = config.getCommandExecutorTxRequired().execute(
+        new org.cibseven.bpm.engine.impl.interceptor.Command<boolean[]>() {
+          @Override
+          public boolean[] execute(org.cibseven.bpm.engine.impl.interceptor.CommandContext ctx) {
+            ctx.getProcessEngineConfiguration().getDeploymentCache()
+                .discardProcessDefinitionCache();
+            ActivityImpl helfer = ctx.getProcessEngineConfiguration().getDeploymentCache()
+                .findDeployedProcessDefinitionById(definitionId).findActivity("helfer");
+            return new boolean[] {AgenticCaughtError.takeCaughtOn(helfer) != null,
+                AgenticCaughtError.takeUncaughtOn(helfer)};
+          }
+        });
+
+    assertThat(noted[0]).as("caught").isFalse();
+    assertThat(noted[1]).as("uncaught").isFalse();
+  }
+
   @Test
   public void onLimitWithoutTheConnectorMarksTheScopeAsAnAgent() {
     String model = process("<adHocSubProcess id='adHoc'><extensionElements>" + onLimit("error")

@@ -180,9 +180,18 @@ public class AgenticCaughtError extends ErrorEventDefinition {
     return new AgenticCaughtError(attachedTo, boundaryEvent);
   }
 
+  /**
+   * Whether this definition catches {@code errorCode}, noting nothing: for a check at parse time,
+   * which runs in a command too when a definition is parsed again, and must not leave a code for
+   * an activity that ends in it (CIB7-2166, review).
+   */
+  boolean matches(String errorCode) {
+    return !watchOnly && super.catchesError(errorCode);
+  }
+
   @Override
   public boolean catchesError(String errorCode) {
-    boolean catches = !watchOnly && super.catchesError(errorCode);
+    boolean catches = matches(errorCode);
     CommandContext command = Context.getCommandContext();
     if (command == null) {
       return catches;

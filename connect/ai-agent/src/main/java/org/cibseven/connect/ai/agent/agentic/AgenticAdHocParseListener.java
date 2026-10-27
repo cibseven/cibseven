@@ -530,13 +530,17 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
    * {@code ErrorDeclarationForProcessInstanceFinder} picks it. The list holds the boundary error
    * events on the scope and the error start events of the event sub processes inside it, sorted
    * by precedence; an event sub process ranks above every boundary event, whatever their codes.
+   * An {@link AgenticCaughtError} is asked through {@link AgenticCaughtError#matches}, so the
+   * check notes no caught code.
    */
   protected static ActivityImpl firstHandler(ProcessDefinitionEntity definition,
       ActivityImpl scope, String code) {
     List<ErrorEventDefinition> definitions =
         scope.getProperties().get(BpmnProperties.ERROR_EVENT_DEFINITIONS);
     for (ErrorEventDefinition errorDefinition : definitions) {
-      if (errorDefinition.catchesError(code)) {
+      if (errorDefinition instanceof AgenticCaughtError
+          ? ((AgenticCaughtError) errorDefinition).matches(code)
+          : errorDefinition.catchesError(code)) {
         return definition.findActivity(errorDefinition.getHandlerActivityId());
       }
     }
