@@ -98,9 +98,24 @@ public class AdHocElementTemplateTest {
 
     assertThat(window.has("value")).isFalse();
     assertThat(text(window, "description"))
-        .contains("perEntry uses the global default of 20")
-        .contains("perActivity uses at least 53")
-        .contains("2 * effective Max model calls per turn + 3");
+        .contains("Default 20")
+        .contains("about the last six calls")
+        .contains("With 'Continue across entries' an empty value means at least 53")
+        .contains("2 * the effective Max model calls per turn + 3 is rejected")
+        // the user sees the dropdown's labels, not the values it writes
+        .doesNotContain("perEntry")
+        .doesNotContain("perActivity");
+  }
+
+  /** The Conversation dropdown says which window each of its choices gets when left empty. */
+  @Test
+  public void theConversationTextNamesTheDefaultWindowOfEachChoice() throws IOException {
+    JsonNode conversation = fields(read(AD_HOC).get("properties"))
+        .get("camunda:property:" + AgenticAdHocParseListener.CONVERSATION);
+
+    assertThat(text(conversation, "description"))
+        .contains("With 'Continue across entries', chatMemoryMaxMessages must be at least")
+        .contains("With 'Start new on each entry' an unspecified window is 20 messages");
   }
 
   /** Same label, type and binding as the service task's field; defaults and texts may differ. */
