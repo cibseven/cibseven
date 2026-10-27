@@ -61,6 +61,7 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.el.ReadOnlyMapELResolver;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
+import org.cibseven.bpm.engine.impl.persistence.deploy.cache.DeploymentCache;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.repository.DeploymentBuilder;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
@@ -1473,6 +1474,55 @@ public class AgenticTurnJobTest {
   }
 
   /**
+   * A nested agent with onLimit = error that completes in a step whose command parsed its
+   * definition again, after a restart or when it left the cache, is reported as it completed:
+   * checking at parse time which handler takes a limit notes no caught code (CIB7-2166, review).
+   */
+  @Test
+  public void aNestedAgentCompletingAfterItsDefinitionWasParsedAgainIsNotInterrupted()
+      throws IOException {
+    script.add(toolCall("helfer", "{}"));
+    script.add(answer("Geprueft."));
+    script.add(answer("Fertig."));
+    ProcessInstance pi = startWith("      <adHocSubProcess id='helfer' name='Helfer'>"
+        + "<extensionElements>" + limits("onLimit", "error") + "<camunda:connector>"
+        + "<camunda:connectorId>cibseven-ai-agent</camunda:connectorId><camunda:inputOutput>"
+        + "<camunda:inputParameter name='message'>Pruefe das.</camunda:inputParameter>"
+        + "<camunda:inputParameter name='model'>stub</camunda:inputParameter>"
+        + "<camunda:inputParameter name='apiKey'>stub-key-innen</camunda:inputParameter>"
+        + "<camunda:inputParameter name='baseUrl'>http://127.0.0.1:" + STUB_PORT
+        + "/v1</camunda:inputParameter>"
+        + "</camunda:inputOutput></camunda:connector></extensionElements>"
+        + "<userTask id='notieren' /></adHocSubProcess>"
+        + "      <boundaryEvent id='helferLimit' attachedToRef='helfer'>"
+        + "<errorEventDefinition /></boundaryEvent>");
+
+    // Every step parses the definition again, the one that completes helfer included.
+    DeploymentCache cache = ((ProcessEngineConfigurationImpl) engine
+        .getProcessEngineConfiguration()).getDeploymentCache();
+    for (int steps = 0;; steps++) {
+      List<Job> jobs = engine.getManagementService().createJobQuery()
+          .processInstanceId(pi.getId()).list();
+      if (jobs.isEmpty()) {
+        break;
+      }
+      assertThat(steps).as("the turn ends").isLessThan(TurnSteps.MAX_STEPS);
+      cache.discardProcessDefinitionCache();
+      engine.getManagementService().executeJob(jobs.get(0).getId());
+    }
+
+    assertThat(requestBodies).anySatisfy(body -> assertThat(body).contains("Pruefe das."));
+    String report = lastUserMessage(requestBodies.get(requestBodies.size() - 1));
+    assertThat(report)
+        .contains("\"finishedSinceLastTurn\":[{\"activityId\":\"helfer\"")
+        .doesNotContain("callLimit")
+        .doesNotContain("interruptedBy")
+        .doesNotContain("did not complete");
+    assertThat(engine.getHistoryService().createHistoricActivityInstanceQuery()
+        .processInstanceId(pi.getId()).activityId("helferLimit").count()).isZero();
+  }
+
+  /**
    * A parameter declared in the inputs of an embedded sub process tool reaches the activities
    * inside it (CIB7-2136).
    */
@@ -2588,7 +2638,9 @@ public class AgenticTurnJobTest {
     }
   }
 
-  /** A subclass of the exception a boundary error event names: what is thrown, not what is caught. */
+  /**
+   * A subclass of the exception a boundary error event names: what is thrown, not what is caught.
+   */
   public static class LagerGesperrt extends IllegalStateException {
     private static final long serialVersionUID = 1L;
 
@@ -2618,7 +2670,10 @@ public class AgenticTurnJobTest {
         + " camunda:expression=\"${'kein Bestand'}\" camunda:resultVariable='fehler' />";
   }
 
-  /** As {@link #startWith(String)}, with {@code declarations} before the process: messages, signals. */
+  /**
+   * As {@link #startWith(String)}, with {@code declarations} before the process: messages,
+   * signals.
+   */
   protected ProcessInstance startWith(String children, String declarations) {
     return start(connectorModel("",
         "<camunda:inputParameter name='message'>Erledige das.</camunda:inputParameter>", "",
@@ -3147,7 +3202,7 @@ public class AgenticTurnJobTest {
     return later;
   }
 
-  /** A sub process tool that throws an escalation, caught by an interrupting event on its boundary. */
+  /** A sub process tool throwing an escalation, caught by an interrupting event on its boundary. */
   protected static final String ESCALATING_TOOL = "      <subProcess id='pruefen' name='Pruefen'>"
       + "<startEvent id='ps' /><sequenceFlow id='ps1' sourceRef='ps' targetRef='melden' />"
       + "<intermediateThrowEvent id='melden'><escalationEventDefinition escalationRef='esc' />"
@@ -3174,7 +3229,7 @@ public class AgenticTurnJobTest {
         .contains("\"eventType\":\"escalation\"");
   }
 
-  /** A multi-instance tool's boundary event is reported on the tool, not on its multi-instance body. */
+  /** A multi-instance tool's boundary event is reported on the tool, not on its body. */
   protected static final String TWO_APPROVALS = "      <userTask id='freigabe' name='Freigabe'>"
       + "<multiInstanceLoopCharacteristics><loopCardinality>2</loopCardinality>"
       + "</multiInstanceLoopCharacteristics></userTask>";
@@ -3226,7 +3281,8 @@ public class AgenticTurnJobTest {
         .contains("\"status\":\"interrupted\"")
         .contains("\"interruptedBy\":[{\"boundaryEvent\":\"fachfehler\",\"eventType\":\"error\","
             + "\"errorCode\":\"KEIN_BESTAND\",\"attachedTo\":\"buchen\"},"
-            + "{\"boundaryEvent\":\"zuLange\",\"eventType\":\"timer\",\"attachedTo\":\"fehlerMerken\"}]")
+            + "{\"boundaryEvent\":\"zuLange\",\"eventType\":\"timer\","
+            + "\"attachedTo\":\"fehlerMerken\"}]")
         .contains("'buchen' did not complete")
         .contains("whose code is in interruptedBy[0].errorCode");
   }
@@ -3436,7 +3492,8 @@ public class AgenticTurnJobTest {
         + "<camunda:inputOutput><camunda:inputParameter name='abbrechen'>${false}"
         + "</camunda:inputParameter></camunda:inputOutput></extensionElements>"
         + "<startEvent id='ps' /><sequenceFlow id='ps1' sourceRef='ps' targetRef='setzen' />"
-        + "<serviceTask id='setzen' camunda:expression=\"${execution.setVariable('abbrechen', true)}\" />"
+        + "<serviceTask id='setzen'"
+        + " camunda:expression=\"${execution.setVariable('abbrechen', true)}\" />"
         + "<sequenceFlow id='ps2' sourceRef='setzen' targetRef='pe' /><endEvent id='pe' />"
         + "</subProcess>"
         + "      <boundaryEvent id='abbruch' attachedToRef='pruefen'><conditionalEventDefinition>"
@@ -3463,7 +3520,8 @@ public class AgenticTurnJobTest {
     assertThat(report)
         .contains("\"activityId\":\"freigabe\"")
         .contains("\"status\":\"cancelled\"")
-        .contains("cancelled from outside the agent")
+        .contains("'freigabe' did not complete: it was cancelled from outside the agent")
+        .doesNotContain("check before repeating it")
         .as("a cancelled tool read nothing: no word of what it declares")
         .doesNotContain("declares no output mapping")
         .doesNotContain("\"resultsFrom\"");

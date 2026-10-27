@@ -31,6 +31,9 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessActivityBehavior;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessObserver;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.engine.impl.interceptor.Command;
+import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
+import org.cibseven.bpm.engine.impl.persistence.deploy.cache.DeploymentCache;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
@@ -2132,18 +2135,17 @@ public class AgenticAdHocParseListenerTest {
     final String definitionId = engine.getRepositoryService()
         .createProcessDefinitionQuery().latestVersion().singleResult().getId();
 
-    boolean[] noted = config.getCommandExecutorTxRequired().execute(
-        new org.cibseven.bpm.engine.impl.interceptor.Command<boolean[]>() {
-          @Override
-          public boolean[] execute(org.cibseven.bpm.engine.impl.interceptor.CommandContext ctx) {
-            ctx.getProcessEngineConfiguration().getDeploymentCache()
-                .discardProcessDefinitionCache();
-            ActivityImpl helfer = ctx.getProcessEngineConfiguration().getDeploymentCache()
-                .findDeployedProcessDefinitionById(definitionId).findActivity("helfer");
-            return new boolean[] {AgenticCaughtError.takeCaughtOn(helfer) != null,
-                AgenticCaughtError.takeUncaughtOn(helfer)};
-          }
-        });
+    boolean[] noted = config.getCommandExecutorTxRequired().execute(new Command<boolean[]>() {
+      @Override
+      public boolean[] execute(CommandContext ctx) {
+        DeploymentCache cache = ctx.getProcessEngineConfiguration().getDeploymentCache();
+        cache.discardProcessDefinitionCache();
+        ActivityImpl helfer =
+            cache.findDeployedProcessDefinitionById(definitionId).findActivity("helfer");
+        return new boolean[] {AgenticCaughtError.takeCaughtOn(helfer) != null,
+            AgenticCaughtError.takeUncaughtOn(helfer)};
+      }
+    });
 
     assertThat(noted[0]).as("caught").isFalse();
     assertThat(noted[1]).as("uncaught").isFalse();
