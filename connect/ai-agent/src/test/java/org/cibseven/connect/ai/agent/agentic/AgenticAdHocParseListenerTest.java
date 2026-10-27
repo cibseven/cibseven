@@ -31,6 +31,9 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessActivityBehavior;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessObserver;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.engine.impl.interceptor.Command;
+import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
+import org.cibseven.bpm.engine.impl.persistence.deploy.cache.DeploymentCache;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
@@ -2114,6 +2117,38 @@ public class AgenticAdHocParseListenerTest {
   public void acceptsOnLimitErrorWithAnInnerEventSubProcessForAnotherCode() {
     deploy(withBoundary(connectorScope("<userTask id='worker' />"
         + innerErrorHandler("toolFailed"), onLimit("error"), ""), limitBoundary("onLimit", null)));
+  }
+
+  /**
+   * Checking at parse time which handler takes a limit notes nothing as caught or uncaught
+   * (CIB7-2166, review): a definition parsed again in a command, after a restart or when it left
+   * the cache, would otherwise report a nested agent that then completes in that command as
+   * interrupted by {@code callLimit}, or its end as one by an error nothing caught.
+   */
+  @Test
+  public void parsingANestedAgentWithOnLimitErrorAgainNotesNoCaughtError() {
+    deploy(agentic("<adHocSubProcess id='helfer'><extensionElements>" + onLimit("error")
+        + connectorElement(message()) + "</extensionElements><userTask id='innen' />"
+        + "</adHocSubProcess>"
+        + "<boundaryEvent id='helferLimit' attachedToRef='helfer'><errorEventDefinition />"
+        + "</boundaryEvent>"));
+    final String definitionId = engine.getRepositoryService()
+        .createProcessDefinitionQuery().latestVersion().singleResult().getId();
+
+    boolean[] noted = config.getCommandExecutorTxRequired().execute(new Command<boolean[]>() {
+      @Override
+      public boolean[] execute(CommandContext ctx) {
+        DeploymentCache cache = ctx.getProcessEngineConfiguration().getDeploymentCache();
+        cache.discardProcessDefinitionCache();
+        ActivityImpl helfer =
+            cache.findDeployedProcessDefinitionById(definitionId).findActivity("helfer");
+        return new boolean[] {AgenticCaughtError.takeCaughtOn(helfer) != null,
+            AgenticCaughtError.takeUncaughtOn(helfer)};
+      }
+    });
+
+    assertThat(noted[0]).as("caught").isFalse();
+    assertThat(noted[1]).as("uncaught").isFalse();
   }
 
   @Test

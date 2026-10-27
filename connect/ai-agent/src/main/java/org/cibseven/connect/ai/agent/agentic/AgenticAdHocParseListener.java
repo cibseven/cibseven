@@ -47,6 +47,7 @@ import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.DeploymentEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
+import org.cibseven.bpm.engine.impl.pvm.process.ActivityStartBehavior;
 import org.cibseven.bpm.engine.impl.pvm.process.ProcessDefinitionImpl;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.cibseven.bpm.engine.impl.util.xml.Element;
@@ -122,6 +123,12 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
 
   /** Stateless, so one serves every tool of every scope. */
   protected static final AgenticToolResultCarrier RESULT_CARRIER = new AgenticToolResultCarrier();
+
+  /**
+   * Stateless as well: one records for every boundary event on every tool, as a start listener of
+   * the event and an end listener of the activity it is attached to (CIB7-2166).
+   */
+  protected static final AgenticToolEndRecorder RECORDER = new AgenticToolEndRecorder();
 
   @Override
   public void parseSubProcess(Element scopeElement, ScopeImpl scope, ActivityImpl activity) {
@@ -236,6 +243,12 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
       }
     }
 
+    // How a tool ended, when an interrupting boundary event on it, or on an activity further along
+    // its chain, ended it: which event, of which kind, and for an error, which code (CIB7-2166).
+    for (ActivityImpl child : activity.getActivities()) {
+      recordInterruptions(child);
+    }
+
     // How a failed turn is retried: the scope's cycle, the engine's, or a default that is not
     // immediate (CIB7-2149). A cycle that cannot be read refuses the deployment.
     AgenticTurnRetry.configure(scopeElement, activity);
@@ -247,6 +260,55 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     // Every further turn: the behaviour tells the trigger of each child that ends or is removed,
     // once per performance and at the end of a chain, whatever listeners are skipped.
     behavior.addObserver(new AgenticTurnTrigger());
+  }
+
+  /**
+   * Makes {@code child}, a child of an agentic scope, record how it interrupted a tool's flow, if
+   * it is an interrupting boundary event of a kind that does (see {@link AgenticToolEndRecorder}
+   * for where the recorder sits). A boundary error event's definition on the activity it is
+   * attached to is replaced by one that remembers the code it caught; the engine hands the code to
+   * the event only through a process variable the modeller has to ask for (see {@link
+   * AgenticCaughtError}). An activity with boundary events of other kinds only gets a watch, which
+   * catches nothing and notes an error that found no handler. A non-interrupting event ends
+   * nothing, and the engine refuses one inside an ad hoc sub process anyway (CIB7-1967); a
+   * compensation or cancel event is not one the agent's tools are ended by.
+   */
+  protected static void recordInterruptions(ActivityImpl child) {
+    String kind = AgenticToolEndRecorder.kindOf(child);
+    if (child.getActivityStartBehavior() != ActivityStartBehavior.CANCEL_EVENT_SCOPE
+        || kind == null || !(child.getEventScope() instanceof ActivityImpl)) {
+      return;
+    }
+    ActivityImpl attachedTo = (ActivityImpl) child.getEventScope();
+    List<ErrorEventDefinition> replaced = new ArrayList<ErrorEventDefinition>();
+    boolean watched = false;
+    for (ErrorEventDefinition definition : attachedTo.getProperties()
+        .get(BpmnProperties.ERROR_EVENT_DEFINITIONS)) {
+      if (AgenticToolEndRecorder.ERROR.equals(kind)
+          && child.getId().equals(definition.getHandlerActivityId())
+          && !(definition instanceof AgenticCaughtError)) {
+        definition = new AgenticCaughtError(definition, attachedTo);
+      }
+      watched |= definition instanceof AgenticCaughtError;
+      replaced.add(definition);
+    }
+    if (!watched) {
+      // Last, since it catches nothing: an error is offered to it only after every handler here.
+      replaced.add(AgenticCaughtError.watch(attachedTo, child));
+    }
+    attachedTo.getProperties().set(BpmnProperties.ERROR_EVENT_DEFINITIONS, replaced);
+    if (!AgenticToolEndRecorder.ERROR.equals(kind)) {
+      addRecorder(child, ExecutionListener.EVENTNAME_START);
+    }
+    // Records an error where it cancels, and forgets any interruption once the activity completes.
+    addRecorder(attachedTo, ExecutionListener.EVENTNAME_END);
+  }
+
+  /** The recorder on {@code activity} for {@code event}, once, however many events need it. */
+  protected static void addRecorder(ActivityImpl activity, String event) {
+    if (!activity.getBuiltInListeners(event).contains(RECORDER)) {
+      activity.addBuiltInListener(event, RECORDER);
+    }
   }
 
   /** The activity a child performs: itself, or the activity inside its multi-instance body. */
@@ -468,13 +530,17 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
    * {@code ErrorDeclarationForProcessInstanceFinder} picks it. The list holds the boundary error
    * events on the scope and the error start events of the event sub processes inside it, sorted
    * by precedence; an event sub process ranks above every boundary event, whatever their codes.
+   * An {@link AgenticCaughtError} is asked through {@link AgenticCaughtError#matches}, so the
+   * check notes no caught code.
    */
   protected static ActivityImpl firstHandler(ProcessDefinitionEntity definition,
       ActivityImpl scope, String code) {
     List<ErrorEventDefinition> definitions =
         scope.getProperties().get(BpmnProperties.ERROR_EVENT_DEFINITIONS);
     for (ErrorEventDefinition errorDefinition : definitions) {
-      if (errorDefinition.catchesError(code)) {
+      if (errorDefinition instanceof AgenticCaughtError
+          ? ((AgenticCaughtError) errorDefinition).matches(code)
+          : errorDefinition.catchesError(code)) {
         return definition.findActivity(errorDefinition.getHandlerActivityId());
       }
     }

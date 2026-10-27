@@ -20,6 +20,8 @@ import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessObserver;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;
 import org.cibseven.connect.ai.agent.impl.AdHocResults;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Records what a child of an agentic scope produced as it ends, and gives the scope a further turn
@@ -42,6 +44,8 @@ import org.cibseven.connect.ai.agent.impl.AdHocResults;
  */
 public class AgenticTurnTrigger implements AdHocSubProcessObserver {
 
+  private static final Logger LOG = LoggerFactory.getLogger(AgenticTurnTrigger.class);
+
   @Override
   public void childEnded(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
     ExecutionEntity scope = (ExecutionEntity) scopeExecution;
@@ -51,9 +55,21 @@ public class AgenticTurnTrigger implements AdHocSubProcessObserver {
     schedule(scopeExecution);
   }
 
-  /** A tool cancelled from outside is news for the agent too: it may have been waiting for it. */
+  /**
+   * A tool cancelled from outside is news for the agent too: it may have been waiting for it. Its
+   * entry says so (CIB7-2166). Recording it never fails the modification that removed it.
+   */
   @Override
   public void childRemoved(ActivityExecution scopeExecution, ActivityExecution removedExecution) {
+    ExecutionEntity scope = (ExecutionEntity) scopeExecution;
+    if (!scope.isEventScope()) {
+      try {
+        AdHocResults.removed(scope, (ExecutionEntity) removedExecution);
+      } catch (RuntimeException e) {
+        LOG.warn("Could not record that a child of '{}' was cancelled; the agent gets its turn"
+            + " without being told.", scope.getActivityId(), e);
+      }
+    }
     schedule(scopeExecution);
   }
 
