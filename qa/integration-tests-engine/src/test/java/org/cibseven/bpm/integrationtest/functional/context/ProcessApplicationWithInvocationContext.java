@@ -20,10 +20,10 @@ import java.util.concurrent.Callable;
 import org.cibseven.bpm.application.InvocationContext;
 import org.cibseven.bpm.application.ProcessApplication;
 import org.cibseven.bpm.application.ProcessApplicationExecutionException;
+import org.cibseven.bpm.application.impl.JakartaServletProcessApplication;
 
 @ProcessApplication("app")
-// Using fully-qualified class name instead of import statement to allow for automatic Jakarta transformation
-public class ProcessApplicationWithInvocationContext extends org.cibseven.bpm.application.impl.ServletProcessApplication {
+public class ProcessApplicationWithInvocationContext extends JakartaServletProcessApplication {
 
   private static InvocationContext invocationContext = null;
 
