@@ -3541,8 +3541,9 @@ public class AgenticTurnJobTest {
 
   /**
    * An activity further along a tool's chain cancelled from outside: reported under the tool the
-   * agent called, not under the activity cancelled. Whether the tool's work took effect is not
-   * claimed either way: the request may be out, and an error path could have led there too.
+   * agent called, not under the activity cancelled. The tool has no boundary events, so only its
+   * completion led there: it ran, its request is out, and the model is told so, not that the tool
+   * did not complete, which could make it send the request again (review D1).
    */
   @Test
   public void aChainCancelledFurtherAlongIsReportedUnderTheTool() throws IOException {
@@ -3550,13 +3551,54 @@ public class AgenticTurnJobTest {
 
     assertThat(report)
         .contains("\"activityId\":\"anfragen\"")
-        .contains("\"status\":\"cancelled\"")
         .contains("\"endedAt\":\"warten\"")
-        .contains("The flow of 'anfragen' was cancelled from outside the agent at 'warten'")
-        .contains("check before repeating it")
+        .contains("'anfragen' ran; its flow was then cancelled at 'warten' from outside the agent")
+        .contains("Do not wait for it.")
         .doesNotContain("\"activityId\":\"warten\"")
+        .doesNotContain("\"status\":\"cancelled\"")
         .doesNotContain("did not complete")
         .doesNotContain("produced no results")
+        .doesNotContain("check before repeating it");
+  }
+
+  /**
+   * The same chain, with a boundary event on the tool, one that never fires: its path could have
+   * led further along as well, so the model is not told the tool ran.
+   */
+  @Test
+  public void aChainCancelledFurtherAlongAToolWithABoundaryEventClaimsNothing()
+      throws IOException {
+    String report = cancelFromOutside(CHAIN
+        + "      <boundaryEvent id='fehler' attachedToRef='anfragen'><errorEventDefinition />"
+        + "</boundaryEvent>",
+        "anfragen", "warten");
+
+    assertThat(report)
+        .contains("\"activityId\":\"anfragen\"")
+        .contains("\"status\":\"cancelled\"")
+        .contains("The flow of 'anfragen' was cancelled from outside the agent at 'warten'")
+        .contains("check before repeating it")
+        .doesNotContain("did not complete")
+        .doesNotContain("' ran;");
+  }
+
+  /**
+   * An activity inside a sub process tool cancelled from outside: the tool did not get past it,
+   * so the model is not told it ran.
+   */
+  @Test
+  public void anActivityInsideASubProcessToolCancelledFromOutsideIsNotReportedAsRun()
+      throws IOException {
+    String report = cancelFromOutside("      <subProcess id='pruefen' name='Pruefen'>"
+        + "<startEvent id='ps' /><sequenceFlow id='ps1' sourceRef='ps' targetRef='innen' />"
+        + "<userTask id='innen' name='Innen' />"
+        + "<sequenceFlow id='ps2' sourceRef='innen' targetRef='pe' /><endEvent id='pe' />"
+        + "</subProcess>",
+        "pruefen", "innen");
+
+    assertThat(report)
+        .contains("\"activityId\":\"pruefen\"")
+        .contains("\"status\":\"cancelled\"")
         .doesNotContain("' ran;");
   }
 

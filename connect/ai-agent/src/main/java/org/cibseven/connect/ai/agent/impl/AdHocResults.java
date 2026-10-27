@@ -32,6 +32,7 @@ import org.cibseven.connect.ai.agent.agentic.AdHocAgentState;
 import org.cibseven.connect.ai.agent.agentic.AdHocToolDescriptor;
 import org.cibseven.connect.ai.agent.agentic.AgenticToolEndRecorder;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.MultiInstanceActivityBehavior;
+import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
 import org.cibseven.bpm.engine.impl.core.variable.mapping.IoMapping;
 import org.cibseven.bpm.engine.impl.core.variable.mapping.OutputParameter;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
@@ -116,6 +117,12 @@ public final class AdHocResults {
      * complete. Without it, where the flow was is unknown or further along the chain.
      */
     private static final String CANCELLED_AT_TOOL = "cancelledAtTool";
+
+    /**
+     * Whether a cancelled performance was known to be at an activity further along the chain of a
+     * tool without boundary events, so the tool completed and ran.
+     */
+    private static final String CANCELLED_AFTER_TOOL = "cancelledAfterTool";
 
     /**
      * The interruptions of a performance's flow nothing has repaired yet (CIB7-2166): a list, at
@@ -219,12 +226,14 @@ public final class AdHocResults {
      *
      * <p>That activity says little for sure. At the tool itself, the tool did not complete, unless
      * it had and only waited for its {@code asyncAfter} job, which is where an incident leaves it
-     * and an operator cancels it. At an activity further along, the tool ran, but an error path may
-     * have led there, so it may not have done its work. And an execution at a scope, which every
-     * activity with a boundary event is, carries no activity at all. So only the tool itself, and
-     * one without {@code asyncAfter}, is taken as "did not complete"; everywhere else the model is
-     * told the activity, if known, and that whether the work took effect is open (see
-     * {@link #describeEnd}).
+     * and an operator cancels it. At an activity further along the chain, inside the scope itself,
+     * the tool ran when it has no boundary events: only its completion leads there. With one, an
+     * error path may have led there, so it may not have done its work. An activity inside the
+     * tool, a sub process, is no sign it ran. And an execution at a scope, which every activity
+     * with a boundary event is, carries no activity at all. So the tool itself without
+     * {@code asyncAfter} is taken as "did not complete", an activity further along the chain of a
+     * tool without boundary events as "ran"; everywhere else the model is told the activity, if
+     * known, and that whether the work took effect is open (see {@link #describeEnd}).
      */
     public static void removed(ExecutionEntity scope, ExecutionEntity removed) {
         PvmActivity removedIn = removed.getActivity();
@@ -250,7 +259,40 @@ public final class AdHocResults {
                 && !isAsyncAfter(removedIn) && !isAsyncAfter(activity)) {
             entry.put(CANCELLED_AT_TOOL, Boolean.TRUE);
         }
+        ActivityImpl adHoc = scope.getActivity();
+        if (activity != null && !activity.getId().equals(toolId) && adHoc != null
+                && activity.getFlowScope() == adHoc && !hasBoundaryEvents(adHoc, toolId)) {
+            entry.put(CANCELLED_AFTER_TOOL, Boolean.TRUE);
+        }
         append(scope, entry);
+    }
+
+    /**
+     * Whether the tool {@code toolId} of the scope {@code adHoc}, or its multi-instance body, has
+     * boundary events; true when the tool is not found, so nothing is claimed for it.
+     */
+    private static boolean hasBoundaryEvents(ActivityImpl adHoc, String toolId) {
+        ActivityImpl tool = adHoc.findActivity(toolId);
+        if (tool == null) {
+            return true;
+        }
+        if (hasBoundaryEvents(tool)) {
+            return true;
+        }
+        ScopeImpl body = tool.getFlowScope();
+        return body != adHoc && body instanceof ActivityImpl
+                && body.getActivityBehavior() instanceof MultiInstanceActivityBehavior
+                && hasBoundaryEvents((ActivityImpl) body);
+    }
+
+    private static boolean hasBoundaryEvents(ActivityImpl activity) {
+        for (ActivityImpl event : activity.getEventActivities()) {
+            String type = event.getProperties().get(BpmnProperties.TYPE);
+            if (type != null && type.startsWith("boundary")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -598,11 +640,13 @@ public final class AdHocResults {
      * ended, when elsewhere; {@code interruptedBy}, when a boundary event interrupted its flow;
      * that it was removed from outside, when it was.
      *
-     * <p>{@code status} {@code cancelled} for every performance cancelled from outside: that much
-     * is certain. Only when it was at the tool itself is the model told the tool did not complete.
-     * Anywhere else, or where nothing says where, the model is told where its flow was cancelled,
-     * if known, and that whether the work took effect is open: neither "ran", which an error path
-     * makes untrue, nor "did not complete", which a tool that sent a request before makes untrue.
+     * <p>Cancelled at an activity further along the chain of a tool without boundary events, the
+     * tool ran: the model is told so and where its flow was cancelled, with no {@code status}, as
+     * for an interruption further along (review D1). Otherwise {@code status} {@code cancelled}.
+     * Only when it was at the tool itself is the model told the tool did not complete. Anywhere
+     * else, or where nothing says where, the model is told where its flow was cancelled, if known,
+     * and that whether the work took effect is open: neither "ran", which an error path makes
+     * untrue, nor "did not complete", which a tool that sent a request before makes untrue.
      *
      * <p>{@code interruptedBy} is a list, oldest first, of every interruption nothing repaired.
      * {@code status} {@code interrupted} when one of them sat on the tool itself, which then did
@@ -623,6 +667,12 @@ public final class AdHocResults {
         }
         Object tool = gathered.get(ACTIVITY_ID);
         if (Boolean.TRUE.equals(gathered.get(CANCELLED))) {
+            if (Boolean.TRUE.equals(gathered.get(CANCELLED_AFTER_TOOL))) {
+                return "'" + tool + "' ran; its flow was then cancelled at '"
+                        + gathered.get(ENDED_AT) + "' from outside the agent, for example by a"
+                        + " process instance modification, so its results could not be read. Do"
+                        + " not wait for it.";
+            }
             into.put("status", "cancelled");
             if (Boolean.TRUE.equals(gathered.get(CANCELLED_AT_TOOL))) {
                 return "'" + tool + "' did not complete: it was cancelled from outside the agent,"
