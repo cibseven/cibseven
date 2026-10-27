@@ -36,7 +36,8 @@
     <!-- The Spring Framework 7 / Spring Boot 4 trees run on JUnit 6; spring-test 7 is
          compiled against it and calls ExtensionContext.Store.computeIfAbsent, absent from JUnit 5. -->
     <version.junit6>6.0.3</version.junit6>
-    <version.legacy-webapps>2.1.0</version.legacy-webapps>
+    <!-- last open source release of the legacy webapps, used only by the tests (see webapps/README.md) -->
+    <version.legacy-webapps>2.2.0</version.legacy-webapps>
   </properties>
 
   <build>
