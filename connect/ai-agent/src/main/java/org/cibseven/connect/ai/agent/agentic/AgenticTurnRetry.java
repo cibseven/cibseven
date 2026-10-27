@@ -71,42 +71,51 @@ public final class AgenticTurnRetry {
    * the default (CIB7-2367).
    *
    * <p>Only the scope's own cycle is the model's, so only it refuses a deployment. The engine's is
-   * its configuration: one that cannot be read is logged, and the default retries the turns, as
-   * the engine retries its own jobs at once then.
+   * its configuration: one that cannot be read as text is logged, and the default retries the
+   * turns. The engine itself treats such a text cycle as unset for its own jobs. An engine cycle
+   * that is an expression which cannot be read is another matter: the engine refuses every model
+   * with an asynchronous element then, with an agent or without, as it always did.
    */
   public static void configure(Element scopeElement, ActivityImpl activity,
       AgenticToolCatalogParser.Parsing parsing) {
     List<String> cycles = cyclesOf(scopeElement);
-    String own = ownCycleOf(scopeElement);
-    String cycle = cycles.get(0);
-    FailedJobRetryConfiguration configuration = read(cycle);
-    if (configuration == null) {
-      String instead = DEFAULT_RETRY_TIME_CYCLE;
-      for (String next : cycles.subList(1, cycles.size())) {
-        configuration = read(next);
-        if (configuration != null) {
-          instead = next;
-          break;
-        }
+    boolean ownFirst = ownCycleOf(scopeElement) != null;
+    FailedJobRetryConfiguration configuration = null;
+    String used = DEFAULT_RETRY_TIME_CYCLE;
+    List<String> unread = new ArrayList<String>();
+    for (String cycle : cycles) {
+      configuration = read(cycle);
+      if (configuration != null) {
+        used = cycle;
+        break;
       }
-      String retried = "the turns of '" + activity.getId() + "' are retried by the cycle '"
-          + instead + "'";
-      if (cycle.equals(own)) {
-        parsing.refuse(new BpmnParseException("Ad hoc sub process '" + activity.getId()
-            + "': '" + cycle + "' is not a retry cycle for its turns. Use a repeating ISO 8601"
-            + " interval such as '" + DEFAULT_RETRY_TIME_CYCLE + "', a list of durations such as"
-            + " 'PT10S,PT1M', or an expression.", scopeElement), retried);
-      } else {
-        LOG.warn("The engine's failedJobRetryTimeCycle '{}' is not a retry cycle, so {}."
-            + " Correct it in the engine's configuration.", cycle, retried);
-      }
+      unread.add(cycle);
+    }
+    String retried = "the turns of '" + activity.getId() + "' are retried by the cycle '" + used
+        + "'";
+    // The engine's first, also one skipped while the next cycle was looked for: the refusal of the
+    // scope's own cycle ends a deployment.
+    boolean ownUnread = ownFirst && !unread.isEmpty();
+    for (String cycle : unread.subList(ownUnread ? 1 : 0, unread.size())) {
+      LOG.warn("The engine's failedJobRetryTimeCycle '{}' is not a retry cycle{}, so {}. Correct"
+          + " it in the engine's configuration.", cycle, because(cycle), retried);
+    }
+    if (ownUnread) {
+      String cycle = unread.get(0);
+      String reason = whyNot(cycle);
+      parsing.refuse(new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': '"
+          + cycle + "' is not a retry cycle for its turns" + ((reason == null)
+              ? ". Use a repeating ISO 8601 interval such as '" + DEFAULT_RETRY_TIME_CYCLE + "', a"
+                  + " list of durations such as 'PT10S,PT1M', or an expression."
+              : ": " + reason + ". Correct the expression."), scopeElement), retried);
     }
     activity.getProperties().set(RETRY_CONFIGURATION, configuration);
   }
 
   /**
-   * The cycle read, or {@code null} when it cannot be. An expression that does not parse throws an
-   * EL error, not a refusal, which on a parse again would block the definition (CIB7-2367).
+   * The cycle read, or {@code null} when it cannot be. An expression that cannot be read throws an
+   * EL error, not a refusal, which on a parse again would block the definition (CIB7-2367). Unlike
+   * the agent's task, a cycle the node cannot read only gives way to the next one; the agent stays.
    */
   protected static FailedJobRetryConfiguration read(String cycle) {
     try {
@@ -114,6 +123,22 @@ public final class AgenticTurnRetry {
     } catch (ELException e) {
       return null;
     }
+  }
+
+  /** Why an expression cannot be read as a cycle, from its EL error; {@code null} for a text. */
+  protected static String whyNot(String cycle) {
+    try {
+      ParseUtil.parseRetryIntervals(cycle);
+      return null;
+    } catch (ELException e) {
+      return e.getMessage();
+    }
+  }
+
+  /** The EL error behind a cycle that cannot be read, for the log, or nothing for a text. */
+  protected static String because(String cycle) {
+    String reason = whyNot(cycle);
+    return (reason == null) ? "" : " (" + reason + ")";
   }
 
   /**

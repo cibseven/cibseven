@@ -164,7 +164,8 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
           AgenticTurnRunner.AGENT_CONNECTOR_ID);
     }
 
-    if (!agentConnector && !template && limits.isEmpty() && settings.isEmpty()) {
+    // The same question the agent around a nested scope asks of it (withoutAgentsLoadedPlain).
+    if (!asksForAnAgent(scopeElement)) {
       return;
     }
 

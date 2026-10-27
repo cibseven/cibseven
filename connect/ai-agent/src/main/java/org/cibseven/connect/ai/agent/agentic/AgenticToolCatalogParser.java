@@ -236,8 +236,11 @@ public final class AgenticToolCatalogParser {
         continue;
       }
       // On a parse again a tool these would refuse is left out, so the agent never starts it
-      // (CIB7-2367): one whose guard cannot be read would run unguarded, one whose parameter
-      // property cannot be read would run without the value the model was never asked for.
+      // (CIB7-2367): one whose id cannot be a tool name could not be called, one whose guard
+      // cannot be read would run unguarded. The model can still start it itself, when the scope
+      // names it in activitiesToActivate, to start on entry: then it runs, and if it waits, the
+      // scope waits with it, exactly as with the agent off. That is the model's own doing, which
+      // the agent cannot end.
       String leftOut = "the tool '" + id + "' is left out of the agent's catalogue";
       if (COMPLETE_SCOPE_TOOL.equals(id)) {
         parsing.refuse(new BpmnParseException("Ad hoc sub process '"

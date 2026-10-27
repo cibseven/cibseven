@@ -33,6 +33,8 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import org.cibseven.bpm.engine.ProcessEngine;
+import org.cibseven.bpm.engine.ParseException;
+import org.cibseven.bpm.engine.Problem;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.RepositoryServiceImpl;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
@@ -453,16 +455,21 @@ public class AgenticReparseTest {
         .contains("'sometimes' is not a retry cycle for its turns")
         .contains("so the turns of 'adHoc' are retried by the cycle '"
             + AgenticTurnRetry.DEFAULT_RETRY_TIME_CYCLE + "'."));
+    assertThat(warnings()).as("the engine's cycle, skipped on the way to the default")
+        .anySatisfy(warning -> assertThat(warning)
+            .contains("The engine's failedJobRetryTimeCycle '${unbekannt()}' is not a retry cycle"
+                + " (Could not resolve function 'unbekannt'), so the turns of 'adHoc' are"
+                + " retried by the cycle '" + AgenticTurnRetry.DEFAULT_RETRY_TIME_CYCLE + "'."));
   }
 
   /**
-   * The engine's cycle is its configuration, not the model's: one that cannot be read refuses no
-   * deployment. It is logged, and the default retries the turns.
+   * The engine's cycle is its configuration, not the model's: one that cannot be read as text
+   * refuses no deployment. It is logged, and the default retries the turns.
    */
   @Test
   public void anEnginesCycleThatCannotBeReadRefusesNoModel(TestInfo test) {
     ProcessEngine on = engine(test, "on", new ConnectProcessEnginePlugin(),
-        configuration -> configuration.setFailedJobRetryTimeCycle("${unbekannt()}"));
+        configuration -> configuration.setFailedJobRetryTimeCycle("manchmal"));
     recordWarnings();
 
     deploy(on, process("agenticScope", adHoc(connector(MESSAGE), "<userTask id='arbeit' />")));
@@ -472,7 +479,7 @@ public class AgenticReparseTest {
     assertThat(scopeOf(on, definitionId, "adHoc").getProperties()
         .get(AgenticTurnRetry.RETRY_CONFIGURATION).getRetries()).isEqualTo(3);
     assertThat(warnings()).anySatisfy(warning -> assertThat(warning)
-        .contains("The engine's failedJobRetryTimeCycle '${unbekannt()}' is not a retry cycle, so"
+        .contains("The engine's failedJobRetryTimeCycle 'manchmal' is not a retry cycle, so"
             + " the turns of 'adHoc' are retried by the cycle '"
             + AgenticTurnRetry.DEFAULT_RETRY_TIME_CYCLE + "'."));
   }
@@ -487,12 +494,12 @@ public class AgenticReparseTest {
   @ParameterizedTest(name = "{0}")
   @MethodSource("nestedAgentsWithoutTheirAgent")
   public void aToolThatReachesANestedAgentWithoutItsAgentIsLeftOut(String form, String children,
-      String refused, String tool, TestInfo test) {
+      String refused, String tool, String innerRefusal, TestInfo test) {
     loadsOnceTheAgentIsOn(test, adHoc(connector(MESSAGE), "<userTask id='arbeit' />" + children),
-        refused, "the tool '" + tool + "' is left out of the agent's catalogue",
-        "an agentic scope needs a task for its agent", tools("arbeit"));
+        refused, "the tool '" + tool + "' is left out of the agent's catalogue", innerRefusal,
+        tools("arbeit"));
     assertThat(warnings()).anySatisfy(warning -> assertThat(warning)
-        .contains("an agentic scope needs a task for its agent")
+        .contains(innerRefusal)
         .contains("so 'innen' loads as it was deployed, without the agent."));
   }
 
@@ -501,26 +508,36 @@ public class AgenticReparseTest {
         + "</camunda:inputParameter>");
     String innen = adHoc("innen", withoutATask, "<userTask id='innenArbeit' />");
     String plain = " asks for an AI agent but has none, so once started nothing would end it.";
+    String noTask = "an agentic scope needs a task for its agent";
+    String noConnector = "but carries no connector 'cibseven-ai-agent'";
     return Stream.of(
         Arguments.of("the tool is the nested scope", innen,
-            "its child 'innen'" + plain, "innen"),
+            "its child 'innen'" + plain, "innen", noTask),
+        Arguments.of("the nested scope asks for an agent by a limit only",
+            adHoc("innen", properties(AgenticAdHocParseListener.MAX_TURNS, "5"),
+                "<userTask id='innenArbeit' />"),
+            "its child 'innen'" + plain, "innen", noConnector),
+        Arguments.of("the nested scope asks for an agent by a setting only",
+            adHoc("innen", properties(AgenticAdHocParseListener.CONVERSATION,
+                AdHocConversation.PER_ENTRY), "<userTask id='innenArbeit' />"),
+            "its child 'innen'" + plain, "innen", noConnector),
         Arguments.of("the tool is a multi-instance of it",
             adHoc("innen", withoutATask, "<multiInstanceLoopCharacteristics isSequential='true'>"
                 + "<loopCardinality>1</loopCardinality></multiInstanceLoopCharacteristics>"
                 + "<userTask id='innenArbeit' />"),
-            "its child 'innen'" + plain, "innen"),
+            "its child 'innen'" + plain, "innen", noTask),
         Arguments.of("the tool is a sub process it is in",
             "<subProcess id='bereich'><startEvent id='bs' />"
                 + "<sequenceFlow id='b1' sourceRef='bs' targetRef='innen' />" + innen
                 + "<sequenceFlow id='b2' sourceRef='innen' targetRef='be' /><endEvent id='be' />"
                 + "</subProcess>",
             "its child 'bereich' reaches the ad hoc sub process 'innen', which" + plain,
-            "bereich"),
+            "bereich", noTask),
         Arguments.of("the tool's flow leads to it",
             "<userTask id='anfragen' />"
                 + "<sequenceFlow id='weiter' sourceRef='anfragen' targetRef='innen' />" + innen,
             "its child 'anfragen' reaches the ad hoc sub process 'innen', which" + plain,
-            "anfragen"));
+            "anfragen", noTask));
   }
 
   /**
@@ -597,6 +614,27 @@ public class AgenticReparseTest {
     } catch (NoSuchMethodException e) {
       throw new IllegalStateException(e);
     }
+  }
+
+  /**
+   * An expression in the agent's task that does not parse refuses a new deployment on the scope's
+   * own element and line (CIB7-2367), not as an error of the whole process.
+   */
+  @Test
+  public void aMalformedTaskIsRefusedOnItsElementAndLine(TestInfo test) {
+    ProcessEngine on = engineWithTheAgent(test);
+    String model = process("agenticScope", "\n\n" + adHoc(connector(
+        "<camunda:inputParameter name='message'>Handle ${order.</camunda:inputParameter>"),
+        "<userTask id='arbeit' />"));
+
+    assertThatThrownBy(() -> deploy(on, model)).isInstanceOf(ParseException.class)
+        .satisfies(thrown -> {
+          Problem problem = ((ParseException) thrown).getResorceReports().get(0).getErrors().get(0);
+          assertThat(problem.getMessage())
+              .contains("an expression of the connector 'cibseven-ai-agent' cannot be read");
+          assertThat(problem.getMainElementId()).isEqualTo("adHoc");
+          assertThat(problem.getLine()).as("the line of the scope").isEqualTo(3);
+        });
   }
 
   /**
@@ -785,10 +823,20 @@ public class AgenticReparseTest {
             "an expression of the connector 'cibseven-ai-agent' cannot be read", plain,
             withoutTheAgent),
         Arguments.of("a retry cycle expression that does not parse",
+            adHoc("<camunda:failedJobRetryTimeCycle>${order.</camunda:failedJobRetryTimeCycle>"
+                + connector(MESSAGE), "<userTask id='arbeit' />"),
+            "'${order.' is not a retry cycle for its turns: ",
+            "the turns of 'adHoc' are retried by the cycle '"
+                + AgenticTurnRetry.DEFAULT_RETRY_TIME_CYCLE + "'",
+            (Consumer<ActivityImpl>) scope -> assertThat(scope.getProperties()
+                .get(AgenticTurnRetry.RETRY_CONFIGURATION).getRetries()).as("the default's")
+                .isEqualTo(3)),
+        Arguments.of("a retry cycle with a function this node does not have",
             adHoc("<camunda:failedJobRetryTimeCycle>${unbekannt()}"
                 + "</camunda:failedJobRetryTimeCycle>" + connector(MESSAGE),
                 "<userTask id='arbeit' />"),
-            "'${unbekannt()}' is not a retry cycle for its turns",
+            "'${unbekannt()}' is not a retry cycle for its turns: Could not resolve function"
+                + " 'unbekannt'",
             "the turns of 'adHoc' are retried by the cycle '"
                 + AgenticTurnRetry.DEFAULT_RETRY_TIME_CYCLE + "'",
             (Consumer<ActivityImpl>) scope -> assertThat(scope.getProperties()
