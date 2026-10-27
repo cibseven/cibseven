@@ -270,6 +270,30 @@ public class AgenticConversationContinuityTest {
     completeFeedback(higherLimit, true, "Done.");
   }
 
+  /**
+   * CIB7-2234: a perEntry scope without a window passes none on, so the connector's own default
+   * of 20 applies -- with the mode left out, with it spelled out, and with a window expression
+   * that resolves to null. Only perActivity has a minimum that needs a default of its own.
+   */
+  @Test
+  public void unspecifiedPerEntryWindowReachesTheConnectorUnset() {
+    ProcessInstance defaultMode = start(null, null, answers("Default mode."));
+    runJob(defaultMode);
+    assertThat(ScriptedAgent.requests().get(0).get("chatMemoryMaxMessages")).isNull();
+    completeFeedback(defaultMode, true, "Done.");
+
+    ProcessInstance perEntry = start("perEntry", null, answers("Explicit mode."));
+    runJob(perEntry);
+    assertThat(ScriptedAgent.requests().get(0).get("chatMemoryMaxMessages")).isNull();
+    completeFeedback(perEntry, true, "Done.");
+
+    ProcessInstance dynamic = start("perEntry", null, 2, "${window}",
+        Collections.<String, Object>singletonMap("window", null), answers("Unset window."));
+    runJob(dynamic);
+    assertThat(ScriptedAgent.requests().get(0).get("chatMemoryMaxMessages")).isNull();
+    completeFeedback(dynamic, true, "Done.");
+  }
+
   @Test
   public void acceptsTheExplicitPerActivityBoundaryAndLeavesPerEntryWindowsAlone() {
     ProcessInstance perActivity = start("perActivity", null, 2, "7",
