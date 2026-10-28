@@ -39,7 +39,7 @@ public class CamundaBpmSpringSecurityDisableAutoConfiguration {
   public CamundaBpmSpringSecurityDisableAutoConfiguration(CamundaBpmProperties properties) {
     this.legacyWebappPath = properties.getWebapp().getLegacyApplicationPath();
   }
-
+  
   @Bean
   public SecurityFilterChain filterChainWebappPermitAll(HttpSecurity http) throws Exception {
     logger.info("Disabling Camunda Spring Security oauth2 integration for legacy webapp");

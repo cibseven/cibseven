@@ -41,6 +41,8 @@
       <classifier>classes</classifier>
       <optional>true</optional>
     </dependency>
+    <!-- TODO CIB7-1535: switch to cibseven-webclient-web once the webclient Spring Boot 4 change is merged,
+         and drop the exclusion below so the enforcer checks its Spring alignment again -->
     <dependency>
       <groupId>org.cibseven.webapp</groupId>
       <artifactId>cibseven-webclient-web-spring-boot-4</artifactId>
@@ -82,6 +84,7 @@
                   <outputDirectory>${project.build.outputDirectory}/META-INF/resources/webjars/camunda</outputDirectory>
                   <excludes>META-INF/**</excludes>
                 </artifactItem>
+                <!-- TODO CIB7-1535: switch to cibseven-webclient-web once the webclient Spring Boot 4 change is merged -->
                 <artifactItem>
                   <groupId>org.cibseven.webapp</groupId>
                   <artifactId>cibseven-webclient-web-spring-boot-4</artifactId>

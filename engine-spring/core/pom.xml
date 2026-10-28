@@ -36,7 +36,7 @@
       <dependency>
         <groupId>jakarta.platform</groupId>
         <artifactId>jakarta.jakartaee-bom</artifactId>
-        <version>11.0.0</version>
+        <version>${version.jakarta-ee11-spec}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -175,7 +175,7 @@
     <dependency>
       <groupId>org.hibernate.orm</groupId>
       <artifactId>hibernate-core</artifactId>
-      <version>7.0.10.Final</version>
+      <version>${version.hibernate}</version>
       <scope>test</scope>
       <exclusions>
         <!-- hibernate uses an older slf4j version -->
@@ -205,11 +205,6 @@
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-bpm-archunit</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>jakarta.persistence</groupId>
-      <artifactId>jakarta.persistence-api</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -243,7 +238,44 @@
               <excludes>
                 <!-- this is re-defined in the consuming artifacts -->
                 <exclude>META-INF/services/org.cibseven.bpm.engine.spring.test.SpringTestHelper</exclude>
+                <!-- Nashorn is not part of the JDK anymore in Java 15+, so its test is not run either -->
+                <exclude>**/*NashornTest.class</exclude>
               </excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-java</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>[17,)</version>
+                  <message>You must use at least JDK 17 to build the Process Engine Spring integration (Spring Framework 7).</message>
+                </requireJavaVersion>
+              </rules>
+              <failFast>true</failFast>
             </configuration>
           </execution>
         </executions>

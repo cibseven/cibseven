@@ -36,7 +36,7 @@
     <version.commons-lang3>3.20.0</version.commons-lang3>
     <version.openjpa>2.4.3</version.openjpa>
     <version.hamcrest>3.0</version.hamcrest>
-    <version.hibernate>6.6.10.Final</version.hibernate>
+    <version.hibernate>7.0.10.Final</version.hibernate>
     <version.hikaricp>4.0.3</version.hikaricp>
     <version.jackson>2.21.7</version.jackson>
     <version.jackson3>3.1.7</version.jackson3>
@@ -83,6 +83,8 @@
 
     <version.jboss-javaee-spec>3.0.2.Final</version.jboss-javaee-spec>
     <version.jakarta-ee-spec>10.0.0</version.jakarta-ee-spec>
+    <!-- the Spring Framework 7 / Spring Boot 4 modules need Jakarta EE 11 -->
+    <version.jakarta-ee11-spec>11.0.0</version.jakarta-ee11-spec>
 
     <version.eirslett.frontend.maven.plugin>1.12.1</version.eirslett.frontend.maven.plugin>
     <version.nodejs>24.13.1</version.nodejs>

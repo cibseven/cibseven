@@ -58,6 +58,7 @@
     
     <dependencySet>
         <includes>
+            <!-- TODO CIB7-1535: switch to cibseven-webclient-web once the webclient Spring Boot 4 change is merged -->
             <include>org.cibseven.webapp:cibseven-webclient-web-spring-boot-4:war:*</include>
         </includes>
         <outputDirectory>server/apache-tomcat-${version.tomcat}/webapps/webapp</outputDirectory>

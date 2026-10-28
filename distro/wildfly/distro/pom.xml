@@ -59,6 +59,7 @@
       <type>war</type>
     </dependency>
     
+    <!-- TODO CIB7-1535: switch to cibseven-webclient-web once the webclient Spring Boot 4 change is merged -->
     <dependency>
       <groupId>org.cibseven.webapp</groupId>
       <artifactId>cibseven-webclient-web-spring-boot-4</artifactId>
