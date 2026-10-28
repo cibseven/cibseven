@@ -147,7 +147,7 @@ public class AgentConnectorImplContextTest {
         .hasMessageContaining("ByteArrayInputStream");
   }
 
-  /** Review finding (P3): the same unchecked cast sat behind the other two getters. */
+  /** The same unchecked cast sat behind the other two getters. */
   @Test
   public void shouldNameTheParameterWhenMimeTypesOrDetailLevelAreNotText() {
     AgentRequest request = connector.createRequest();
@@ -164,7 +164,7 @@ public class AgentConnectorImplContextTest {
         .hasMessageContaining("java.lang.Integer");
   }
 
-  /** P15: documents, like context, must not silently degrade outside the engine. */
+  /** Documents, like context, must not silently degrade outside the engine. */
   @Test
   public void shouldFailWhenDocumentsAreDeclaredOutsideABpmnExecution() {
     AgentRequest request = connector.createRequest()
@@ -180,7 +180,7 @@ public class AgentConnectorImplContextTest {
   }
 
   /**
-   * Review finding (P1): the empty-message check now runs before any document is
+   * The empty-message check now runs before any document is
    * read, and treats a blank message as empty. Outside an execution the document
    * read would fail with its own message, so seeing the message error proves the
    * order.

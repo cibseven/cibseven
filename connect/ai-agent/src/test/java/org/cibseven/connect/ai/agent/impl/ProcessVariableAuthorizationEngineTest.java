@@ -280,7 +280,7 @@ public class ProcessVariableAuthorizationEngineTest {
   }
 
   /**
-   * D2: the Tasklist user who uploads a file and completes the task reads these
+   * The Tasklist user who uploads a file and completes the task reads these
    * variables through TaskService with READ_TASK alone, so the agent accepts it.
    */
   @Test
@@ -424,9 +424,9 @@ public class ProcessVariableAuthorizationEngineTest {
   // ── tenants ────────────────────────────────────────────────────────────────
 
   /**
-   * P1: the caller derived for a job carries the instance's tenant, so trusting
-   * the Authentication would let every start user pass. Membership is read from
-   * the identity service instead.
+   * A start user who is not a member of the instance's tenant is refused: the
+   * membership of a caller derived for a job comes from the identity service,
+   * never from the instance's own tenant.
    */
   @Test
   public void shouldRefuseAStartUserWhoIsNotAMemberOfTheInstancesTenant() {
@@ -489,7 +489,7 @@ public class ProcessVariableAuthorizationEngineTest {
   }
 
   /**
-   * Review round 3, P1: for a synchronous run the engine trusts the tenant list
+   * For a synchronous run the engine trusts the tenant list
    * of the authentication (TenantManager), whether or not the identity service
    * knows the membership — custom AuthenticationProviders, embedded
    * setAuthentication(user, groups, tenants), LDAP/SCIM/OAuth2 with tenants.
@@ -559,7 +559,7 @@ public class ProcessVariableAuthorizationEngineTest {
   }
 
   /**
-   * Review round 4, B1: a job of a tenant runs under the job executor's
+   * A job of a tenant runs under the job executor's
    * (null, null, [tenant]) authentication. Without a grant the start user must
    * still be refused, even as a member of the tenant.
    */
@@ -583,7 +583,7 @@ public class ProcessVariableAuthorizationEngineTest {
   }
 
   /**
-   * Review round 5, B1: a job of a tenant whose instance has no start user (a
+   * A job of a tenant whose instance has no start user (a
    * timer or message start, history level none). The job executor's user-less
    * (null, null, [t1]) authentication must survive as the caller, or
    * ProcessStarterTool runs without any authentication — and without one the
@@ -604,14 +604,17 @@ public class ProcessVariableAuthorizationEngineTest {
     assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
         .processDefinitionKey(OTHER_KEY).count())
         .as("instances of tenant t2's process started from a t1 job").isZero();
-    assertThat(toolFailure).isNotNull();
+    assertThat(toolFailure)
+        .as("the tenant's definition is invisible to the tool's caller")
+        .isInstanceOf(org.cibseven.bpm.engine.ProcessEngineException.class)
+        .hasMessageContaining(OTHER_KEY);
     assertThat(capturedCaller).isNotNull();
     assertThat(capturedCaller.getUserId()).isNull();
     assertThat(capturedCaller.getTenantIds()).containsExactly("t1");
   }
 
   /**
-   * Review round 7, finding 3: the start user derived for a tenant job used to
+   * The start user derived for a tenant job used to
    * carry the instance's tenant, and ProcessStarterTool runs under it — so a
    * start user who is no member (a revoked membership, or an instance placed in
    * the tenant by a TenantIdProvider) gained that tenant. alice started the
@@ -630,7 +633,10 @@ public class ProcessVariableAuthorizationEngineTest {
     assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
         .processDefinitionKey(OTHER_KEY).count())
         .as("instances started by the tool for a non-member").isZero();
-    assertThat(toolFailure).isNotNull();
+    assertThat(toolFailure)
+        .as("the tenant's definition is invisible to the tool's caller")
+        .isInstanceOf(org.cibseven.bpm.engine.ProcessEngineException.class)
+        .hasMessageContaining(OTHER_KEY);
     assertThat(capturedCaller).isInstanceOf(StartUserAuthentication.class);
     assertThat(capturedCaller.getTenantIds()).isEmpty();
   }
@@ -654,7 +660,7 @@ public class ProcessVariableAuthorizationEngineTest {
   }
 
   /**
-   * Review round 6, P1: the same tenant job without a start user, now with an
+   * The same tenant job without a start user, now with an
    * agent task reading context. The user-less authentication kept for the tool
    * must not count as a caller: nothing can be checked, the agent runs, and the
    * audit says so. A weakened userId check would show up here.
@@ -674,7 +680,7 @@ public class ProcessVariableAuthorizationEngineTest {
   }
 
   /**
-   * P3: the caller handed to ProcessStarterTool for a job is the marked start
+   * The caller handed to ProcessStarterTool for a job is the marked start
    * user, so an agent task in a process the tool starts recognises it as
    * derived rather than as a login.
    */
@@ -689,7 +695,7 @@ public class ProcessVariableAuthorizationEngineTest {
     assertThat(capturedCaller.getUserId()).isEqualTo("alice");
   }
 
-  /** P1: a job executed by hand is checked for whoever executes it. */
+  /** A job executed by hand is checked for whoever executes it. */
   @Test
   public void shouldCheckTheUserWhoExecutesAJobByHand() {
     grant("alice", PROCESS_DEFINITION, ASYNC_KEY, READ_INSTANCE);
@@ -704,7 +710,7 @@ public class ProcessVariableAuthorizationEngineTest {
         .hasMessageContaining("Required: READ on process instance");
   }
 
-  /** P3: the synchronous refusal — the caller's own tenant list lacks the tenant. */
+  /** The synchronous refusal — the caller's own tenant list lacks the tenant. */
   @Test
   public void shouldRefuseASynchronousCallerOutsideTheInstancesTenant() {
     grant("alice", PROCESS_DEFINITION, SYNC_KEY, READ_INSTANCE);
@@ -718,7 +724,7 @@ public class ProcessVariableAuthorizationEngineTest {
     assertThat(modelCalled).isFalse();
   }
 
-  /** P3: with tenant checks disabled on the engine there is no tenant check. */
+  /** With tenant checks disabled on the engine there is no tenant check. */
   @Test
   public void shouldSkipTheTenantCheckWhenTheEngineDisablesIt() {
     configuration().setTenantCheckEnabled(false);
@@ -729,7 +735,7 @@ public class ProcessVariableAuthorizationEngineTest {
     assertThat(modelCalled).isTrue();
   }
 
-  /** P3: nor when the running command has switched it off. */
+  /** Nor when the running command has switched it off. */
   @Test
   public void shouldFollowTheCommandContextsTenantCheckSwitch() {
     grant("alice", PROCESS_DEFINITION, SYNC_KEY, READ_INSTANCE);
@@ -742,7 +748,7 @@ public class ProcessVariableAuthorizationEngineTest {
   }
 
   /**
-   * P5: ProcessStarterTool puts the derived start-user authentication on its
+   * ProcessStarterTool puts the derived start-user authentication on its
    * worker thread, so an agent task in the child process sees it as the thread's
    * authentication. Its tenant list is only the parent's tenant and must not
    * count as membership.
@@ -770,7 +776,7 @@ public class ProcessVariableAuthorizationEngineTest {
         .hasMessageContaining("tenant '" + TENANT + "'");
   }
 
-  /** P2: an admin skips the tenant check, so nothing was checked. */
+  /** An admin skips the tenant check, so nothing was checked. */
   @Test
   public void shouldNotRecordASkippedTenantCheckAsPassed() {
     configuration().setAuthorizationEnabled(false);
@@ -820,8 +826,8 @@ public class ProcessVariableAuthorizationEngineTest {
   /**
    * Runs the async agent task the way the job executor does (ExecuteJobsCmd):
    * without a user, and for a job of a tenant under an authentication that
-   * names only that tenant. Review round 4, B1: that user-less authentication
-   * used to be taken for the caller, and the variables went out unchecked.
+   * names only that tenant. That user-less authentication must not be taken for
+   * the caller, or the variables would go out unchecked.
    */
   private void executeTheJob() {
     Job job = ENGINE.getManagementService().createJobQuery().singleResult();

@@ -182,7 +182,8 @@ public class DocumentEngineTest {
           .instruction("be brief")
           .documents((String) execution.getVariable("_documents"))
           .documentMimeTypes((String) execution.getVariable("_mimeTypes"))
-          .documentDetailLevel((String) execution.getVariable("_detailLevel"));
+          .documentDetailLevel((String) execution.getVariable("_detailLevel"))
+          .contextVariables((String) execution.getVariable("_context"));
       String memoryId = (String) execution.getVariable("_memoryId");
       if (memoryId != null) {
         request.useChatMemory(true).memoryId(memoryId);
@@ -232,7 +233,7 @@ public class DocumentEngineTest {
   }
 
   /**
-   * P15: documentMimeTypes and the detail level, end to end through the
+   * {@code documentMimeTypes} and the detail level, end to end through the
    * connector — a bytes variable gets its type from the override, and the
    * requested detail level reaches the image content.
    */
@@ -253,7 +254,7 @@ public class DocumentEngineTest {
     assertThat(image.detailLevel()).isEqualTo(ImageContent.DetailLevel.HIGH);
   }
 
-  /** B1: a level the OpenAI mapping throws on fails before any model call. */
+  /** A level the OpenAI mapping throws on fails before any model call. */
   @Test
   public void shouldRefuseADetailLevelOpenAiCannotTakeBeforeCallingTheModel() {
     Throwable thrown = catchThrowable(() ->
@@ -267,6 +268,26 @@ public class DocumentEngineTest {
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("MEDIUM");
     assertThat(capturedUserMessage).isNull();
+  }
+
+  /**
+   * A variable declared both as context and as a document is described in the
+   * context block as attached — which only holds if AgentConnectorImpl passes
+   * the document names on to the context resolver.
+   */
+  @Test
+  public void shouldDescribeAVariableThatIsAlsoAttachedAsAttachedInTheContextBlock() {
+    start(Variables.createVariables()
+        .putValue("_documents", "invoice")
+        .putValue("_context", "invoice")
+        .putValueTyped("invoice", Variables.fileValue("invoice.pdf")
+            .file(PDF_BYTES).mimeType("application/pdf").create()));
+
+    assertThat(capturedSystemMessage)
+        .contains("invoice (file) = (file \"invoice.pdf\", \"application/pdf\", "
+            + "attached as a document)")
+        .doesNotContain("content not sent to the model");
+    assertThat(capturedUserMessage.contents()).anyMatch(PdfFileContent.class::isInstance);
   }
 
   /**
@@ -338,8 +359,8 @@ public class DocumentEngineTest {
   /**
    * Pins the mechanism the previous test only observes the result of, because
    * that mechanism is an implementation detail of LangChain4j rather than a
-   * documented contract — and a review round rightly questioned whether we were
-   * relying on something the option does not promise.
+   * documented contract, and it is easy to rely on something the option does
+   * not promise.
    *
    * <p>In {@code DefaultAiServices}, {@code originalUserMessage} is built from
    * the {@code @UserMessage String} parameter, and only afterwards does
@@ -428,7 +449,7 @@ public class DocumentEngineTest {
   }
 
   /**
-   * Review finding (Dmitry, PR #447): {@code renderMultiContent} tested
+   * {@code renderMultiContent} used to test
    * {@code instanceof TextContent} before consulting the descriptor map, and a
    * text document <em>is</em> a {@code TextContent} — so it never reached the
    * descriptor branch and its whole body was written into the chat-log process

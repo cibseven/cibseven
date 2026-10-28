@@ -145,13 +145,13 @@ public class DocumentContentResolverTest {
         .hasMessageContaining("archive")
         .hasMessageContaining("application/zip")
         .hasMessageContaining("Supported")
-        // Review finding (P10): the list must name every type isTextual accepts.
+        // The list must name every type isTextual accepts.
         .hasMessageContaining("application/x-yaml")
         .hasMessageContaining("+json")
         .hasMessageContaining("+xml");
   }
 
-  /** Review round 3, P7: a filename cannot spread the document tag over several lines. */
+  /** A filename cannot spread the document tag over several lines. */
   @Test
   public void shouldKeepAMultiLineFilenameOnTheTagLine() {
     putFile("note", "a\nb\r\tc.txt", "text/plain", "hi".getBytes(StandardCharsets.UTF_8));
@@ -162,7 +162,62 @@ public class DocumentContentResolverTest {
     assertThat(text.substring(0, text.indexOf('>'))).doesNotContain("\n");
   }
 
-  /** Review round 4, P6: '>' and the Unicode line breaks as well. */
+  /** Every C0 control character and DEL, not only line breaks and tabs. */
+  @Test
+  public void shouldEscapeControlCharactersInTagAttributes() {
+    String filename = "a" + (char) 0x0B + "b" + (char) 0x0C + "c" + (char) 0x1E + "d"
+        + (char) 0x7F + ".txt";
+    putFile("note", filename, "text/plain", "hi".getBytes(StandardCharsets.UTF_8));
+
+    String text = ((TextContent) resolve("note").get(0).content).text();
+
+    assertThat(text).contains("name=\"a&#11;b&#12;c&#30;d&#127;.txt\"");
+  }
+
+  /** A mime type of only separators names no type and says which variable. */
+  @Test
+  public void shouldRejectAMimeTypeWithoutABaseType() {
+    putFile("blob", "blob.bin", "application/pdf", new byte[] {1});
+
+    for (String raw : new String[] {";", " ; charset=UTF-8"}) {
+      assertThatThrownBy(() -> resolve("blob", "{\"blob\": \"" + raw + "\"}"))
+          .isInstanceOf(AgentConnectorException.class)
+          .hasMessageContaining("'blob'")
+          .hasMessageContaining("names no type");
+    }
+  }
+
+  @Test
+  public void shouldRejectTwoDifferentCharsetsInOneMimeType() {
+    putFile("note", "note.txt", null, "hi".getBytes(StandardCharsets.UTF_8));
+
+    assertThatThrownBy(() ->
+        resolve("note", "{\"note\": \"text/plain; charset=UTF-8; charset=ISO-8859-1\"}"))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("more than one charset");
+  }
+
+  @Test
+  public void shouldRejectMimeTypeKeysThatCollideOnceTrimmed() {
+    assertThatThrownBy(() -> DocumentContentResolver.parseMimeTypeOverrides(
+        "{\"scan\": \"image/png\", \" scan \": \"image/jpeg\"}"))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("more than one entry for 'scan'");
+  }
+
+  /** Compared case-insensitively already; now also sent in lower case. */
+  @Test
+  public void shouldSendTheMimeTypeInLowerCase() {
+    putFile("invoice", "invoice.pdf", "Application/PDF", "%PDF-1.7".getBytes());
+
+    ResolvedDocument document = resolve("invoice").get(0);
+
+    assertThat(document.mimeType).isEqualTo("application/pdf");
+    assertThat(((PdfFileContent) document.content).pdfFile().mimeType())
+        .isEqualTo("application/pdf");
+  }
+
+  /** Also '>' and the Unicode line breaks. */
   @Test
   public void shouldEscapeAngleBracketAndUnicodeLineBreaksInTagAttributes() {
     String filename = "x>" + (char) 0x85 + (char) 0x2028 + (char) 0x2029 + "y.txt";
@@ -174,7 +229,7 @@ public class DocumentContentResolverTest {
   }
 
   /**
-   * Review round 6, P3: an unsupported type is refused from its metadata, before
+   * An unsupported type is refused from its metadata, before
    * a byte of the file is read.
    */
   @Test
@@ -192,7 +247,7 @@ public class DocumentContentResolverTest {
     org.mockito.Mockito.verify(archive, org.mockito.Mockito.never()).getValue();
   }
 
-  /** Review round 6, P4: common non-standard names for JPEG and PNG. */
+  /** Common non-standard names for JPEG and PNG. */
   @Test
   public void shouldAcceptCommonImageTypeAliases() {
     putFile("photo", "photo.jpg", "image/jpg", new byte[] {1});
@@ -208,7 +263,7 @@ public class DocumentContentResolverTest {
         .isEqualTo("image/jpeg");
   }
 
-  /** Review finding (P6): an empty attachment gives the model nothing to read. */
+  /** An empty attachment gives the model nothing to read. */
   @Test
   public void shouldRejectAnEmptyDocument() {
     putFile("blank", "blank.pdf", "application/pdf", new byte[0]);
@@ -220,7 +275,7 @@ public class DocumentContentResolverTest {
   }
 
   /**
-   * Review finding (P2): a charset parameter on a binary type is meaningless, so
+   * A charset parameter on a binary type is meaningless, so
    * even an unusable one must not fail the activity.
    */
   @Test
@@ -235,13 +290,13 @@ public class DocumentContentResolverTest {
     assertThat(document.charset).isNull();
   }
 
-  /** Review finding (P5): a JSON null used to end in a NullPointerException. */
+  /** A JSON null used to end in a NullPointerException. */
   @Test
   public void shouldTreatAJsonNullAsNoMimeTypeOverrides() {
     assertThat(DocumentContentResolver.parseMimeTypeOverrides("null")).isEmpty();
   }
 
-  /** Review finding (P5): a non-string value used to slip through via toString(). */
+  /** A non-string value used to slip through via toString(). */
   @Test
   public void shouldRejectAMimeTypeOverrideThatIsNotAString() {
     assertThatThrownBy(() -> DocumentContentResolver.parseMimeTypeOverrides("{\"scan\": 42}"))
@@ -253,7 +308,7 @@ public class DocumentContentResolverTest {
   // ── audio and video are unsupported ────────────────────────────────────────
 
   /**
-   * Review finding: the previous {@code allowAudioVideo} opt-in could only
+   * The previous {@code allowAudioVideo} opt-in could only
    * express "try it", never "the configured model accepts this" — and the
    * ticket's cross-cutting requirement is to fail predictably when it does not.
    * Audio and video are therefore out; Camunda 8 leaves them out for the same
@@ -350,7 +405,7 @@ public class DocumentContentResolverTest {
   // ── size and count caps ────────────────────────────────────────────────────
 
   /**
-   * Review finding: the file path used to call {@code InputStream.readAllBytes},
+   * The file path used to call {@code InputStream.readAllBytes},
    * which sizes its array from the content — so an oversized document was fully
    * buffered and only then rejected. It now stops at the first chunk past the
    * limit, which is also why the message names the limit but not the actual
@@ -411,7 +466,7 @@ public class DocumentContentResolverTest {
   }
 
   /**
-   * Review finding: the combined cap used to be checked only after each document
+   * The combined cap used to be checked only after each document
    * had already been read and Base64 encoded, so an over-budget set peaked at
    * well above the limit before failing.
    */
@@ -419,13 +474,19 @@ public class DocumentContentResolverTest {
   public void shouldRejectTheCombinedSizeBeforeEncodingAnything() {
     putFile("a", "a.pdf", "application/pdf", new byte[600]);
     putFile("b", "b.pdf", "application/pdf", new byte[600]);
-    putFile("c", "c.pdf", "application/pdf", new byte[600]);
+    // A mock, because the FileValue builder holds the bytes from the start.
+    org.cibseven.bpm.engine.variable.value.FileValue c =
+        org.mockito.Mockito.mock(org.cibseven.bpm.engine.variable.value.FileValue.class);
+    org.mockito.Mockito.when(c.getFilename()).thenReturn("c.pdf");
+    org.mockito.Mockito.when(c.getMimeType()).thenReturn("application/pdf");
+    variables.put("c", c);
 
     assertThatThrownBy(() -> DocumentContentResolver.resolve("a,b,c", null,
         ImageContent.DetailLevel.AUTO, reader(), new Limits(1024, 1000, 10)))
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("'b'");
     // 'c' was never even read, let alone encoded.
+    org.mockito.Mockito.verify(c, org.mockito.Mockito.never()).getValue();
   }
 
   @Test
@@ -468,7 +529,7 @@ public class DocumentContentResolverTest {
   }
 
   /**
-   * Review finding: only the exact lower-case closing tag was neutered, so
+   * Only the exact lower-case closing tag was neutered, so
    * {@code </DOCUMENT>} plus a forged opening header escaped the block.
    */
   @Test
@@ -510,7 +571,7 @@ public class DocumentContentResolverTest {
   }
 
   /**
-   * Review finding, case (b) and the common one. A file variable uploaded over
+   * Case (b), the common one. A file variable uploaded over
    * REST or through the webclient's variable dialog almost never carries an
    * encoding, and {@code FileValueImpl.getEncodingAsCharset()} returns null for
    * that without complaining — so UTF-8 is a guess. Decoding Latin-1 bytes with
@@ -724,7 +785,7 @@ public class DocumentContentResolverTest {
   }
 
   /**
-   * Review finding: sha256 is over the raw bytes while a text document reaches
+   * The sha256 is over the raw bytes while a text document reaches
    * the model as characters. Without the charset the descriptor cannot say which
    * of the two an auditor is holding, so a decoding difference would be
    * invisible in the audit trail. Binary documents omit the field — they are

@@ -198,7 +198,7 @@ public class ProcessContextEngineTest {
   }
 
   /**
-   * P15: the block cap, end to end. Twelve values at the per-value limit exceed
+   * The block cap, end to end. Twelve values at the per-value limit exceed
    * the block limit, so the trailing ones are dropped — which fails the run when
    * they are required, and is tolerated when they are optional.
    */
@@ -240,7 +240,7 @@ public class ProcessContextEngineTest {
   }
 
   /**
-   * Review finding (Dmitry, PR #447): the context block used to be returned from
+   * The context block used to be returned from
    * the {@code systemMessageProvider}, and LangChain4j runs that output through
    * {@link dev.langchain4j.model.input.PromptTemplate}
    * (`DefaultAiServices.prepareSystemMessage`). A process variable holding a

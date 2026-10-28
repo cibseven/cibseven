@@ -1119,7 +1119,7 @@ public class AgentChatListenerTest {
 
     Map<String, Object> payload = new HashMap<>();
     payload.put("declared", 2);
-    payload.put("resolved", 1);
+    payload.put("sent", 1);
 
     listener.recordContextEvent(payload);
 
@@ -1130,7 +1130,7 @@ public class AgentChatListenerTest {
         .containsEntry("schemaVersion", AgentChatListener.SCHEMA_VERSION)
         .containsEntry("eventSeq", 0)
         .containsEntry("declared", 2)
-        .containsEntry("resolved", 1);
+        .containsEntry("sent", 1);
     assertThat(event).containsKey("runId").containsKey("timestamp");
   }
 

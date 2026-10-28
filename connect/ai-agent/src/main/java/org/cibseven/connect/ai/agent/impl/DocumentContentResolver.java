@@ -415,9 +415,16 @@ public final class DocumentContentResolver {
    */
   private static MimeTypeSpec parseMimeType(String variable, String raw) {
     String[] parts = raw.split(";");
-    String baseType = parts[0].trim();
+    // ";" alone splits into nothing at all, "; charset=x" into an empty base.
+    String baseType = (parts.length == 0) ? "" : parts[0].trim();
+    if (baseType.isEmpty()) {
+      throw new AgentConnectorException("Document variable '" + variable + "' has the mime type '"
+          + raw + "', which names no type. Supply one via 'documentMimeTypes', e.g. {\""
+          + variable + "\": \"application/pdf\"}.");
+    }
     boolean textual = isTextual(baseType.toLowerCase(Locale.ROOT));
     Charset charset = null;
+    String charsetValue = null;
     for (int i = 1; i < parts.length; i++) {
       String parameter = parts[i].trim();
       int eq = parameter.indexOf('=');
@@ -425,6 +432,11 @@ public final class DocumentContentResolver {
         continue;
       }
       String value = parameter.substring(eq + 1).trim().replace("\"", "");
+      if (charsetValue != null && !charsetValue.equalsIgnoreCase(value)) {
+        throw new AgentConnectorException("Document '" + variable + "' declares more than one "
+            + "charset in its mime type ('" + charsetValue + "' and '" + value + "'). Keep one.");
+      }
+      charsetValue = value;
       if (!textual) {
         // A binary document is sent as Base64 and never decoded, so its charset
         // is meaningless — not worth failing over even when it is malformed.
@@ -493,12 +505,17 @@ public final class DocumentContentResolver {
         || SUPPORTED_IMAGE_TYPES.contains(lowerMimeType);
   }
 
+  /**
+   * The form sent to the provider: lower case, as mime types are compared case
+   * insensitively but providers do not all accept {@code Application/PDF}, and
+   * known aliases mapped to the registered type.
+   */
   private static String canonicalMimeType(String mimeType) {
-    String canonical = MIME_TYPE_ALIASES.get(mimeType.toLowerCase(Locale.ROOT));
-    if (canonical == null) {
-      return mimeType;
+    String lower = mimeType.toLowerCase(Locale.ROOT);
+    String canonical = MIME_TYPE_ALIASES.getOrDefault(lower, lower);
+    if (!canonical.equals(mimeType)) {
+      LOG.debug("Mime type '{}' sent as '{}'", mimeType, canonical);
     }
-    LOG.debug("Mime type '{}' sent as '{}'", mimeType, canonical);
     return canonical;
   }
 
@@ -679,7 +696,12 @@ public final class DocumentContentResolver {
             + "' to " + entry.getValue() + ", which is not a string. Each value must be a mime "
             + "type in quotes, e.g. {\"" + entry.getKey() + "\": \"application/pdf\"}.");
       }
-      overrides.put(entry.getKey().trim(), (String) entry.getValue());
+      String key = entry.getKey().trim();
+      if (overrides.containsKey(key)) {
+        throw new AgentConnectorException("'documentMimeTypes' has more than one entry for '"
+            + key + "' (keys are compared without surrounding spaces). Keep one.");
+      }
+      overrides.put(key, (String) entry.getValue());
     }
     return overrides;
   }
@@ -792,10 +814,10 @@ public final class DocumentContentResolver {
   }
 
   /**
-   * Escapes a value for a double-quoted attribute of the document tag. Line
-   * breaks and tabs become character references too: a filename is chosen by
-   * whoever uploads the file, and one spanning several lines would make the
-   * tag's own lines ambiguous to the model.
+   * Escapes a value for a double-quoted attribute of the document tag. Control
+   * characters and line breaks of every kind become character references too: a
+   * filename is chosen by whoever uploads the file, and one spanning several
+   * lines would make the tag's own lines ambiguous to the model.
    */
   private static String xmlAttribute(String value) {
     StringBuilder sb = new StringBuilder(value.length() + 16);
@@ -806,12 +828,18 @@ public final class DocumentContentResolver {
         case '"': sb.append("&quot;"); break;
         case '<': sb.append("&lt;"); break;
         case '>': sb.append("&gt;"); break;
-        case '\r': case '\n': case '\t':
         case (char) 0x85: case (char) 0x2028: case (char) 0x2029:
-          // Line breaks of any kind, including NEL, LS and PS.
+          // Unicode line breaks: NEL, LS and PS.
           sb.append("&#").append((int) c).append(';');
           break;
-        default: sb.append(c);
+        default:
+          // Every C0 control character (line feed, tab, VT, FF, ...) and DEL,
+          // as escape() treats them in context values.
+          if (c < 0x20 || c == 0x7F) {
+            sb.append("&#").append((int) c).append(';');
+          } else {
+            sb.append(c);
+          }
       }
     }
     return sb.toString();

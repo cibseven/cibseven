@@ -633,7 +633,14 @@ public final class ProcessContextResolver {
         case '\u000B': case '\u000C': case '\u0085': case '\u2028': case '\u2029':
           sb.append(String.format("\\u%04X", (int) c));
           break;
-        default:   sb.append(c);
+        default:
+          // The remaining C0 controls and DEL: some, like the separators
+          // U+001C..U+001E, count as line breaks for common parsers too.
+          if (c < 0x20 || c == 0x7F) {
+            sb.append(String.format("\\u%04X", (int) c));
+          } else {
+            sb.append(c);
+          }
       }
     }
     return neuterDelimiters(sb.toString());
@@ -663,7 +670,9 @@ public final class ProcessContextResolver {
    * their own delimited block and needs exactly the same containment.
    */
   static String neuterTag(String value, String tag) {
-    return value.replaceAll("(?i)<(/?" + tag + ")\\b", ESCAPED_ANGLE + "$1");
+    // Whitespace around the slash too: "< /document>" and "</ process-context>"
+    // are not well-formed, but a model may well read them as the tag.
+    return value.replaceAll("(?i)<(\\s*/?\\s*" + tag + ")\\b", ESCAPED_ANGLE + "$1");
   }
 
   // ── descriptor ─────────────────────────────────────────────────────────────
