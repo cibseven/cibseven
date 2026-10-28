@@ -551,6 +551,20 @@ public class DocumentContentResolverTest {
         .hasMessageNotContaining("contextVariables");
   }
 
+  /** A serialized object throws on getValue(); the type check must not call it. */
+  @Test
+  public void shouldRejectASerializedObjectAsADocumentByItsType() {
+    variables.put("order", Variables.serializedObjectValue("{\"id\":42}")
+        .serializationDataFormat("application/json")
+        .objectTypeName("com.example.Order")
+        .create());
+
+    assertThatThrownBy(() -> resolve("order"))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("'order' has type 'object'")
+        .hasMessageContaining("Only file and bytes variables");
+  }
+
   @Test
   public void shouldNameTheVariableWhenAFileVariableHasNoContent() {
     org.cibseven.bpm.engine.variable.value.FileValue file =

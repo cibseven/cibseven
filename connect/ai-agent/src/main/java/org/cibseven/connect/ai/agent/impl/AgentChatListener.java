@@ -241,7 +241,9 @@ class AgentChatListener implements ChatModelListener {
   private final String userId;
   /**
    * {@code "context"} for a user authenticated on the thread, {@code "startUser"}
-   * when the connector derived the process instance's start user for a job.
+   * when the connector derived the process instance's start user because none
+   * was — for a job run by the job executor, or a synchronous run without
+   * authentication.
    */
   private final String userIdSource;
   private final List<String> groupIds;

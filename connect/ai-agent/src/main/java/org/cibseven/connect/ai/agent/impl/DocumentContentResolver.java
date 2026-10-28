@@ -42,6 +42,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
+import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.engine.variable.value.BytesValue;
 import org.cibseven.bpm.engine.variable.value.FileValue;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
@@ -310,9 +311,10 @@ public final class DocumentContentResolver {
         throw new AgentConnectorException(
             "Document variable '" + name + "' is a byte variable holding null.");
       }
-    } else if (typed.getValue() == null) {
+    } else if (ValueType.NULL.equals(typed.getType())) {
       // An untyped null has type "null"; pointing at contextVariables would
-      // send the modeler the wrong way.
+      // send the modeler the wrong way. The type, not getValue(): a serialized
+      // object value throws there instead of answering.
       throw new AgentConnectorException("Document variable '" + name + "' holds null, not a "
           + "file. Set it to a file or bytes variable before the agent task runs.");
     } else {

@@ -250,9 +250,9 @@ public class AgentConnectorImplContextTest {
 
   @Test
   public void shouldUseTheContextBlockAloneWhenThereIsNoInstructionOrDescription() throws Exception {
-    // instructionMode 'replace' with an explicitly empty instruction still
-    // resolves to the bundled default, so blank both out via a description-only
-    // request is not possible — assert the helper's own null-prompt branch.
+    // No request reaches this branch: even 'replace' with an empty instruction
+    // falls back to the bundled default prompt. So the helper's handling of a
+    // missing prompt or block is checked directly.
     Method m = AgentConnectorImpl.class.getDeclaredMethod("appendContextBlock",
         String.class, String.class);
     m.setAccessible(true);

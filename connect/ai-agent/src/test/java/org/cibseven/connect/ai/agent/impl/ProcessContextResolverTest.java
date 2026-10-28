@@ -437,6 +437,26 @@ public class ProcessContextResolverTest {
     ProcessContextResolver.failOnMissingRequired(resolved);
   }
 
+  /**
+   * A Spin JSON value read without deserializing: rendered from its serialized
+   * form, never through getValue(), which would deserialize it in place.
+   */
+  @Test
+  public void shouldRenderASerializedSpinLikeValueWithoutDeserializingIt() {
+    org.cibseven.bpm.engine.variable.value.SerializableValue spin =
+        org.mockito.Mockito.mock(org.cibseven.bpm.engine.variable.value.SerializableValue.class);
+    org.mockito.Mockito.when(spin.isDeserialized()).thenReturn(false);
+    org.mockito.Mockito.when(spin.getValueSerialized()).thenReturn("{\"id\":42}");
+    org.mockito.Mockito.when(spin.getType()).thenReturn(
+        org.cibseven.bpm.engine.variable.type.ValueType.OBJECT);
+    variables.put("payload", spin);
+
+    String block = render("payload", null);
+
+    assertThat(block).contains("payload (object) = {\"id\":42}");
+    org.mockito.Mockito.verify(spin, org.mockito.Mockito.never()).getValue();
+  }
+
   // ── prompt injection ───────────────────────────────────────────────────────
 
   @Test

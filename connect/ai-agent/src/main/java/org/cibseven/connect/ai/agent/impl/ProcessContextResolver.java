@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.cibseven.bpm.engine.variable.value.BytesValue;
 import org.cibseven.bpm.engine.variable.value.FileValue;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
+import org.cibseven.bpm.engine.variable.value.SerializableValue;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
@@ -435,6 +436,13 @@ public final class ProcessContextResolver {
     }
     if (typed instanceof ObjectValue) {
       return renderObjectValue((ObjectValue) typed);
+    }
+    if (typed instanceof SerializableValue && !((SerializableValue) typed).isDeserialized()) {
+      // Spin JSON/XML values: getValue() would deserialize in place and drop the
+      // serialized form of the variable's cached value. The serialized text is
+      // what the model should see anyway.
+      String serialized = ((SerializableValue) typed).getValueSerialized();
+      return (serialized == null) ? null : new Rendered(serialized, false);
     }
     Object value = typed.getValue();
     if (value == null) {

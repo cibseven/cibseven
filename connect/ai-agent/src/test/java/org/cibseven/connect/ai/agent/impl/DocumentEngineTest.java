@@ -167,12 +167,62 @@ public class DocumentEngineTest {
     }
   }
 
+  /** Every request of the last run, in order — one per model call of the tool loop. */
+  static final List<List<ChatMessage>> toolLoopRequests =
+      java.util.Collections.synchronizedList(new ArrayList<>());
+
+  /** Asks for the {@link PingTool} once, then answers. */
+  static final class ToolCallingChatModel implements ChatModel {
+    private final List<ChatModelListener> listeners;
+
+    ToolCallingChatModel(ChatModelListener listener) {
+      this.listeners = List.of(listener);
+    }
+
+    @Override
+    public List<ChatModelListener> listeners() {
+      return listeners;
+    }
+
+    @Override
+    public ChatResponse doChat(ChatRequest request) {
+      toolLoopRequests.add(new ArrayList<>(request.messages()));
+      if (toolLoopRequests.size() == 1) {
+        return ChatResponse.builder().aiMessage(AiMessage.from(
+            dev.langchain4j.agent.tool.ToolExecutionRequest.builder()
+                .id("call-1").name("ping").arguments("{}").build())).build();
+      }
+      return ChatResponse.builder().aiMessage(AiMessage.from("done")).build();
+    }
+  }
+
+  static final class ToolCallingConnector extends AgentConnectorImpl {
+    @Override
+    protected ChatModel createChatModel(AgentRequest request, String apiKey, String baseUrl,
+        Map<String, String> customHeaders) {
+      AgentChatListener listener =
+          new AgentChatListener(request.getModel(), baseUrl, request.getPersistChatLog());
+      ProcessStarterToolContext.setActiveListener(listener);
+      return new ToolCallingChatModel(listener);
+    }
+  }
+
+  /** A tool with no arguments, so the stub needs no knowledge of parameter names. */
+  public static class PingTool {
+    @dev.langchain4j.agent.tool.Tool("Answers pong")
+    public String ping() {
+      return "pong";
+    }
+  }
+
   /** Runs the connector inside a real engine command. */
   public static class AgentDelegate implements JavaDelegate {
     @Override
     public void execute(DelegateExecution execution) {
       boolean withRag = Boolean.TRUE.equals(execution.getVariable("_rag"));
-      AgentConnectorImpl connector = withRag ? new RagConnector() : new CapturingConnector();
+      boolean withTool = Boolean.TRUE.equals(execution.getVariable("_tool"));
+      AgentConnectorImpl connector = withTool ? new ToolCallingConnector()
+          : withRag ? new RagConnector() : new CapturingConnector();
       String message = execution.hasVariable("_message")
           ? (String) execution.getVariable("_message")
           : "Read the attached invoice.";
@@ -187,6 +237,9 @@ public class DocumentEngineTest {
       String memoryId = (String) execution.getVariable("_memoryId");
       if (memoryId != null) {
         request.useChatMemory(true).memoryId(memoryId);
+      }
+      if (withTool) {
+        request.toolClasses(PingTool.class.getName());
       }
       connector.execute(request);
     }
@@ -404,6 +457,47 @@ public class DocumentEngineTest {
       assertThat(message.toString()).doesNotContain(encoded);
     }
     assertThat(remembered.toString()).contains("Read the attached invoice.");
+  }
+
+  /**
+   * With memory, the request after a tool call is rebuilt from chat memory,
+   * which holds the text-only user message. The attachments come back only
+   * because LangChain4j's ToolService puts the full message back
+   * (UserMessage.replaceLast) — an implementation detail, so this is the alarm
+   * for an upgrade that drops it. The same instances also keep the chat log on
+   * descriptors instead of a text document's body.
+   */
+  @Test
+  public void shouldKeepTheAttachmentsAcrossAToolCallWithChatMemory() {
+    toolLoopRequests.clear();
+    String body = "CONFIDENTIAL TERMS: payment within 14 days.";
+
+    start(Variables.createVariables()
+        .putValue("_tool", true)
+        .putValue("_documents", "invoice,terms")
+        .putValue("_memoryId", "mem-tool")
+        .putValueTyped("invoice", Variables.fileValue("invoice.pdf")
+            .file(PDF_BYTES).mimeType("application/pdf").create())
+        .putValueTyped("terms", Variables.fileValue("terms.txt")
+            .file(body.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            .mimeType("text/plain").create()));
+
+    assertThat(toolLoopRequests).as("one call for the tool, one for the answer").hasSize(2);
+    UserMessage afterTool = null;
+    for (ChatMessage message : toolLoopRequests.get(1)) {
+      if (message instanceof UserMessage) {
+        afterTool = (UserMessage) message;
+      }
+    }
+    assertThat(afterTool).isNotNull();
+    assertThat(afterTool.contents()).hasAtLeastOneElementOfType(PdfFileContent.class);
+    assertThat(afterTool.contents().stream().filter(TextContent.class::isInstance)
+        .map(c -> ((TextContent) c).text()).collect(Collectors.joining()))
+        .contains(body);
+
+    String rawLog = chatLog();
+    assertThat(rawLog).doesNotContain(body)
+        .doesNotContain(Base64.getEncoder().encodeToString(PDF_BYTES));
   }
 
   // ── audit ──────────────────────────────────────────────────────────────────

@@ -334,7 +334,7 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   @Override
   public String getDocumentDetailLevel() {
     return getText(AgentConnector.PARAM_NAME_DOCUMENT_DETAIL_LEVEL,
-        "must be one of AUTO, LOW, HIGH", "Pick a value from the template's dropdown.");
+        "must be one of AUTO, LOW, HIGH", "Pass the level as text, e.g. \"HIGH\".");
   }
 
   /**

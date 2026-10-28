@@ -229,8 +229,9 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * <p><b>Authorization:</b> the same check covers {@link #PARAM_NAME_DOCUMENTS}.
    * <ul>
    *   <li>Who: the authenticated user — for a synchronous task, and for a job
-   *       a user executes by hand. For a job run by the job executor, the start
-   *       user of the process instance, not whoever led to the job.</li>
+   *       a user executes by hand. Without one — a job run by the job executor,
+   *       or a synchronous run without authentication — the start user of the
+   *       process instance, not whoever led to the task.</li>
    *   <li>Permissions, when authorization is enabled — one of {@code READ} on the
    *       process instance, or {@code READ_INSTANCE} or {@code READ_TASK} on the
    *       process definition; with {@code enforceSpecificVariablePermission},
