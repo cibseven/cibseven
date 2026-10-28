@@ -282,11 +282,11 @@
 
   <!-- The webclient tables (MOD_, CHAT_, NOTIF_) are not engine schema. This step runs only where
        they are already present, so an installation without them is left as it is. -->
-  <changeSet author="CIB" id="2.2-to-3.0-webapp">
+  <changeSet author="CIB" id="2.2-to-3.0-webext">
     <preConditions onFail="MARK_RAN">
       <tableExists tableName="MOD_ELEMENT_TEMPLATES"/>
     </preConditions>
-    <sqlFile path="upgrade/${db.name}_webapp_2.2_to_3.0.sql"
+    <sqlFile path="upgrade/${db.name}_webext_2.2_to_3.0.sql"
              encoding="UTF-8"
              relativeToChangelogFile="true"
              splitStatements="true"

@@ -222,6 +222,6 @@ CREATE INDEX NOTIF_IDX_GROUPS_GROUP ON NOTIF_GROUPS (GROUP_ID);
 
 -- Version of the webclient schema. The engine reads it at startup and reports it through its
 -- configuration endpoint, so the webclient can tell whether its tables are present and current.
--- The component is called webapp because it covers MOD_, CHAT_ and NOTIF_ alike.
+-- The component is called webext because it covers MOD_, CHAT_ and NOTIF_ alike.
 -- ACT_GE_PROPERTY belongs to the engine component, which is always created before this one.
-INSERT INTO ACT_GE_PROPERTY VALUES ('webapp.schema.version', '3.0.0', 1);
+INSERT INTO ACT_GE_PROPERTY VALUES ('webclient.extensions.version', '3.0.0', 1);

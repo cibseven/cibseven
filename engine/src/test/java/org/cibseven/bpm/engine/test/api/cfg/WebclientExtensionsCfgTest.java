@@ -29,15 +29,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * The webclient tables (MOD_, CHAT_, NOTIF_) are the optional webapp schema component. These tests
+ * The webclient tables (MOD_, CHAT_, NOTIF_) are the optional webext schema component. These tests
  * cover the whole chain the configuration endpoint depends on: the switch decides whether the
- * component is created, the create script writes webapp.schema.version into ACT_GE_PROPERTY, and
+ * component is created, the create script writes webclient.extensions.version into ACT_GE_PROPERTY, and
  * BootstrapEngineCommand reads it back into the configuration.
  *
  * <p>No table is created when the component is off, so the version is then absent - that is how the
  * webclient tells it cannot use those features.
  */
-public class WebappSchemaCfgTest {
+public class WebclientExtensionsCfgTest {
 
   protected ProcessEngineImpl engine;
 
@@ -50,35 +50,35 @@ public class WebappSchemaCfgTest {
   }
 
   @Test
-  public void shouldNotCreateTheWebappTablesByDefault() {
-    engine = buildEngine("webapp-default", configuration -> configuration);
+  public void shouldNotCreateTheWebclientTablesByDefault() {
+    engine = buildEngine("webext-default", configuration -> configuration);
 
-    assertThat(webappTablePresent()).isFalse();
-    assertThat(webappSchemaVersion()).isNull();
+    assertThat(webextTablePresent()).isFalse();
+    assertThat(webclientExtensionsVersion()).isNull();
   }
 
   @Test
-  public void shouldCreateTheWebappTablesWhenSwitchedOn() {
-    engine = buildEngine("webapp-on", configuration -> {
-      configuration.setWebappSchemaEnabled(true);
+  public void shouldCreateTheWebclientTablesWhenSwitchedOn() {
+    engine = buildEngine("webext-on", configuration -> {
+      configuration.setWebclientExtensionsEnabled(true);
       return configuration;
     });
 
-    assertThat(webappTablePresent()).isTrue();
-    assertThat(webappSchemaVersion())
+    assertThat(webextTablePresent()).isTrue();
+    assertThat(webclientExtensionsVersion())
         .as("the create script writes the release it belongs to")
         .matches("\\d+\\.\\d+\\.\\d+");
   }
 
   @Test
-  public void shouldLeaveTheWebappTablesOutWhenSwitchedOff() {
-    engine = buildEngine("webapp-off", configuration -> {
-      configuration.setWebappSchemaEnabled(false);
+  public void shouldLeaveTheWebclientTablesOutWhenSwitchedOff() {
+    engine = buildEngine("webext-off", configuration -> {
+      configuration.setWebclientExtensionsEnabled(false);
       return configuration;
     });
 
-    assertThat(webappTablePresent()).isFalse();
-    assertThat(webappSchemaVersion()).isNull();
+    assertThat(webextTablePresent()).isFalse();
+    assertThat(webclientExtensionsVersion()).isNull();
   }
 
   /** modelerEnabled is deprecated but still has to drive the same component. */
@@ -89,23 +89,23 @@ public class WebappSchemaCfgTest {
       return configuration;
     });
 
-    assertThat(configuration().isWebappSchemaEnabled()).isTrue();
-    assertThat(webappTablePresent()).isTrue();
-    assertThat(webappSchemaVersion()).isNotNull();
+    assertThat(configuration().isWebclientExtensionsEnabled()).isTrue();
+    assertThat(webextTablePresent()).isTrue();
+    assertThat(webclientExtensionsVersion()).isNotNull();
   }
 
   /** Both names address one field, so neither can report something the other contradicts. */
   @Test
   public void shouldReportBothSwitchNamesConsistently() {
-    engine = buildEngine("webapp-aliases", configuration -> {
-      configuration.setWebappSchemaEnabled(true);
+    engine = buildEngine("webext-aliases", configuration -> {
+      configuration.setWebclientExtensionsEnabled(true);
       return configuration;
     });
 
     assertThat(configuration().isModelerEnabled()).isTrue();
 
     configuration().setModelerEnabled(false);
-    assertThat(configuration().isWebappSchemaEnabled()).isFalse();
+    assertThat(configuration().isWebclientExtensionsEnabled()).isFalse();
   }
 
   protected ProcessEngineImpl buildEngine(String name,
@@ -124,12 +124,12 @@ public class WebappSchemaCfgTest {
   }
 
   /** Reads the database rather than the switch, so a misnamed script resource shows up here. */
-  protected boolean webappTablePresent() {
+  protected boolean webextTablePresent() {
     return configuration().getCommandExecutorTxRequired()
-        .execute((CommandContext commandContext) -> commandContext.getDbSqlSession().isWebappTablePresent());
+        .execute((CommandContext commandContext) -> commandContext.getDbSqlSession().isWebextTablePresent());
   }
 
-  protected String webappSchemaVersion() {
-    return configuration().getWebappSchemaVersion();
+  protected String webclientExtensionsVersion() {
+    return configuration().getWebclientExtensionsVersion();
   }
 }
