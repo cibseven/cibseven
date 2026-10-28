@@ -252,6 +252,18 @@ public class CycleBusinessCalendarTest {
       assertThat(sdf.format(cbc.resolveDuedate("0 0 0 ? * 1/8", startDate))).isEqualTo("2010 02 14 00:00");
       // increments within the range of the field are kept: minutes 0 and 59
       assertThat(sdf.format(cbc.resolveDuedate("0 0/59 * * * ?", startDate))).isEqualTo("2010 02 11 17:59");
+      // a range with an out-of-range increment becomes its start value
+      // "0 0-30/60 * * * ?" -> "0 0 * * * ?"
+      assertThat(sdf.format(cbc.resolveDuedate("0 0-30/60 * * * ?", startDate))).isEqualTo("2010 02 11 18:00");
+      // each element of a list is patched: "0 0/60,30 * * * ?" -> "0 0,30 * * * ?"
+      assertThat(sdf.format(cbc.resolveDuedate("0 0/60,30 * * * ?", startDate))).isEqualTo("2010 02 11 17:30");
+      // day names: "0 0 0 ? * MON/8" -> "0 0 0 ? * MON"
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 0 ? * MON/8", startDate))).isEqualTo("2010 02 15 00:00");
+      // year field: "0 0 0 1 1 ? 2027/3000" -> "0 0 0 1 1 ? 2027"
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1 1 ? 2027/3000", startDate))).isEqualTo("2027 01 01 00:00");
+      // tabs and repeated spaces between the fields
+      assertThat(sdf.format(cbc.resolveDuedate("0\t0/60  *  *\t* ?", startDate))).isEqualTo("2010 02 11 18:00");
+      assertThat(sdf.format(cbc.resolveDuedate("0  0  0  1  *  MON", startDate))).isEqualTo("2010 02 15 00:00");
       // '*/60' was rejected by Quartz 1.8.4 as well
       assertThatThrownBy(() -> cbc.resolveDuedate("0 */60 * * * ?", startDate))
           .isInstanceOf(ProcessEngineException.class)
