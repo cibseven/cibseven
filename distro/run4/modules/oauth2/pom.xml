@@ -32,6 +32,27 @@
     </plugins>
   </build>
 
+  <profiles>
+    <profile>
+      <!-- OAuth2 integration of the legacy webapps, only for the tests that still drive the engine through them -->
+      <id>legacy-webapps</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.cibseven.bpm.springboot</groupId>
+          <artifactId>cibseven-bpm-spring-boot-starter-security-legacy-4</artifactId>
+          <version>${project.version}</version>
+          <exclusions>
+            <!-- the legacy webapps come with the webapps module; the oauth2 option alone must not start them -->
+            <exclusion>
+              <groupId>org.cibseven.bpm.springboot</groupId>
+              <artifactId>cibseven-bpm-spring-boot-starter-webapp-legacy-4</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+
   <description>
     Description of CIB seven - Run 4 - Module Spring Security
   </description>

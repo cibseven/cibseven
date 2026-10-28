@@ -134,6 +134,9 @@
         <module>starter-client/spring-boot</module>
         <module>starter-webapp-core</module>
         <module>starter-webapp</module>
+        <!-- legacy webapps, only for the tests that still drive the engine through them; never published -->
+        <module>starter-webapp-legacy</module>
+        <module>starter-security-legacy</module>
         <module>starter-qa</module>
       </modules>
     </profile>
@@ -146,6 +149,7 @@
         <module>starter-security</module>
         <module>starter-client/spring-boot</module>
         <module>starter-webapp-core</module>
+        <module>starter-webapp-legacy</module>
       </modules>
       <build>
         <plugins>

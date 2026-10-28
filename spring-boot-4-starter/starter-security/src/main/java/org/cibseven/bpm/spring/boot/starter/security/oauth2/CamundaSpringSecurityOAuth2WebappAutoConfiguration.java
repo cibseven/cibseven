@@ -17,29 +17,20 @@
 package org.cibseven.bpm.spring.boot.starter.security.oauth2;
 
 import jakarta.annotation.Nullable;
-import jakarta.servlet.DispatcherType;
-import jakarta.servlet.Filter;
 
-import org.cibseven.bpm.engine.rest.security.auth.ProcessEngineAuthenticationFilter;
 import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
-import org.cibseven.bpm.spring.boot.starter.property.WebappProperty;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.AuthorizeTokenFilter;
-import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.OAuth2AuthenticationProvider;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.OAuth2GrantedAuthoritiesMapper;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.SsoLogoutSuccessHandler;
-import org.cibseven.bpm.webapp.impl.security.auth.ContainerBasedAuthenticationFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.ClientsConfiguredCondition;
 import org.springframework.boot.jersey.autoconfigure.JerseyApplicationPath;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
@@ -53,14 +44,10 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
-import java.util.Map;
-
 @AutoConfigureOrder(CamundaSpringSecurityOAuth2CommonAutoConfiguration.CAMUNDA_OAUTH2_ORDER + 2)
 @AutoConfigureAfter(CamundaSpringSecurityOAuth2CommonAutoConfiguration.class)
 @ConditionalOnBean(CamundaBpmProperties.class)
 @Conditional(ClientsConfiguredCondition.class)
-@ConditionalOnProperty(prefix = WebappProperty.PREFIX, name = "installed", havingValue = "true")
-@ConditionalOnClass(name = "org.cibseven.bpm.webapp.impl.security.auth.ContainerBasedAuthenticationFilter")
 @EnableConfigurationProperties(OAuth2Properties.class)
 @Configuration
 public class CamundaSpringSecurityOAuth2WebappAutoConfiguration {
@@ -80,20 +67,6 @@ public class CamundaSpringSecurityOAuth2WebappAutoConfiguration {
   protected SsoLogoutSuccessHandler ssoLogoutSuccessHandler(ClientRegistrationRepository clientRegistrationRepository) {
     logger.debug("Registering SsoLogoutSuccessHandler");
     return new SsoLogoutSuccessHandler(clientRegistrationRepository, oAuth2Properties);
-  }
-
-  @Bean
-  public FilterRegistrationBean<?> webappAuthenticationFilter() {
-    FilterRegistrationBean<Filter> filterRegistration = new FilterRegistrationBean<>();
-    filterRegistration.setName("Container Based Authentication Filter for legacy webapp");
-    filterRegistration.setFilter(new ContainerBasedAuthenticationFilter());
-    filterRegistration.setInitParameters(Map.of(
-        ProcessEngineAuthenticationFilter.AUTHENTICATION_PROVIDER_PARAM, OAuth2AuthenticationProvider.class.getName()));
-    // make sure the filter is registered after the Spring Security Filter Chain
-    filterRegistration.setOrder(SecurityFilterProperties.DEFAULT_FILTER_ORDER + 1);
-    filterRegistration.addUrlPatterns(legacyWebappPath + "/app/*", legacyWebappPath + "/api/*");
-    filterRegistration.setDispatcherTypes(DispatcherType.REQUEST);
-    return filterRegistration;
   }
 
   @Bean

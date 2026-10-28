@@ -43,17 +43,9 @@
       <id>legacy-webapps</id>
       <dependencies>
         <dependency>
-          <groupId>org.cibseven.bpm.webapp</groupId>
-          <artifactId>cibseven-webapp-jakarta</artifactId>
-          <version>${version.legacy-webapps}</version>
-          <classifier>classes</classifier>
-          <exclusions>
-            <!-- the 2.x POM pulls in 2.x engine-rest artifacts; the current ones come from this build -->
-            <exclusion>
-              <groupId>*</groupId>
-              <artifactId>*</artifactId>
-            </exclusion>
-          </exclusions>
+          <groupId>org.cibseven.bpm.springboot</groupId>
+          <artifactId>cibseven-bpm-spring-boot-starter-webapp-legacy-4</artifactId>
+          <version>${project.version}</version>
         </dependency>
       </dependencies>
     </profile>

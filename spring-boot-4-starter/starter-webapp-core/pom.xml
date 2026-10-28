@@ -28,22 +28,6 @@
 
     <dependency>
       <groupId>org.cibseven.bpm.webapp</groupId>
-      <artifactId>cibseven-webapp-jakarta</artifactId>
-      <version>${version.legacy-webapps}</version>
-      <type>jar</type>
-      <classifier>classes</classifier>
-      <optional>true</optional>
-      <exclusions>
-        <!-- the 2.x POM pulls in 2.x engine-rest artifacts; the current ones come from this build -->
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>org.cibseven.bpm.webapp</groupId>
       <artifactId>cibseven-webapp-webjar</artifactId>
       <scope>test</scope>
     </dependency>
@@ -107,24 +91,6 @@
         <directory>../../spring-boot-starter/starter-webapp-core/src/main/resources</directory>
       </resource>
     </resources>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-failsafe-plugin</artifactId>
-          <configuration>
-            <!-- See CAM-11901 -->
-            <useManifestOnlyJar>false</useManifestOnlyJar>
-            <excludes>
-              <!-- TODO: adjust test to cibseven webclient (if possible) and remove the exclusions -->
-              <exclude>**/ChangedAppPathIT.java</exclude>
-              <exclude>**/ChangedAppPathContainerBasedAuthIT.java</exclude>
-              <exclude>**/EmptyAppPathIT.java</exclude>
-            </excludes>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -143,6 +109,11 @@
                   <directory>../../spring-boot-starter/starter-webapp-core/src/main/java</directory>
                   <excludes>
                     <exclude>**/CamundaBpmWebappAutoConfiguration.java</exclude>
+                    <!-- the legacy webapps live in starter-webapp-legacy, which is never published -->
+                    <exclude>**/CamundaBpmWebappInitializer.java</exclude>
+                    <exclude>**/FaviconResourceResolver.java</exclude>
+                    <exclude>**/filter/Lazy*.java</exclude>
+                    <exclude>**/filter/ResourceLoad*.java</exclude>
                   </excludes>
                 </resource>
               </resources>
@@ -160,12 +131,11 @@
                 <resource>
                   <directory>../../spring-boot-starter/starter-webapp-core/src/test/java</directory>
                   <excludes>
-                    <exclude>**/apppath/ChangedAppPathIT.java</exclude>
-                    <exclude>**/apppath/containerbasedauth/ChangedAppPathContainerBasedAuthIT.java</exclude>
-                    <exclude>**/apppath/containerbasedauth/ContainerBasedAuthFilterRegistration.java</exclude>
-                    <exclude>**/apppath/EmptyAppPathIT.java</exclude>
-                    <exclude>**/apppath/RequestTrailingSlashIT.java</exclude>
                     <exclude>**/CamundaBpmWebappAutoConfigurationIntegrationTest.java</exclude>
+                    <!-- tests of the legacy webapps, see starter-webapp-legacy -->
+                    <exclude>**/FaviconResourceResolverTest.java</exclude>
+                    <exclude>**/apppath/**</exclude>
+                    <exclude>**/filter/**</exclude>
                   </excludes>
                 </resource>
               </resources>
@@ -182,6 +152,10 @@
               <resources>
                 <resource>
                   <directory>../../spring-boot-starter/starter-webapp-core/src/test/resources</directory>
+                  <excludes>
+                    <!-- stand-in for the legacy webjar, see starter-webapp-legacy -->
+                    <exclude>META-INF/resources/webjars/camunda/**</exclude>
+                  </excludes>
                 </resource>
               </resources>
             </configuration>

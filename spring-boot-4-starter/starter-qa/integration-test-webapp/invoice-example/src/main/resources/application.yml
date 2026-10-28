@@ -1,7 +1,9 @@
 server.port: 58080
+camunda.bpm:
+  generic-properties.properties:
+    # the integration tests deploy the webclient, so its tables have to be created too
+    webappSchemaEnabled: true
 cibseven:
   webclient:
     authentication:
       jwtSecret: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-      
-camunda.bpm.webapp.installed: true
