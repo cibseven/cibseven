@@ -69,8 +69,12 @@ import dev.langchain4j.agent.tool.Tool;
  * </ul>
  * The tool has exactly the rights of that user. For an admin that includes
  * every tenant: the engine skips its tenant check for admins, so an admin's
- * job reaches processes of all tenants, as the admin could directly. A job of
- * a tenant whose instance has no start user stays confined to that tenant.
+ * job reaches processes of all tenants, as the admin could directly. A start
+ * user's tenants are their memberships in the identity service, not the tenant
+ * of the instance that runs the job — so with LDAP or OAuth2 tenants, whose
+ * tenant queries return nothing, a start user reaches no tenant's processes.
+ * A job of a tenant whose instance has no start user stays confined to that
+ * tenant.
  *
  * <p>Permissions needed: {@code CREATE} on process instances and
  * {@code CREATE_INSTANCE} on the definition to start; {@code READ} on the

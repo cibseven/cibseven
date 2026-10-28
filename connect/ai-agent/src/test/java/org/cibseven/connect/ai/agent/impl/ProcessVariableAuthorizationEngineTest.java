@@ -611,6 +611,49 @@ public class ProcessVariableAuthorizationEngineTest {
   }
 
   /**
+   * Review round 7, finding 3: the start user derived for a tenant job used to
+   * carry the instance's tenant, and ProcessStarterTool runs under it — so a
+   * start user who is no member (a revoked membership, or an instance placed in
+   * the tenant by a TenantIdProvider) gained that tenant. alice started the
+   * instance with t1 on her authentication, but the identity service knows no
+   * such membership.
+   */
+  @Test
+  public void shouldNotGiveTheToolTheTenantOfTheInstanceWithoutAMembership() {
+    deploy(TENANT, TOOL_KEY, bpmn(TOOL_KEY, true, ToolDelegate.class));
+    deploy(TENANT, OTHER_KEY, waitingProcess(OTHER_KEY));
+    startInTenantAs("alice", List.of(), TOOL_KEY,
+        Variables.createVariables().putValue("_startKey", OTHER_KEY));
+
+    executeTheJob();
+
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processDefinitionKey(OTHER_KEY).count())
+        .as("instances started by the tool for a non-member").isZero();
+    assertThat(toolFailure).isNotNull();
+    assertThat(capturedCaller).isInstanceOf(StartUserAuthentication.class);
+    assertThat(capturedCaller.getTenantIds()).isEmpty();
+  }
+
+  @Test
+  public void shouldGiveTheToolTheTenantsTheStartUserIsAMemberOf() {
+    deploy(TENANT, TOOL_KEY, bpmn(TOOL_KEY, true, ToolDelegate.class));
+    deploy(TENANT, OTHER_KEY, waitingProcess(OTHER_KEY));
+    createUser("alice", null);
+    ENGINE.getIdentityService().saveTenant(ENGINE.getIdentityService().newTenant(TENANT));
+    ENGINE.getIdentityService().createTenantUserMembership(TENANT, "alice");
+    startInTenantAs("alice", List.of(), TOOL_KEY,
+        Variables.createVariables().putValue("_startKey", OTHER_KEY));
+
+    executeTheJob();
+
+    assertThat(toolFailure).isNull();
+    assertThat(capturedCaller.getTenantIds()).containsExactly(TENANT);
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processDefinitionKey(OTHER_KEY).count()).isEqualTo(1);
+  }
+
+  /**
    * Review round 6, P1: the same tenant job without a start user, now with an
    * agent task reading context. The user-less authentication kept for the tool
    * must not count as a caller: nothing can be checked, the agent runs, and the

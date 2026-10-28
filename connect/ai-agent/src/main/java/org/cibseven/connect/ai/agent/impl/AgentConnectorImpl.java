@@ -38,6 +38,7 @@ import org.cibseven.bpm.BpmPlatform;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.history.HistoricProcessInstance;
 import org.cibseven.bpm.engine.identity.Group;
+import org.cibseven.bpm.engine.identity.Tenant;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
 import org.cibseven.bpm.engine.impl.context.Context;
@@ -516,9 +517,19 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    * instance currently on the thread. Used as a fallback when no interactive
    * authentication is available (typical for async service tasks executed by
    * the JobExecutor). The returned {@code Authentication} carries the
-   * starter's userId, their group ids, and the process instance's tenantId
-   * (if any). Returns {@code null} when the executing BPMN context, the
-   * historic process instance record, or the start user cannot be resolved.
+   * starter's userId, their group ids, and the tenants they are a member of
+   * according to the identity service. Returns {@code null} when the executing
+   * BPMN context, the historic process instance record, or the start user
+   * cannot be resolved.
+   *
+   * <p>Not the process instance's own tenant: tools such as
+   * {@code ProcessStarterTool} run engine calls under this authentication, and
+   * the engine's tenant check trusts its tenant list. Copying the instance's
+   * tenant would hand the start user that tenant whether or not they are a
+   * member — after a revoked membership, or for an instance placed in the
+   * tenant by a {@code TenantIdProvider}. The price: with identity providers
+   * whose tenant queries return nothing (LDAP, OAuth2 with tenants) the derived
+   * caller belongs to no tenant.
    */
   private Authentication deriveAuthenticationFromProcessInstance(ProcessEngine engine) {
     ExecutionEntity execution = currentExecution();
@@ -559,7 +570,17 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       } catch (Exception e) {
         LOG.debug("Could not look up groups for user '{}': {}", startUserId, e.toString());
       }
-      List<String> tenantIds = (hpi.getTenantId() != null) ? List.of(hpi.getTenantId()) : null;
+      List<String> tenantIds = new ArrayList<>();
+      try {
+        for (Tenant t : engine.getIdentityService().createTenantQuery()
+            .userMember(startUserId).includingGroupsOfUser(true).list()) {
+          tenantIds.add(t.getId());
+        }
+      } catch (Exception e) {
+        // No membership is assumed rather than the instance's tenant: an
+        // unknown membership must not widen what the tools may reach.
+        LOG.debug("Could not look up tenants for user '{}': {}", startUserId, e.toString());
+      }
       LOG.debug("Derived authentication from process instance '{}': user='{}', groups={}, tenants={}",
           processInstanceId, startUserId, groupIds, tenantIds);
       return new StartUserAuthentication(startUserId, groupIds, tenantIds);

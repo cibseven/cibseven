@@ -92,9 +92,9 @@ import org.slf4j.LoggerFactory;
  * <p>Otherwise — a job run by the job executor, which authenticates a job of a
  * tenant only as {@code (null, null, [tenantId])} — the start user of the
  * process instance, as a {@link StartUserAuthentication}. That is not
- * necessarily whoever led to the job. Its tenant list merely copies the
- * instance's tenant, so memberships are read from the identity service instead.
- * The marker survives {@code ProcessStarterTool}, so an agent task in a child
+ * necessarily whoever led to the job. Its memberships are read from the
+ * identity service — here directly, whatever tenant list the authentication
+ * carries, so the check does not depend on how it was built. The marker survives {@code ProcessStarterTool}, so an agent task in a child
  * process it starts does not mistake the start user for a login.
  *
  * <p>Limitation, deliberately stricter than the engine: identity providers whose
