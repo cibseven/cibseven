@@ -124,6 +124,15 @@ public final class AgentChatMemoryStore {
    * reach only the store's internal fallback buffer and leave the variable in the
    * database. Rather than reporting success in that case, this method throws.
    *
+   * <p>One conversation it does not reach, and does not report: that of the agent
+   * driving an agentic ad hoc sub process. Only the turn runner's own call reaches
+   * it, so that the scope's tools can neither read, rewrite nor clear it
+   * (CIB7-2232). Called with that agent's {@code memoryId} from anywhere else — a
+   * tool, a {@code JavaDelegate}, an execution listener, on the scope itself too —
+   * this method clears only the process level, where that conversation is not, and
+   * returns normally. The agent's conversation ends with the scope ({@code perEntry})
+   * or with the scope enclosing it ({@code perActivity}).
+   *
    * @throws AgentConnectorException when the current thread cannot reach the
    *     persisted conversation. Call it from within an engine command (for
    *     example a {@code JavaDelegate} or an execution listener), or delete the

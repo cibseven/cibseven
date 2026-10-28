@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Three ad hoc scopes, one after another, inside one enclosing (embedded, non-ad-hoc)
+     subprocess: two asked for cibseven.agentic.conversation = perActivity by the test's
+     ConversationModeListener (their id ends with "PerActivity"), one did not. Sequential, so
+     each scope's execution is reachable only once the one before it has completed: the test
+     drives them in that order. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-conversation-placement">
+  <process id="conversationPlacement" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="outer" />
+    <subProcess id="outer">
+      <startEvent id="outerStart" />
+      <sequenceFlow id="o1" sourceRef="outerStart" targetRef="adHocPerActivity" />
+      <adHocSubProcess id="adHocPerActivity">
+        <serviceTask id="enter"
+            camunda:class="org.cibseven.connect.ai.agent.agentic.AdHocConversationTest$EnterAndRecord" />
+        <serviceTask id="tamperHolder"
+            camunda:class="org.cibseven.connect.ai.agent.agentic.AdHocConversationTest$TamperHolderMarker" />
+        <serviceTask id="bumpTotal"
+            camunda:class="org.cibseven.connect.ai.agent.agentic.AdHocConversationTest$BumpTotal" />
+      </adHocSubProcess>
+      <sequenceFlow id="o2" sourceRef="adHocPerActivity" targetRef="adHoc2PerActivity" />
+      <adHocSubProcess id="adHoc2PerActivity">
+        <serviceTask id="enter2"
+            camunda:class="org.cibseven.connect.ai.agent.agentic.AdHocConversationTest$EnterAndRecord" />
+      </adHocSubProcess>
+      <sequenceFlow id="o3" sourceRef="adHoc2PerActivity" targetRef="adHocPlain" />
+      <adHocSubProcess id="adHocPlain">
+        <serviceTask id="enterPlain"
+            camunda:class="org.cibseven.connect.ai.agent.agentic.AdHocConversationTest$EnterAndRecord" />
+      </adHocSubProcess>
+      <sequenceFlow id="o4" sourceRef="adHocPlain" targetRef="outerEnd" />
+      <endEvent id="outerEnd" />
+    </subProcess>
+    <sequenceFlow id="f2" sourceRef="outer" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

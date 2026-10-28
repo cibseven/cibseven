@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- An ad hoc scope asking for cibseven.agentic.conversation = perActivity (stamped by the
+     test's ConversationModeListener, its id ends with "PerActivity"), inside an enclosing
+     subprocess, followed by a feedback wait state and then one further wait state reached only
+     once the enclosing subprocess, and with it the holder, has ended. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-conversation-migration">
+  <process id="conversationMigration" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="outer" />
+    <subProcess id="outer">
+      <startEvent id="outerStart" />
+      <sequenceFlow id="o1" sourceRef="outerStart" targetRef="adHocPerActivity" />
+      <adHocSubProcess id="adHocPerActivity">
+        <serviceTask id="enter"
+            camunda:class="org.cibseven.connect.ai.agent.agentic.AdHocConversationTest$EnterAndRecord" />
+      </adHocSubProcess>
+      <sequenceFlow id="o2" sourceRef="adHocPerActivity" targetRef="feedback" />
+      <userTask id="feedback" />
+      <sequenceFlow id="o3" sourceRef="feedback" targetRef="outerEnd" />
+      <endEvent id="outerEnd" />
+    </subProcess>
+    <sequenceFlow id="f2" sourceRef="outer" targetRef="afterOuter" />
+    <userTask id="afterOuter" />
+    <sequenceFlow id="f3" sourceRef="afterOuter" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

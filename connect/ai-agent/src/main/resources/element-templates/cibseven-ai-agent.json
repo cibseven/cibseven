@@ -172,7 +172,7 @@
           "label": "Tool classes",
           "type": "Text",
           "group": "tools",
-          "description": "Comma-separated fully-qualified class names of @Tool-annotated beans to register with the agent. Built-in: org.cibseven.connect.ai.agent.impl.ProcessStarterTool — starts a CIB seven process by definition key, polls until it ends (or the retry budget is exhausted) and returns its output variables, so the LLM can launch a process and react to its result without orchestrating its own polling loop.",
+          "description": "Comma-separated fully-qualified class names of @Tool-annotated beans to register with the agent. Built-in: org.cibseven.connect.ai.agent.impl.ProcessStarterTool — starts a CIB seven process by definition key, polls until it ends (or the retry budget is exhausted) and returns its output variables, so the LLM can launch a process and react to its result without orchestrating its own polling loop. Naming org.cibseven.connect.ai.agent.impl.AdHocSubProcessTool here has no effect: an agent configured with this connector on an adHocSubProcess element instead of a service task (template \"CIB seven AI Agent (ad hoc sub process)\") is given one tool per activity of that scope, plus completeScope, automatically.",
           "placeholder": "org.cibseven.connect.ai.agent.impl.ProcessStarterTool,com.example.MyTool,com.example.AnotherTool",
           "binding": {
             "type": "camunda:inputParameter",
@@ -198,7 +198,7 @@
           "label": "Memory ID",
           "type": "String",
           "group": "memory",
-          "description": "Conversation id, scoped to THIS process instance. Leave empty to start a new conversation (ID returned in output). Set ${memoryId} to reuse a known ID. In a loop use ${execution.getVariable('memoryId')}: creates memory on first iteration, reuses it on subsequent ones. Reusing the same ID in a different process instance does NOT continue the conversation. Max 222 characters.",
+          "description": "Conversation id, scoped to THIS process instance. Leave empty to start a new conversation (ID returned in output). Set ${memoryId} to reuse a known ID. In a loop use ${execution.getVariable('memoryId')}: creates memory on first iteration, reuses it on subsequent ones. Reusing the same ID in a different process instance does NOT continue the conversation. As a tool of an agentic ad hoc sub process, an empty ID is derived from the sub process instead: one conversation per entry (and per multi-instance instance), or one across entries when the sub process continues its conversation; it stays in the database until the process instance ends, and in the history after that. Max 222 characters.",
           "placeholder": "${execution.getVariable('memoryId')}",
           "condition": {
             "property": "useChatMemory",
