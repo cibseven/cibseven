@@ -96,6 +96,15 @@ public class AgentRequestTest {
     assertThat(request.getOptionalContextVariables()).isEqualTo("escalationReason");
   }
 
+  /** Text that is not a String, as a Groovy GString from a script input is. */
+  @Test
+  public void shouldAcceptANameListThatIsACharSequence() {
+    AgentRequest request = connector.createRequest();
+    request.setRequestParameter(AgentConnector.PARAM_NAME_CONTEXT_VARIABLES,
+        new StringBuilder("orderId,customerName"));
+    assertThat(request.getContextVariables()).isEqualTo("orderId,customerName");
+  }
+
   @Test
   public void shouldReturnNullForContextVariablesWhenUnset() {
     AgentRequest request = connector.createRequest();

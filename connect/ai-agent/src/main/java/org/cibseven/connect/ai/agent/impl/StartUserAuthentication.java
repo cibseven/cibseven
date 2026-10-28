@@ -24,11 +24,10 @@ import org.cibseven.bpm.engine.impl.identity.Authentication;
  * An {@link Authentication} the connector built from the start user of a
  * process instance, because no user was authenticated on the thread.
  *
- * <p>The type is the marker: it stays recognisable after
- * {@code ProcessStarterTool} has put it on a worker thread, where an agent task
- * in a child process would otherwise take it for a real login. Its tenant list
- * holds the start user's memberships as the identity service records them,
- * never the instance's own tenant.
+ * <p>The type is the marker. Its tenant list is merely the instance's own
+ * tenant, so it proves nothing about membership — and it stays recognisable
+ * after {@code ProcessStarterTool} has put it on a worker thread, where an
+ * agent task in a child process would otherwise take it for a real login.
  */
 final class StartUserAuthentication extends Authentication {
 

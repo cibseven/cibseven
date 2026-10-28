@@ -174,8 +174,8 @@ public final class ProcessContextResolver {
     }
 
     // Declaration order as typed — deterministic, which is what provider-side
-    // prompt caching needs. No reordering by required-ness is necessary now that
-    // a required variable dropped by the block cap fails the run anyway.
+    // prompt caching needs. No reordering by required-ness: a required variable
+    // dropped by the block cap fails the run anyway.
     List<ContextVariable> resolved = new ArrayList<>(declared.size());
     for (String name : declared) {
       resolved.add(readOne(name, optionalNames.contains(name),
@@ -305,7 +305,7 @@ public final class ProcessContextResolver {
           .append(" variables omitted: context block limit of ")
           .append(maxBlockChars).append(" characters reached)\n");
       LOG.warn("Process-context block hit the {}-character limit; {} of {} declared variables "
-          + "were omitted. Reduce 'contextVariables' or raise the limit.",
+          + "were omitted. Declare fewer or smaller 'contextVariables'.",
           maxBlockChars, omitted, variables.size());
     }
     return prefix + body + suffix;
@@ -337,9 +337,8 @@ public final class ProcessContextResolver {
    * never the value itself, which is already carried (and redaction-gated) by the
    * system message on the {@code request} event.
    *
-   * <p>Closes the EU AI Act Art. 12 gap that motivates this ticket: today the
-   * chat log records the rendered prompt only, so "which process data reached the
-   * model" is not reconstructible after the fact.
+   * <p>Serves EU AI Act Art. 12 record-keeping: the rendered prompt alone does
+   * not say which process data reached the model, this event does.
    */
   static Map<String, Object> describe(List<ContextVariable> variables, String renderedBlock) {
     List<Map<String, Object>> entries = new ArrayList<>(variables.size());
@@ -580,19 +579,16 @@ public final class ProcessContextResolver {
         break;
       }
     }
-    int backslashes = 0;
-    for (int i = end - 1; i >= 0 && escaped.charAt(i) == '\\'; i--) {
-      backslashes++;
-    }
-    if (backslashes % 2 == 1) {
-      end--;
-    }
     // Trim only when the cut lands *inside* a real "&lt;" entity — a stray '&'
-    // in ordinary text is not an entity and must survive.
+    // in ordinary text is not an entity and must survive. Before the backslash
+    // check, because the entity trim can expose a backslash of its own.
     int amp = escaped.lastIndexOf('&', end - 1);
     if (amp >= 0 && escaped.startsWith(ESCAPED_ANGLE, amp)
         && amp + ESCAPED_ANGLE.length() > end) {
       end = amp;
+    }
+    if (end > 0 && precedingBackslashes(escaped, end) % 2 == 1) {
+      end--;
     }
     return escaped.substring(0, Math.max(0, end));
   }
@@ -613,8 +609,7 @@ public final class ProcessContextResolver {
    * the Unicode line terminators — NEL (U+0085), LINE SEPARATOR (U+2028),
    * PARAGRAPH SEPARATOR (U+2029) — and vertical tab and form feed, which a
    * model or a renderer may treat as a line break just like a newline.
-   * Backslash and
-   * double quote are escaped only for quoted (string) values — doing it for
+   * Backslash and double quote are escaped only for quoted (string) values — doing it for
    * unquoted ones would turn readable JSON into backslash noise for no gain,
    * since an unquoted value has no closing quote to break out of.
    *

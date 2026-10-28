@@ -32,6 +32,7 @@ import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_INSTANCE;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -143,9 +144,15 @@ public class ProcessVariableAuthorizationEngineTest {
     @Override
     public ChatResponse doChat(ChatRequest request) {
       modelCalled = true;
+      // What a tool called during this turn would see.
+      toolAuthenticationAtModelCall = ProcessStarterToolContext.getAuthentication();
+      callerAtModelCall = ProcessStarterToolContext.getCaller();
       return ChatResponse.builder().aiMessage(AiMessage.from("ok")).build();
     }
   }
+
+  static volatile Authentication toolAuthenticationAtModelCall;
+  static volatile Authentication callerAtModelCall;
 
   static final class StubConnector extends AgentConnectorImpl {
     @Override
@@ -184,9 +191,14 @@ public class ProcessVariableAuthorizationEngineTest {
         if (disableTenantCheck) {
           Context.getCommandContext().enableTenantCheck();
         }
+        // What the next task on this pooled thread would find.
+        threadStateAfterRun = Arrays.asList(ProcessStarterToolContext.getEngine(),
+            ProcessStarterToolContext.getAuthentication(), ProcessStarterToolContext.getCaller());
       }
     }
   }
+
+  static volatile List<Object> threadStateAfterRun;
 
   static volatile Authentication capturedCaller;
   static volatile RuntimeException toolFailure;
@@ -226,6 +238,9 @@ public class ProcessVariableAuthorizationEngineTest {
     modelCalled = false;
     capturedCaller = null;
     toolFailure = null;
+    toolAuthenticationAtModelCall = null;
+    callerAtModelCall = null;
+    threadStateAfterRun = null;
     deploy(null, SYNC_KEY, false);
     deploy(null, ASYNC_KEY, true);
     // What alice needs to start a process at all — deliberately nothing that
@@ -267,6 +282,21 @@ public class ProcessVariableAuthorizationEngineTest {
         .hasMessageContaining("READ_INSTANCE or READ_TASK on process definition '"
             + SYNC_KEY + "'");
     assertThat(modelCalled).isFalse();
+  }
+
+  /**
+   * A refused run must not leave the engine, the caller or the tools'
+   * authentication on the thread: on a pooled thread the next, unrelated task
+   * would run under this caller's identity. Unlike the check in
+   * AgentConnectorImplContextTest, all three are set here before the refusal.
+   */
+  @Test
+  public void shouldClearTheToolContextAfterARefusedSynchronousRun() {
+    catchThrowable(() -> startAs("alice", List.of(), SYNC_KEY, context()));
+
+    assertThat(modelCalled).isFalse();
+    assertThat(threadStateAfterRun).as("engine, authentication, caller")
+        .containsExactly(null, null, null);
   }
 
   @Test
@@ -397,6 +427,9 @@ public class ProcessVariableAuthorizationEngineTest {
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("User 'alice' may not read the variables");
     assertThat(modelCalled).isFalse();
+    // The derived start user must not stay on the job executor's thread either.
+    assertThat(threadStateAfterRun).as("engine, authentication, caller")
+        .containsExactly(null, null, null);
   }
 
   @Test
@@ -532,7 +565,11 @@ public class ProcessVariableAuthorizationEngineTest {
 
     executeTheJob();
 
-    assertThat(chatLog()).contains("\"authorization\":\"TENANT_CHECKED\"");
+    // The audit names the start user the check used, although the tools keep
+    // the job executor's user-less authentication.
+    assertThat(chatLog()).contains("\"authorization\":\"TENANT_CHECKED\"")
+        .contains("\"userId\":\"alice\"")
+        .contains("\"userIdSource\":\"startUser\"");
   }
 
   @Test
@@ -585,10 +622,9 @@ public class ProcessVariableAuthorizationEngineTest {
   /**
    * A job of a tenant whose instance has no start user (a
    * timer or message start, history level none). The job executor's user-less
-   * (null, null, [t1]) authentication must survive as the caller, or
-   * ProcessStarterTool runs without any authentication — and without one the
-   * engine's tenant check is off, so the tool could start a process of another
-   * tenant.
+   * (null, null, [t1]) authentication must reach ProcessStarterTool, or it
+   * runs without any authentication — and without one the engine's tenant
+   * check is off, so the tool could start a process of another tenant.
    */
   @Test
   public void shouldKeepTheToolInTheJobsTenantWhenThereIsNoStartUser() {
@@ -614,17 +650,43 @@ public class ProcessVariableAuthorizationEngineTest {
   }
 
   /**
-   * The start user derived for a tenant job used to
-   * carry the instance's tenant, and ProcessStarterTool runs under it — so a
-   * start user who is no member (a revoked membership, or an instance placed in
-   * the tenant by a TenantIdProvider) gained that tenant. alice started the
-   * instance with t1 on her authentication, but the identity service knows no
-   * such membership.
+   * A tenant job whose start user has no membership the identity service
+   * knows of — the normal case with LDAP or OAuth2 tenants, whose tenant
+   * queries return nothing. ProcessStarterTool keeps the job's tenant
+   * authentication, as before CIB7-1843, so it still starts a process of the
+   * job's own tenant.
    */
   @Test
-  public void shouldNotGiveTheToolTheTenantOfTheInstanceWithoutAMembership() {
+  public void shouldLetTheToolStartAProcessOfTheJobsTenantWithoutAMembership() {
     deploy(TENANT, TOOL_KEY, bpmn(TOOL_KEY, true, ToolDelegate.class));
     deploy(TENANT, OTHER_KEY, waitingProcess(OTHER_KEY));
+    startInTenantAs("alice", List.of(), TOOL_KEY,
+        Variables.createVariables().putValue("_startKey", OTHER_KEY));
+
+    executeTheJob();
+
+    assertThat(toolFailure).isNull();
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processDefinitionKey(OTHER_KEY).tenantIdIn(TENANT).count()).isEqualTo(1);
+    assertThat(capturedCaller.getUserId()).isNull();
+    assertThat(capturedCaller.getTenantIds()).containsExactly(TENANT);
+  }
+
+  /**
+   * The tool stays in the job's tenant even when the start user is a member
+   * of another tenant as well: it does not run under the start user's
+   * memberships.
+   */
+  @Test
+  public void shouldKeepTheToolInTheJobsTenantWhenTheStartUserHasMoreTenants() {
+    deploy(TENANT, TOOL_KEY, bpmn(TOOL_KEY, true, ToolDelegate.class));
+    deploy("t2", OTHER_KEY, waitingProcess(OTHER_KEY));
+    createUser("alice", null);
+    IdentityService identityService = ENGINE.getIdentityService();
+    identityService.saveTenant(identityService.newTenant(TENANT));
+    identityService.saveTenant(identityService.newTenant("t2"));
+    identityService.createTenantUserMembership(TENANT, "alice");
+    identityService.createTenantUserMembership("t2", "alice");
     startInTenantAs("alice", List.of(), TOOL_KEY,
         Variables.createVariables().putValue("_startKey", OTHER_KEY));
 
@@ -632,31 +694,37 @@ public class ProcessVariableAuthorizationEngineTest {
 
     assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
         .processDefinitionKey(OTHER_KEY).count())
-        .as("instances started by the tool for a non-member").isZero();
+        .as("instances of tenant t2's process started from a job of " + TENANT).isZero();
     assertThat(toolFailure)
-        .as("the tenant's definition is invisible to the tool's caller")
+        .as("the other tenant's definition is invisible to the tool")
         .isInstanceOf(org.cibseven.bpm.engine.ProcessEngineException.class)
         .hasMessageContaining(OTHER_KEY);
-    assertThat(capturedCaller).isInstanceOf(StartUserAuthentication.class);
-    assertThat(capturedCaller.getTenantIds()).isEmpty();
+    assertThat(capturedCaller.getTenantIds()).containsExactly(TENANT);
   }
 
+  /**
+   * The split in {@code execute()} itself, not just in the caller capture the
+   * ToolDelegate tests drive: for a tenant job the read check uses the start
+   * user, while the tools keep the job's user-less tenant authentication.
+   */
   @Test
-  public void shouldGiveTheToolTheTenantsTheStartUserIsAMemberOf() {
-    deploy(TENANT, TOOL_KEY, bpmn(TOOL_KEY, true, ToolDelegate.class));
-    deploy(TENANT, OTHER_KEY, waitingProcess(OTHER_KEY));
+  public void shouldHandTheToolsTheJobsAuthenticationAndTheCheckTheStartUser() {
+    deploy(TENANT, ASYNC_KEY, true);
     createUser("alice", null);
     ENGINE.getIdentityService().saveTenant(ENGINE.getIdentityService().newTenant(TENANT));
     ENGINE.getIdentityService().createTenantUserMembership(TENANT, "alice");
-    startInTenantAs("alice", List.of(), TOOL_KEY,
-        Variables.createVariables().putValue("_startKey", OTHER_KEY));
+    grant("alice", PROCESS_DEFINITION, ASYNC_KEY, READ_INSTANCE);
+    startInTenantAs("alice", List.of());
 
     executeTheJob();
 
-    assertThat(toolFailure).isNull();
-    assertThat(capturedCaller.getTenantIds()).containsExactly(TENANT);
-    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
-        .processDefinitionKey(OTHER_KEY).count()).isEqualTo(1);
+    assertThat(modelCalled).isTrue();
+    assertThat(toolAuthenticationAtModelCall).isNotNull()
+        .isNotInstanceOf(StartUserAuthentication.class);
+    assertThat(toolAuthenticationAtModelCall.getUserId()).isNull();
+    assertThat(toolAuthenticationAtModelCall.getTenantIds()).containsExactly(TENANT);
+    assertThat(callerAtModelCall).isInstanceOf(StartUserAuthentication.class);
+    assertThat(callerAtModelCall.getUserId()).isEqualTo("alice");
   }
 
   /**

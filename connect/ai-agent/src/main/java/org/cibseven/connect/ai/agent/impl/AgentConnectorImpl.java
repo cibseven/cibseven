@@ -38,7 +38,6 @@ import org.cibseven.bpm.BpmPlatform;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.history.HistoricProcessInstance;
 import org.cibseven.bpm.engine.identity.Group;
-import org.cibseven.bpm.engine.identity.Tenant;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
 import org.cibseven.bpm.engine.impl.context.Context;
@@ -174,9 +173,11 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     // authentication in its constructor to capture userId / groupIds on every
     // audit event (Art. 12 record-keeping).
     ProcessEngine callerEngine = captureProcessEngine();
-    Authentication callerAuth = captureCallerAuthentication(callerEngine);
+    Authentication toolAuth = captureCallerAuthentication(callerEngine);
+    Authentication callerAuth = resolveCheckedCaller(callerEngine, toolAuth);
     ProcessStarterToolContext.setEngine(callerEngine);
-    ProcessStarterToolContext.setAuthentication(callerAuth);
+    ProcessStarterToolContext.setAuthentication(toolAuth);
+    ProcessStarterToolContext.setCaller(callerAuth);
 
     // MCP clients live for the duration of this single agent invocation. Declared
     // out here (not inside the try) so the finally block can close them — without
@@ -184,7 +185,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     // the HTTP transport for the JVM lifetime, which over many BPMN runs turns
     // into a noisy burst of reconnect WARNs every time the MCP server restarts.
     List<McpClient> mcpClients = new ArrayList<>();
-    // Everything after the two ThreadLocal writes above must sit inside this try:
+    // Everything after the ThreadLocal writes above must sit inside this try:
     // its finally is what clears them again, and a leaked caller Authentication
     // would be visible to the next, unrelated task on this pooled thread.
     try {
@@ -474,42 +475,65 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    * <ol>
    *   <li>The current per-thread engine authentication, populated by an
    *       interactive caller (e.g. REST request handler) — present when the
-   *       service task runs synchronously inside the caller's command, and
-   *       when a user executes a job by hand ({@code ManagementService.executeJob},
-   *       REST {@code POST /job/{id}/execute}). Only if it names a user: the
-   *       job executor authenticates a job of a tenant as
-   *       {@code (null, null, [tenantId])}, which identifies nobody.</li>
+   *       service task runs synchronously inside the caller's command, when a
+   *       user executes a job by hand ({@code ManagementService.executeJob},
+   *       REST {@code POST /job/{id}/execute}), and for a job of a tenant,
+   *       which the job executor authenticates as {@code (null, null, [tenantId])}.
+   *       That user-less authentication confines the tools to the job's tenant
+   *       without checking any permission.</li>
    *   <li>The starter of the executing process instance — used when the
-   *       service task is async and the connector runs on a JobExecutor
-   *       thread, which carries no inherited authentication. Resolved via
+   *       thread carries no authentication at all, typically an async service
+   *       task without a tenant on a JobExecutor thread. Resolved via
    *       {@code historicProcessInstance.getStartUserId()} for the BPMN
    *       execution currently on the thread, plus the starter's group
    *       memberships so authorization checks against group permissions
    *       still pass.</li>
    * </ol>
-   * When neither yields a user, the user-less authentication of the thread is
-   * returned as it is — for a job of a tenant that is the job executor's
-   * {@code (null, null, [tenantId])}. It identifies nobody, so the variable
-   * check treats it as no caller, but it keeps {@code ProcessStarterTool}
-   * confined to that tenant: without any authentication the engine's tenant
-   * check is off, and the tool could start and read processes of every tenant.
-   * Returns {@code null} when {@code engine} is null or there is nothing at all.
+   * Returns {@code null} when {@code engine} is null or neither source yields
+   * an authentication.
+   *
+   * <p>The variable check of {@code contextVariables} and {@code documents}
+   * needs a user and resolves its caller separately, see
+   * {@link #resolveCheckedCaller}.
    */
   private Authentication captureCallerAuthentication(ProcessEngine engine) {
     if (engine == null) {
       return null;
     }
-    Authentication current = null;
     try {
-      current = engine.getIdentityService().getCurrentAuthentication();
-      if (current != null && current.getUserId() != null) {
+      Authentication current = engine.getIdentityService().getCurrentAuthentication();
+      if (current != null) {
         return current;
       }
     } catch (Exception e) {
       LOG.debug("Could not read current authentication from IdentityService: {}", e.toString());
     }
+    return deriveAuthenticationFromProcessInstance(engine);
+  }
+
+  /**
+   * The caller whose read permission {@link ProcessVariableAuthorization}
+   * checks, and whom the audit events name.
+   *
+   * <p>Equal to the tools' authentication whenever that names a user. A
+   * user-less one — the job executor's {@code (null, null, [tenantId])} for a
+   * job of a tenant — identifies nobody, so the start user of the process
+   * instance is derived instead. It is used for the check only: the tools keep
+   * the job's tenant authentication. Handing them the start user would mean
+   * choosing its tenants, and both choices are wrong — the instance's tenant
+   * grants it to a start user who is no member, the identity service's
+   * memberships leave LDAP and OAuth2 setups, whose tenant queries return
+   * nothing, without any tenant.
+   *
+   * <p>When no start user can be derived either, the user-less authentication
+   * is returned as it is, which the check records as {@code NO_CALLER}.
+   */
+  private Authentication resolveCheckedCaller(ProcessEngine engine, Authentication toolAuth) {
+    if (engine == null || toolAuth == null || toolAuth.getUserId() != null) {
+      return toolAuth;
+    }
     Authentication derived = deriveAuthenticationFromProcessInstance(engine);
-    return (derived != null) ? derived : current;
+    return (derived != null) ? derived : toolAuth;
   }
 
   /**
@@ -517,19 +541,15 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    * instance currently on the thread. Used as a fallback when no interactive
    * authentication is available (typical for async service tasks executed by
    * the JobExecutor). The returned {@code Authentication} carries the
-   * starter's userId, their group ids, and the tenants they are a member of
-   * according to the identity service. Returns {@code null} when the executing
-   * BPMN context, the historic process instance record, or the start user
-   * cannot be resolved.
+   * starter's userId, their group ids, and the process instance's tenantId
+   * (if any). Returns {@code null} when the executing BPMN context, the
+   * historic process instance record, or the start user cannot be resolved.
    *
-   * <p>Not the process instance's own tenant: tools such as
-   * {@code ProcessStarterTool} run engine calls under this authentication, and
-   * the engine's tenant check trusts its tenant list. Copying the instance's
-   * tenant would hand the start user that tenant whether or not they are a
-   * member — after a revoked membership, or for an instance placed in the
-   * tenant by a {@code TenantIdProvider}. The price: with identity providers
-   * whose tenant queries return nothing (LDAP, OAuth2 with tenants) the derived
-   * caller belongs to no tenant.
+   * <p>The tenant list says nothing about membership. Tools only receive this
+   * authentication when the thread carried none at all, so it narrows rather
+   * than widens what they reach; {@link ProcessVariableAuthorization} reads the
+   * memberships of a {@link StartUserAuthentication} from the identity service
+   * and ignores the list.
    */
   private Authentication deriveAuthenticationFromProcessInstance(ProcessEngine engine) {
     ExecutionEntity execution = currentExecution();
@@ -538,9 +558,8 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       try {
         processInstanceId = execution.getProcessInstanceId();
       } catch (RuntimeException e) {
-        // Kept inside the guard the inline version had: a detached entity can
-        // blow up here, and authentication is a best-effort fallback, not a
-        // reason to fail the activity.
+        // Guarded: a detached entity can blow up here, and authentication is a
+        // best-effort fallback, not a reason to fail the activity.
         LOG.debug("Could not read processInstanceId from current execution: {}", e.toString());
       }
     }
@@ -570,17 +589,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       } catch (Exception e) {
         LOG.debug("Could not look up groups for user '{}': {}", startUserId, e.toString());
       }
-      List<String> tenantIds = new ArrayList<>();
-      try {
-        for (Tenant t : engine.getIdentityService().createTenantQuery()
-            .userMember(startUserId).includingGroupsOfUser(true).list()) {
-          tenantIds.add(t.getId());
-        }
-      } catch (Exception e) {
-        // No membership is assumed rather than the instance's tenant: an
-        // unknown membership must not widen what the tools may reach.
-        LOG.debug("Could not look up tenants for user '{}': {}", startUserId, e.toString());
-      }
+      List<String> tenantIds = (hpi.getTenantId() != null) ? List.of(hpi.getTenantId()) : null;
       LOG.debug("Derived authentication from process instance '{}': user='{}', groups={}, tenants={}",
           processInstanceId, startUserId, groupIds, tenantIds);
       return new StartUserAuthentication(startUserId, groupIds, tenantIds);
@@ -854,10 +863,10 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    * Appends the rendered process-context block after the deployer's instruction.
    *
    * <p>Order matters: the instruction defines the agent's role, the context is
-   * the data it works on. Fluxnova's note that a <em>trailing system message</em>
-   * suppresses tool calls in some models does not apply here — {@code AiServices}
-   * emits exactly one system message, so this is one message with the context at
-   * its end, not a second message after the instruction.
+   * the data it works on. Some models stop calling tools after a <em>trailing
+   * system message</em>; that does not apply here — {@code AiServices} emits
+   * exactly one system message, so this is one message with the context at its
+   * end, not a second message after the instruction.
    *
    * <p>Called from a {@code systemMessageTransformer}, not from
    * {@link #buildSystemPrompt}, so that the block bypasses LangChain4j's

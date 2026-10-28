@@ -197,12 +197,33 @@ public class DocumentContentResolverTest {
         .hasMessageContaining("more than one charset");
   }
 
+  /** A binary document ignores its charset, even a duplicate one. */
+  @Test
+  public void shouldIgnoreTwoDifferentCharsetsOnABinaryDocument() {
+    putFile("invoice", "invoice.pdf", null, "%PDF-1.7".getBytes());
+
+    ResolvedDocument document = resolve("invoice",
+        "{\"invoice\": \"application/pdf; charset=UTF-8; charset=ISO-8859-1\"}").get(0);
+
+    assertThat(document.content).isInstanceOf(PdfFileContent.class);
+  }
+
   @Test
   public void shouldRejectMimeTypeKeysThatCollideOnceTrimmed() {
     assertThatThrownBy(() -> DocumentContentResolver.parseMimeTypeOverrides(
         "{\"scan\": \"image/png\", \" scan \": \"image/jpeg\"}"))
         .isInstanceOf(AgentConnectorException.class)
         .hasMessageContaining("more than one entry for 'scan'");
+  }
+
+  /** Jackson would otherwise keep the last one without a word. */
+  @Test
+  public void shouldRejectIdenticalMimeTypeKeys() {
+    assertThatThrownBy(() -> DocumentContentResolver.parseMimeTypeOverrides(
+        "{\"scan\": \"image/png\", \"scan\": \"application/pdf\"}"))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("documentMimeTypes")
+        .hasMessageContaining("Duplicate field 'scan'");
   }
 
   /** Compared case-insensitively already; now also sent in lower case. */
@@ -308,11 +329,10 @@ public class DocumentContentResolverTest {
   // ── audio and video are unsupported ────────────────────────────────────────
 
   /**
-   * The previous {@code allowAudioVideo} opt-in could only
-   * express "try it", never "the configured model accepts this" — and the
-   * ticket's cross-cutting requirement is to fail predictably when it does not.
-   * Audio and video are therefore out; Camunda 8 leaves them out for the same
-   * reason. They now take the ordinary unsupported-type path.
+   * An opt-in for audio and video could only express "try it", never "the
+   * configured model accepts this" — and the ticket's cross-cutting requirement
+   * is to fail predictably when it does not. Audio and video therefore take the
+   * ordinary unsupported-type path.
    */
   @Test
   public void shouldRejectAudioAndVideoAsUnsupportedTypes() {
@@ -498,6 +518,71 @@ public class DocumentContentResolverTest {
         .hasMessageContaining("limit of 2");
   }
 
+  // ── read failures name the variable ────────────────────────────────────────
+
+  @Test
+  public void shouldNameTheVariableWhenTheReadFails() {
+    DocumentContentResolver.TypedVariableReader failing = name -> {
+      throw new IllegalStateException("detached entity");
+    };
+
+    assertThatThrownBy(() -> DocumentContentResolver.resolve("invoice", null,
+        ImageContent.DetailLevel.AUTO, failing, Limits.defaults()))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("Could not read document variable 'invoice'");
+  }
+
+  @Test
+  public void shouldNameTheVariableWhenABytesVariableHoldsNull() {
+    variables.put("scan", Variables.byteArrayValue(null));
+
+    assertThatThrownBy(() -> resolve("scan", "{\"scan\": \"image/png\"}"))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("'scan' is a byte variable holding null");
+  }
+
+  @Test
+  public void shouldSayThatADocumentVariableHoldsNull() {
+    variables.put("invoice", Variables.untypedNullValue());
+
+    assertThatThrownBy(() -> resolve("invoice"))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("'invoice' holds null")
+        .hasMessageNotContaining("contextVariables");
+  }
+
+  @Test
+  public void shouldNameTheVariableWhenAFileVariableHasNoContent() {
+    org.cibseven.bpm.engine.variable.value.FileValue file =
+        org.mockito.Mockito.mock(org.cibseven.bpm.engine.variable.value.FileValue.class);
+    org.mockito.Mockito.when(file.getFilename()).thenReturn("invoice.pdf");
+    org.mockito.Mockito.when(file.getMimeType()).thenReturn("application/pdf");
+    variables.put("invoice", file);
+
+    assertThatThrownBy(() -> resolve("invoice"))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("'invoice' is a file variable with no content");
+  }
+
+  @Test
+  public void shouldNameTheVariableWhenTheFileContentCannotBeRead() {
+    org.cibseven.bpm.engine.variable.value.FileValue file =
+        org.mockito.Mockito.mock(org.cibseven.bpm.engine.variable.value.FileValue.class);
+    org.mockito.Mockito.when(file.getFilename()).thenReturn("invoice.pdf");
+    org.mockito.Mockito.when(file.getMimeType()).thenReturn("application/pdf");
+    org.mockito.Mockito.when(file.getValue()).thenReturn(new java.io.InputStream() {
+      @Override
+      public int read() throws java.io.IOException {
+        throw new java.io.IOException("disk gone");
+      }
+    });
+    variables.put("invoice", file);
+
+    assertThatThrownBy(() -> resolve("invoice"))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("Could not read the content of document variable 'invoice'");
+  }
+
   // ── text documents are contained, not spliced in raw ───────────────────────
 
   @Test
@@ -647,10 +732,9 @@ public class DocumentContentResolverTest {
   }
 
   /**
-   * The gap the last round left open: neither a bytes variable nor a file
-   * uploaded through the webclient can carry an encoding — the upload path has
-   * no way to set one — so without this there was no lever at all for
-   * non-UTF-8 text.
+   * Neither a bytes variable nor a file uploaded through the webclient can carry
+   * an encoding — the upload path has no way to set one — so the mime type
+   * override is the only lever for non-UTF-8 text.
    */
   @Test
   public void shouldTakeTheCharsetFromTheMimeTypeOverride() {

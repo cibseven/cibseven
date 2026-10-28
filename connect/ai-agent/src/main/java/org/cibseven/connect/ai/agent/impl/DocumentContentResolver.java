@@ -36,8 +36,11 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.StreamReadFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import org.cibseven.bpm.engine.variable.value.BytesValue;
 import org.cibseven.bpm.engine.variable.value.FileValue;
@@ -80,8 +83,7 @@ import org.cibseven.connect.ai.agent.AgentConnectorConstants;
  * official OpenAI one, so whether either works is a property of the gateway, not
  * of this connector. An opt-in flag would only have let a modeler say "try it" —
  * it could not check that the configured model accepts the type, which is what
- * CIB7-1843 asks for. Camunda 8 leaves them out for the same reason. They fall
- * into the unsupported-mime-type error below.
+ * CIB7-1843 asks for. They fall into the unsupported-mime-type error below.
  *
  * <h3>Never the payload in the audit log</h3>
  * {@link #describe(List)} emits filename, mime type, byte size and SHA-256 —
@@ -93,7 +95,11 @@ public final class DocumentContentResolver {
 
   private static final Logger LOG = LoggerFactory.getLogger(DocumentContentResolver.class);
 
-  private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+  // Strict, because Jackson otherwise keeps the last of two identical keys
+  // without a word, and the modeler's other mime type silently loses.
+  private static final ObjectMapper JSON_MAPPER = JsonMapper.builder()
+      .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
+      .build();
 
   /** Image mime types LangChain4j and the OpenAI mapping actually accept. */
   private static final List<String> SUPPORTED_IMAGE_TYPES =
@@ -304,6 +310,11 @@ public final class DocumentContentResolver {
         throw new AgentConnectorException(
             "Document variable '" + name + "' is a byte variable holding null.");
       }
+    } else if (typed.getValue() == null) {
+      // An untyped null has type "null"; pointing at contextVariables would
+      // send the modeler the wrong way.
+      throw new AgentConnectorException("Document variable '" + name + "' holds null, not a "
+          + "file. Set it to a file or bytes variable before the agent task runs.");
     } else {
       String typeName = (typed.getType() == null) ? "unknown" : typed.getType().getName();
       throw new AgentConnectorException("Document variable '" + name + "' has type '" + typeName
@@ -409,9 +420,8 @@ public final class DocumentContentResolver {
    * set an encoding. Other parameters are ignored: they are legal on a mime type
    * and none of them concern us.
    *
-   * <p>It also stops a perfectly valid {@code application/pdf; version=1.7} from
-   * failing as an unsupported type, which it did while the whole string was
-   * compared.
+   * <p>It also keeps a perfectly valid {@code application/pdf; version=1.7} from
+   * failing as an unsupported type, which comparing the whole string would do.
    */
   private static MimeTypeSpec parseMimeType(String variable, String raw) {
     String[] parts = raw.split(";");
@@ -432,19 +442,20 @@ public final class DocumentContentResolver {
         continue;
       }
       String value = parameter.substring(eq + 1).trim().replace("\"", "");
+      if (!textual) {
+        // A binary document is sent as Base64 and never decoded, so its charset
+        // is meaningless — not worth failing over even when it is malformed or
+        // declared twice. Still worth a word: it suggests the modeler expected
+        // text handling.
+        LOG.warn("Document '{}' is '{}' and carries a charset ({}), which is ignored — a charset "
+            + "only applies to textual mime types.", variable, baseType, value);
+        continue;
+      }
       if (charsetValue != null && !charsetValue.equalsIgnoreCase(value)) {
         throw new AgentConnectorException("Document '" + variable + "' declares more than one "
             + "charset in its mime type ('" + charsetValue + "' and '" + value + "'). Keep one.");
       }
       charsetValue = value;
-      if (!textual) {
-        // A binary document is sent as Base64 and never decoded, so its charset
-        // is meaningless — not worth failing over even when it is malformed.
-        // Still worth a word: it suggests the modeler expected text handling.
-        LOG.warn("Document '{}' is '{}' and carries a charset ({}), which is ignored — a charset "
-            + "only applies to textual mime types.", variable, baseType, value);
-        continue;
-      }
       try {
         charset = Charset.forName(value);
       } catch (RuntimeException e) {
@@ -485,8 +496,8 @@ public final class DocumentContentResolver {
           TextContent.from(wrapTextDocument(variable, filename, mimeType, bytes.length, text)));
     }
 
-    // Encoded exactly once and reused for every branch below. Encoding twice
-    // doubled peak memory for every binary attachment.
+    // Encoded exactly once and reused for every branch below; each extra
+    // encoding would add another Base64 copy to peak memory.
     String base64 = Base64.getEncoder().encodeToString(bytes);
 
     if ("application/pdf".equals(lower)) {
@@ -564,9 +575,8 @@ public final class DocumentContentResolver {
    * Wraps a text document in a delimited, escaped block instead of splicing it
    * into the prompt raw.
    *
-   * <p>Camunda 8 inlines text documents unwrapped and records that as a known
-   * prompt-injection gap in its own ADR. A document is by definition
-   * externally-sourced content, so it gets the same containment the
+   * <p>A document is by definition externally-sourced content, so it gets the
+   * same containment the
    * process-context block gets: the delimiters are neutered inside the payload
    * and the header states that the content is data.
    */
@@ -681,8 +691,11 @@ public final class DocumentContentResolver {
     try {
       parsed = JSON_MAPPER.readValue(raw, new TypeReference<Map<String, Object>>() {});
     } catch (Exception e) {
-      throw new AgentConnectorException("Could not parse 'documentMimeTypes': expected a JSON "
-          + "object of variable name → mime type, e.g. {\"scan\": \"image/png\"}", e);
+      String detail = (e instanceof JsonProcessingException)
+          ? ((JsonProcessingException) e).getOriginalMessage() : e.getMessage();
+      throw new AgentConnectorException("Could not parse 'documentMimeTypes' (" + detail
+          + "): expected a JSON object of variable name → mime type, e.g. "
+          + "{\"scan\": \"image/png\"}", e);
     }
     if (parsed == null) {
       return overrides;
@@ -720,15 +733,19 @@ public final class DocumentContentResolver {
       return ImageContent.DetailLevel.AUTO;
     }
     String level = raw.trim().toUpperCase(Locale.ROOT);
-    if (level.equals("MEDIUM") || level.equals("ULTRA_HIGH")) {
-      throw new AgentConnectorException("documentDetailLevel '" + raw + "' is not supported: "
-          + "the OpenAI API accepts only AUTO, LOW and HIGH. Use HIGH for the most detail.");
-    }
-    try {
-      return ImageContent.DetailLevel.valueOf(level);
-    } catch (IllegalArgumentException e) {
-      throw new AgentConnectorException("Unknown documentDetailLevel '" + raw + "'. Allowed: "
-          + "AUTO, LOW, HIGH.");
+    switch (level) {
+      case "AUTO": return ImageContent.DetailLevel.AUTO;
+      case "LOW":  return ImageContent.DetailLevel.LOW;
+      case "HIGH": return ImageContent.DetailLevel.HIGH;
+      case "MEDIUM":
+      case "ULTRA_HIGH":
+        throw new AgentConnectorException("documentDetailLevel '" + raw + "' is not supported: "
+            + "the OpenAI API accepts only AUTO, LOW and HIGH. Use HIGH for the most detail.");
+      default:
+        // An allowlist, so a level a later LangChain4j adds fails here and not
+        // at the first model call.
+        throw new AgentConnectorException("Unknown documentDetailLevel '" + raw + "'. Allowed: "
+            + "AUTO, LOW, HIGH.");
     }
   }
 
@@ -747,7 +764,7 @@ public final class DocumentContentResolver {
    * {@code maxBytes} of it.
    *
    * <p>{@code InputStream.readAllBytes()} would size the array from the content,
-   * so an oversized document was fully materialised and only then rejected by
+   * so an oversized document would be fully materialised and only then rejected by
    * the per-document cap. With today's {@code FileValueImpl} — a {@code byte[]}
    * field handed out as a {@link java.io.ByteArrayInputStream} — the engine has
    * already loaded the file by the time we are called, so this does not save the
@@ -790,9 +807,9 @@ public final class DocumentContentResolver {
    *
    * <p>An unusable name is an error, not something to shrug off.
    * {@code getEncodingAsCharset} forwards whatever {@code Charset.forName}
-   * throws, and this used to swallow that and fall back to UTF-8 — so a variable
-   * that explicitly said "this is windows-1252" but misspelled it was decoded as
-   * something else, silently. Somebody took the trouble to declare an encoding;
+   * throws; swallowing that and falling back to UTF-8 would decode a variable
+   * that explicitly said "this is windows-1252" but misspelled it as something
+   * else, silently. Somebody took the trouble to declare an encoding;
    * ignoring the declaration because it is broken is the one interpretation
    * nobody asked for.
    */

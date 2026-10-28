@@ -41,6 +41,13 @@ public final class ProcessStarterToolContext {
   private static final ThreadLocal<ProcessEngine> ENGINE = new ThreadLocal<>();
   private static final ThreadLocal<Authentication> AUTH = new ThreadLocal<>();
   /**
+   * The user the connector checks variable reads for and names in the audit
+   * events. Usually the same object as {@link #AUTH}; for a job of a tenant run
+   * by the job executor the tools keep its user-less tenant authentication,
+   * while this is the start user of the process instance.
+   */
+  private static final ThreadLocal<Authentication> CALLER = new ThreadLocal<>();
+  /**
    * Pointer to the {@link AgentChatListener} owning the in-flight model call.
    * Tools (e.g. {@link ProcessStarterTool}) publish side-effect records here so
    * the listener can stitch the resulting {@code processInstanceId} and the
@@ -76,6 +83,18 @@ public final class ProcessStarterToolContext {
     return AUTH.get();
   }
 
+  static void setCaller(Authentication caller) {
+    if (caller == null) {
+      CALLER.remove();
+    } else {
+      CALLER.set(caller);
+    }
+  }
+
+  static Authentication getCaller() {
+    return CALLER.get();
+  }
+
   static void setActiveListener(AgentChatListener listener) {
     if (listener == null) {
       LISTENER.remove();
@@ -91,6 +110,7 @@ public final class ProcessStarterToolContext {
   public static void clear() {
     ENGINE.remove();
     AUTH.remove();
+    CALLER.remove();
     LISTENER.remove();
   }
 }

@@ -77,11 +77,10 @@ import org.slf4j.LoggerFactory;
  * variables — the two are equivalent: the user who completed the task could
  * read exactly those. They differ in two edge cases, where this check lets a
  * {@code READ_TASK}- or {@code READ_TASK_VARIABLE}-only user through although
- * the engine would not: an
- * instance that has no user task at all, and variables in a scope no task sees
- * (a subprocess, a multi-instance body, the agent task's own input mapping).
- * Requiring an open task instead would break the main case, because the task
- * just completed no longer exists.
+ * the engine would not: an instance that has no user task at all, and variables
+ * in a scope no task sees (a subprocess, a multi-instance body, the agent task's
+ * own input mapping). Requiring an open task instead would break the main case,
+ * because the task just completed no longer exists.
  *
  * <h3>Who the caller is</h3>
  * The user authenticated on the thread, when there is one: for a synchronous
@@ -92,10 +91,12 @@ import org.slf4j.LoggerFactory;
  * <p>Otherwise — a job run by the job executor, which authenticates a job of a
  * tenant only as {@code (null, null, [tenantId])} — the start user of the
  * process instance, as a {@link StartUserAuthentication}. That is not
- * necessarily whoever led to the job. Its memberships are read from the
- * identity service — here directly, whatever tenant list the authentication
- * carries, so the check does not depend on how it was built. The marker survives {@code ProcessStarterTool}, so an agent task in a child
- * process it starts does not mistake the start user for a login.
+ * necessarily whoever led to the job. Its tenant list merely copies the
+ * instance's tenant, so memberships are read from the identity service instead.
+ * The marker survives {@code ProcessStarterTool}, so an agent task in a child
+ * process it starts does not mistake the start user for a login. The start
+ * user serves this check and the audit only: {@code ProcessStarterTool} keeps
+ * the job's own authentication.
  *
  * <p>Limitation, deliberately stricter than the engine: identity providers whose
  * tenant queries return nothing — LDAP, and OAuth2 with tenants — make the

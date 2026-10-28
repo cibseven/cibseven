@@ -155,6 +155,48 @@ public class AgentConnectorImplAuthTest {
     assertThat(captured).isNull();
   }
 
+  // ── resolveCheckedCaller ────────────────────────────────────────────────
+
+  @Test
+  public void resolveCheckedCallerShouldKeepAToolAuthenticationThatNamesAUser() throws Exception {
+    Authentication toolAuth = new Authentication("alice", List.of());
+
+    Object caller = invokePrivate("resolveCheckedCaller",
+        new Class<?>[] { ProcessEngine.class, Authentication.class },
+        new Object[] { mock(ProcessEngine.class), toolAuth });
+
+    assertThat(caller).isSameAs(toolAuth);
+  }
+
+  @Test
+  public void resolveCheckedCallerShouldDeriveTheStartUserForAUserlessToolAuthentication()
+      throws Exception {
+    pushExecutionContext("pi-T");
+    ProcessEngine engine = mockEngineWithHistoricInstance("pi-T", "alice", "tenant-1",
+        List.of("g1"));
+    Authentication toolAuth = new Authentication(null, null, List.of("tenant-1"));
+
+    Authentication caller = (Authentication) invokePrivate("resolveCheckedCaller",
+        new Class<?>[] { ProcessEngine.class, Authentication.class },
+        new Object[] { engine, toolAuth });
+
+    assertThat(caller).isInstanceOf(StartUserAuthentication.class);
+    assertThat(caller.getUserId()).isEqualTo("alice");
+  }
+
+  @Test
+  public void resolveCheckedCallerShouldKeepAUserlessToolAuthenticationWithoutAStartUser()
+      throws Exception {
+    // No execution on the thread, so no start user can be derived.
+    Authentication toolAuth = new Authentication(null, null, List.of("tenant-1"));
+
+    Object caller = invokePrivate("resolveCheckedCaller",
+        new Class<?>[] { ProcessEngine.class, Authentication.class },
+        new Object[] { mock(ProcessEngine.class), toolAuth });
+
+    assertThat(caller).isSameAs(toolAuth);
+  }
+
   // ── deriveAuthenticationFromProcessInstance ─────────────────────────────
 
   @Test
@@ -232,18 +274,13 @@ public class AgentConnectorImplAuthTest {
 
   // ── deriveAuthenticationFromProcessInstance with BpmnExecutionContext ────
 
-  /**
-   * The tenants are alice's memberships, not the instance's tenant: tools run
-   * engine calls under this authentication, and the engine's tenant check
-   * trusts its tenant list (CIB7-1843).
-   */
   @Test
-  public void deriveAuthenticationShouldReturnUserGroupsAndTenantMembershipsOfTheStartUser()
+  public void deriveAuthenticationShouldReturnUserGroupsAndTenantsFromStartingProcessInstance()
       throws Exception {
     pushExecutionContext("pi-A");
 
     ProcessEngine engine = mockEngineWithHistoricInstance("pi-A", "alice", "tenant-1",
-        List.of("g1", "g2"), List.of("tenant-2"));
+        List.of("g1", "g2"));
 
     Authentication derived = (Authentication) invokePrivate(
         "deriveAuthenticationFromProcessInstance",
@@ -253,7 +290,7 @@ public class AgentConnectorImplAuthTest {
     assertThat(derived).isNotNull();
     assertThat(derived.getUserId()).isEqualTo("alice");
     assertThat(derived.getGroupIds()).containsExactlyInAnyOrder("g1", "g2");
-    assertThat(derived.getTenantIds()).containsExactly("tenant-2");
+    assertThat(derived.getTenantIds()).containsExactly("tenant-1");
     assertThat(derived).isInstanceOf(StartUserAuthentication.class);
   }
 
@@ -263,7 +300,7 @@ public class AgentConnectorImplAuthTest {
 
     HistoricProcessInstance hpi = mock(HistoricProcessInstance.class);
     when(hpi.getStartUserId()).thenReturn("bob");
-    when(hpi.getTenantId()).thenReturn("tenant-1");
+    when(hpi.getTenantId()).thenReturn(null); // covers the null-tenants branch
     HistoricProcessInstanceQuery hpiQuery = mock(HistoricProcessInstanceQuery.class);
     when(hpiQuery.processInstanceId("pi-B")).thenReturn(hpiQuery);
     when(hpiQuery.singleResult()).thenReturn(hpi);
@@ -285,9 +322,7 @@ public class AgentConnectorImplAuthTest {
     assertThat(derived).isNotNull();
     assertThat(derived.getUserId()).isEqualTo("bob");
     assertThat(derived.getGroupIds()).isEmpty();
-    // The tenant lookup fails too (createTenantQuery is not stubbed): no
-    // membership is assumed, and the instance's tenant is not copied in.
-    assertThat(derived.getTenantIds()).isEmpty();
+    assertThat(derived.getTenantIds()).isNull();
   }
 
   @Test
@@ -370,13 +405,6 @@ public class AgentConnectorImplAuthTest {
    */
   private ProcessEngine mockEngineWithHistoricInstance(String processInstanceId,
       String startUserId, String tenantId, List<String> groupIds) {
-    return mockEngineWithHistoricInstance(processInstanceId, startUserId, tenantId, groupIds,
-        List.of());
-  }
-
-  /** As above, with the start user a member of {@code memberTenants}. */
-  private ProcessEngine mockEngineWithHistoricInstance(String processInstanceId,
-      String startUserId, String tenantId, List<String> groupIds, List<String> memberTenants) {
     HistoricProcessInstance hpi = mock(HistoricProcessInstance.class);
     when(hpi.getStartUserId()).thenReturn(startUserId);
     when(hpi.getTenantId()).thenReturn(tenantId);
@@ -398,21 +426,8 @@ public class AgentConnectorImplAuthTest {
     when(groupQuery.groupMember(startUserId)).thenReturn(groupQuery);
     when(groupQuery.list()).thenReturn(groups);
 
-    java.util.List<org.cibseven.bpm.engine.identity.Tenant> tenants = new java.util.ArrayList<>();
-    for (String id : memberTenants) {
-      org.cibseven.bpm.engine.identity.Tenant t = mock(org.cibseven.bpm.engine.identity.Tenant.class);
-      when(t.getId()).thenReturn(id);
-      tenants.add(t);
-    }
-    org.cibseven.bpm.engine.identity.TenantQuery tenantQuery =
-        mock(org.cibseven.bpm.engine.identity.TenantQuery.class);
-    when(tenantQuery.userMember(startUserId)).thenReturn(tenantQuery);
-    when(tenantQuery.includingGroupsOfUser(true)).thenReturn(tenantQuery);
-    when(tenantQuery.list()).thenReturn(tenants);
-
     IdentityService identityService = mock(IdentityService.class);
     when(identityService.createGroupQuery()).thenReturn(groupQuery);
-    when(identityService.createTenantQuery()).thenReturn(tenantQuery);
 
     ProcessEngine engine = mock(ProcessEngine.class);
     when(engine.getHistoryService()).thenReturn(historyService);

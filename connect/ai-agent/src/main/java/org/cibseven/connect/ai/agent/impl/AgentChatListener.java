@@ -137,8 +137,12 @@ class AgentChatListener implements ChatModelListener {
    * Event schema version stamped on every emitted event. Increment when adding
    * or removing top-level fields so downstream consumers (Vue webclient, future
    * Kafka sink, SAP integration) can detect and adapt to changes.
+   *
+   * <p>2: {@code context} and {@code documents} events with their
+   * {@code authorization} field, and {@code userIdSource = "startUser"} for a
+   * caller derived from the process instance's start user.
    */
-  static final int SCHEMA_VERSION = 1;
+  static final int SCHEMA_VERSION = 2;
 
   /**
    * Per-request attribute key used to stash {@code System.nanoTime()} on
@@ -321,7 +325,12 @@ class AgentChatListener implements ChatModelListener {
       this.executionId = null;
     }
 
-    Authentication auth = ProcessStarterToolContext.getAuthentication();
+    // The checked caller, not the tools' authentication: for a job of a tenant
+    // the tools run user-less, but the audit names the start user it checked.
+    Authentication auth = ProcessStarterToolContext.getCaller();
+    if (auth == null) {
+      auth = ProcessStarterToolContext.getAuthentication();
+    }
     this.userIdSource = (auth instanceof StartUserAuthentication) ? "startUser" : "context";
     if (auth != null) {
       this.userId = auth.getUserId();
@@ -984,7 +993,7 @@ class AgentChatListener implements ChatModelListener {
    * attached — as text plus one descriptor per attachment.
    *
    * <p>This method is the reason document support is safe to persist at all.
-   * The previous fallback was {@code UserMessage.toString()}, which prints the
+   * The obvious fallback, {@code UserMessage.toString()}, prints the
    * whole Base64 payload of every attachment; with the chat log being a process
    * variable, one invoice PDF would put megabytes of Base64 into the engine
    * database on every run. A descriptor — variable, filename, mime type, size,
@@ -1012,7 +1021,7 @@ class AgentChatListener implements ChatModelListener {
     for (dev.langchain4j.data.message.Content content : user.contents()) {
       // The descriptor lookup has to come first. A text document is a
       // TextContent like any other, so testing the type before consulting the
-      // map wrote the whole document body into the chat log — up to 5 MB per
+      // map would write the whole document body into the chat log — up to 5 MB per
       // turn, in a process variable, for exactly the content this map exists to
       // keep out of it. Only content with no descriptor is the agent's own
       // prompt text, and that is what the TEXT branch below is for.

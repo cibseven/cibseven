@@ -198,11 +198,10 @@ public class AgentConnectorImplContextTest {
   }
 
   /**
-   * Regression: context resolution used to sit between the
-   * {@link ProcessStarterToolContext} writes and the {@code try}, so throwing
-   * there left the engine reference and the caller {@code Authentication} on the
-   * thread. On a pooled JobExecutor or Tomcat thread the next, unrelated task
-   * would then run under someone else's identity.
+   * Smoke test only: without an engine the {@link ProcessStarterToolContext}
+   * values are null before the failure too, so this cannot catch a missed
+   * clear. The real check — a refused run with an engine and a caller — is in
+   * ProcessVariableAuthorizationEngineTest.
    */
   @Test
   public void shouldClearTheToolContextEvenWhenContextResolutionFails() {
@@ -216,6 +215,7 @@ public class AgentConnectorImplContextTest {
 
     assertThat(ProcessStarterToolContext.getEngine()).isNull();
     assertThat(ProcessStarterToolContext.getAuthentication()).isNull();
+    assertThat(ProcessStarterToolContext.getCaller()).isNull();
   }
 
   /**

@@ -347,6 +347,10 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
     if (value == null || value instanceof String) {
       return (String) value;
     }
+    // Text that is not a String, e.g. a Groovy GString from a script input.
+    if (value instanceof CharSequence) {
+      return value.toString();
+    }
     throw new AgentConnectorException("'" + parameterName + "' " + expected
         + ", but received a value of type " + value.getClass().getName() + ". " + hint);
   }

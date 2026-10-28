@@ -193,10 +193,9 @@ public final class AgentConnectorConstants {
    * Checked before encoding because Base64 inflates by roughly a third and the
    * encoded copy is what ends up in memory and on the wire.
    *
-   * <p>Aligned with the 10 MB multipart limit Camunda 8's document store uses,
-   * halved: a document that large in a prompt is nearly always a modelling
-   * mistake, and the failure should come from us rather than from a provider
-   * rejecting the request minutes later.
+   * <p>A document that large in a prompt is nearly always a modelling mistake,
+   * and the failure should come from us rather than from a provider rejecting
+   * the request minutes later.
    */
   public static final int DEFAULT_MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
 
@@ -210,8 +209,8 @@ public final class AgentConnectorConstants {
    * Opening delimiter wrapped around a text document handed to the model.
    * Text files are the one document kind that becomes prompt text rather than a
    * typed attachment, so they need the same containment the process-context
-   * block gets — Camunda 8 inlines them raw and records that as a known
-   * prompt-injection gap.
+   * block gets; inlined raw, a document could close the block and pose as
+   * instructions.
    */
   public static final String DOCUMENT_BLOCK_OPEN = "<document";
 

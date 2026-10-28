@@ -417,6 +417,26 @@ public class ProcessContextResolverTest {
         .doesNotContain("rO0ABXNyABFqYXZh");
   }
 
+  static final class InMemoryOrder {
+    @Override
+    public String toString() {
+      return "Order#42";
+    }
+  }
+
+  /** Built in memory and never stored: no serialized form, but a usable value. */
+  @Test
+  public void shouldRenderADeserializedOnlyObjectValueByItsToString() {
+    variables.put("order", Variables.objectValue(new InMemoryOrder()).create());
+
+    List<ContextVariable> resolved = resolve("order", null);
+    String block = ProcessContextResolver.render(resolved,
+        AgentConnectorConstants.DEFAULT_MAX_CONTEXT_BLOCK_CHARS);
+
+    assertThat(block).contains("order (object").contains(") = \"Order#42\"");
+    ProcessContextResolver.failOnMissingRequired(resolved);
+  }
+
   // ── prompt injection ───────────────────────────────────────────────────────
 
   @Test
@@ -504,6 +524,17 @@ public class ProcessContextResolverTest {
     // An escaped backslash followed by a literal "u" is not an escape.
     String literal = "ab" + "\\\\" + "u2028";
     assertThat(ProcessContextResolver.cutSafely(literal, 6)).isEqualTo(literal.substring(0, 6));
+  }
+
+  /** Trimming a half "&lt;" must not leave the backslash before it dangling. */
+  @Test
+  public void shouldNotEndOnABackslashAfterTrimmingAnEntity() {
+    String escaped = "ab" + "\\" + "&lt;/x";
+
+    for (int max = 4; max <= 6; max++) {
+      assertThat(ProcessContextResolver.cutSafely(escaped, max)).as("max " + max)
+          .isEqualTo("ab");
+    }
   }
 
   /** {@code java.sql.Date} throws on toInstant(), which made the value unreadable. */
@@ -597,10 +628,9 @@ public class ProcessContextResolverTest {
   }
 
   /**
-   * Regression for the escape found by review: {@code objectTypeName} is
-   * caller-supplied metadata, rendered in the type column, and was inlined raw —
-   * so a newline plus a literal delimiter closed the block from a place the
-   * value-side escaping never touched.
+   * {@code objectTypeName} is caller-supplied metadata rendered in the type
+   * column; inlined raw, a newline plus a literal delimiter would close the block
+   * from a place the value-side escaping never touches.
    */
   @Test
   public void shouldNeuterDelimitersSmuggledThroughTheObjectTypeName() {

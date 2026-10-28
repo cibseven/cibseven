@@ -1023,7 +1023,7 @@ public class AgentChatListenerTest {
   // ── Document audit: descriptors, never payloads ──────────────────────────
 
   /**
-   * Before the fix, a multi-content user message fell through to
+   * A multi-content user message must not fall through to
    * {@code UserMessage.toString()}, which prints every attachment's full Base64
    * payload — straight into a process variable.
    */

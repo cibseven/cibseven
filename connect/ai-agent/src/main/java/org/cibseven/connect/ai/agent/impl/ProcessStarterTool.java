@@ -58,23 +58,19 @@ import dev.langchain4j.agent.tool.Tool;
  * {@link ProcessStarterToolContext}, populated by {@link AgentConnectorImpl}
  * at the start of the connector invocation:
  * <ul>
- *   <li>the authenticated user — for a synchronous agent task, and for a job a
- *       user executes by hand;</li>
- *   <li>otherwise the start user of the process instance — for a job run by
- *       the job executor (also for jobs of a tenant, where the job executor
- *       authenticates only the tenant), and for a synchronous run that has no
- *       authentication at all;</li>
- *   <li>otherwise the job executor's user-less tenant authentication, which
- *       keeps the engine's tenant check on, or none at all.</li>
+ *   <li>the authentication on the thread — the user of a synchronous agent
+ *       task or of a job executed by hand, and for a job of a tenant the job
+ *       executor's user-less {@code (null, null, [tenantId])}: the tool then
+ *       reaches that tenant's processes and no other, and the engine checks no
+ *       permissions, as for any user-less command;</li>
+ *   <li>otherwise the start user of the process instance — for a job without
+ *       a tenant, and for a synchronous run that has no authentication at all —
+ *       with their groups and the instance's tenant;</li>
+ *   <li>otherwise none at all.</li>
  * </ul>
- * The tool has exactly the rights of that user. For an admin that includes
- * every tenant: the engine skips its tenant check for admins, so an admin's
- * job reaches processes of all tenants, as the admin could directly. A start
- * user's tenants are their memberships in the identity service, not the tenant
- * of the instance that runs the job — so with LDAP or OAuth2 tenants, whose
- * tenant queries return nothing, a start user reaches no tenant's processes.
- * A job of a tenant whose instance has no start user stays confined to that
- * tenant.
+ * This is not necessarily the caller {@code contextVariables} and
+ * {@code documents} are checked for: for a job of a tenant that check uses the
+ * start user, the tool keeps the job's tenant authentication.
  *
  * <p>Permissions needed: {@code CREATE} on process instances and
  * {@code CREATE_INSTANCE} on the definition to start; {@code READ} on the

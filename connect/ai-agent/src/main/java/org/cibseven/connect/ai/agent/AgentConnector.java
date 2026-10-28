@@ -248,10 +248,10 @@ public interface AgentConnector extends Connector<AgentRequest> {
    *       {@code NO_CALLER} in the audit event.</li>
    * </ul>
    * Trade-off: the engine lets {@code READ_TASK} (and {@code READ_TASK_VARIABLE})
-   * read only through an existing task and in that task's scope. Here it admits the whole instance — the same
-   * variables in the usual case of an agent task after a user task, more for an
-   * instance without user tasks or for variables in a subprocess,
-   * multi-instance or input-mapping scope that no task sees.
+   * read only through an existing task and in that task's scope. Here it admits
+   * the whole instance — the same variables in the usual case of an agent task
+   * after a user task, more for an instance without user tasks or for variables
+   * in a subprocess, multi-instance or input-mapping scope that no task sees.
    *
    * <p><b>Security:</b> process variables routinely hold user- or
    * document-sourced text. Everything listed here becomes part of the prompt of
@@ -290,8 +290,11 @@ public interface AgentConnector extends Connector<AgentRequest> {
 
   /**
    * Optional. Comma-separated list of process-variable <em>names</em> holding
-   * files that are sent to the model as native attachments — a PDF as a PDF, an
-   * image as an image, rather than as text spliced into the prompt.
+   * files that are sent to the model with {@link #PARAM_NAME_MESSAGE}, which
+   * must then not be empty. PDFs and images go as native attachments — a PDF as
+   * a PDF, an image as an image, rather than as text spliced into the prompt.
+   * Text, JSON, XML and YAML documents are the exception: they are inserted into
+   * the prompt as a delimited block and count in full as input tokens.
    *
    * <p>Accepts {@code FileValue} variables (which carry filename and mime type)
    * and {@code BytesValue} variables (which carry neither, so their mime type
@@ -310,6 +313,11 @@ public interface AgentConnector extends Connector<AgentRequest> {
    *
    * <p>Needs the same read permission as
    * {@link #PARAM_NAME_CONTEXT_VARIABLES}; see there.
+   *
+   * <p>With chat memory, the documents belong to this turn only: memory keeps
+   * the text of the user message, not the attachments, so a later turn on the
+   * same memory id does not see them unless it declares them again. RAG content
+   * retrieved for such a turn is not kept in memory either.
    *
    * <p>Example: {@code "invoicePdf,signatureScan"}
    */
