@@ -25,12 +25,9 @@ import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.util.EngineUtilLogger;
 import java.text.ParseException;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.zone.ZoneOffsetTransition;
 import java.time.ZonedDateTime;
 import java.util.Date;
-import java.util.Optional;
 
 /**
  * A cron timer implementation that uses cronutils library for parsing and evaluation.
@@ -48,40 +45,12 @@ public class CronTimer {
   public Date getDueDate(final Date afterTime) {
 
     long fromEpochMilli = afterTime.getTime();
-    final ZoneId zone = ZoneId.systemDefault();
-    final ExecutionTime executionTime = ExecutionTime.forCron(cron);
-    final var next = executionTime
-        .nextExecution(ZonedDateTime.ofInstant(Instant.ofEpochMilli(fromEpochMilli), zone))
-        .flatMap(execution -> skipRepeatedHour(executionTime, execution))
+    final var next = ExecutionTime.forCron(cron)
+        .nextExecution(ZonedDateTime.ofInstant(Instant.ofEpochMilli(fromEpochMilli), ZoneId.systemDefault()))
         .map(ZonedDateTime::toInstant)
         .map(Instant::toEpochMilli);
 
     return new Date(next.orElse(fromEpochMilli));
-  }
-
-  /**
-   * When clocks go back (e.g. 03:00 CEST to 02:00 CET), the local times of the
-   * repeated hour occur twice. Due dates are persisted as local time without offset,
-   * so an execution in the second occurrence is read back as the first one, is
-   * overdue immediately and its successor falls into the repeated hour again, which
-   * makes the timer fire in a loop. Like the Quartz based implementation used before,
-   * executions in the second occurrence of the repeated hour are skipped.
-   */
-  protected Optional<ZonedDateTime> skipRepeatedHour(final ExecutionTime executionTime, final ZonedDateTime execution) {
-    final LocalDateTime localExecution = execution.toLocalDateTime();
-    final ZoneOffsetTransition transition = execution.getZone().getRules().getTransition(localExecution);
-    // Only the second pass of an overlap must be skipped: in the first pass (offset before the transition)
-    // the local times are not yet repeated, so they are safe. The second pass (offset after the transition)
-    // repeats them and would look already due.
-    if (transition == null || !transition.isOverlap() || !execution.getOffset().equals(transition.getOffsetAfter())) {
-      return Optional.of(execution);
-    }
-    // first instant after the repeated hour, e.g. 03:00 CET
-    final ZonedDateTime endOfOverlap = transition.getDateTimeBefore().atZone(transition.getOffsetAfter())
-        .withZoneSameInstant(execution.getZone());
-    // nextExecution is strictly after its argument: starting one second earlier keeps a slot at exactly
-    // 03:00 CET a candidate (e.g. "0 0/15 * * * ?" would otherwise skip to 03:15)
-    return executionTime.nextExecution(endOfOverlap.minusSeconds(1));
   }
 
   public static CronTimer parse(final String text, final CronType cronType, final boolean supportLegacyQuartzSyntax) throws ParseException {
