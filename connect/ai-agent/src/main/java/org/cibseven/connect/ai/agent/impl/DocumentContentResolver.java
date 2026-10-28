@@ -759,7 +759,22 @@ public final class DocumentContentResolver {
    * tag's own lines ambiguous to the model.
    */
   private static String xmlAttribute(String value) {
-    return value.replace("&", "&amp;").replace("\"", "&quot;").replace("<", "&lt;")
-        .replace("\r", "&#13;").replace("\n", "&#10;").replace("\t", "&#9;");
+    StringBuilder sb = new StringBuilder(value.length() + 16);
+    for (int i = 0; i < value.length(); i++) {
+      char c = value.charAt(i);
+      switch (c) {
+        case '&': sb.append("&amp;"); break;
+        case '"': sb.append("&quot;"); break;
+        case '<': sb.append("&lt;"); break;
+        case '>': sb.append("&gt;"); break;
+        case '\r': case '\n': case '\t':
+        case (char) 0x85: case (char) 0x2028: case (char) 0x2029:
+          // Line breaks of any kind, including NEL, LS and PS.
+          sb.append("&#").append((int) c).append(';');
+          break;
+        default: sb.append(c);
+      }
+    }
+    return sb.toString();
   }
 }

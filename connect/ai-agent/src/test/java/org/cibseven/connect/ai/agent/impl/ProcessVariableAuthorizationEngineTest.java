@@ -24,6 +24,7 @@ import static org.cibseven.bpm.engine.authorization.Permissions.CREATE;
 import static org.cibseven.bpm.engine.authorization.Permissions.CREATE_INSTANCE;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ_INSTANCE;
+import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE;
 import static org.cibseven.bpm.engine.authorization.ProcessDefinitionPermissions.READ_INSTANCE_VARIABLE;
 import static org.cibseven.bpm.engine.authorization.ProcessDefinitionPermissions.READ_TASK;
 import static org.cibseven.bpm.engine.authorization.ProcessDefinitionPermissions.READ_TASK_VARIABLE;
@@ -43,6 +44,11 @@ import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.engine.impl.cfg.multitenancy.TenantIdProvider;
+import org.cibseven.bpm.engine.impl.cfg.multitenancy.TenantIdProviderCaseInstanceContext;
+import org.cibseven.bpm.engine.impl.cfg.multitenancy.TenantIdProviderHistoricDecisionInstanceContext;
+import org.cibseven.bpm.engine.impl.cfg.multitenancy.TenantIdProviderProcessInstanceContext;
+import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
@@ -89,7 +95,33 @@ public class ProcessVariableAuthorizationEngineTest {
     configuration.setJdbcUrl("jdbc:h2:mem:variable-authorization-test;DB_CLOSE_DELAY=-1");
     configuration.setJobExecutorActivate(false);
     configuration.setAuthorizationEnabled(true);
+    configuration.setTenantIdProvider(new VariableTenantIdProvider());
     return configuration.buildProcessEngine();
+  }
+
+  /**
+   * Puts an instance of a shared definition into the tenant named by its
+   * {@code _tenant} variable. The only way to have a synchronous agent task run
+   * in a tenant its caller is not a member of: the engine refuses to start an
+   * instance of a tenant's own definition for a non-member.
+   */
+  static final class VariableTenantIdProvider implements TenantIdProvider {
+    @Override
+    public String provideTenantIdForProcessInstance(TenantIdProviderProcessInstanceContext ctx) {
+      Object tenant = ctx.getVariables().get("_tenant");
+      return (tenant == null) ? null : tenant.toString();
+    }
+
+    @Override
+    public String provideTenantIdForCaseInstance(TenantIdProviderCaseInstanceContext ctx) {
+      return null;
+    }
+
+    @Override
+    public String provideTenantIdForHistoricDecisionInstance(
+        TenantIdProviderHistoricDecisionInstanceContext ctx) {
+      return null;
+    }
   }
 
   static final class StubChatModel implements ChatModel {
@@ -136,7 +168,19 @@ public class ProcessVariableAuthorizationEngineTest {
       } else {
         request.contextVariables("orderId");
       }
-      connector.execute(request);
+      // Some engine commands switch the tenant check off for their own work;
+      // the agent check has to follow that switch, as TenantManager does.
+      boolean disableTenantCheck = Boolean.TRUE.equals(execution.getVariable("_noTenantCheck"));
+      if (disableTenantCheck) {
+        Context.getCommandContext().disableTenantCheck();
+      }
+      try {
+        connector.execute(request);
+      } finally {
+        if (disableTenantCheck) {
+          Context.getCommandContext().enableTenantCheck();
+        }
+      }
     }
   }
 
@@ -157,6 +201,7 @@ public class ProcessVariableAuthorizationEngineTest {
     identityService.clearAuthentication();
     configuration().setEnforceSpecificVariablePermission(false);
     configuration().setAuthorizationEnabled(true);
+    configuration().setTenantCheckEnabled(true);
     AuthorizationService authorizationService = ENGINE.getAuthorizationService();
     authorizationService.createAuthorizationQuery().list()
         .forEach(authorization -> authorizationService.deleteAuthorization(authorization.getId()));
@@ -474,6 +519,121 @@ public class ProcessVariableAuthorizationEngineTest {
         .contains("\"authorization\":\"GRANTED\"");
   }
 
+  /**
+   * Review round 4, B1: a job of a tenant runs under the job executor's
+   * (null, null, [tenant]) authentication. Without a grant the start user must
+   * still be refused, even as a member of the tenant.
+   */
+  @Test
+  public void shouldCheckTheStartUserOfATenantJobRunByTheJobExecutor() {
+    deploy(TENANT, ASYNC_KEY, true);
+    createUser("alice", null);
+    ENGINE.getIdentityService().saveTenant(ENGINE.getIdentityService().newTenant(TENANT));
+    ENGINE.getIdentityService().createTenantUserMembership(TENANT, "alice");
+    startInTenantAs("alice", List.of());
+
+    Throwable thrown = catchThrowable(this::executeTheJob);
+
+    assertThat(rootCause(thrown))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("User 'alice' may not read the variables");
+    assertThat(modelCalled).isFalse();
+  }
+
+  /** P1: a job executed by hand is checked for whoever executes it. */
+  @Test
+  public void shouldCheckTheUserWhoExecutesAJobByHand() {
+    grant("alice", PROCESS_DEFINITION, ASYNC_KEY, READ_INSTANCE);
+    grant("bob", PROCESS_INSTANCE, ANY, UPDATE);
+    startAs("alice", List.of(), ASYNC_KEY, context());
+
+    Throwable thrown = catchThrowable(() -> executeTheJobAs("bob"));
+
+    assertThat(rootCause(thrown))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("User 'bob' may not read the variables");
+  }
+
+  /** P3: the synchronous refusal — the caller's own tenant list lacks the tenant. */
+  @Test
+  public void shouldRefuseASynchronousCallerOutsideTheInstancesTenant() {
+    grant("alice", PROCESS_DEFINITION, SYNC_KEY, READ_INSTANCE);
+
+    Throwable thrown = catchThrowable(() -> startAs("alice", List.of(), SYNC_KEY,
+        context().putValue("_tenant", TENANT)));
+
+    assertThat(rootCause(thrown))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("tenant '" + TENANT + "'");
+    assertThat(modelCalled).isFalse();
+  }
+
+  /** P3: with tenant checks disabled on the engine there is no tenant check. */
+  @Test
+  public void shouldSkipTheTenantCheckWhenTheEngineDisablesIt() {
+    configuration().setTenantCheckEnabled(false);
+    grant("alice", PROCESS_DEFINITION, SYNC_KEY, READ_INSTANCE);
+
+    startAs("alice", List.of(), SYNC_KEY, context().putValue("_tenant", TENANT));
+
+    assertThat(modelCalled).isTrue();
+  }
+
+  /** P3: nor when the running command has switched it off. */
+  @Test
+  public void shouldFollowTheCommandContextsTenantCheckSwitch() {
+    grant("alice", PROCESS_DEFINITION, SYNC_KEY, READ_INSTANCE);
+
+    startAs("alice", List.of(), SYNC_KEY, context()
+        .putValue("_tenant", TENANT)
+        .putValue("_noTenantCheck", true));
+
+    assertThat(modelCalled).isTrue();
+  }
+
+  /**
+   * P5: ProcessStarterTool puts the derived start-user authentication on its
+   * worker thread, so an agent task in the child process sees it as the thread's
+   * authentication. Its tenant list is only the parent's tenant and must not
+   * count as membership.
+   */
+  @Test
+  public void shouldNotTrustTheTenantListOfAStartUserAuthenticationOnTheThread() {
+    deploy(TENANT, SYNC_KEY, false);
+    grant("alice", PROCESS_DEFINITION, SYNC_KEY, READ_INSTANCE);
+    ENGINE.getIdentityService().setAuthentication(
+        new StartUserAuthentication("alice", List.of(), List.of(TENANT)));
+
+    Throwable thrown;
+    try {
+      thrown = catchThrowable(() -> ENGINE.getRuntimeService()
+          .createProcessInstanceByKey(SYNC_KEY)
+          .processDefinitionTenantId(TENANT)
+          .setVariables(context())
+          .execute());
+    } finally {
+      ENGINE.getIdentityService().clearAuthentication();
+    }
+
+    assertThat(rootCause(thrown))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("tenant '" + TENANT + "'");
+  }
+
+  /** P2: an admin skips the tenant check, so nothing was checked. */
+  @Test
+  public void shouldNotRecordASkippedTenantCheckAsPassed() {
+    configuration().setAuthorizationEnabled(false);
+    deploy(TENANT, ASYNC_KEY, true);
+    createUser("root", "camunda-admin");
+    ENGINE.getIdentityService().saveTenant(ENGINE.getIdentityService().newTenant(TENANT));
+    startInTenantAs("root", List.of("camunda-admin"));
+
+    executeTheJob();
+
+    assertThat(chatLog()).contains("\"authorization\":\"AUTHORIZATION_DISABLED\"");
+  }
+
   // ── helpers ────────────────────────────────────────────────────────────────
 
   private static VariableMap context() {
@@ -507,10 +667,33 @@ public class ProcessVariableAuthorizationEngineTest {
     }
   }
 
-  /** Runs the async agent task the way the job executor would: unauthenticated. */
+  /**
+   * Runs the async agent task the way the job executor does (ExecuteJobsCmd):
+   * without a user, and for a job of a tenant under an authentication that
+   * names only that tenant. Review round 4, B1: that user-less authentication
+   * used to be taken for the caller, and the variables went out unchecked.
+   */
   private void executeTheJob() {
     Job job = ENGINE.getManagementService().createJobQuery().singleResult();
-    ENGINE.getManagementService().executeJob(job.getId());
+    if (job.getTenantId() != null) {
+      ENGINE.getIdentityService().setAuthentication(null, null, List.of(job.getTenantId()));
+    }
+    try {
+      ENGINE.getManagementService().executeJob(job.getId());
+    } finally {
+      ENGINE.getIdentityService().clearAuthentication();
+    }
+  }
+
+  /** Executes the job by hand, as a user does through the API or REST. */
+  private void executeTheJobAs(String userId) {
+    Job job = ENGINE.getManagementService().createJobQuery().singleResult();
+    ENGINE.getIdentityService().setAuthentication(userId, List.of());
+    try {
+      ENGINE.getManagementService().executeJob(job.getId());
+    } finally {
+      ENGINE.getIdentityService().clearAuthentication();
+    }
   }
 
   private static void createUser(String userId, String groupId) {

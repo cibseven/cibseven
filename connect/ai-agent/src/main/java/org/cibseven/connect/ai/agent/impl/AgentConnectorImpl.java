@@ -174,11 +174,6 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     // audit event (Art. 12 record-keeping).
     ProcessEngine callerEngine = captureProcessEngine();
     Authentication callerAuth = captureCallerAuthentication(callerEngine);
-    // Whether the caller is the thread's real authentication (synchronous run)
-    // or was derived from the process instance's start user (job). The tenant
-    // check trusts the tenant list of the former only.
-    boolean callerAuthenticated = callerAuth != null && callerEngine != null
-        && callerAuth == callerEngine.getIdentityService().getCurrentAuthentication();
     ProcessStarterToolContext.setEngine(callerEngine);
     ProcessStarterToolContext.setAuthentication(callerAuth);
 
@@ -195,7 +190,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       // Both features read variables straight off the execution, which checks
       // nothing. Check the caller's read permission once, before the first read.
       ProcessVariableAuthorization.Outcome variableAccess = authorizeVariableReads(request,
-          callerAuth, callerAuthenticated);
+          callerAuth);
 
       // Read the declared process-variable allowlist before any model object
       // exists — the read is local and cheap, and a mis-declared context should
@@ -478,7 +473,11 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    * <ol>
    *   <li>The current per-thread engine authentication, populated by an
    *       interactive caller (e.g. REST request handler) — present when the
-   *       service task runs synchronously inside the starter's command.</li>
+   *       service task runs synchronously inside the caller's command, and
+   *       when a user executes a job by hand ({@code ManagementService.executeJob},
+   *       REST {@code POST /job/{id}/execute}). Only if it names a user: the
+   *       job executor authenticates a job of a tenant as
+   *       {@code (null, null, [tenantId])}, which identifies nobody.</li>
    *   <li>The starter of the executing process instance — used when the
    *       service task is async and the connector runs on a JobExecutor
    *       thread, which carries no inherited authentication. Resolved via
@@ -496,7 +495,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     }
     try {
       Authentication current = engine.getIdentityService().getCurrentAuthentication();
-      if (current != null) {
+      if (current != null && current.getUserId() != null) {
         return current;
       }
     } catch (Exception e) {
@@ -556,7 +555,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       List<String> tenantIds = (hpi.getTenantId() != null) ? List.of(hpi.getTenantId()) : null;
       LOG.debug("Derived authentication from process instance '{}': user='{}', groups={}, tenants={}",
           processInstanceId, startUserId, groupIds, tenantIds);
-      return new Authentication(startUserId, groupIds, tenantIds);
+      return new StartUserAuthentication(startUserId, groupIds, tenantIds);
     } catch (Exception e) {
       LOG.debug("Could not derive authentication from process instance '{}': {}",
           processInstanceId, e.toString());
@@ -724,13 +723,13 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    * the resolvers fail with their own, more specific message.
    */
   private static ProcessVariableAuthorization.Outcome authorizeVariableReads(
-      AgentRequest request, Authentication caller, boolean callerAuthenticated) {
+      AgentRequest request, Authentication caller) {
     if (!isDeclared(request.getContextVariables()) && !isDeclared(request.getDocuments())) {
       return null;
     }
     ExecutionEntity execution = currentExecution();
     return (execution == null) ? null
-        : ProcessVariableAuthorization.check(execution, caller, callerAuthenticated);
+        : ProcessVariableAuthorization.check(execution, caller);
   }
 
   /** Adds the authorization outcome to a {@code context} or {@code documents} event. */

@@ -162,6 +162,17 @@ public class DocumentContentResolverTest {
     assertThat(text.substring(0, text.indexOf('>'))).doesNotContain("\n");
   }
 
+  /** Review round 4, P6: '>' and the Unicode line breaks as well. */
+  @Test
+  public void shouldEscapeAngleBracketAndUnicodeLineBreaksInTagAttributes() {
+    String filename = "x>" + (char) 0x85 + (char) 0x2028 + (char) 0x2029 + "y.txt";
+    putFile("note", filename, "text/plain", "hi".getBytes(StandardCharsets.UTF_8));
+
+    String text = ((TextContent) resolve("note").get(0).content).text();
+
+    assertThat(text).contains("name=\"x&gt;&#133;&#8232;&#8233;y.txt\"");
+  }
+
   /** Review finding (P6): an empty attachment gives the model nothing to read. */
   @Test
   public void shouldRejectAnEmptyDocument() {

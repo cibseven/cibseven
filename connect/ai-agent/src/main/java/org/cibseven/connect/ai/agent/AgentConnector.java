@@ -228,9 +228,9 @@ public interface AgentConnector extends Connector<AgentRequest> {
    *
    * <p><b>Authorization:</b> the same check covers {@link #PARAM_NAME_DOCUMENTS}.
    * <ul>
-   *   <li>Who: the authenticated user for a synchronous task; for an
-   *       asynchronous task the start user of the process instance, not whoever
-   *       triggered the job.</li>
+   *   <li>Who: the authenticated user — for a synchronous task, and for a job
+   *       a user executes by hand. For a job run by the job executor, the start
+   *       user of the process instance, not whoever led to the job.</li>
    *   <li>Permissions, when authorization is enabled — one of {@code READ} on the
    *       process instance, or {@code READ_INSTANCE} or {@code READ_TASK} on the
    *       process definition; with {@code enforceSpecificVariablePermission},
@@ -239,13 +239,16 @@ public interface AgentConnector extends Connector<AgentRequest> {
    *       when the task completes. Otherwise the activity fails.</li>
    *   <li>Tenant: when the instance belongs to a tenant and tenant checks are
    *       enabled — the default — the caller must be a member, also when
-   *       authorization is disabled. Admins skip this part.</li>
+   *       authorization is disabled. Admins skip this part. For the start user
+   *       of a job, membership is read from the identity service, so with LDAP
+   *       or OAuth2 tenants, whose tenant queries return nothing, such jobs
+   *       always fail this check.</li>
    *   <li>Without a caller (no authentication and no start user) the variables
    *       are read unchecked; this is logged at WARN and recorded as
    *       {@code NO_CALLER} in the audit event.</li>
    * </ul>
-   * Trade-off: the engine lets {@code READ_TASK} read only through an existing
-   * task and in that task's scope. Here it admits the whole instance — the same
+   * Trade-off: the engine lets {@code READ_TASK} (and {@code READ_TASK_VARIABLE})
+   * read only through an existing task and in that task's scope. Here it admits the whole instance — the same
    * variables in the usual case of an agent task after a user task, more for an
    * instance without user tasks or for variables in a subprocess,
    * multi-instance or input-mapping scope that no task sees.
