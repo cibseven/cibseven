@@ -3035,7 +3035,15 @@ public class AgenticTurnJobTest {
         .contains("\"activityId\":\"pruefen\"")
         .contains("\"status\":\"interrupted\"")
         .contains("\"eventType\":\"escalation\"")
-        .contains("\"boundaryEvent\":\"zuTeuer\"");
+        .contains("\"boundaryEvent\":\"zuTeuer\"")
+        // toolResultsSoFar keeps saying how it ended once the window drops this (CIB7-2445).
+        .containsPattern("\"toolResultsSoFar\":\\[\\{\"activityId\":\"pruefen\",.*?"
+            + "\"resultsNote\":\"'pruefen' did not complete: ")
+        // Its results were not read: not "nothing declared" as well, in neither section.
+        .doesNotContainPattern("\"toolResultsSoFar\":\\[\\{\"activityId\":\"pruefen\",.*?"
+            + "\"results\":\\{\\},\"resultsFrom\"")
+        .doesNotContain("\"resultsFrom\":\"nothing declared\"")
+        .doesNotContain("declares no output mapping");
   }
 
   /**
@@ -3527,6 +3535,48 @@ public class AgenticTurnJobTest {
         .doesNotContain("\"resultsFrom\"");
   }
 
+  /**
+   * A call cancelled in a later turn than it was made in keeps the turn of the call, not the one
+   * it was cancelled in (CIB7-2445).
+   */
+  @Test
+  public void aToolCancelledInALaterTurnKeepsTheTurnOfTheCall() throws IOException {
+    script.add(toolCall("freigabe", "{}"));
+    script.add(toolCall("worker", "{}"));
+    script.add(answer("Warte."));
+    script.add(answer("Weiter."));
+    script.add(answer("Verstanden."));
+    ProcessInstance pi = startWith("      <userTask id='freigabe' name='Freigabe' />"
+        + "      <userTask id='worker' name='Worker' />");
+    runWaitingTurn();
+    // The worker's end brings the second turn, while 'freigabe' still waits.
+    completeTask(pi, "worker", Collections.<String, Object>emptyMap());
+    runWaitingTurn();
+    // As in cancelFromOutside: something else still runs, so the cancellation does not end the
+    // scope.
+    String scope = engine.getRuntimeService().createExecutionQuery().activityId("adHoc")
+        .singleResult().getId();
+    engine.getRuntimeService().createAdHocSubProcessActivation(scope)
+        .startActivity("worker").execute();
+    int before = requestBodies.size();
+
+    engine.getRuntimeService().createProcessInstanceModification(pi.getId())
+        .cancelAllForActivity("freigabe").execute();
+    runWaitingTurn();
+
+    assertThat(requestBodies).hasSizeGreaterThan(before);
+    String report = lastUserMessage(requestBodies.get(before));
+    assertThat(report)
+        .contains("\"status\":\"cancelled\"")
+        .as("the cancelled call keeps its note in toolResultsSoFar too")
+        .containsPattern("\"toolResultsSoFar\":\\[[^\\]]*\\{\"activityId\":\"freigabe\",[^\\]]*"
+            + "\"resultsNote\":\"'freigabe' did not complete")
+        .containsPattern("\"toolResultsSoFar\":\\[[^\\]]*\\{\"activityId\":\"freigabe\","
+            + "\"activityInstanceId\":\"[^\"]+\",\"turn\":1,")
+        .as("the block itself is in a later turn")
+        .containsPattern(",\"turn\":[2-9],\"maxTurns\"");
+  }
+
   /** The same for a multi-instance tool, cancelled as a whole: reported once, on the tool. */
   @Test
   public void aMultiInstanceToolCancelledFromOutsideIsReportedAsCancelled() throws IOException {
@@ -3549,6 +3599,9 @@ public class AgenticTurnJobTest {
   public void aChainCancelledFurtherAlongIsReportedUnderTheTool() throws IOException {
     String report = cancelFromOutside(CHAIN, "anfragen", "warten");
 
+    // toolResultsSoFar keeps saying that its empty results were not read (CIB7-2445).
+    assertThat(report).containsPattern("\"toolResultsSoFar\":\\[\\{\"activityId\":\"anfragen\","
+        + "[^\\]]*\"resultsNote\":\"'anfragen' ran; its flow was then cancelled at 'warten'");
     assertThat(report)
         .contains("\"activityId\":\"anfragen\"")
         .contains("\"endedAt\":\"warten\"")

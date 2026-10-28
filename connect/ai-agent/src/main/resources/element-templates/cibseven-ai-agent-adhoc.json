@@ -295,7 +295,7 @@
           "label": "Chat memory max messages",
           "type": "String",
           "group": "memory",
-          "description": "Default 20. Each model call adds about three messages, so 20 holds about the last six calls; earlier tool results and answers are dropped. Raise it if the agent needs more; every call then sends more and the stored conversation grows. With 'Continue across entries' an empty value means at least 53, more with a higher Max model calls per turn, and an explicit value below 2 * the effective Max model calls per turn + 3 is rejected.",
+          "description": "Default 20. Each model call adds about three messages, so 20 holds about the last six calls; earlier tool results and answers are dropped. The declared result variables of every tool call of the current entry stay visible to the agent beyond the window, in the state block's toolResultsSoFar; over its size limit, results already shown above are not repeated, long values are shortened, and only then entries are left out, each named or counted per tool without its values. Declare what the agent must keep as a result variable of the tool. Raise it if the agent needs more; every call then sends more and the stored conversation grows. With 'Continue across entries' an empty value means at least 53, more with a higher Max model calls per turn, and an explicit value below 2 * the effective Max model calls per turn + 3 is rejected.",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "chatMemoryMaxMessages"

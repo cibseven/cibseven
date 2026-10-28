@@ -366,6 +366,58 @@ public class AdHocLoopStateTest {
     assertThat(finished.keySet()).doesNotContainAnyElementsOf(pending(instance).keySet());
   }
 
+  /**
+   * Each pending performance keeps the turn it was called in until it is harvested, and the
+   * turns go with it, so the stored state does not grow with every call (CIB7-2445).
+   */
+  @Test
+  public void harvestDropsTheTurnsOfWhatFinished() {
+    ProcessInstance instance = start();
+    String first = startChild(instance, "waits");
+    addPending(instance, first, "waits");
+    countTurn(instance);
+    String second = startChild(instance, "waits");
+    addPending(instance, second, "waits");
+
+    assertThat(calledInTurn(instance, first)).isEqualTo(0);
+    assertThat(calledInTurn(instance, second)).isEqualTo(1);
+
+    completeTaskOf(first);
+    harvest(instance, runningIds(instance));
+
+    assertThat(pending(instance)).containsOnlyKeys(second);
+    assertThat(calledInTurn(instance, first)).isNull();
+    assertThat(calledInTurn(instance, second)).isEqualTo(1);
+
+    completeTaskOf(second);
+    harvest(instance, runningIds(instance));
+
+    assertThat(pending(instance)).isEmpty();
+    assertThat(inScope(instance.getId(), new ScopeWork<Object>() {
+      @Override
+      public Object run(ExecutionEntity scope) {
+        return AdHocAgentState.stateValue(scope, "pendingTurns");
+      }
+    })).as("no turns are kept once nothing is pending").isNull();
+  }
+
+  /** Completes the task of the child whose activity instance is {@code activityInstanceId}. */
+  private void completeTaskOf(String activityInstanceId) {
+    Task task = ENGINE.getTaskService().createTaskQuery()
+        .activityInstanceIdIn(activityInstanceId).singleResult();
+    assertThat(task).as("the task of " + activityInstanceId).isNotNull();
+    ENGINE.getTaskService().complete(task.getId());
+  }
+
+  private Integer calledInTurn(ProcessInstance instance, final String executionId) {
+    return inScope(instance.getId(), new ScopeWork<Integer>() {
+      @Override
+      public Integer run(ExecutionEntity scope) {
+        return AdHocLoopState.calledInTurn(scope, executionId);
+      }
+    });
+  }
+
   // --- the turn counter ------------------------------------------------------
 
   @Test
