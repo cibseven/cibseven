@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-2264. A task with two conditional outgoing flows, which forks without a gateway and may take
+     one flow only, and an inclusive join. The completion condition is false, so the scope stays
+     open. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="conditionalFlows" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <userTask id="split" />
+      <sequenceFlow id="i2" sourceRef="split" targetRef="left">
+        <conditionExpression xsi:type="tFormalExpression">${goLeft}</conditionExpression>
+      </sequenceFlow>
+      <sequenceFlow id="i3" sourceRef="split" targetRef="right">
+        <conditionExpression xsi:type="tFormalExpression">${goRight}</conditionExpression>
+      </sequenceFlow>
+      <userTask id="left" />
+      <userTask id="right" />
+      <sequenceFlow id="i4" sourceRef="left" targetRef="join" />
+      <sequenceFlow id="i5" sourceRef="right" targetRef="join" />
+      <inclusiveGateway id="join" />
+      <sequenceFlow id="i6" sourceRef="join" targetRef="after" />
+      <userTask id="after" />
+      <completionCondition xsi:type="tFormalExpression">${false}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>
