@@ -72,6 +72,7 @@ class DirectFilterDtoProviderTest {
 		DirectProviderUtil providerUtil = new DirectProviderUtil();
 		providerUtil.processEngines.put(ENGINE_NAME, engine);
 		providerUtil.objectMappers.put(ENGINE_NAME, objectMapper);
+		providerUtil.jsonMappers.put(ENGINE_NAME, DirectProviderUtil.createJsonMapper(objectMapper));
 		provider = new DirectFilterProvider(providerUtil);
 
 		user = new CIBUser("tester");

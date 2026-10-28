@@ -50,14 +50,14 @@ public class DirectFilterProvider implements IFilterProvider{
 		List<Filter> filters = new ArrayList<>();
 		for (org.cibseven.bpm.engine.filter.Filter filter : matchingFilters) {
 			FilterDto filterDto = FilterDto.fromFilter(filter);
-			filters.add(directProviderUtil.convertValue(filterDto, Filter.class, user));
+			filters.add(directProviderUtil.convertValueJackson2(filterDto, Filter.class, user));
 		}
 		return filters;
 	}
 
 	@Override
 	public Filter createFilter(Filter filter, CIBUser user) {
-		FilterDto filterDto = directProviderUtil.convertValue(filter, FilterDto.class, user);
+		FilterDto filterDto = directProviderUtil.convertValueJackson2(filter, FilterDto.class, user);
 		String resourceType = filterDto.getResourceType();
 
 		org.cibseven.bpm.engine.filter.Filter engineFilter;
@@ -75,13 +75,13 @@ public class DirectFilterProvider implements IFilterProvider{
 
 		directProviderUtil.getProcessEngine(user).getFilterService().saveFilter(engineFilter);
 
-		Filter resultFilter = directProviderUtil.convertValue(FilterDto.fromFilter(engineFilter), Filter.class, user);
+		Filter resultFilter = directProviderUtil.convertValueJackson2(FilterDto.fromFilter(engineFilter), Filter.class, user);
 		return resultFilter;
 	}
 
 	@Override
 	public void updateFilter(Filter filter, CIBUser user) {
-		FilterDto filterDto = directProviderUtil.convertValue(filter, FilterDto.class, user);
+		FilterDto filterDto = directProviderUtil.convertValueJackson2(filter, FilterDto.class, user);
 		org.cibseven.bpm.engine.filter.Filter dbFilter = directProviderUtil.getProcessEngine(user).getFilterService().getFilter(filter.getId());
 
 		if (dbFilter == null) {

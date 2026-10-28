@@ -41,7 +41,7 @@ public class DirectTenantProvider implements ITenantProvider {
 
 	@Override
 	public Collection<Tenant> fetchTenants(Map<String, Object> queryParams, CIBUser user) {
-		TenantQueryDto queryDto = directProviderUtil.getObjectMapper(user).convertValue(queryParams, TenantQueryDto.class);
+		TenantQueryDto queryDto = directProviderUtil.getJsonMapper(user).convertValue(queryParams, TenantQueryDto.class);
 
 		TenantQuery query = queryDto.toQuery(directProviderUtil.getProcessEngine(user));
 		List<org.cibseven.bpm.engine.identity.Tenant> tenants = QueryUtil.list(query, null, null);

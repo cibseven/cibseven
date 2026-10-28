@@ -62,7 +62,7 @@ public class DirectHistoricVariableInstanceProvider implements IHistoricVariable
 		}
 		HistoricVariableInstance variableInstance = query.singleResult();
 		if (variableInstance != null) {
-			VariableHistory result = directProviderUtil.convertValue(HistoricVariableInstanceDto.fromHistoricVariableInstance(variableInstance),
+			VariableHistory result = directProviderUtil.convertValueJackson2(HistoricVariableInstanceDto.fromHistoricVariableInstance(variableInstance),
 					VariableHistory.class, user);
 			return result;
 		} else {
@@ -74,7 +74,7 @@ public class DirectHistoricVariableInstanceProvider implements IHistoricVariable
 	public Collection<VariableHistory> findHistoricVariableInstances(Map<String, Object> filters,
 			Optional<Integer> firstResult, Optional<Integer> maxResults, Boolean deserializeValues,
 			CIBUser user) throws SystemException {
-		HistoricVariableInstanceQueryDto queryDto = directProviderUtil.getObjectMapper(user)
+		HistoricVariableInstanceQueryDto queryDto = directProviderUtil.getJsonMapper(user)
 				.convertValue(filters, HistoricVariableInstanceQueryDto.class);
 		queryDto.setObjectMapper(directProviderUtil.getObjectMapper(user));
 		HistoricVariableInstanceQuery query = queryDto.toQuery(directProviderUtil.getProcessEngine(user));
@@ -90,7 +90,7 @@ public class DirectHistoricVariableInstanceProvider implements IHistoricVariable
 
 		List<VariableHistory> variables = new ArrayList<>();
 		for (HistoricVariableInstance result : results) {
-			variables.add(directProviderUtil.convertValue(
+			variables.add(directProviderUtil.convertValueJackson2(
 					HistoricVariableInstanceDto.fromHistoricVariableInstance(result), VariableHistory.class, user));
 		}
 		return variables;
@@ -98,7 +98,7 @@ public class DirectHistoricVariableInstanceProvider implements IHistoricVariable
 
 	@Override
 	public Integer findHistoricVariableInstancesCount(Map<String, Object> filters, CIBUser user) throws SystemException {
-		HistoricVariableInstanceQueryDto queryDto = directProviderUtil.getObjectMapper(user)
+		HistoricVariableInstanceQueryDto queryDto = directProviderUtil.getJsonMapper(user)
 				.convertValue(filters, HistoricVariableInstanceQueryDto.class);
 		queryDto.setObjectMapper(directProviderUtil.getObjectMapper(user));
 		return (int) queryDto.toQuery(directProviderUtil.getProcessEngine(user)).count();

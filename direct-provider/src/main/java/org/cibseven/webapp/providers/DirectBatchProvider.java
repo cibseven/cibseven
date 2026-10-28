@@ -162,7 +162,7 @@ public class DirectBatchProvider implements IBatchProvider {
 
 	@Override
 	public Collection<HistoryBatch> getHistoricBatches(Map<String, Object> params, CIBUser user) {
-		HistoricBatchQueryDto queryDto = directProviderUtil.getObjectMapper(user).convertValue(params, HistoricBatchQueryDto.class);
+		HistoricBatchQueryDto queryDto = directProviderUtil.getJsonMapper(user).convertValue(params, HistoricBatchQueryDto.class);
 		HistoricBatchQuery query = queryDto.toQuery(directProviderUtil.getProcessEngine(user));
 		Integer firstResult = null;
 		Integer maxResults = null;
@@ -183,7 +183,7 @@ public class DirectBatchProvider implements IBatchProvider {
 
 	@Override
 	public Long getHistoricBatchCount(Map<String, Object> queryParams, CIBUser user) {
-		HistoricBatchQueryDto queryDto = directProviderUtil.getObjectMapper(user).convertValue(queryParams, HistoricBatchQueryDto.class);
+		HistoricBatchQueryDto queryDto = directProviderUtil.getJsonMapper(user).convertValue(queryParams, HistoricBatchQueryDto.class);
 		HistoricBatchQuery query = queryDto.toQuery(directProviderUtil.getProcessEngine(user));
 		return query.count();
 	}
@@ -210,7 +210,7 @@ public class DirectBatchProvider implements IBatchProvider {
 
 	@Override
 	public Object setRemovalTime(Map<String, Object> payload, CIBUser user) {
-		SetRemovalTimeToHistoricBatchesDto dto = directProviderUtil.getObjectMapper(user).convertValue(payload, SetRemovalTimeToHistoricBatchesDto.class);
+		SetRemovalTimeToHistoricBatchesDto dto = directProviderUtil.getJsonMapper(user).convertValue(payload, SetRemovalTimeToHistoricBatchesDto.class);
 		HistoricBatchQuery historicBatchQuery = null;
 
 		if (dto.getHistoricBatchQuery() != null) {

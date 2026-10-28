@@ -245,7 +245,9 @@ class DirectUserProviderAuthorizationsTest {
 	private DirectUserProvider providerFor(ProcessEngine processEngine) {
 		DirectProviderUtil providerUtil = new DirectProviderUtil();
 		providerUtil.processEngines.put(processEngine.getName(), processEngine);
-		providerUtil.objectMappers.put(processEngine.getName(), new ObjectMapper());
+		ObjectMapper objectMapper = new ObjectMapper();
+		providerUtil.objectMappers.put(processEngine.getName(), objectMapper);
+		providerUtil.jsonMappers.put(processEngine.getName(), DirectProviderUtil.createJsonMapper(objectMapper));
 		return new DirectUserProvider(providerUtil, "org.cibseven.webapp.auth.SevenUserProvider", "");
 	}
 

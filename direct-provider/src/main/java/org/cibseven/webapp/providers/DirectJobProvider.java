@@ -63,7 +63,7 @@ public class DirectJobProvider implements IJobProvider {
 				maxResults = Integer.parseInt((String) params.get("maxResults"));
 		}
 
-		JobQueryDto queryDto = directProviderUtil.getObjectMapper(user).convertValue(queryParams, JobQueryDto.class);
+		JobQueryDto queryDto = directProviderUtil.getJsonMapper(user).convertValue(queryParams, JobQueryDto.class);
 		queryDto.setObjectMapper(directProviderUtil.getObjectMapper(user));
 		JobQuery query = queryDto.toQuery(directProviderUtil.getProcessEngine(user));
 		List<org.cibseven.bpm.engine.runtime.Job> matchingJobs = QueryUtil.list(query, firstResult, maxResults);
@@ -79,7 +79,7 @@ public class DirectJobProvider implements IJobProvider {
 	@Override
 	public void setSuspended(String id, Map<String, Object> params, CIBUser user) {
 
-		JobDefinitionSuspensionStateDto jobDefinitionSuspensionStateDto = directProviderUtil.getObjectMapper(user).convertValue(params,
+		JobDefinitionSuspensionStateDto jobDefinitionSuspensionStateDto = directProviderUtil.getJsonMapper(user).convertValue(params,
 				JobDefinitionSuspensionStateDto.class);
 		jobDefinitionSuspensionStateDto.setProcessDefinitionId(id);
 		if (jobDefinitionSuspensionStateDto.getJobDefinitionId() != null) {
@@ -111,7 +111,7 @@ public class DirectJobProvider implements IJobProvider {
 	@Override
 	public Collection<Object> getHistoryJobLog(Map<String, Object> params, CIBUser user) {
 
-		HistoricJobLogQueryDto queryDto = directProviderUtil.getObjectMapper(user).convertValue(params, HistoricJobLogQueryDto.class);
+		HistoricJobLogQueryDto queryDto = directProviderUtil.getJsonMapper(user).convertValue(params, HistoricJobLogQueryDto.class);
 		queryDto.setObjectMapper(directProviderUtil.getObjectMapper(user));
 		HistoricJobLogQuery query = queryDto.toQuery(directProviderUtil.getProcessEngine(user));
 		Integer firstResult = null;
@@ -148,7 +148,7 @@ public class DirectJobProvider implements IJobProvider {
 	@Override
 	public void changeDueDate(String jobId, Map<String, Object> data, CIBUser user) {
 		try {
-			JobDuedateDto dto = directProviderUtil.getObjectMapper(user).convertValue(data,JobDuedateDto.class);
+			JobDuedateDto dto = directProviderUtil.getJsonMapper(user).convertValue(data,JobDuedateDto.class);
 		  directProviderUtil.getProcessEngine(user).getManagementService().setJobDuedate(jobId, dto.getDuedate(), dto.isCascade());
 		} catch (AuthorizationException e) {
 		  throw e;

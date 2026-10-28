@@ -37,7 +37,7 @@ import org.cibseven.webapp.exception.NoObjectFoundException;
 import org.cibseven.webapp.exception.SystemException;
 import org.cibseven.webapp.rest.model.JobDefinition;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 
 public class DirectJobDefinitionProvider implements IJobDefinitionProvider {
 
@@ -51,8 +51,8 @@ public class DirectJobDefinitionProvider implements IJobDefinitionProvider {
 	public Collection<JobDefinition> findJobDefinitions(String params, CIBUser user) {
 		JobDefinitionQueryDto queryDto;
 		try {
-			queryDto = directProviderUtil.getObjectMapper(user).readValue(params, JobDefinitionQueryDto.class);
-		} catch (JsonProcessingException e) {
+			queryDto = directProviderUtil.getJsonMapper(user).readValue(params, JobDefinitionQueryDto.class);
+		} catch (JacksonException e) {
 			throw new SystemException(e.getMessage());
 		}
 		queryDto.setObjectMapper(directProviderUtil.getObjectMapper(user));
@@ -73,8 +73,8 @@ public class DirectJobDefinitionProvider implements IJobDefinitionProvider {
 	public void suspendJobDefinition(String jobDefinitionId, String param, CIBUser user) {
 		try {
 			@SuppressWarnings("unchecked")
-			Map<String,Object> params = directProviderUtil.getObjectMapper(user).readValue(param, HashMap.class);
-			JobDefinitionSuspensionStateDto dto = directProviderUtil.getObjectMapper(user).convertValue(params, JobDefinitionSuspensionStateDto.class);
+			Map<String,Object> params = directProviderUtil.getJsonMapper(user).readValue(param, HashMap.class);
+			JobDefinitionSuspensionStateDto dto = directProviderUtil.getJsonMapper(user).convertValue(params, JobDefinitionSuspensionStateDto.class);
 			dto.setJobDefinitionId(jobDefinitionId);
 			dto.updateSuspensionState(directProviderUtil.getProcessEngine(user));
 
@@ -83,7 +83,7 @@ public class DirectJobDefinitionProvider implements IJobDefinitionProvider {
 					"The suspension state of Job Definition with id %s could not be updated due to: %s", jobDefinitionId,
 					e.getMessage());
 			throw new SystemException(message, e);
-		} catch (JsonProcessingException e) {
+		} catch (JacksonException e) {
 			throw new SystemException(e.getMessage());
 		}
 	}
@@ -92,8 +92,8 @@ public class DirectJobDefinitionProvider implements IJobDefinitionProvider {
 	public void overrideJobDefinitionPriority(String jobDefinitionId, String param, CIBUser user) {
 		try {
 			@SuppressWarnings("unchecked")
-			Map<String,Object> params = directProviderUtil.getObjectMapper(user).readValue(param, HashMap.class);
-			JobDefinitionPriorityDto dto = directProviderUtil.getObjectMapper(user).convertValue(params, JobDefinitionPriorityDto.class);
+			Map<String,Object> params = directProviderUtil.getJsonMapper(user).readValue(param, HashMap.class);
+			JobDefinitionPriorityDto dto = directProviderUtil.getJsonMapper(user).convertValue(params, JobDefinitionPriorityDto.class);
 
 			if (dto.getPriority() != null) {
 				directProviderUtil.getProcessEngine(user).getManagementService().setOverridingJobPriorityForJobDefinition(jobDefinitionId, dto.getPriority(),
@@ -107,14 +107,14 @@ public class DirectJobDefinitionProvider implements IJobDefinitionProvider {
 
 		} catch (AuthorizationException e) {
 			throw e;
-		} catch (JsonProcessingException|ProcessEngineException e) {
+		} catch (JacksonException|ProcessEngineException e) {
 			throw new SystemException(e.getMessage());
 		}
 	}
 
 	@Override
 	public void retryJobDefinitionById(String id, Map<String, Object> params, CIBUser user) {
-		RetriesDto dto = directProviderUtil.getObjectMapper(user).convertValue(params, RetriesDto.class);
+		RetriesDto dto = directProviderUtil.getJsonMapper(user).convertValue(params, RetriesDto.class);
 		try {
 			SetJobRetriesBuilder builder = directProviderUtil.getProcessEngine(user).getManagementService().setJobRetries(dto.getRetries()).jobDefinitionId(id);
 			if (dto.isDueDateSet()) {

@@ -14,10 +14,9 @@ import org.cibseven.webapp.exception.SystemException;
 import org.cibseven.webapp.rest.model.PasswordPolicyRequest;
 import org.cibseven.webapp.rest.model.PasswordPolicyResponse;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 public class DirectIdentityProvider implements IIdentityProvider {
@@ -70,8 +69,8 @@ public class DirectIdentityProvider implements IIdentityProvider {
     
     private Map<String, Object> convertRuleToMap(PasswordPolicyRule ruleDto, boolean fulfilled) {
         CheckPasswordPolicyRuleDto rule = new CheckPasswordPolicyRuleDto(ruleDto, fulfilled);
-        ObjectMapper objectMapper = directProviderUtil.getObjectMapper((CIBUser) null);
-        return objectMapper.convertValue(rule, new TypeReference<Map<String, Object>>() {});
+        JsonMapper jsonMapper = directProviderUtil.getJsonMapper((CIBUser) null);
+        return jsonMapper.convertValue(rule, new TypeReference<Map<String, Object>>() {});
     }
 
     protected String sanitizeUserId(String userId) {

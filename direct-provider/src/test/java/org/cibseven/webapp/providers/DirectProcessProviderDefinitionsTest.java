@@ -95,6 +95,7 @@ public class DirectProcessProviderDefinitionsTest {
 		directProviderUtil = Mockito.spy(new DirectProviderUtil());
 		doReturn(processEngine).when(directProviderUtil).getProcessEngine(any(CIBUser.class));
 		doReturn(objectMapper).when(directProviderUtil).getObjectMapper(any(CIBUser.class));
+		doReturn(DirectProviderUtil.createJsonMapper(objectMapper)).when(directProviderUtil).getJsonMapper(any(CIBUser.class));
 
 		processProvider = new DirectProcessProvider(directProviderUtil, mock(SevenDirectProvider.class));
 	}

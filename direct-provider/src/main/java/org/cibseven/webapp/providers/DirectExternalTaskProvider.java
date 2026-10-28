@@ -43,7 +43,7 @@ public class DirectExternalTaskProvider implements IExternalTaskProvider {
 		Integer maxResults = directProviderUtil.getMaxResults(params);
 		Map<String, Object> queryParams = directProviderUtil.withoutPagingParams(params);
 
-		ExternalTaskQueryDto queryDto = directProviderUtil.getObjectMapper(user).convertValue(queryParams, ExternalTaskQueryDto.class);
+		ExternalTaskQueryDto queryDto = directProviderUtil.getJsonMapper(user).convertValue(queryParams, ExternalTaskQueryDto.class);
 		queryDto.setObjectMapper(directProviderUtil.getObjectMapper(user));
 		ExternalTaskQuery query = queryDto.toQuery(directProviderUtil.getProcessEngine(user));
 		List<org.cibseven.bpm.engine.externaltask.ExternalTask> matchingTasks = QueryUtil.list(query, firstResult, maxResults);

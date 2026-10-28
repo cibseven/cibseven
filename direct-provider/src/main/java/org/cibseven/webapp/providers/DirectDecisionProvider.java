@@ -72,7 +72,7 @@ public class DirectDecisionProvider implements IDecisionProvider {
 
 	@Override
 	public Collection<Decision> getDecisionDefinitionList(Map<String, Object> queryParams, CIBUser user) {
-		DecisionDefinitionQueryDto queryDto = directProviderUtil.getObjectMapper(user).convertValue(queryParams, DecisionDefinitionQueryDto.class);
+		DecisionDefinitionQueryDto queryDto = directProviderUtil.getJsonMapper(user).convertValue(queryParams, DecisionDefinitionQueryDto.class);
 		List<Decision> definitions = new ArrayList<>();
 		DecisionDefinitionQuery query = queryDto.toQuery(directProviderUtil.getProcessEngine(user));
 		List<DecisionDefinition> matchingDefinitions = QueryUtil.list(query, null, null);
@@ -85,7 +85,7 @@ public class DirectDecisionProvider implements IDecisionProvider {
 
 	@Override
 	public Long getDecisionDefinitionListCount(Map<String, Object> queryParams, CIBUser user) {
-		DecisionDefinitionQueryDto queryDto = directProviderUtil.getObjectMapper(user).convertValue(queryParams, DecisionDefinitionQueryDto.class);
+		DecisionDefinitionQueryDto queryDto = directProviderUtil.getJsonMapper(user).convertValue(queryParams, DecisionDefinitionQueryDto.class);
 		DecisionDefinitionQuery query = queryDto.toQuery(directProviderUtil.getProcessEngine(user));
 		return query.count();
 	}
@@ -111,7 +111,7 @@ public class DirectDecisionProvider implements IDecisionProvider {
 	@Override
 	public void updateHistoryTTLByKey(Map<String, Object> data, String key, CIBUser user) {
 
-		HistoryTimeToLiveDto historyTimeToLiveDto = directProviderUtil.getObjectMapper(user).convertValue(data, HistoryTimeToLiveDto.class);
+		HistoryTimeToLiveDto historyTimeToLiveDto = directProviderUtil.getJsonMapper(user).convertValue(data, HistoryTimeToLiveDto.class);
 		DecisionDefinition decisionDefinition = getDecisionDefinitionByKeyAndTenantImpl(key, null, user);
 		directProviderUtil.getProcessEngine(user).getRepositoryService().updateDecisionDefinitionHistoryTimeToLive(decisionDefinition.getId(),
 				historyTimeToLiveDto.getHistoryTimeToLive());
@@ -208,7 +208,7 @@ public class DirectDecisionProvider implements IDecisionProvider {
 
 	@Override
 	public void updateHistoryTTLById(String id, Map<String, Object> data, CIBUser user) {
-		HistoryTimeToLiveDto historyTimeToLiveDto = directProviderUtil.getObjectMapper(user).convertValue(data, HistoryTimeToLiveDto.class);
+		HistoryTimeToLiveDto historyTimeToLiveDto = directProviderUtil.getJsonMapper(user).convertValue(data, HistoryTimeToLiveDto.class);
 		directProviderUtil.getProcessEngine(user).getRepositoryService().updateDecisionDefinitionHistoryTimeToLive(id, historyTimeToLiveDto.getHistoryTimeToLive());
 	}
 
@@ -237,7 +237,7 @@ public class DirectDecisionProvider implements IDecisionProvider {
 	@Override
 	public Collection<HistoricDecisionInstance> getHistoricDecisionInstances(Map<String, Object> queryParams,
 			CIBUser user) {
-		HistoricDecisionInstanceQueryDto queryHistoricDecisionInstanceDto = directProviderUtil.getObjectMapper(user).convertValue(queryParams,
+		HistoricDecisionInstanceQueryDto queryHistoricDecisionInstanceDto = directProviderUtil.getJsonMapper(user).convertValue(queryParams,
 				HistoricDecisionInstanceQueryDto.class);
 		HistoricDecisionInstanceQuery query = queryHistoricDecisionInstanceDto.toQuery(directProviderUtil.getProcessEngine(user));
 
@@ -249,14 +249,14 @@ public class DirectDecisionProvider implements IDecisionProvider {
 			HistoricDecisionInstanceDto resultHistoricDecisionInstanceDto = HistoricDecisionInstanceDto
 					.fromHistoricDecisionInstance(historicDecisionInstance);
 			historicDecisionInstanceDtoResults
-					.add(directProviderUtil.convertValue(resultHistoricDecisionInstanceDto, HistoricDecisionInstance.class, user));
+					.add(directProviderUtil.convertValueJackson2(resultHistoricDecisionInstanceDto, HistoricDecisionInstance.class, user));
 		}
 		return historicDecisionInstanceDtoResults;
 	}
 
 	@Override
 	public Long getHistoricDecisionInstanceCount(Map<String, Object> queryParams, CIBUser user) {
-		HistoricDecisionInstanceQueryDto queryHistoricDecisionInstanceDto = directProviderUtil.getObjectMapper(user).convertValue(queryParams,
+		HistoricDecisionInstanceQueryDto queryHistoricDecisionInstanceDto = directProviderUtil.getJsonMapper(user).convertValue(queryParams,
 				HistoricDecisionInstanceQueryDto.class);
 		HistoricDecisionInstanceQuery query = queryHistoricDecisionInstanceDto.toQuery(directProviderUtil.getProcessEngine(user));
 		return query.count();
@@ -266,7 +266,7 @@ public class DirectDecisionProvider implements IDecisionProvider {
 	public HistoricDecisionInstance getHistoricDecisionInstanceById(String id, Map<String, Object> queryParams,
 			CIBUser user) {
 
-		HistoricDecisionInstanceQueryDto historicDecisionInstanceQueryDto = directProviderUtil.getObjectMapper(user).convertValue(queryParams,
+		HistoricDecisionInstanceQueryDto historicDecisionInstanceQueryDto = directProviderUtil.getJsonMapper(user).convertValue(queryParams,
 				HistoricDecisionInstanceQueryDto.class);
 		historicDecisionInstanceQueryDto.setDecisionInstanceId(id);
 		HistoricDecisionInstanceQuery query = historicDecisionInstanceQueryDto.toQuery(directProviderUtil.getProcessEngine(user));
@@ -276,14 +276,14 @@ public class DirectDecisionProvider implements IDecisionProvider {
 			throw new NoObjectFoundException(new SystemException("Historic decision instance with id '" + id + "' does not exist"));
 		}
 
-		return directProviderUtil.convertValue(HistoricDecisionInstanceDto.fromHistoricDecisionInstance(instance),
+		return directProviderUtil.convertValueJackson2(HistoricDecisionInstanceDto.fromHistoricDecisionInstance(instance),
 				HistoricDecisionInstance.class, user);
 	}
 
 	@Override
 	public Object deleteHistoricDecisionInstances(Map<String, Object> data, CIBUser user) {
 
-		DeleteHistoricDecisionInstancesDto dto = directProviderUtil.getObjectMapper(user).convertValue(data, DeleteHistoricDecisionInstancesDto.class);
+		DeleteHistoricDecisionInstancesDto dto = directProviderUtil.getJsonMapper(user).convertValue(data, DeleteHistoricDecisionInstancesDto.class);
 		HistoricDecisionInstanceQuery decisionInstanceQuery = null;
 		if (dto.getHistoricDecisionInstanceQuery() != null) {
 			decisionInstanceQuery = dto.getHistoricDecisionInstanceQuery().toQuery(directProviderUtil.getProcessEngine(user));
@@ -302,7 +302,7 @@ public class DirectDecisionProvider implements IDecisionProvider {
 
 	@Override
 	public Object setHistoricDecisionInstanceRemovalTime(Map<String, Object> data, CIBUser user) {
-		SetRemovalTimeToHistoricDecisionInstancesDto dto = directProviderUtil.getObjectMapper(user).convertValue(data,
+		SetRemovalTimeToHistoricDecisionInstancesDto dto = directProviderUtil.getJsonMapper(user).convertValue(data,
 				SetRemovalTimeToHistoricDecisionInstancesDto.class);
 
 		HistoricDecisionInstanceQuery historicDecisionInstanceQuery = null;

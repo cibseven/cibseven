@@ -98,6 +98,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
 
 @Slf4j
 public class DirectTaskProvider implements ITaskProvider {
@@ -136,7 +137,7 @@ public class DirectTaskProvider implements ITaskProvider {
 			Optional<String> createdAfter, CIBUser user) {
 		TaskQueryDto dto = new TaskQueryDto();
 		if (createdAfter.isPresent()) {
-			dto.setCreatedAfter(directProviderUtil.getObjectMapper(user).convertValue(createdAfter.get(), Date.class));
+			dto.setCreatedAfter(directProviderUtil.getJsonMapper(user).convertValue(createdAfter.get(), Date.class));
 		}
 		dto.setAssignee(user.getId());
 		if (processInstanceId.isPresent())
@@ -153,7 +154,7 @@ public class DirectTaskProvider implements ITaskProvider {
 				.singleResult();
 		if (result == null)
 			throw new NoObjectFoundException("No matching task with id " + Optional.ofNullable(id).orElse("null"));
-		return directProviderUtil.getObjectMapper(user).convertValue(TaskDto.fromEntity(result), Task.class);
+		return directProviderUtil.getJsonMapper(user).convertValue(TaskDto.fromEntity(result), Task.class);
 	}
 
 	@Override
@@ -178,8 +179,8 @@ public class DirectTaskProvider implements ITaskProvider {
 		}
 		foundTask.setDelegationState(state);
 
-		foundTask.setDueDate(directProviderUtil.getObjectMapper(user).convertValue(task.getDue(), Date.class));
-		foundTask.setFollowUpDate(directProviderUtil.getObjectMapper(user).convertValue(task.getFollowUp(), Date.class));
+		foundTask.setDueDate(directProviderUtil.getJsonMapper(user).convertValue(task.getDue(), Date.class));
+		foundTask.setFollowUpDate(directProviderUtil.getJsonMapper(user).convertValue(task.getFollowUp(), Date.class));
 		foundTask.setParentTaskId(task.getParentTaskId());
 		foundTask.setCaseInstanceId(task.getCaseInstanceId());
 		foundTask.setTenantId(task.getTenantId());
@@ -444,7 +445,7 @@ private List<VariableInstanceDto> queryVariableInstances(VariableInstanceQueryDt
 
 	@Override
 	public Collection<Task> findTasksPost(Map<String, Object> data, CIBUser user) throws SystemException {
-		TaskQueryDto queryDto = directProviderUtil.getObjectMapper(user).convertValue(data, TaskQueryDto.class);
+		TaskQueryDto queryDto = directProviderUtil.getJsonMapper(user).convertValue(data, TaskQueryDto.class);
 		queryDto.setObjectMapper(directProviderUtil.getObjectMapper(user));
 		TaskQuery query = queryDto.toQuery(directProviderUtil.getProcessEngine(user));
 
@@ -571,7 +572,7 @@ private List<VariableInstanceDto> queryVariableInstances(VariableInstanceQueryDt
 
 	@Override
 	public Integer findHistoryTasksCount(Map<String, Object> filters, CIBUser user) {
-		HistoricTaskInstanceQueryDto queryDto = directProviderUtil.getObjectMapper(user).convertValue(filters, HistoricTaskInstanceQueryDto.class);
+		HistoricTaskInstanceQueryDto queryDto = directProviderUtil.getJsonMapper(user).convertValue(filters, HistoricTaskInstanceQueryDto.class);
 		queryDto.setObjectMapper(directProviderUtil.getObjectMapper(user));
 		HistoricTaskInstanceQuery query = queryDto.toQuery(directProviderUtil.getProcessEngine(user));
 
@@ -582,7 +583,7 @@ private List<VariableInstanceDto> queryVariableInstances(VariableInstanceQueryDt
 	@Override
 	public Collection<TaskHistory> findHistoryTasks(Map<String, Object> filters,
 			Optional<Integer> firstResult, Optional<Integer> maxResults, CIBUser user) {
-		HistoricTaskInstanceQueryDto queryDto = directProviderUtil.getObjectMapper(user).convertValue(filters, HistoricTaskInstanceQueryDto.class);
+		HistoricTaskInstanceQueryDto queryDto = directProviderUtil.getJsonMapper(user).convertValue(filters, HistoricTaskInstanceQueryDto.class);
 		queryDto.setObjectMapper(directProviderUtil.getObjectMapper(user));
 		HistoricTaskInstanceQuery query = queryDto.toQuery(directProviderUtil.getProcessEngine(user));
 
@@ -612,7 +613,7 @@ private List<VariableInstanceDto> queryVariableInstances(VariableInstanceQueryDt
 	private Collection<Task> convertTasks(Collection<org.cibseven.bpm.engine.task.Task> engineTasks, CIBUser user) {
 		List<Task> resultList = new ArrayList<>();
 		for (org.cibseven.bpm.engine.task.Task engineTask : engineTasks)
-			resultList.add(directProviderUtil.getObjectMapper(user).convertValue(TaskDto.fromEntity(engineTask), Task.class));
+			resultList.add(directProviderUtil.getJsonMapper(user).convertValue(TaskDto.fromEntity(engineTask), Task.class));
 		return resultList;
 	}
 
@@ -688,12 +689,12 @@ private List<VariableInstanceDto> queryVariableInstances(VariableInstanceQueryDt
 	private AbstractQueryDto<?> getQueryDtoForQuery(String queryString, String resourceType, CIBUser user) {
 		try {
 			if (EntityTypes.TASK.equals(resourceType)) {
-				return directProviderUtil.getObjectMapper(user).readValue(queryString, TaskQueryDto.class);
+				return directProviderUtil.getJsonMapper(user).readValue(queryString, TaskQueryDto.class);
 			} else {
 				throw new SystemException(
 						"Queries for resource type '" + resourceType + "' are currently not supported by filters.");
 			}
-		} catch (IOException e) {
+		} catch (JacksonException e) {
 			throw new SystemException("Invalid query for resource type '" + resourceType + "'", e);
 		}
 	}

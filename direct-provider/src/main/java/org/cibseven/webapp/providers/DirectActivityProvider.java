@@ -70,7 +70,7 @@ public class DirectActivityProvider implements IActivityProvider {
 		Map<String, Object> filters = new HashMap<>(queryParams);
 		Integer firstResult = toInteger(filters.remove("firstResult"));
 		Integer maxResults = toInteger(filters.remove("maxResults"));
-		HistoricActivityInstanceQueryDto queryHistoricActivityInstanceDto = directProviderUtil.getObjectMapper(user).convertValue(filters,
+		HistoricActivityInstanceQueryDto queryHistoricActivityInstanceDto = directProviderUtil.getJsonMapper(user).convertValue(filters,
 				HistoricActivityInstanceQueryDto.class);
 		return queryHistoricActivityInstance(queryHistoricActivityInstanceDto, firstResult, maxResults, user);
 	}
@@ -143,7 +143,7 @@ public class DirectActivityProvider implements IActivityProvider {
 	@Override
 	public Collection<ActivityInstanceHistory> findActivitiesProcessDefinitionHistory(String processDefinitionId,
 			Map<String, Object> params, CIBUser user) {
-		HistoricActivityInstanceQueryDto queryHistoricActivityInstanceDto = directProviderUtil.getObjectMapper(user).convertValue(params,
+		HistoricActivityInstanceQueryDto queryHistoricActivityInstanceDto = directProviderUtil.getJsonMapper(user).convertValue(params,
 				HistoricActivityInstanceQueryDto.class);
 		queryHistoricActivityInstanceDto.setProcessDefinitionId(processDefinitionId);
 		return queryHistoricActivityInstance(queryHistoricActivityInstanceDto, user);

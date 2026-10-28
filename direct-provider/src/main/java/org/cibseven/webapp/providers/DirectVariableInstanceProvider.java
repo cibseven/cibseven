@@ -62,7 +62,7 @@ public class DirectVariableInstanceProvider implements IVariableInstanceProvider
 		org.cibseven.bpm.engine.runtime.VariableInstance variableEngineInstance = variableInstanceQuery.singleResult();
 		if (variableEngineInstance != null) {
 			VariableInstanceDto instanceDto = VariableInstanceDto.fromVariableInstance(variableEngineInstance);
-			VariableInstance variableInstance = directProviderUtil.convertValue(instanceDto, VariableInstance.class, user);
+			VariableInstance variableInstance = directProviderUtil.convertValueJackson2(instanceDto, VariableInstance.class, user);
 			return variableInstance;
 		} else {
 			throw new NoObjectFoundException(new SystemException("Variable with Id '" + id + "' does not exist."));

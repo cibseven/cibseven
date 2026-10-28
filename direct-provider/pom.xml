@@ -40,6 +40,13 @@
         <type>pom</type>
       </dependency>
       <dependency>
+        <groupId>tools.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson3}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+      <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
         <version>${version.spring-boot}</version>
@@ -71,6 +78,12 @@
     <dependency>
       <groupId>jakarta.ws.rs</groupId>
       <artifactId>jakarta.ws.rs-api</artifactId>
+    </dependency>
+    <!-- The providers convert with Jackson 3. Jackson 2 still comes with engine-rest-core and
+         cibseven-interfaces, whose APIs use it; see DirectProviderUtil#getObjectMapper. -->
+    <dependency>
+      <groupId>tools.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
     </dependency>
 
     <!-- Provided by the webclient the provider runs in -->

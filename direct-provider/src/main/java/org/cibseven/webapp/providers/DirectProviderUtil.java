@@ -16,6 +16,7 @@
  */
 package org.cibseven.webapp.providers;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,10 +47,15 @@ import org.cibseven.webapp.rest.model.VariableHistory;
 import org.cibseven.bpm.engine.rest.util.EngineUtil;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.Setter;
+import tools.jackson.core.StreamReadConstraints;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 public class DirectProviderUtil {
 
@@ -58,6 +64,7 @@ public class DirectProviderUtil {
 
 	protected Map<String, ProcessEngine> processEngines = new HashMap<>();
 	protected Map<String, ObjectMapper> objectMappers = new HashMap<>();
+	protected Map<String, JsonMapper> jsonMappers = new HashMap<>();
 	@Setter
 	protected IEngineProvider engineProvider;
 
@@ -79,6 +86,7 @@ public class DirectProviderUtil {
 			ObjectMapper objectMapper = new ObjectMapper();
 			JacksonConfigurator.configureObjectMapper(objectMapper);
 			objectMappers.put(engineId, objectMapper);
+			jsonMappers.put(engineId, createJsonMapper(objectMapper));
 		}
 		return processEngine;
 	}
@@ -87,6 +95,17 @@ public class DirectProviderUtil {
 		return getProcessEngine(getEngineId(user));
 	}
 
+	/**
+	 * The Jackson 2 mapper that engine-rest's {@link JacksonConfigurator} configured. Use it only
+	 * where Jackson 3 does not fit yet:
+	 * <ul>
+	 * <li>for engine-rest-core, which takes a Jackson 2 mapper (query DTOs,
+	 * {@code VariableValueDto.toMap}, ...)</li>
+	 * <li>for variable values, see {@link #convertValueJackson2(Object, Class, CIBUser)}</li>
+	 * <li>for the Jackson 2 types of cibseven-interfaces, such as {@code JsonNode}</li>
+	 * </ul>
+	 * Everything else uses {@link #getJsonMapper(CIBUser)}.
+	 */
 	protected ObjectMapper getObjectMapper(CIBUser user) {
 		String engineId = getEngineId(user);
 		getProcessEngine(engineId);
@@ -96,6 +115,42 @@ public class DirectProviderUtil {
 	protected ObjectMapper getObjectMapper(String engineId) {
 		getProcessEngine(engineId);
 		return objectMappers.get(engineId);
+	}
+
+	/**
+	 * The Jackson 3 mapper for the providers' own conversions, configured like
+	 * {@link #getObjectMapper(CIBUser)}, see {@link #createJsonMapper(ObjectMapper)}.
+	 */
+	protected JsonMapper getJsonMapper(CIBUser user) {
+		String engineId = getEngineId(user);
+		getProcessEngine(engineId);
+		return jsonMappers.get(engineId);
+	}
+
+	/**
+	 * Builds a Jackson 3 mapper that converts like the given engine-rest mapper, which
+	 * {@link JacksonConfigurator#configureObjectMapper(ObjectMapper)} set up: it takes over its date
+	 * format and read limits ({@code jackson.properties}), ignores unknown properties, writes dates
+	 * as text and otherwise keeps the Jackson 2 defaults. Jackson 3 has the java.time support built in.
+	 */
+	protected static JsonMapper createJsonMapper(ObjectMapper engineRestMapper) {
+		com.fasterxml.jackson.core.StreamReadConstraints readLimits = engineRestMapper.getFactory().streamReadConstraints();
+		JsonFactory jsonFactory = JsonFactory.builderWithJackson2Defaults()
+				.streamReadConstraints(StreamReadConstraints.builder()
+						.maxNestingDepth(readLimits.getMaxNestingDepth())
+						.maxDocumentLength(readLimits.getMaxDocumentLength())
+						.maxTokenCount(readLimits.getMaxTokenCount())
+						.maxNumberLength(readLimits.getMaxNumberLength())
+						.maxStringLength(readLimits.getMaxStringLength())
+						.maxNameLength(readLimits.getMaxNameLength())
+						.build())
+				.build();
+		return JsonMapper.builder(jsonFactory)
+				.configureForJackson2()
+				.defaultDateFormat((DateFormat) engineRestMapper.getDateFormat().clone())
+				.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+				.disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+				.build();
 	}
 
 	protected String getEngineId(CIBUser user) {
@@ -110,9 +165,26 @@ public class DirectProviderUtil {
 	 * conversion and helper functions
 	 */
 	protected <T> T convertValue(Object fromValueDto, Class<T> toValueType, CIBUser user) throws IllegalArgumentException {
-		ObjectMapper objectMapper = getObjectMapper(user);
-		Map<String, Object> filterDtoMap = objectMapper.convertValue(fromValueDto, new TypeReference<Map<String, Object>>() {
+		JsonMapper jsonMapper = getJsonMapper(user);
+		Map<String, Object> filterDtoMap = jsonMapper.convertValue(fromValueDto, new TypeReference<Map<String, Object>>() {
 		});
+		return jsonMapper.convertValue(filterDtoMap, toValueType);
+	}
+
+	/**
+	 * {@link #convertValue(Object, Class, CIBUser)} with the Jackson 2 engine-rest mapper, for
+	 * <ul>
+	 * <li>objects that carry variable values: a value can be an object the engine deserialized,
+	 * which has to come out the way engine-rest serializes it. Jackson 3 ignores the Jackson 2
+	 * annotations ({@code @JsonSerialize}, ...) such a class may have.</li>
+	 * <li>webclient models with Jackson 2 types, such as {@code Filter}</li>
+	 * </ul>
+	 */
+	protected <T> T convertValueJackson2(Object fromValueDto, Class<T> toValueType, CIBUser user) throws IllegalArgumentException {
+		ObjectMapper objectMapper = getObjectMapper(user);
+		Map<String, Object> filterDtoMap = objectMapper.convertValue(fromValueDto,
+				new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {
+				});
 		return objectMapper.convertValue(filterDtoMap, toValueType);
 	}
 
@@ -127,7 +199,7 @@ public class DirectProviderUtil {
 	 * </ul>
 	 */
 	protected VariableValueDto toVariableValueDto(Variable variable, CIBUser user) {
-		VariableValueDto variableValueDto = convertValue(variable, VariableValueDto.class, user);
+		VariableValueDto variableValueDto = convertValueJackson2(variable, VariableValueDto.class, user);
 		String type = variable.getType();
 		Object value = variable.getValue();
 		Map<String, Object> valueInfo = variable.getValueInfo() != null ? new HashMap<>(variable.getValueInfo()) : null;
@@ -239,7 +311,7 @@ public class DirectProviderUtil {
 		List<Variable> instanceResults = new ArrayList<>();
 		for (VariableInstance instance : matchingInstances) {
 			VariableInstanceDto resultInstanceDto = VariableInstanceDto.fromVariableInstance(instance);
-			VariableHistory resultInstance = convertValue(resultInstanceDto, VariableHistory.class, user);
+			VariableHistory resultInstance = convertValueJackson2(resultInstanceDto, VariableHistory.class, user);
 			instanceResults.add(resultInstance);
 		}
 		return instanceResults;

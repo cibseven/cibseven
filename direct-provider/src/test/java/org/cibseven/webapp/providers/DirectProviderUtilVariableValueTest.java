@@ -51,6 +51,7 @@ public class DirectProviderUtilVariableValueTest {
 		JacksonConfigurator.configureObjectMapper(objectMapper);
 		directProviderUtil = Mockito.spy(new DirectProviderUtil());
 		doReturn(objectMapper).when(directProviderUtil).getObjectMapper(any(CIBUser.class));
+		doReturn(DirectProviderUtil.createJsonMapper(objectMapper)).when(directProviderUtil).getJsonMapper(any(CIBUser.class));
 	}
 
 	private Variable variable(String name, String type, Object value) {

@@ -86,7 +86,7 @@ public class DirectUtilsProvider implements IUtilsProvider {
 		List<Message> messageList = new ArrayList<>();
 		if (messageDto.isResultEnabled()) {
 			for (MessageCorrelationResultDto resultDto : resultDtos) {
-				messageList.add(directProviderUtil.convertValue(resultDto, Message.class, user));
+				messageList.add(directProviderUtil.convertValueJackson2(resultDto, Message.class, user));
 			}
 		}
 		return messageList;
@@ -165,7 +165,7 @@ public class DirectUtilsProvider implements IUtilsProvider {
 
 	@Override
 	public void retryJobById(String jobId, Map<String, Object> data, CIBUser user) {
-		RetriesDto dto = directProviderUtil.getObjectMapper(user).convertValue(data, RetriesDto.class);
+		RetriesDto dto = directProviderUtil.getJsonMapper(user).convertValue(data, RetriesDto.class);
 		try {
 			SetJobRetriesBuilder builder = directProviderUtil.getProcessEngine(user).getManagementService().setJobRetries(dto.getRetries()).jobId(jobId);
 			if (dto.isDueDateSet()) {

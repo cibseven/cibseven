@@ -158,7 +158,7 @@ public class DirectVariableProvider implements IVariableProvider {
 		if (data != null && data.containsKey("deserializeValues"))
 			data.remove("deserializeValues");
 
-		VariableInstanceQueryDto queryDto = directProviderUtil.getObjectMapper(user).convertValue(data, VariableInstanceQueryDto.class);
+		VariableInstanceQueryDto queryDto = directProviderUtil.getJsonMapper(user).convertValue(data, VariableInstanceQueryDto.class);
 
 		queryDto.setObjectMapper(directProviderUtil.getObjectMapper(user));
 
@@ -190,7 +190,7 @@ public class DirectVariableProvider implements IVariableProvider {
 		if (data != null && data.containsKey("deserializeValues"))
 			data.remove("deserializeValues");
 		ObjectMapper objectMapper = directProviderUtil.getObjectMapper(user);
-		HistoricVariableInstanceQueryDto queryDto = objectMapper.convertValue(data,
+		HistoricVariableInstanceQueryDto queryDto = directProviderUtil.getJsonMapper(user).convertValue(data,
 				HistoricVariableInstanceQueryDto.class);
 
 		queryDto.setObjectMapper(objectMapper);
@@ -238,7 +238,7 @@ public class DirectVariableProvider implements IVariableProvider {
 		List<Variable> variableInstances = directProviderUtil.queryVariableInstances(queryDto, null, null, true, user);
 		List<VariableHistory> historyVariables = new ArrayList<>();
 		for (Variable variableInstance : variableInstances) {
-			historyVariables.add(directProviderUtil.convertValue(variableInstance, VariableHistory.class, user));
+			historyVariables.add(directProviderUtil.convertValueJackson2(variableInstance, VariableHistory.class, user));
 		}
 		return historyVariables;
 	}
@@ -300,7 +300,7 @@ public class DirectVariableProvider implements IVariableProvider {
 		Map<String, VariableValueDto> variableDtos = VariableValueDto.fromMap(startFormVariables);
 		Map<String, Variable> variablesMap = new HashMap<>();
 		for (Entry<String, VariableValueDto> e : variableDtos.entrySet()) {
-			variablesMap.put(e.getKey(), directProviderUtil.convertValue(e.getValue(), Variable.class, user));
+			variablesMap.put(e.getKey(), directProviderUtil.convertValueJackson2(e.getValue(), Variable.class, user));
 		}
 		return variablesMap;
 	}
@@ -323,7 +323,7 @@ public class DirectVariableProvider implements IVariableProvider {
 		Map<String, VariableValueDto> variableDtos = VariableValueDto.fromMap(startFormVariables);
 		Map<String, Variable> variablesMap = new HashMap<>();
 		for (Entry<String, VariableValueDto> e : variableDtos.entrySet()) {
-			variablesMap.put(e.getKey(), directProviderUtil.convertValue(e.getValue(), Variable.class, user));
+			variablesMap.put(e.getKey(), directProviderUtil.convertValueJackson2(e.getValue(), Variable.class, user));
 		}
 		return variablesMap;
 	}
@@ -482,7 +482,7 @@ public class DirectVariableProvider implements IVariableProvider {
 					variable.getValueInfo().put("mimeType", "application/rtf");
 				}
 			}
-			VariableValueDto variableValueDto = directProviderUtil.convertValue(variable, VariableValueDto.class, user);
+			VariableValueDto variableValueDto = directProviderUtil.convertValueJackson2(variable, VariableValueDto.class, user);
 			TypedValue typedValue = variableValueDto.toTypedValue(directProviderUtil.getProcessEngine(user),
 					directProviderUtil.getObjectMapper(user));
 			variablesMap.put(variable.getName(), typedValue);
@@ -520,7 +520,7 @@ public class DirectVariableProvider implements IVariableProvider {
 		List<String> deletions = new ArrayList<>();
 		Map<String, VariableValueDto> modifications = new HashMap<>();
 		for (Variable variable : variables) {
-			VariableValueDto variableValueDto = directProviderUtil.convertValue(variable, VariableValueDto.class, user);
+			VariableValueDto variableValueDto = directProviderUtil.convertValueJackson2(variable, VariableValueDto.class, user);
 			variableValueDto.setType(variable.getType());
 			variableValueDto.setValue(variable.getValue());
 			if (variable.getValueInfo() != null)
@@ -550,7 +550,7 @@ public class DirectVariableProvider implements IVariableProvider {
 		Map<String, Variable> resultMap = new HashMap<>();
 		Map<String, VariableValueDto> resultDtoMap = VariableValueDto.fromMap(startFormVariables);
 		for (Entry<String, VariableValueDto> resultDtoEntry : resultDtoMap.entrySet()) {
-			resultMap.put(resultDtoEntry.getKey(), directProviderUtil.convertValue(resultDtoEntry.getValue(), Variable.class, user));
+			resultMap.put(resultDtoEntry.getKey(), directProviderUtil.convertValueJackson2(resultDtoEntry.getValue(), Variable.class, user));
 		}
 		return resultMap;
 	}
@@ -656,7 +656,7 @@ public class DirectVariableProvider implements IVariableProvider {
 	public Variable fetchVariableByProcessInstanceIdImpl(String processInstanceId, String variableName,
 			boolean deserializeValue, CIBUser user) throws SystemException {
 		TypedValue value = getTypedValueForProcessInstanceVariable(processInstanceId, variableName, deserializeValue, user);
-		return directProviderUtil.convertValue(VariableValueDto.fromTypedValue(value), Variable.class, user);
+		return directProviderUtil.convertValueJackson2(VariableValueDto.fromTypedValue(value), Variable.class, user);
 	}
 
 	private TypedValue getTypedValueForProcessInstanceVariable(String processInstanceId, String variableName,
@@ -751,7 +751,7 @@ public class DirectVariableProvider implements IVariableProvider {
 		for (HistoricVariableInstance historicVariableInstance : matchingHistoricVariableInstances) {
 			HistoricVariableInstanceDto resultHistoricVariableInstance = HistoricVariableInstanceDto
 					.fromHistoricVariableInstance(historicVariableInstance);
-			historicVariableInstanceDtoResults.add(directProviderUtil.convertValue(resultHistoricVariableInstance, VariableHistory.class, user));
+			historicVariableInstanceDtoResults.add(directProviderUtil.convertValueJackson2(resultHistoricVariableInstance, VariableHistory.class, user));
 		}
 		return historicVariableInstanceDtoResults;
 	}
@@ -759,7 +759,7 @@ public class DirectVariableProvider implements IVariableProvider {
 	private Variable fetchTaskVariableImpl(String taskId, String variableName, boolean deserializeValue, CIBUser user)
 			throws NoObjectFoundException, SystemException {
 		TypedValue value = directProviderUtil.getTypedValueForTaskVariable(taskId, variableName, deserializeValue, user);
-		return directProviderUtil.convertValue(VariableValueDto.fromTypedValue(value), Variable.class, user);
+		return directProviderUtil.convertValueJackson2(VariableValueDto.fromTypedValue(value), Variable.class, user);
 	}
 
 	private VariableValueDto createVariableValueDto(String valueTypeName, MultipartFile data) throws IOException {
@@ -816,7 +816,7 @@ public class DirectVariableProvider implements IVariableProvider {
 		List<VariableHistory> instanceResults = new ArrayList<>();
 		for (HistoricVariableInstance instance : matchingInstances) {
 			HistoricVariableInstanceDto resultInstanceDto = HistoricVariableInstanceDto.fromHistoricVariableInstance(instance);
-			VariableHistory resultInstance = directProviderUtil.convertValue(resultInstanceDto, VariableHistory.class, user);
+			VariableHistory resultInstance = directProviderUtil.convertValueJackson2(resultInstanceDto, VariableHistory.class, user);
 			instanceResults.add(resultInstance);
 		}
 		return instanceResults;
@@ -830,7 +830,7 @@ public class DirectVariableProvider implements IVariableProvider {
 		Map<String, VariableValueDto> variableDtos = VariableValueDto.fromMap(startFormVariables);
 		Map<String, Variable> variablesMap = new HashMap<>();
 		for (Entry<String, VariableValueDto> e : variableDtos.entrySet()) {
-			variablesMap.put(e.getKey(), directProviderUtil.convertValue(e.getValue(), Variable.class, user));
+			variablesMap.put(e.getKey(), directProviderUtil.convertValueJackson2(e.getValue(), Variable.class, user));
 		}
 		return variablesMap;
 	}

@@ -104,11 +104,12 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 public class DirectProcessProvider implements IProcessProvider {
 
@@ -178,13 +179,13 @@ public class DirectProcessProvider implements IProcessProvider {
 	}
 
 	public Collection<ProcessStatistics> getProcessStatistics(Map<String, Object> queryParams, CIBUser user) {
-		ObjectMapper objectMapper = directProviderUtil.getObjectMapper(user);
-		Boolean includeIncidents = getBooleanValueFromObject(queryParams.get("incidents"), objectMapper);
+		JsonMapper jsonMapper = directProviderUtil.getJsonMapper(user);
+		Boolean includeIncidents = getBooleanValueFromObject(queryParams.get("incidents"), jsonMapper);
 
 		String includeIncidentsForType = (String) queryParams.get("incidentsForType");
-		Boolean includeRootIncidents = getBooleanValueFromObject(queryParams.get("rootIncidents"), objectMapper);
+		Boolean includeRootIncidents = getBooleanValueFromObject(queryParams.get("rootIncidents"), jsonMapper);
 
-		Boolean includeFailedJobs = getBooleanValueFromObject(queryParams.get("failedJobs"), objectMapper);
+		Boolean includeFailedJobs = getBooleanValueFromObject(queryParams.get("failedJobs"), jsonMapper);
 		if (includeIncidents != null && includeIncidents.booleanValue() && includeIncidentsForType != null
 				&& !includeIncidentsForType.isBlank()) {
 			throw new SystemException(
@@ -220,14 +221,14 @@ public class DirectProcessProvider implements IProcessProvider {
 
 		Collection<ProcessStatistics> processStatistics = new ArrayList<>();
 		for (ProcessDefinitionStatistics queryResult : queryResults) {
-			processStatistics.add(directProviderUtil.getObjectMapper(user).convertValue(
+			processStatistics.add(directProviderUtil.getJsonMapper(user).convertValue(
 					ProcessDefinitionStatisticsResultDto.fromProcessDefinitionStatistics(queryResult), ProcessStatistics.class));
 		}
 		return processStatistics;
 	}
 
-	private Boolean getBooleanValueFromObject(Object value, ObjectMapper objectMapper) {
-		return objectMapper.convertValue(value, Boolean.class);
+	private Boolean getBooleanValueFromObject(Object value, JsonMapper jsonMapper) {
+		return jsonMapper.convertValue(value, Boolean.class);
 	}
 
 	@Override
@@ -240,7 +241,7 @@ public class DirectProcessProvider implements IProcessProvider {
 				filterMap.put(splitValue[0], URLDecoder.decode(splitValue[1], Charset.forName("UTF-8")));
 		}
 		ObjectMapper objectMapper = directProviderUtil.getObjectMapper(user);
-		ProcessDefinitionQueryDto queryDto = objectMapper.convertValue(filterMap, ProcessDefinitionQueryDto.class);
+		ProcessDefinitionQueryDto queryDto = directProviderUtil.getJsonMapper(user).convertValue(filterMap, ProcessDefinitionQueryDto.class);
 		List<Process> processes = new ArrayList<>();
 		ProcessEngine processEngine = directProviderUtil.getProcessEngine(user);
 		ProcessDefinitionQuery query = queryDto.toQuery(processEngine);
@@ -496,7 +497,7 @@ public class DirectProcessProvider implements IProcessProvider {
 				result = ProcessInstanceDto.fromProcessInstance(processInstanceWithVariables);
 			}
 
-			ProcessStart processStart = directProviderUtil.convertValue(result, ProcessStart.class, user);
+			ProcessStart processStart = directProviderUtil.convertValueJackson2(result, ProcessStart.class, user);
 			return processStart;
 		}
 
@@ -540,7 +541,7 @@ public class DirectProcessProvider implements IProcessProvider {
 
 			ProcessInstanceDto result = ProcessInstanceDto.fromProcessInstance(instance);
 
-			return directProviderUtil.getObjectMapper(user).convertValue(result, ProcessStart.class);
+			return directProviderUtil.getJsonMapper(user).convertValue(result, ProcessStart.class);
 
 		}
 	}
@@ -554,7 +555,7 @@ public class DirectProcessProvider implements IProcessProvider {
 		Collection<ProcessStatistics> processStatistics = new ArrayList<>();
 		for (ActivityStatistics queryResult : queryResults) {
 			StatisticsResultDto dto = ActivityStatisticsResultDto.fromActivityStatistics(queryResult);
-			processStatistics.add(directProviderUtil.getObjectMapper(user).convertValue(dto, ProcessStatistics.class));
+			processStatistics.add(directProviderUtil.getJsonMapper(user).convertValue(dto, ProcessStatistics.class));
 		}
 		return processStatistics;
 	}
@@ -566,7 +567,7 @@ public class DirectProcessProvider implements IProcessProvider {
 		if (fetchIncidents != null) {
 			filters.remove(FETCH_INCIDENTS);
 		}
-		HistoricProcessInstanceQueryDto historicProcessInstanceQueryDto = directProviderUtil.getObjectMapper(user).convertValue(filters,
+		HistoricProcessInstanceQueryDto historicProcessInstanceQueryDto = directProviderUtil.getJsonMapper(user).convertValue(filters,
 				HistoricProcessInstanceQueryDto.class);
 
 		historicProcessInstanceQueryDto.setObjectMapper(directProviderUtil.getObjectMapper(user));
@@ -667,7 +668,7 @@ public class DirectProcessProvider implements IProcessProvider {
 
 	@Override
 	public Long countProcessesInstancesHistory(Map<String, Object> filters, CIBUser user) {
-		HistoricProcessInstanceQueryDto historicProcessInstanceQueryDto = directProviderUtil.getObjectMapper(user).convertValue(filters,
+		HistoricProcessInstanceQueryDto historicProcessInstanceQueryDto = directProviderUtil.getJsonMapper(user).convertValue(filters,
 				HistoricProcessInstanceQueryDto.class);
 		historicProcessInstanceQueryDto.setObjectMapper(directProviderUtil.getObjectMapper(user));
 		HistoricProcessInstanceQuery query = historicProcessInstanceQueryDto.toQuery(directProviderUtil.getProcessEngine(user));
@@ -746,10 +747,10 @@ public class DirectProcessProvider implements IProcessProvider {
 	}
 
 	public static Process convertToProcess(CalledProcessDefinitionDto dto) {
-		ObjectMapper objectMapper = new ObjectMapper();
-		Map<String, Object> filterDtoMap = objectMapper.convertValue(dto, new TypeReference<Map<String, Object>>() {
+		JsonMapper jsonMapper = JsonMapper.builderWithJackson2Defaults().build();
+		Map<String, Object> filterDtoMap = jsonMapper.convertValue(dto, new TypeReference<Map<String, Object>>() {
 		});
-		return objectMapper.convertValue(filterDtoMap, Process.class);
+		return jsonMapper.convertValue(filterDtoMap, Process.class);
 	}
 
 	@Override
@@ -771,7 +772,7 @@ public class DirectProcessProvider implements IProcessProvider {
 
 	@Override
 	public void updateHistoryTimeToLive(String id, Map<String, Object> data, CIBUser user) {
-		HistoryTimeToLiveDto historyTimeToLiveDto = directProviderUtil.getObjectMapper(user).convertValue(data, HistoryTimeToLiveDto.class);
+		HistoryTimeToLiveDto historyTimeToLiveDto = directProviderUtil.getJsonMapper(user).convertValue(data, HistoryTimeToLiveDto.class);
 		directProviderUtil.getProcessEngine(user).getRepositoryService().updateProcessDefinitionHistoryTimeToLive(id, historyTimeToLiveDto.getHistoryTimeToLive());
 	}
 
@@ -797,7 +798,7 @@ public class DirectProcessProvider implements IProcessProvider {
 	@Override
 	public Collection<ProcessInstance> findCurrentProcessesInstances(Map<String, Object> data, Optional<Integer> firstResult, Optional<Integer> maxResults, CIBUser user)
 			throws SystemException {
-		ProcessInstanceQueryDto queryDto = directProviderUtil.getObjectMapper(user).convertValue(data, ProcessInstanceQueryDto.class);
+		ProcessInstanceQueryDto queryDto = directProviderUtil.getJsonMapper(user).convertValue(data, ProcessInstanceQueryDto.class);
 		queryDto.setObjectMapper(directProviderUtil.getObjectMapper(user));
 		ProcessInstanceQuery query = queryDto.toQuery(directProviderUtil.getProcessEngine(user));
 
@@ -867,7 +868,7 @@ public class DirectProcessProvider implements IProcessProvider {
 		if (id == null || id.isEmpty()) {
         	throw new SystemException("processDefinitionId is required");
 		}
-		HistoricActivityStatisticsPostQueryDto queryDto = directProviderUtil.getObjectMapper(user)
+		HistoricActivityStatisticsPostQueryDto queryDto = directProviderUtil.getJsonMapper(user)
 				.convertValue(filters, HistoricActivityStatisticsPostQueryDto.class);
 		queryDto.setProcessDefinitionId(id);
 		queryDto.setObjectMapper(directProviderUtil.getObjectMapper(user));
@@ -969,7 +970,7 @@ public class DirectProcessProvider implements IProcessProvider {
 		// the two-call approach (runtime → history) is fundamentally the right design
 		// since "/process-instance" has runtime-specific filters not available in the history API.
 
-		ProcessInstanceQueryDto queryDto = directProviderUtil.getObjectMapper(user).convertValue(data, ProcessInstanceQueryDto.class);
+		ProcessInstanceQueryDto queryDto = directProviderUtil.getJsonMapper(user).convertValue(data, ProcessInstanceQueryDto.class);
 		queryDto.setObjectMapper(directProviderUtil.getObjectMapper(user));
 		ProcessInstanceQuery query = queryDto.toQuery(directProviderUtil.getProcessEngine(user));
 
@@ -1007,7 +1008,7 @@ public class DirectProcessProvider implements IProcessProvider {
 
 	@Override
 	public Long countProcessesInstancesRuntime(Map<String, Object> filters, CIBUser user) {
-		ProcessInstanceQueryDto queryDto = directProviderUtil.getObjectMapper(user).convertValue(filters, ProcessInstanceQueryDto.class);
+		ProcessInstanceQueryDto queryDto = directProviderUtil.getJsonMapper(user).convertValue(filters, ProcessInstanceQueryDto.class);
 		queryDto.setObjectMapper(directProviderUtil.getObjectMapper(user));
 		ProcessInstanceQuery query = queryDto.toQuery(directProviderUtil.getProcessEngine(user));
     return query.count();
