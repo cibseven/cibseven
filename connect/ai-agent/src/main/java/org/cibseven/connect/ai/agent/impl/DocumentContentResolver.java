@@ -99,6 +99,16 @@ public final class DocumentContentResolver {
   private static final List<String> SUPPORTED_IMAGE_TYPES =
       List.of("image/png", "image/jpeg", "image/gif", "image/webp");
 
+  /**
+   * Non-standard names in common use for supported image types. Mapped to the
+   * registered type, which is what the provider expects, rather than rejected
+   * as unsupported — an upload labelled {@code image/jpg} is still a JPEG.
+   */
+  private static final Map<String, String> MIME_TYPE_ALIASES = Map.of(
+      "image/jpg", "image/jpeg",
+      "image/pjpeg", "image/jpeg",
+      "image/x-png", "image/png");
+
   /** Chunk size for the bounded read in {@link #readBoundedBytes}. */
   private static final int READ_CHUNK_BYTES = 8192;
 
@@ -273,15 +283,16 @@ public final class DocumentContentResolver {
           + "without it.");
     }
 
-    byte[] bytes;
+    byte[] bytes = null;
+    FileValue file = null;
     String filename;
     String mimeType;
 
     if (typed instanceof FileValue) {
-      FileValue file = (FileValue) typed;
+      // Read further down, once the mime type is known to be supported.
+      file = (FileValue) typed;
       filename = file.getFilename();
       mimeType = file.getMimeType();
-      bytes = readBoundedBytes(name, file.getValue(), limits.maxBytesPerDocument);
     } else if (typed instanceof BytesValue) {
       filename = name;
       // A BytesValue carries no metadata at all, so the modeler has to say what
@@ -311,7 +322,16 @@ public final class DocumentContentResolver {
           + "'documentMimeTypes', e.g. {\"" + name + "\": \"application/pdf\"}.");
     }
     MimeTypeSpec spec = parseMimeType(name, mimeType.trim());
-    mimeType = spec.baseType;
+    mimeType = canonicalMimeType(spec.baseType);
+    // Refused before the file's content is read: with up to ten documents of
+    // 5 MB each, an unsupported type at the end of the list would otherwise
+    // fail only after everything before it had been read.
+    if (!isSupported(mimeType.toLowerCase(Locale.ROOT))) {
+      throw unsupportedType(name, mimeType);
+    }
+    if (file != null) {
+      bytes = readBoundedBytes(name, file.getValue(), limits.maxBytesPerDocument);
+    }
 
     if (bytes.length == 0) {
       throw new AgentConnectorException("Document variable '" + name + "' is empty (0 bytes). "
@@ -465,9 +485,28 @@ public final class DocumentContentResolver {
       return new ResolvedDocument(variable, filename, mimeType, bytes.length, sha256, "IMAGE",
           null, ImageContent.from(base64, mimeType, detailLevel));
     }
-    throw new AgentConnectorException("Document '" + variable + "' has mime type '" + mimeType
+    throw unsupportedType(variable, mimeType);
+  }
+
+  private static boolean isSupported(String lowerMimeType) {
+    return isTextual(lowerMimeType) || "application/pdf".equals(lowerMimeType)
+        || SUPPORTED_IMAGE_TYPES.contains(lowerMimeType);
+  }
+
+  private static String canonicalMimeType(String mimeType) {
+    String canonical = MIME_TYPE_ALIASES.get(mimeType.toLowerCase(Locale.ROOT));
+    if (canonical == null) {
+      return mimeType;
+    }
+    LOG.debug("Mime type '{}' sent as '{}'", mimeType, canonical);
+    return canonical;
+  }
+
+  private static AgentConnectorException unsupportedType(String variable, String mimeType) {
+    return new AgentConnectorException("Document '" + variable + "' has mime type '" + mimeType
         + "', which cannot be sent to the model. Supported: application/pdf, "
         + String.join(", ", SUPPORTED_IMAGE_TYPES)
+        + " (also as image/jpg, image/pjpeg, image/x-png)"
         + ", text/*, application/json, application/xml, application/yaml,"
         + " application/x-yaml, and any */*+json or */*+xml type."
         + " Audio and video are not supported: whether a gateway accepts them cannot be"

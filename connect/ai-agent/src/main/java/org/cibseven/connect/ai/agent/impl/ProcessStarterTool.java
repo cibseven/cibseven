@@ -60,18 +60,28 @@ import dev.langchain4j.agent.tool.Tool;
  * <ul>
  *   <li>the authenticated user — for a synchronous agent task, and for a job a
  *       user executes by hand;</li>
- *   <li>otherwise, for a job run by the job executor, the start user of the
- *       process instance (also for jobs of a tenant, where the job executor
- *       authenticates only the tenant);</li>
+ *   <li>otherwise the start user of the process instance — for a job run by
+ *       the job executor (also for jobs of a tenant, where the job executor
+ *       authenticates only the tenant), and for a synchronous run that has no
+ *       authentication at all;</li>
  *   <li>otherwise the job executor's user-less tenant authentication, which
  *       keeps the engine's tenant check on, or none at all.</li>
  * </ul>
- * Whoever it is needs {@code CREATE} on process instances and
- * {@code CREATE_INSTANCE} on the definition to start, and {@code READ} /
- * {@code READ_INSTANCE} plus {@code READ_HISTORY} to see the result. Without
- * the read permissions the started instance is invisible to the polls: the
- * tool then reports {@code ended=true} with empty {@code outputs}, and the
- * model cannot tell that apart from a process that produced nothing.
+ * The tool has exactly the rights of that user. For an admin that includes
+ * every tenant: the engine skips its tenant check for admins, so an admin's
+ * job reaches processes of all tenants, as the admin could directly. A job of
+ * a tenant whose instance has no start user stays confined to that tenant.
+ *
+ * <p>Permissions needed: {@code CREATE} on process instances and
+ * {@code CREATE_INSTANCE} on the definition to start; {@code READ} on the
+ * instance or {@code READ_INSTANCE} on the definition, plus {@code READ_HISTORY},
+ * to follow it; and to read its variables, with
+ * {@code enforceSpecificVariablePermission}, also {@code READ_INSTANCE_VARIABLE}
+ * and {@code READ_HISTORY_VARIABLE}. Without the read permissions the result is
+ * misleading rather than an error: with {@code maxRetries > 0} the first poll
+ * cannot see the instance and takes it for ended, so the tool reports
+ * {@code ended=true}, {@code state="ACTIVE"} and empty {@code outputs}; with
+ * {@code maxRetries = 0} it reports {@code ended=false} and empty outputs.
  */
 public class ProcessStarterTool {
 

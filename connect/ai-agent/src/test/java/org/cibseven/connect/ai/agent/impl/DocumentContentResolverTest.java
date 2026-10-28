@@ -173,6 +173,41 @@ public class DocumentContentResolverTest {
     assertThat(text).contains("name=\"x&gt;&#133;&#8232;&#8233;y.txt\"");
   }
 
+  /**
+   * Review round 6, P3: an unsupported type is refused from its metadata, before
+   * a byte of the file is read.
+   */
+  @Test
+  public void shouldRefuseAnUnsupportedTypeWithoutReadingTheFile() {
+    // A mock, because the FileValue builder reads a stream eagerly.
+    org.cibseven.bpm.engine.variable.value.FileValue archive =
+        org.mockito.Mockito.mock(org.cibseven.bpm.engine.variable.value.FileValue.class);
+    org.mockito.Mockito.when(archive.getFilename()).thenReturn("data.zip");
+    org.mockito.Mockito.when(archive.getMimeType()).thenReturn("application/zip");
+    variables.put("archive", archive);
+
+    assertThatThrownBy(() -> resolve("archive"))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("application/zip");
+    org.mockito.Mockito.verify(archive, org.mockito.Mockito.never()).getValue();
+  }
+
+  /** Review round 6, P4: common non-standard names for JPEG and PNG. */
+  @Test
+  public void shouldAcceptCommonImageTypeAliases() {
+    putFile("photo", "photo.jpg", "image/jpg", new byte[] {1});
+    putFile("scan", "scan.jpg", "image/pjpeg", new byte[] {2});
+    putFile("shot", "shot.png", "image/x-png", new byte[] {3});
+
+    List<ResolvedDocument> documents = resolve("photo,scan,shot");
+
+    assertThat(documents).extracting(d -> d.kind).containsOnly("IMAGE");
+    assertThat(documents).extracting(d -> d.mimeType)
+        .containsExactly("image/jpeg", "image/jpeg", "image/png");
+    assertThat(((ImageContent) documents.get(0).content).image().mimeType())
+        .isEqualTo("image/jpeg");
+  }
+
   /** Review finding (P6): an empty attachment gives the model nothing to read. */
   @Test
   public void shouldRejectAnEmptyDocument() {

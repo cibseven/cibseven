@@ -611,6 +611,26 @@ public class ProcessVariableAuthorizationEngineTest {
   }
 
   /**
+   * Review round 6, P1: the same tenant job without a start user, now with an
+   * agent task reading context. The user-less authentication kept for the tool
+   * must not count as a caller: nothing can be checked, the agent runs, and the
+   * audit says so. A weakened userId check would show up here.
+   */
+  @Test
+  public void shouldRecordNoCallerForATenantJobWithoutAStartUser() {
+    deploy(TENANT, ASYNC_KEY, true);
+    ENGINE.getRuntimeService().createProcessInstanceByKey(ASYNC_KEY)
+        .processDefinitionTenantId(TENANT)
+        .setVariables(context())
+        .execute();
+
+    executeTheJob();
+
+    assertThat(modelCalled).isTrue();
+    assertThat(chatLog()).contains("\"authorization\":\"NO_CALLER\"");
+  }
+
+  /**
    * P3: the caller handed to ProcessStarterTool for a job is the marked start
    * user, so an agent task in a process the tool starts recognises it as
    * derived rather than as a login.
