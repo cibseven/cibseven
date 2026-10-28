@@ -161,6 +161,17 @@ public class HistoricExternalTaskLogManager extends AbstractManager {
     }
   }
 
+  public void fireExternalTaskFetchedEvent(final ExternalTask externalTask) {
+    if (isHistoryEventProduced(HistoryEventTypes.EXTERNAL_TASK_FETCH, externalTask)) {
+      HistoryEventProcessor.processHistoryEvents(new HistoryEventProcessor.HistoryEventCreator() {
+        @Override
+        public HistoryEvent createHistoryEvent(HistoryEventProducer producer) {
+          return producer.createHistoricExternalTaskLogFetchedEvt(externalTask);
+        }
+      });
+    }
+  }
+
   // helper /////////////////////////////////////////////////////////
 
   protected boolean isHistoryEventProduced(HistoryEventType eventType, ExternalTask externalTask) {

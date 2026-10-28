@@ -53,4 +53,15 @@ public class ExternalTaskLogger extends ProcessEngineLogger {
     logDebug("002", "Evaluation of error event definition's expression {} on external task {} failed and will be considered as 'false'. "
         + "Received exception: {}", errorEventDefinition.getExpression(), taskId, exception.getMessage());
   }
+
+  /**
+   * Logs that the 'fetched' history events could not be written after the external tasks were locked.
+   *
+   * @param workerId the worker that locked the tasks
+   * @param exception the exception that was caught
+   */
+  public void couldNotProduceFetchedEvents(String workerId, Exception exception) {
+    logWarn("003", "Could not write the 'fetched' history log of external tasks locked by worker '{}'. "
+        + "The tasks remain locked.", workerId, exception);
+  }
 }

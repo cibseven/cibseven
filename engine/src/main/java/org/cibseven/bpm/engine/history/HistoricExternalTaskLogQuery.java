@@ -77,6 +77,13 @@ public interface HistoricExternalTaskLogQuery extends Query<HistoricExternalTask
   /** Only select failed historic external task log entries. */
   HistoricExternalTaskLogQuery failureLog();
 
+  /**
+   * Only select fetched historic external task log entries.
+   *
+   * @since cibseven 2.3.0
+   */
+  HistoricExternalTaskLogQuery fetchedLog();
+
   /** Only select successful historic external task log entries. */
   HistoricExternalTaskLogQuery successLog();
 
