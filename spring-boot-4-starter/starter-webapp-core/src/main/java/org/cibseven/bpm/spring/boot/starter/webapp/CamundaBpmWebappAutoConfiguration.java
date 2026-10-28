@@ -16,11 +16,16 @@
  */
 package org.cibseven.bpm.spring.boot.starter.webapp;
 
+import java.util.Collections;
 import java.util.Map;
+
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.SessionTrackingMode;
 
 import org.cibseven.bpm.spring.boot.starter.CamundaBpmAutoConfiguration;
 import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
 import org.cibseven.bpm.spring.boot.starter.property.WebappProperty;
+import org.cibseven.bpm.spring.boot.starter.webapp.filter.AppendTrailingSlashFilter;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.LazyDelegateFilter.InitHook;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.LazyInitRegistration;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.ResourceLoaderDependingFilter;
@@ -32,6 +37,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnResource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.boot.webmvc.autoconfigure.WebMvcRegistrations;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -55,6 +62,21 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer, WebM
 
   @Autowired
   private CamundaBpmProperties properties;
+
+  @Bean
+  public ServletContextInitializer webappSessionTrackingInitializer() {
+    return servletContext -> servletContext.setSessionTrackingModes(Collections.singleton(SessionTrackingMode.COOKIE));
+  }
+
+  // redirects the application path to the index, see addViewControllers
+  @Bean
+  public FilterRegistrationBean<AppendTrailingSlashFilter> webappAppendTrailingSlashFilter() {
+    FilterRegistrationBean<AppendTrailingSlashFilter> registration = new FilterRegistrationBean<>(new AppendTrailingSlashFilter());
+    registration.setName("Webapp AppendTrailingSlashFilter");
+    registration.addUrlPatterns(properties.getWebapp().getApplicationPath());
+    registration.setDispatcherTypes(DispatcherType.REQUEST);
+    return registration;
+  }
 
   // The legacy webapps (Cockpit, Tasklist, Admin) are no longer shipped. This configuration only
   // serves the tests that still drive the engine through them (-Plegacy-webapps) and goes away
