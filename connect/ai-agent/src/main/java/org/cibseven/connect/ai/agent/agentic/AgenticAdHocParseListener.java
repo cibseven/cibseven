@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.cibseven.bpm.engine.ActivityTypes;
 import org.cibseven.bpm.engine.BpmnParseException;
@@ -51,6 +52,7 @@ import org.cibseven.bpm.engine.impl.pvm.process.ActivityStartBehavior;
 import org.cibseven.bpm.engine.impl.pvm.process.ProcessDefinitionImpl;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.cibseven.bpm.engine.impl.util.xml.Element;
+import org.cibseven.bpm.impl.juel.TreeBuilderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,6 +75,13 @@ import org.slf4j.LoggerFactory;
  * <p>In every process it parses, agentic or not, it also refuses a call of the expression function
  * {@code toolParameter} that no agentic scope reads (CIB7-2136): the function resolves on every
  * engine, and such a call would deploy and fail when it runs.
+ *
+ * <p>Each of these refuses a new deployment only. A definition parsed again from a deployment
+ * made while the agent was off, after a restart, a cache eviction or on another node, is not
+ * refused: that would stop every instance of it. Its refusals are logged instead, and it loads
+ * without what they refuse: a scope no agent can run as the plain scope it was deployed as, a
+ * broken tool or setting left out (CIB7-2136, CIB7-2367). A check added after a release leaves
+ * out the part, never the agent: see {@link AgenticToolCatalogParser.Parsing}.
  *
  * <p>Registered as a <em>post</em> parse listener. It needs the behaviour, the children and their
  * sequence flows, none of which exist while the scope is being built.
@@ -155,54 +164,55 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
           AgenticTurnRunner.AGENT_CONNECTOR_ID);
     }
 
-    if (!agentConnector && !template && limits.isEmpty() && settings.isEmpty()) {
+    // The same question the agent around a nested scope asks of it (withoutAgentsLoadedPlain).
+    if (!asksForAnAgent(scopeElement)) {
       return;
     }
 
     // From here on the model asked for an agent, so anything missing is a modelling error rather
-    // than a case to skip.
-    if (!adHoc) {
-      throw new BpmnParseException("'" + activity.getId() + "': the AI agent is only valid on"
-          + " an adHocSubProcess, and '" + activity.getId() + "' is a " + scopeElement.getTagName()
-          + ". Make it an ad hoc sub process, or remove the agent from it: the connector '"
-          + AgenticTurnRunner.AGENT_CONNECTOR_ID + "', the template '" + AD_HOC_TEMPLATE_NAME
-          + "' and the limits " + MAX_TURNS + " and " + MAX_MODEL_CALLS + ".", scopeElement);
+    // than a case to skip. It refuses a deployment. A definition parsed again that it would
+    // refuse was deployed while the agent was off, as the plain scope the engine parsed, and
+    // loads as that again (CIB7-2367): refused, it would stop every instance of it.
+    AgenticToolCatalogParser.Parsing parsing = parsing(activity.getProcessDefinition());
+    String withoutTheAgent = "'" + activity.getId() + "' loads as it was deployed, without the"
+        + " agent";
+    IoMapping io;
+    try {
+      io = refuseAScopeNoAgentCanRun(scopeElement, scope, activity, properties, connector,
+          agentConnector, template, limits, settings);
+    } catch (BpmnParseException refusal) {
+      parsing.refuse(refusal, withoutTheAgent);
+      return;
     }
-
-    if (!agentConnector) {
-      throw new BpmnParseException("Ad hoc sub process '" + activity.getId() + "' is marked as"
-          + " an AI agent (" + marks(template, limits, settings) + "), but carries no connector '"
-          + AgenticTurnRunner.AGENT_CONNECTOR_ID + "', so no agent would ever run it and the scope"
-          + " would wait for ever. A modeler drops that connector when the element is copied and"
-          + " pasted, or when its type is changed. Apply the template '" + AD_HOC_TEMPLATE_NAME
-          + "' to the element again; or, if it is meant to be a plain ad hoc sub process, remove"
-          + " the template and the limits.", scopeElement);
-    }
-
-    refuseTheTaskOnTheScope(scopeElement, activity);
-    refuseAnImpossibleConversation(scopeElement, scope, activity, properties);
-    refuseAnUnknownOnLimit(scopeElement, activity, properties);
 
     AdHocSubProcessActivityBehavior behavior =
         (AdHocSubProcessActivityBehavior) activity.getActivityBehavior();
-
-    if (behavior.hasCompletionCondition()) {
-      throw new BpmnParseException("Ad hoc sub process '" + activity.getId()
-          + "': an agentic scope decides its own end, so it must not carry a completionCondition.", scopeElement);
-    }
-
     List<String> startable = activity.getProperties().get(BpmnProperties.AD_HOC_STARTABLE_ACTIVITIES);
-    if (startable == null || startable.isEmpty()) {
-      throw new BpmnParseException("Ad hoc sub process '" + activity.getId()
-          + "': an agentic scope needs at least one directly startable child, but every child is"
-          + " the target of a sequence flow inside the scope.", scopeElement);
+
+    // The tool catalogue: one descriptor per startable child, built here so a broken
+    // declaration refuses the deployment rather than a turn. On a parse again a broken tool is
+    // left out of it instead, as is a nested agent that loads without its agent; with every tool
+    // left out the agent could only end the scope, so
+    // the scope loads without the agent, as it was deployed (CIB7-2367). Built before anything
+    // here changes the activity, so that it still can.
+    List<AdHocToolDescriptor> catalog = withoutAgentsLoadedPlain(scopeElement, activity,
+        AgenticToolCatalogParser.parse(scopeElement, startable, parsing), parsing);
+    if (catalog.isEmpty()) {
+      parsing.refuse(new BpmnParseException("Ad hoc sub process '" + activity.getId()
+          + "': none of its startable children " + startable + " is left as a tool for its"
+          + " agent.", scopeElement), withoutTheAgent);
+      return;
     }
 
-    // The connector's own mapping, applied on every turn. Its message is the task. Its presence
-    // on the scope is what makes the scope agentic at runtime (AgenticScopes.isAgentic).
-    IoMapping io = BpmnParseUtil.parseInputOutput(connector);
-    refuseAConnectorWithoutATask(scopeElement, activity, io);
-    refuseAnUndersizedPerActivityMemoryWindow(scopeElement, activity, connector, io, properties);
+    // A setting of CIB7-2151 a deployment would refuse is left out on a parse again: a limit
+    // then ends the scope as any turn would. Checked once the scope is sure to stay agentic, so
+    // the log never tells of a setting left out of a scope that then loads without the agent.
+    final Map<String, String> declared = properties;
+    if (!parsing.check(() -> refuseAnUnknownOnLimit(scopeElement, activity, declared),
+        withoutOnLimit(activity))) {
+      properties = without(properties, ON_LIMIT);
+    }
+
     // followUp pulled out before the mapping is stored: unlike every other input parameter, it
     // must not be evaluated on every step of every turn (CIB7-2148), only once, by the loop
     // itself, and only on a re-entry (CIB7-2137). Left in, the generic per-step evaluation in
@@ -224,11 +234,7 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     // service task, and the tool's caps sit on the scope.
     activity.getProperties().set(BpmnProperties.EXTENSION_PROPERTIES, properties);
 
-    // The tool catalogue: one descriptor per startable child, built here so a broken
-    // declaration refuses the deployment rather than a turn.
-    activity.getProperties().set(AdHocToolDescriptor.CATALOG,
-        AgenticToolCatalogParser.parse(scopeElement, startable,
-            parsing(activity.getProcessDefinition())));
+    activity.getProperties().set(AdHocToolDescriptor.CATALOG, catalog);
 
     // A tool that holds variables of its own loses them before this scope is told it ended: they
     // are carried out as it ends (CIB7-2215). So does any such activity further along a tool's
@@ -250,8 +256,9 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     }
 
     // How a failed turn is retried: the scope's cycle, the engine's, or a default that is not
-    // immediate (CIB7-2149). A cycle that cannot be read refuses the deployment.
-    AgenticTurnRetry.configure(scopeElement, activity);
+    // immediate (CIB7-2149). A cycle that cannot be read refuses the deployment; on a parse
+    // again the next one in that order retries the turns instead (CIB7-2367).
+    AgenticTurnRetry.configure(scopeElement, activity, parsing);
 
     // Built in, not custom: skipCustomListeners would otherwise enter the scope without its
     // first turn, and nothing would ever give it one.
@@ -309,6 +316,168 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     if (!activity.getBuiltInListeners(event).contains(RECORDER)) {
       activity.addBuiltInListener(event, RECORDER);
     }
+  }
+
+  /**
+   * What makes the scope one no agent can run: the agent on another element, its marks without
+   * its connector, and every refusal of the scope and of its connector before the agent is set
+   * up on it. Nothing here changes the activity.
+   *
+   * @return the input and output parameters of the agent's connector
+   */
+  protected IoMapping refuseAScopeNoAgentCanRun(Element scopeElement, ScopeImpl scope,
+      ActivityImpl activity, Map<String, String> properties, Element connector,
+      boolean agentConnector, boolean template, List<String> limits, List<String> settings) {
+    if (!(activity.getActivityBehavior() instanceof AdHocSubProcessActivityBehavior)) {
+      throw new BpmnParseException("'" + activity.getId() + "': the AI agent is only valid on"
+          + " an adHocSubProcess, and '" + activity.getId() + "' is a " + scopeElement.getTagName()
+          + ". Make it an ad hoc sub process, or remove the agent from it: the connector '"
+          + AgenticTurnRunner.AGENT_CONNECTOR_ID + "', the template '" + AD_HOC_TEMPLATE_NAME
+          + "' and the limits " + MAX_TURNS + " and " + MAX_MODEL_CALLS + ".", scopeElement);
+    }
+
+    if (!agentConnector) {
+      throw new BpmnParseException("Ad hoc sub process '" + activity.getId() + "' is marked as"
+          + " an AI agent (" + marks(template, limits, settings) + "), but carries no connector '"
+          + AgenticTurnRunner.AGENT_CONNECTOR_ID + "', so no agent would ever run it and the scope"
+          + " would wait for ever. A modeler drops that connector when the element is copied and"
+          + " pasted, or when its type is changed. Apply the template '" + AD_HOC_TEMPLATE_NAME
+          + "' to the element again; or, if it is meant to be a plain ad hoc sub process, remove"
+          + " the template and the limits.", scopeElement);
+    }
+
+    refuseTheTaskOnTheScope(scopeElement, activity);
+    refuseAnImpossibleConversation(scopeElement, scope, activity, properties);
+
+    if (((AdHocSubProcessActivityBehavior) activity.getActivityBehavior())
+        .hasCompletionCondition()) {
+      throw new BpmnParseException("Ad hoc sub process '" + activity.getId()
+          + "': an agentic scope decides its own end, so it must not carry a completionCondition.", scopeElement);
+    }
+
+    List<String> startable = activity.getProperties().get(BpmnProperties.AD_HOC_STARTABLE_ACTIVITIES);
+    if (startable == null || startable.isEmpty()) {
+      throw new BpmnParseException("Ad hoc sub process '" + activity.getId()
+          + "': an agentic scope needs at least one directly startable child, but every child is"
+          + " the target of a sequence flow inside the scope.", scopeElement);
+    }
+
+    // The connector's own mapping, applied on every turn. Its message is the task. Its presence
+    // on the scope is what makes the scope agentic at runtime (AgenticScopes.isAgentic). An
+    // expression in it that does not parse, a missing brace, throws an EL error rather than a
+    // refusal: on a parse again it would block the definition, and a deployment would name
+    // neither the element nor its line (CIB7-2367). That is the model's own error, the same on
+    // every node, so it is refused here. Any other EL error, a function this node does not have,
+    // depends on the node: it fails as it did, as for any other element, and the definition
+    // loads again once the node has the function, its waiting turn intact. As a refusal it would
+    // leave the scope without its agent on this node, and its waiting turn would be lost.
+    IoMapping io;
+    try {
+      io = BpmnParseUtil.parseInputOutput(connector);
+    } catch (TreeBuilderException e) {
+      throw new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': an expression"
+          + " of the connector '" + AgenticTurnRunner.AGENT_CONNECTOR_ID + "' cannot be read: "
+          + e.getMessage(), scopeElement);
+    }
+    refuseAConnectorWithoutATask(scopeElement, activity, io);
+    refuseAnUndersizedPerActivityMemoryWindow(scopeElement, activity, connector, io, properties);
+    return io;
+  }
+
+  /**
+   * The catalogue without a tool that reaches a nested ad hoc scope that asks for an agent but
+   * loads without one, as a parse again leaves it plain (CIB7-2367): the tool itself, a scope
+   * inside it, or one its flow leads to. Such a scope starts nothing on entry and no turn ends it,
+   * so the tool would never end, and the agent here could not end its own scope while it is
+   * pending. A deployment never keeps one: that scope refuses it first. Children are parsed before
+   * their scope, so whether a nested scope has its agent is known here.
+   *
+   * <p>A nested scope that has its agent is its own: what is inside it is left to its catalogue.
+   * An AI agent task is no scope and needs none, and a plain sub process runs to its end on its
+   * own. An agent behind a call activity is in another definition, not known here.
+   */
+  protected static List<AdHocToolDescriptor> withoutAgentsLoadedPlain(Element scopeElement,
+      ActivityImpl activity, List<AdHocToolDescriptor> catalog,
+      AgenticToolCatalogParser.Parsing parsing) {
+    Map<String, List<String>> chains = new LinkedHashMap<String, List<String>>();
+    List<String> startable = new ArrayList<String>();
+    for (AdHocToolDescriptor tool : catalog) {
+      startable.add(tool.getActivityId());
+      chains.put(tool.getActivityId(), new ArrayList<String>());
+    }
+    for (Map.Entry<String, Set<String>> reached
+        : AgenticToolCatalogParser.reachedFrom(scopeElement, startable).entrySet()) {
+      for (String tool : reached.getValue()) {
+        chains.get(tool).add(reached.getKey());
+      }
+    }
+    List<AdHocToolDescriptor> tools = new ArrayList<AdHocToolDescriptor>();
+    for (AdHocToolDescriptor tool : catalog) {
+      String id = tool.getActivityId();
+      Element plain = null;
+      for (String along : chainOf(id, chains.get(id))) {
+        Element element = elementWithId(scopeElement, along);
+        plain = (element == null) ? null : agentLoadedPlain(activity, element);
+        if (plain != null) {
+          break;
+        }
+      }
+      if (plain == null) {
+        tools.add(tool);
+        continue;
+      }
+      String plainId = plain.attribute("id");
+      parsing.refuse(new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': "
+          + (id.equals(plainId)
+              ? "its child '" + id + "'"
+              : "its child '" + id + "' reaches the ad hoc sub process '" + plainId + "', which")
+          + " asks for an AI agent but has none, so once started nothing would end it.", plain),
+          "the tool '" + id + "' is left out of the agent's catalogue");
+    }
+    return tools;
+  }
+
+  /** The tool's id first, then what its flow reaches. */
+  protected static List<String> chainOf(String tool, List<String> reached) {
+    List<String> chain = new ArrayList<String>();
+    chain.add(tool);
+    chain.addAll(reached);
+    return chain;
+  }
+
+  /**
+   * The ad hoc scope at or inside {@code element} that asks for an agent but loads without one, or
+   * {@code null}. A scope that has its agent is not looked into.
+   */
+  protected static Element agentLoadedPlain(ActivityImpl scope, Element element) {
+    String id = element.attribute("id");
+    if (id != null && "adHocSubProcess".equals(element.getTagName()) && asksForAnAgent(element)) {
+      ActivityImpl nested = scope.findActivity(id);
+      if (nested != null && nested.getProperties().get(AGENT_CONNECTOR_IO) == null) {
+        return element;
+      }
+      return null;
+    }
+    for (Element inside : element.elements()) {
+      Element plain = agentLoadedPlain(scope, inside);
+      if (plain != null) {
+        return plain;
+      }
+    }
+    return null;
+  }
+
+  /** Whether the model asks for an agent on the element: its connector, template, limits or settings. */
+  protected static boolean asksForAnAgent(Element element) {
+    Map<String, String> properties = BpmnParseUtil.parseCamundaExtensionProperties(element);
+    if (properties == null) {
+      properties = Collections.emptyMap();
+    }
+    return AgenticTurnRunner.AGENT_CONNECTOR_ID.equals(
+            connectorId(BpmnParseUtil.findCamundaExtensionElement(element, "connector")))
+        || AD_HOC_TEMPLATE_ID.equals(
+            element.attributeNS(BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS, "modelerTemplate"))
+        || !presentLimits(properties).isEmpty() || !present(properties, SETTINGS).isEmpty();
   }
 
   /** The activity a child performs: itself, or the activity inside its multi-instance body. */
@@ -414,49 +583,68 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
   }
 
   /**
-   * An agentic scope with {@code onLimit = error} needs a boundary error event on it for every
-   * limit it can reach (CIB7-2151). The engine ends an execution without a word when nothing
-   * catches a BPMN error ({@code enableExceptionsAfterUnhandledBpmnError} is off by default), so
-   * a limit no boundary event catches would end the scope with no trace in the process; and an
-   * error event sub process inside the scope that catches the limit takes it before any boundary
-   * event can. Checked here, once the whole process is parsed and its boundary events are known.
-   *
-   * <p>Also here: a tool parameter declared where no agentic scope reads it, outside every agentic
-   * scope, refuses the deployment (CIB7-2136), since the function resolves on every engine.
-   */
-  /**
-   * This parse of the definition, for the checks of tool parameters (CIB7-2136): its process, as
-   * the modeller named it, and whether it is deployed now or parsed again from a deployment made
-   * earlier. The engine marks a deployment it parses again as not new, on the very entity it reads
+   * This parse of the definition, for every check of the agent (CIB7-2136, CIB7-2367): its
+   * process, as the modeller named it, and whether it is deployed now or parsed again from a
+   * deployment made earlier. The engine marks a deployment it parses again as not new, on the very entity it reads
    * in the same command, before it parses it ({@code ResourceDefinitionCache}); a new one carries
    * the mark from its deployment. Outside a command, as when a model is only validated, it counts
    * as a deployment.
+   *
+   * <p>A definition parsed again is named in the log by its version, id, deployment and tenant, so
+   * an operator finds which one to correct. The version is not parsed but stored, so it is read
+   * only when something is logged.
    */
   protected static AgenticToolCatalogParser.Parsing parsing(ProcessDefinitionImpl definition) {
     if (!(definition instanceof ProcessDefinitionEntity)) {
       return new AgenticToolCatalogParser.Parsing(definition.getId(), true);
     }
     ProcessDefinitionEntity entity = (ProcessDefinitionEntity) definition;
-    CommandContext commandContext = Context.getCommandContext();
-    DeploymentEntity deployment = (commandContext == null || entity.getDeploymentId() == null)
+    final CommandContext commandContext = Context.getCommandContext();
+    final String key = entity.getKey();
+    final String deploymentId = entity.getDeploymentId();
+    final String tenantId = entity.getTenantId();
+    DeploymentEntity deployment = (commandContext == null || deploymentId == null)
         ? null
-        : commandContext.getDeploymentManager().findDeploymentById(entity.getDeploymentId());
-    return new AgenticToolCatalogParser.Parsing(entity.getKey(),
-        deployment == null || deployment.isNew());
+        : commandContext.getDeploymentManager().findDeploymentById(deploymentId);
+    if (deployment == null || deployment.isNew()) {
+      return new AgenticToolCatalogParser.Parsing(key, true);
+    }
+    return new AgenticToolCatalogParser.Parsing(key, false, () -> {
+      ProcessDefinitionEntity stored = commandContext.getProcessDefinitionManager()
+          .findProcessDefinitionByDeploymentAndKey(deploymentId, key);
+      return ((stored == null) ? ""
+              : "version " + stored.getVersion() + ", definition '" + stored.getId() + "', ")
+          + "deployment '" + deploymentId + "', "
+          + ((tenantId == null) ? "no tenant" : "tenant '" + tenantId + "'");
+    });
   }
 
+  /**
+   * An agentic scope with {@code onLimit = error} needs a boundary error event on it for every
+   * limit it can reach (CIB7-2151). The engine ends an execution without a word when nothing
+   * catches a BPMN error ({@code enableExceptionsAfterUnhandledBpmnError} is off by default), so
+   * a limit no boundary event catches would end the scope with no trace in the process; and an
+   * error event sub process inside the scope that catches the limit takes it before any boundary
+   * event can. Checked here, once the whole process is parsed and its boundary events are known.
+   * On a parse again {@link #ON_LIMIT} is left out of such a scope instead (CIB7-2367): a limit
+   * then ends it as any turn would.
+   *
+   * <p>Also here: a tool parameter declared where no agentic scope reads it, outside every agentic
+   * scope, refuses the deployment (CIB7-2136), since the function resolves on every engine.
+   */
   @Override
   public void parseProcess(final Element processElement,
       ProcessDefinitionEntity processDefinition) {
-    parsing(processDefinition).check(
-        () -> AgenticToolCatalogParser.refuseCallsOutsideAgents(processElement));
-    refuseUncaughtLimits(processElement, processDefinition, processDefinition.getActivities());
+    AgenticToolCatalogParser.Parsing parsing = parsing(processDefinition);
+    parsing.check(() -> AgenticToolCatalogParser.refuseCallsOutsideAgents(processElement));
+    refuseUncaughtLimits(processElement, processDefinition, processDefinition.getActivities(),
+        parsing);
   }
 
   protected void refuseUncaughtLimits(Element processElement, ProcessDefinitionEntity definition,
-      List<ActivityImpl> activities) {
+      List<ActivityImpl> activities, AgenticToolCatalogParser.Parsing parsing) {
     for (ActivityImpl activity : activities) {
-      refuseUncaughtLimits(processElement, definition, activity.getActivities());
+      refuseUncaughtLimits(processElement, definition, activity.getActivities(), parsing);
       if (activity.getProperties().get(AGENT_CONNECTOR_IO) == null) {
         continue;
       }
@@ -505,11 +693,27 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
       }
       if (!problems.isEmpty()) {
         Element scopeElement = elementWithId(processElement, activity.getId());
-        throw new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': " + ON_LIMIT
-            + " is '" + AgenticOutcome.ON_LIMIT_ERROR + "', but " + String.join(" And ", problems),
-            scopeElement == null ? processElement : scopeElement);
+        parsing.refuse(new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': "
+            + ON_LIMIT + " is '" + AgenticOutcome.ON_LIMIT_ERROR + "', but "
+            + String.join(" And ", problems),
+            scopeElement == null ? processElement : scopeElement), withoutOnLimit(activity));
+        activity.getProperties().set(BpmnProperties.EXTENSION_PROPERTIES,
+            without(properties, ON_LIMIT));
       }
     }
+  }
+
+  /** What a scope loads with on a parse again when its {@link #ON_LIMIT} is left out. */
+  protected static String withoutOnLimit(ActivityImpl activity) {
+    return ON_LIMIT + " is left out of '" + activity.getId() + "', and a limit ends it as any"
+        + " turn would";
+  }
+
+  /** A copy of {@code properties} without {@code name}. */
+  protected static Map<String, String> without(Map<String, String> properties, String name) {
+    Map<String, String> copy = new LinkedHashMap<String, String>(properties);
+    copy.remove(name);
+    return copy;
   }
 
   /** The limits a scope can reach: the total only where the entries share a conversation. */
