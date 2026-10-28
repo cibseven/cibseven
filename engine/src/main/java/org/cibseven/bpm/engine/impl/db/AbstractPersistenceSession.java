@@ -116,8 +116,8 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
       }
     }
 
-    if (processEngineConfiguration.isModelerEnabled()) {
-      dbSchemaCreateModeler();
+    if (processEngineConfiguration.isWebappSchemaEnabled()) {
+      dbSchemaCreateWebapp();
     }
   }
 
@@ -135,14 +135,14 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
 
   protected abstract void dbSchemaCreateDmnHistory();
 
-  protected abstract void dbSchemaCreateModeler();
+  protected abstract void dbSchemaCreateWebapp();
 
 
   public void dbSchemaDrop() {
     ProcessEngineConfigurationImpl processEngineConfiguration = Context.getProcessEngineConfiguration();
 
-    if (processEngineConfiguration.isModelerEnabled()) {
-      dbSchemaDropModeler();
+    if (processEngineConfiguration.isWebappSchemaEnabled()) {
+      dbSchemaDropWebapp();
     }
 
     if (processEngineConfiguration.isDmnEnabled()) {
@@ -186,7 +186,7 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
 
   protected abstract void dbSchemaDropDmnHistory();
 
-  protected abstract void dbSchemaDropModeler();
+  protected abstract void dbSchemaDropWebapp();
 
   public void dbSchemaPrune() {
     ProcessEngineConfigurationImpl processEngineConfiguration = Context.getProcessEngineConfiguration();
@@ -208,8 +208,8 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
     if(isDmnHistoryTablePresent() && (!processEngineConfiguration.isDmnEnabled() || !processEngineConfiguration.isDbHistoryUsed())) {
       dbSchemaDropDmnHistory();
     }
-    if (isModelerTablePresent() && !processEngineConfiguration.isModelerEnabled()) {
-      dbSchemaDropModeler();
+    if (isWebappTablePresent() && !processEngineConfiguration.isWebappSchemaEnabled()) {
+      dbSchemaDropWebapp();
     }
   }
 
@@ -227,7 +227,7 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
 
   public abstract boolean isDmnHistoryTablePresent();
 
-  public abstract boolean isModelerTablePresent();
+  public abstract boolean isWebappTablePresent();
 
   public void dbSchemaUpdate() {
     ProcessEngineConfigurationImpl processEngineConfiguration = Context.getProcessEngineConfiguration();
@@ -260,8 +260,8 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
       dbSchemaCreateDmnHistory();
     }
 
-    if (!isModelerTablePresent() && processEngineConfiguration.isModelerEnabled()) {
-      dbSchemaCreateModeler();
+    if (!isWebappTablePresent() && processEngineConfiguration.isWebappSchemaEnabled()) {
+      dbSchemaCreateWebapp();
     }
 
   }

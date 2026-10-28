@@ -411,6 +411,9 @@ public abstract class ProcessEngineConfiguration {
   /** An unique installation identifier */
   protected String installationId;
 
+  /** Version of the webclient schema found in the database, null when those tables are absent */
+  protected String webappSchemaVersion;
+
   /**
    * On failing activities we can skip output mapping. This might be helpful if output mapping uses variables that might not
    * be available on failure (e.g. with external tasks or RPA tasks).
@@ -1057,6 +1060,15 @@ public abstract class ProcessEngineConfiguration {
 
   public ProcessEngineConfiguration setInstallationId(String installationId) {
     this.installationId = installationId;
+    return this;
+  }
+
+  public String getWebappSchemaVersion() {
+    return webappSchemaVersion;
+  }
+
+  public ProcessEngineConfiguration setWebappSchemaVersion(String webappSchemaVersion) {
+    this.webappSchemaVersion = webappSchemaVersion;
     return this;
   }
 

@@ -36,6 +36,8 @@ camunda.bpm:
       authentication: pseudo
 # https://docs.cibseven.org/manual/latest/user-guide/spring-boot-integration/configuration/#generic-properties
   generic-properties.properties:
+    # create the webclient tables (modeler, chat, notifications); this distribution ships the webclient
+    webappSchemaEnabled: true
     # update old namespace in script tasks, after migration from camunda to cibseven
     useCibSevenNamespaceInScripting: false
     # update old namespace in saved serialized objects, after migration from camunda to cibseven
@@ -198,15 +200,16 @@ springdoc:
 # Activate "/actuator/info" and "/actuator/health" endpoints
 management:
   endpoints:
-    enabled-by-default: false # Disable all endpoints by default
+    access:
+      default: none # Disable all endpoints by default
     web:
       exposure:
         include: health,info # Include only health and info endpoints
   endpoint:
     info:
-      enabled: true # Enable the info endpoint
+      access: read-only # Enable the info endpoint
     health:
-      enabled: true # Enable the health endpoint
+      access: read-only # Enable the health endpoint
       probes:
         enabled: true # Enable health probes (if applicable)
   info:

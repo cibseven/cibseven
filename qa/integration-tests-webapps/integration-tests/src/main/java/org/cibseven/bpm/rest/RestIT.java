@@ -58,6 +58,8 @@ public class RestIT extends AbstractWebIntegrationTest {
 
   private static final String SCHEMA_LOG_PATH = ENGINE_DEFAULT_PATH + "/schema/log";
 
+  private static final String CONFIGURATION_PATH = ENGINE_DEFAULT_PATH + "/configuration";
+
   private final static Logger log = Logger.getLogger(RestIT.class.getName());
 
   @BeforeEach
@@ -98,6 +100,30 @@ public class RestIT extends AbstractWebIntegrationTest {
         fail("Unexpected definition key in response JSON.");
       }
     }
+  }
+
+  /**
+   * The webclient reads the schema version from here to decide whether its own tables are
+   * present, so it has to hold against a deployed engine, not only a mocked configuration.
+   */
+  @Test
+  public void shouldReportTheWebappSchemaVersion() {
+    log.info("Checking " + appBasePath + CONFIGURATION_PATH);
+
+    HttpResponse<JsonNode> response = Unirest.get(appBasePath + CONFIGURATION_PATH)
+        .header("Accept", "application/json")
+        .asJson();
+
+    assertThat(response.getStatus()).isEqualTo(200);
+
+    JSONObject configuration = response.getBody().getObject();
+    assertTrue(configuration.has("webappSchemaVersion"), "the configuration endpoint has to expose webappSchemaVersion");
+
+    // this runtime switches the webapp schema on, so the create script wrote its version
+    assertThat(configuration.isNull("webappSchemaVersion"))
+        .as("webappSchemaVersion is absent, so the webapp tables were not created")
+        .isFalse();
+    assertThat(configuration.getString("webappSchemaVersion")).matches("\\d+\\.\\d+\\.\\d+");
   }
 
   @Test

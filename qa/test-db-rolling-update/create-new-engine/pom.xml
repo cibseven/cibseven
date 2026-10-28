@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.cibseven.bpm.qa.upgrade</groupId>
     <artifactId>cibseven-qa-db-rolling-update</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cibseven-qa-db-create-new-engine</artifactId>
@@ -64,6 +64,7 @@
                     <property name="current.sql.upgrade.dir" value="${project.build.directory}/scripts-current/sql/upgrade" />
                     <property name="minor.version.upgrade.script.previous.to.current.engine" value="${database.type}_engine_${previous.minor.version}_to_${current.minor.version}.sql" />
                     <property name="minor.version.upgrade.script.previous.to.current.identity" value="${database.type}_identity_${previous.minor.version}_to_${current.minor.version}.sql" />
+                    <property name="minor.version.upgrade.script.previous.to.current.webapp" value="${database.type}_webapp_${previous.minor.version}_to_${current.minor.version}.sql" />
                     <property name="patch.version.upgrade.script.previous.engine.prefix" value="${database.type}_engine_${previous.minor.version}_patch_${previous.minor.version}" />
 
                     <!-- create the SQL scripts so that the files exist even if they do not exist in the distribution. (this can be the case if there are no db
@@ -78,6 +79,9 @@
                     <!-- minor version upgrade from previous to current version -->
                     <touch file="${current.sql.upgrade.dir}/${minor.version.upgrade.script.previous.to.current.engine}" />
                     <touch file="${current.sql.upgrade.dir}/${minor.version.upgrade.script.previous.to.current.identity}" />
+
+                    <!-- webclient tables, upgraded by their own script since 2.3 -->
+                    <touch file="${current.sql.upgrade.dir}/${minor.version.upgrade.script.previous.to.current.webapp}" />
                   </target>
                 </configuration>
                 <goals>
@@ -171,6 +175,7 @@
                     <!-- now perform the schema migrations -->
                     <srcFile>${project.build.directory}/scripts-current/sql/upgrade/${database.type}_engine_${cibseven.previous.majorVersion}.${cibseven.previous.minorVersion}_to_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}.sql</srcFile>
                     <srcFile>${project.build.directory}/scripts-current/sql/upgrade/${database.type}_identity_${cibseven.previous.majorVersion}.${cibseven.previous.minorVersion}_to_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}.sql</srcFile>
+                    <srcFile>${project.build.directory}/scripts-current/sql/upgrade/${database.type}_webapp_${cibseven.previous.majorVersion}.${cibseven.previous.minorVersion}_to_${cibseven.current.majorVersion}.${cibseven.current.minorVersion}.sql</srcFile>
                   </srcFiles>
                 </configuration>
               </execution>

@@ -20,8 +20,9 @@
                            "historyLevel": "full",
                            "authorizationEnabled": false,
                            "enablePasswordPolicy": false,
-                           "historyTimeToLive": "180",
-                           "enforceHistoryTimeToLive": false
+                           "webappSchemaVersion": "3.0.0",
+                           "historyTimeToLive": 180,
+                           "enforceHistoryTimeToLive": true
                          }
                      }'] />
   }

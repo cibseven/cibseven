@@ -713,7 +713,8 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   protected boolean isDbIdentityUsed = true;
   protected boolean isDbHistoryUsed = true;
-  protected boolean modelerEnabled = true;
+  /** Off by default: the webclient tables (MOD_, CHAT_, NOTIF_) belong to the webclient. */
+  protected boolean webappSchemaEnabled = false;
 
   protected DelegateInterceptor delegateInterceptor;
 
@@ -2101,7 +2102,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     dbSqlSessionFactory.setDbHistoryUsed(isDbHistoryUsed);
     dbSqlSessionFactory.setCmmnEnabled(cmmnEnabled);
     dbSqlSessionFactory.setDmnEnabled(dmnEnabled);
-    dbSqlSessionFactory.setModelerEnabled(modelerEnabled);
+    dbSqlSessionFactory.setWebappSchemaEnabled(webappSchemaEnabled);
     dbSqlSessionFactory.setDatabaseTablePrefix(databaseTablePrefix);
 
     //hack for the case when schema is defined via databaseTablePrefix parameter and not via databaseSchema parameter
@@ -3821,12 +3822,30 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     this.isDbHistoryUsed = isDbHistoryUsed;
   }
 
-  public boolean isModelerEnabled() {
-    return modelerEnabled;
+  public boolean isWebappSchemaEnabled() {
+    return webappSchemaEnabled;
   }
 
+  public void setWebappSchemaEnabled(boolean webappSchemaEnabled) {
+    this.webappSchemaEnabled = webappSchemaEnabled;
+  }
+
+  /**
+   * @deprecated since 3.0.0, use {@link #isWebappSchemaEnabled()}. The component covers the chat and
+   *             notification tables as well, not only the modeler ones.
+   */
+  @Deprecated
+  public boolean isModelerEnabled() {
+    return webappSchemaEnabled;
+  }
+
+  /**
+   * @deprecated since 3.0.0, use {@link #setWebappSchemaEnabled(boolean)}. Kept so that an existing
+   *             bpm-platform.xml or spring configuration naming modelerEnabled keeps working.
+   */
+  @Deprecated
   public void setModelerEnabled(boolean modelerEnabled) {
-    this.modelerEnabled = modelerEnabled;
+    this.webappSchemaEnabled = modelerEnabled;
   }
 
   public List<ResolverFactory> getResolverFactories() {

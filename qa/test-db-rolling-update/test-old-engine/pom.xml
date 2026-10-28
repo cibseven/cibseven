@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.cibseven.bpm.qa.upgrade</groupId>
     <artifactId>cibseven-qa-db-rolling-update</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
 
@@ -129,7 +129,9 @@
                 <phase>post-integration-test</phase>
                 <configuration>
                   <srcFiles>
-                    <!-- finally drop db -->
+                    <!-- finally drop db; the webclient tables first, their version row lives in
+                         ACT_GE_PROPERTY which the engine script drops -->
+                    <srcFile>${project.build.directory}/scripts-current/sql/drop/${database.type}_webapp_${project.version}.sql</srcFile>
                     <srcFile>${project.build.directory}/scripts-current/sql/drop/${database.type}_engine_${project.version}.sql</srcFile>
                     <srcFile>${project.build.directory}/scripts-current/sql/drop/${database.type}_identity_${project.version}.sql</srcFile>
                   </srcFiles>

@@ -846,7 +846,7 @@ public class DbSqlSessionFactory implements SessionFactory {
   protected boolean isDbHistoryUsed = true;
   protected boolean cmmnEnabled = true;
   protected boolean dmnEnabled = true;
-  protected boolean modelerEnabled = true;
+  protected boolean webappSchemaEnabled = false;
 
   protected boolean jdbcBatchProcessing;
 
@@ -1014,12 +1014,12 @@ public class DbSqlSessionFactory implements SessionFactory {
     this.isDbHistoryUsed = isDbHistoryUsed;
   }
 
-  public boolean isModelerEnabled() {
-    return modelerEnabled;
+  public boolean isWebappSchemaEnabled() {
+    return webappSchemaEnabled;
   }
 
-  public void setModelerEnabled(boolean modelerEnabled) {
-    this.modelerEnabled = modelerEnabled;
+  public void setWebappSchemaEnabled(boolean webappSchemaEnabled) {
+    this.webappSchemaEnabled = webappSchemaEnabled;
   }
 
   public boolean isCmmnEnabled() {
