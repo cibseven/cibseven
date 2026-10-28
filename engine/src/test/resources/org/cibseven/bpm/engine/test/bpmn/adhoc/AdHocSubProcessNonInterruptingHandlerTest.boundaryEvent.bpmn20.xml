@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-2269. A non-interrupting boundary event on an activity of the scope: a message starts a
+     side path beside the activity, which keeps running. No completion condition; every performance
+     is gathered under the activity it ended in. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <message id="pingMessage" name="ping" />
+  <process id="nonInterruptingBoundaryEvent" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <extensionElements>
+        <camunda:properties>
+          <camunda:property name="outputCollection" value="results" />
+          <camunda:property name="outputElement" value="${execution.currentActivityId}" />
+        </camunda:properties>
+      </extensionElements>
+      <userTask id="work" />
+      <boundaryEvent id="pinged" attachedToRef="work" cancelActivity="false">
+        <messageEventDefinition messageRef="pingMessage" />
+      </boundaryEvent>
+      <sequenceFlow id="b1" sourceRef="pinged" targetRef="sideTask" />
+      <userTask id="sideTask" />
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="after" />
+    <userTask id="after" />
+    <sequenceFlow id="f3" sourceRef="after" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>
