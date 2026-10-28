@@ -156,6 +156,7 @@ public class ProcessVariableAuthorizationEngineTest {
     IdentityService identityService = ENGINE.getIdentityService();
     identityService.clearAuthentication();
     configuration().setEnforceSpecificVariablePermission(false);
+    configuration().setAuthorizationEnabled(true);
     AuthorizationService authorizationService = ENGINE.getAuthorizationService();
     authorizationService.createAuthorizationQuery().list()
         .forEach(authorization -> authorizationService.deleteAuthorization(authorization.getId()));
@@ -389,6 +390,90 @@ public class ProcessVariableAuthorizationEngineTest {
     assertThat(modelCalled).isTrue();
   }
 
+  @Test
+  public void shouldAcceptATenantMembershipThroughAGroup() {
+    deploy(TENANT, ASYNC_KEY, true);
+    createUser("alice", "accounting");
+    ENGINE.getIdentityService().saveTenant(ENGINE.getIdentityService().newTenant(TENANT));
+    ENGINE.getIdentityService().createTenantGroupMembership(TENANT, "accounting");
+    grant("alice", PROCESS_DEFINITION, ASYNC_KEY, READ_INSTANCE);
+    startInTenantAs("alice", List.of("accounting"));
+
+    executeTheJob();
+
+    assertThat(modelCalled).isTrue();
+  }
+
+  /**
+   * Review round 3, P1: for a synchronous run the engine trusts the tenant list
+   * of the authentication (TenantManager), whether or not the identity service
+   * knows the membership — custom AuthenticationProviders, embedded
+   * setAuthentication(user, groups, tenants), LDAP/SCIM/OAuth2 with tenants.
+   * alice is no member as far as the identity service is concerned.
+   */
+  @Test
+  public void shouldTrustTheTenantListOfTheAuthenticationForASynchronousRun() {
+    deploy(TENANT, SYNC_KEY, false);
+    grant("alice", PROCESS_DEFINITION, SYNC_KEY, READ_INSTANCE);
+
+    startInTenantAs("alice", List.of(), SYNC_KEY, context());
+
+    assertThat(modelCalled).isTrue();
+    assertThat(chatLog()).contains("\"authorization\":\"GRANTED\"");
+  }
+
+  /** The tenant check follows the tenant-check settings, not the authorization switch. */
+  @Test
+  public void shouldCheckTheTenantEvenWithAuthorizationDisabled() {
+    configuration().setAuthorizationEnabled(false);
+    deploy(TENANT, ASYNC_KEY, true);
+    startInTenantAs("alice", List.of());
+
+    Throwable thrown = catchThrowable(this::executeTheJob);
+
+    assertThat(rootCause(thrown))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("tenant '" + TENANT + "'");
+    assertThat(modelCalled).isFalse();
+  }
+
+  @Test
+  public void shouldRecordAPassedTenantCheckWithAuthorizationDisabled() {
+    configuration().setAuthorizationEnabled(false);
+    deploy(TENANT, ASYNC_KEY, true);
+    createUser("alice", null);
+    ENGINE.getIdentityService().saveTenant(ENGINE.getIdentityService().newTenant(TENANT));
+    ENGINE.getIdentityService().createTenantUserMembership(TENANT, "alice");
+    startInTenantAs("alice", List.of());
+
+    executeTheJob();
+
+    assertThat(chatLog()).contains("\"authorization\":\"TENANT_CHECKED\"");
+  }
+
+  @Test
+  public void shouldRecordThatNothingWasCheckedWithAuthorizationDisabled() {
+    configuration().setAuthorizationEnabled(false);
+
+    startAs("alice", List.of(), SYNC_KEY, context());
+
+    assertThat(chatLog()).contains("\"authorization\":\"AUTHORIZATION_DISABLED\"");
+  }
+
+  @Test
+  public void shouldLetATaskThatOnlyAttachesDocumentsThroughWithAGrant() {
+    grant("alice", PROCESS_DEFINITION, SYNC_KEY, READ_TASK);
+
+    startAs("alice", List.of(), SYNC_KEY, Variables.createVariables()
+        .putValue("_documents", "invoice")
+        .putValueTyped("invoice", Variables.fileValue("invoice.pdf")
+            .file(PDF_BYTES).mimeType("application/pdf").create()));
+
+    assertThat(modelCalled).isTrue();
+    assertThat(chatLog()).contains("\"type\":\"documents\"")
+        .contains("\"authorization\":\"GRANTED\"");
+  }
+
   // ── helpers ────────────────────────────────────────────────────────────────
 
   private static VariableMap context() {
@@ -406,11 +491,16 @@ public class ProcessVariableAuthorizationEngineTest {
   }
 
   private void startInTenantAs(String userId, List<String> groupIds) {
+    startInTenantAs(userId, groupIds, ASYNC_KEY, context());
+  }
+
+  private void startInTenantAs(String userId, List<String> groupIds, String key,
+      VariableMap variables) {
     ENGINE.getIdentityService().setAuthentication(userId, groupIds, List.of(TENANT));
     try {
-      ENGINE.getRuntimeService().createProcessInstanceByKey(ASYNC_KEY)
+      ENGINE.getRuntimeService().createProcessInstanceByKey(key)
           .processDefinitionTenantId(TENANT)
-          .setVariables(context())
+          .setVariables(variables)
           .execute();
     } finally {
       ENGINE.getIdentityService().clearAuthentication();

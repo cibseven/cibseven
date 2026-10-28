@@ -174,6 +174,11 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     // audit event (Art. 12 record-keeping).
     ProcessEngine callerEngine = captureProcessEngine();
     Authentication callerAuth = captureCallerAuthentication(callerEngine);
+    // Whether the caller is the thread's real authentication (synchronous run)
+    // or was derived from the process instance's start user (job). The tenant
+    // check trusts the tenant list of the former only.
+    boolean callerAuthenticated = callerAuth != null && callerEngine != null
+        && callerAuth == callerEngine.getIdentityService().getCurrentAuthentication();
     ProcessStarterToolContext.setEngine(callerEngine);
     ProcessStarterToolContext.setAuthentication(callerAuth);
 
@@ -190,7 +195,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       // Both features read variables straight off the execution, which checks
       // nothing. Check the caller's read permission once, before the first read.
       ProcessVariableAuthorization.Outcome variableAccess = authorizeVariableReads(request,
-          callerAuth);
+          callerAuth, callerAuthenticated);
 
       // Read the declared process-variable allowlist before any model object
       // exists — the read is local and cheap, and a mis-declared context should
@@ -719,12 +724,13 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    * the resolvers fail with their own, more specific message.
    */
   private static ProcessVariableAuthorization.Outcome authorizeVariableReads(
-      AgentRequest request, Authentication caller) {
+      AgentRequest request, Authentication caller, boolean callerAuthenticated) {
     if (!isDeclared(request.getContextVariables()) && !isDeclared(request.getDocuments())) {
       return null;
     }
     ExecutionEntity execution = currentExecution();
-    return (execution == null) ? null : ProcessVariableAuthorization.check(execution, caller);
+    return (execution == null) ? null
+        : ProcessVariableAuthorization.check(execution, caller, callerAuthenticated);
   }
 
   /** Adds the authorization outcome to a {@code context} or {@code documents} event. */

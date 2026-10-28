@@ -752,7 +752,14 @@ public final class DocumentContentResolver {
     return (filename == null || filename.isEmpty()) ? fallback : filename;
   }
 
+  /**
+   * Escapes a value for a double-quoted attribute of the document tag. Line
+   * breaks and tabs become character references too: a filename is chosen by
+   * whoever uploads the file, and one spanning several lines would make the
+   * tag's own lines ambiguous to the model.
+   */
   private static String xmlAttribute(String value) {
-    return value.replace("&", "&amp;").replace("\"", "&quot;").replace("<", "&lt;");
+    return value.replace("&", "&amp;").replace("\"", "&quot;").replace("<", "&lt;")
+        .replace("\r", "&#13;").replace("\n", "&#10;").replace("\t", "&#9;");
   }
 }

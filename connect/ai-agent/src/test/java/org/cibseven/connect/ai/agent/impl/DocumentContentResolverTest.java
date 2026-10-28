@@ -151,6 +151,17 @@ public class DocumentContentResolverTest {
         .hasMessageContaining("+xml");
   }
 
+  /** Review round 3, P7: a filename cannot spread the document tag over several lines. */
+  @Test
+  public void shouldKeepAMultiLineFilenameOnTheTagLine() {
+    putFile("note", "a\nb\r\tc.txt", "text/plain", "hi".getBytes(StandardCharsets.UTF_8));
+
+    String text = ((TextContent) resolve("note").get(0).content).text();
+
+    assertThat(text).contains("name=\"a&#10;b&#13;&#9;c.txt\"");
+    assertThat(text.substring(0, text.indexOf('>'))).doesNotContain("\n");
+  }
+
   /** Review finding (P6): an empty attachment gives the model nothing to read. */
   @Test
   public void shouldRejectAnEmptyDocument() {

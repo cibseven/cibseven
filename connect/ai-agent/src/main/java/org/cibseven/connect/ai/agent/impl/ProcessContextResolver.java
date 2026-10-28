@@ -545,7 +545,9 @@ public final class ProcessContextResolver {
     if (typed instanceof ObjectValue) {
       String objectType = ((ObjectValue) typed).getObjectTypeName();
       if (objectType != null && !objectType.isEmpty()) {
-        return escape(base + "<" + objectType + ">", false);
+        // Quoted for the same reason as the descriptor fields: the name is
+        // caller-chosen and could otherwise forge text within the line.
+        return escape(base + "<" + quote(objectType) + ">", false);
       }
     }
     return escape(base, false);

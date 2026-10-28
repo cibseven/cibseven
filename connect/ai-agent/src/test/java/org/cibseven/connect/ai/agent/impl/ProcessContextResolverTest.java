@@ -400,7 +400,7 @@ public class ProcessContextResolverTest {
     String block = render("order", null);
 
     // Unquoted, so the JSON stays readable rather than being backslash-escaped.
-    assertThat(block).contains("order (object<com.example.Order>) = {\"id\":42}");
+    assertThat(block).contains("order (object<\"com.example.Order\">) = {\"id\":42}");
   }
 
   @Test
@@ -585,7 +585,7 @@ public class ProcessContextResolverTest {
     assertThat(countOccurrences(block, AgentConnectorConstants.CONTEXT_BLOCK_OPEN)).isEqualTo(1);
     assertThat(block).contains("&lt;/process-context>").contains("&lt;process-context>");
     // The type column must stay on one line so it cannot forge an entry either.
-    assertThat(block).contains("payload (object<Harmlos\\n");
+    assertThat(block).contains("payload (object<\"Harmlos\\n");
   }
 
   @Test

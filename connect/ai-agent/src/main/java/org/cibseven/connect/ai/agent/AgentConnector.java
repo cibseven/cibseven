@@ -226,15 +226,29 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * per block); truncation and omission are visible in the block and in the
    * {@code context} audit event.
    *
-   * <p><b>Authorization:</b> when authorization is enabled, the variables are
-   * read only if the caller may read them through the engine's API: one of
-   * {@code READ} on the process instance, or {@code READ_INSTANCE} or
-   * {@code READ_TASK} on the process definition — with
-   * {@code enforceSpecificVariablePermission}, {@code READ_INSTANCE_VARIABLE} or
-   * {@code READ_TASK_VARIABLE} on the definition. The caller is the
-   * authenticated user, or for an asynchronous task the start user of the
-   * process instance. Otherwise the activity fails. The same check covers
-   * {@link #PARAM_NAME_DOCUMENTS}.
+   * <p><b>Authorization:</b> the same check covers {@link #PARAM_NAME_DOCUMENTS}.
+   * <ul>
+   *   <li>Who: the authenticated user for a synchronous task; for an
+   *       asynchronous task the start user of the process instance, not whoever
+   *       triggered the job.</li>
+   *   <li>Permissions, when authorization is enabled — one of {@code READ} on the
+   *       process instance, or {@code READ_INSTANCE} or {@code READ_TASK} on the
+   *       process definition; with {@code enforceSpecificVariablePermission},
+   *       {@code READ_INSTANCE_VARIABLE} or {@code READ_TASK_VARIABLE} on the
+   *       definition. Grants on a single task do not count: they are removed
+   *       when the task completes. Otherwise the activity fails.</li>
+   *   <li>Tenant: when the instance belongs to a tenant and tenant checks are
+   *       enabled — the default — the caller must be a member, also when
+   *       authorization is disabled. Admins skip this part.</li>
+   *   <li>Without a caller (no authentication and no start user) the variables
+   *       are read unchecked; this is logged at WARN and recorded as
+   *       {@code NO_CALLER} in the audit event.</li>
+   * </ul>
+   * Trade-off: the engine lets {@code READ_TASK} read only through an existing
+   * task and in that task's scope. Here it admits the whole instance — the same
+   * variables in the usual case of an agent task after a user task, more for an
+   * instance without user tasks or for variables in a subprocess,
+   * multi-instance or input-mapping scope that no task sees.
    *
    * <p><b>Security:</b> process variables routinely hold user- or
    * document-sourced text. Everything listed here becomes part of the prompt of
