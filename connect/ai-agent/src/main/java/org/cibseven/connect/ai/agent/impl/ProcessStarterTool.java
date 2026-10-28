@@ -56,8 +56,22 @@ import dev.langchain4j.agent.tool.Tool;
  * <h3>Authorization</h3>
  * Engine calls run under the authentication carried by
  * {@link ProcessStarterToolContext}, populated by {@link AgentConnectorImpl}
- * from {@code IdentityService.getCurrentAuthentication()} at the start of the
- * connector invocation.
+ * at the start of the connector invocation:
+ * <ul>
+ *   <li>the authenticated user — for a synchronous agent task, and for a job a
+ *       user executes by hand;</li>
+ *   <li>otherwise, for a job run by the job executor, the start user of the
+ *       process instance (also for jobs of a tenant, where the job executor
+ *       authenticates only the tenant);</li>
+ *   <li>otherwise the job executor's user-less tenant authentication, which
+ *       keeps the engine's tenant check on, or none at all.</li>
+ * </ul>
+ * Whoever it is needs {@code CREATE} on process instances and
+ * {@code CREATE_INSTANCE} on the definition to start, and {@code READ} /
+ * {@code READ_INSTANCE} plus {@code READ_HISTORY} to see the result. Without
+ * the read permissions the started instance is invisible to the polls: the
+ * tool then reports {@code ended=true} with empty {@code outputs}, and the
+ * model cannot tell that apart from a process that produced nothing.
  */
 public class ProcessStarterTool {
 

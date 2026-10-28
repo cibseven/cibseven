@@ -235,6 +235,11 @@ class AgentChatListener implements ChatModelListener {
 
   // ── caller (captured at construction time) ───────────────────────────────
   private final String userId;
+  /**
+   * {@code "context"} for a user authenticated on the thread, {@code "startUser"}
+   * when the connector derived the process instance's start user for a job.
+   */
+  private final String userIdSource;
   private final List<String> groupIds;
 
   // ── persistence ──────────────────────────────────────────────────────────
@@ -317,6 +322,7 @@ class AgentChatListener implements ChatModelListener {
     }
 
     Authentication auth = ProcessStarterToolContext.getAuthentication();
+    this.userIdSource = (auth instanceof StartUserAuthentication) ? "startUser" : "context";
     if (auth != null) {
       this.userId = auth.getUserId();
       List<String> g = auth.getGroupIds();
@@ -772,7 +778,7 @@ class AgentChatListener implements ChatModelListener {
 
     if (userId != null && !userId.isEmpty()) {
       event.put("userId", userId);
-      event.put("userIdSource", "context");
+      event.put("userIdSource", userIdSource);
     } else if (executionId != null) {
       // Inside a BPMN execution context but identity could not be resolved.
       // Make the absence explicit rather than implicit by field omission so

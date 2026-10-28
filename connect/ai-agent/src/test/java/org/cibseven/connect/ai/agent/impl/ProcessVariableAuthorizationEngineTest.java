@@ -31,6 +31,7 @@ import static org.cibseven.bpm.engine.authorization.ProcessDefinitionPermissions
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_INSTANCE;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +50,7 @@ import org.cibseven.bpm.engine.impl.cfg.multitenancy.TenantIdProviderCaseInstanc
 import org.cibseven.bpm.engine.impl.cfg.multitenancy.TenantIdProviderHistoricDecisionInstanceContext;
 import org.cibseven.bpm.engine.impl.cfg.multitenancy.TenantIdProviderProcessInstanceContext;
 import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.identity.Authentication;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
@@ -82,6 +84,8 @@ public class ProcessVariableAuthorizationEngineTest {
   private static final String SYNC_KEY = "authorizationSyncTest";
   private static final String ASYNC_KEY = "authorizationAsyncTest";
   private static final String TENANT = "t1";
+  private static final String TOOL_KEY = "authorizationToolTest";
+  private static final String OTHER_KEY = "authorizationOtherTenant";
   private static final byte[] PDF_BYTES = "%PDF-1.7 body".getBytes();
 
   static volatile boolean modelCalled;
@@ -184,9 +188,44 @@ public class ProcessVariableAuthorizationEngineTest {
     }
   }
 
+  static volatile Authentication capturedCaller;
+  static volatile RuntimeException toolFailure;
+
+  /**
+   * Resolves the caller exactly as the connector does and hands it to the real
+   * ProcessStarterTool, which starts {@code _startKey} on its own thread under
+   * that authentication. Driving the tool directly keeps the test independent
+   * of how a model phrases a tool call.
+   */
+  public static class ToolDelegate implements JavaDelegate {
+    @Override
+    public void execute(DelegateExecution execution) throws Exception {
+      Method capture = AgentConnectorImpl.class.getDeclaredMethod(
+          "captureCallerAuthentication", ProcessEngine.class);
+      capture.setAccessible(true);
+      Authentication caller = (Authentication) capture.invoke(new AgentConnectorImpl(), ENGINE);
+      capturedCaller = caller;
+      String startKey = (String) execution.getVariable("_startKey");
+      if (startKey == null) {
+        return;
+      }
+      ProcessStarterToolContext.setEngine(ENGINE);
+      ProcessStarterToolContext.setAuthentication(caller);
+      try {
+        new ProcessStarterTool().runProcessByKey(startKey, Map.of(), "", 0, 0L);
+      } catch (RuntimeException e) {
+        toolFailure = e;
+      } finally {
+        ProcessStarterToolContext.clear();
+      }
+    }
+  }
+
   @BeforeEach
   public void setUp() {
     modelCalled = false;
+    capturedCaller = null;
+    toolFailure = null;
     deploy(null, SYNC_KEY, false);
     deploy(null, ASYNC_KEY, true);
     // What alice needs to start a process at all — deliberately nothing that
@@ -534,10 +573,57 @@ public class ProcessVariableAuthorizationEngineTest {
 
     Throwable thrown = catchThrowable(this::executeTheJob);
 
+    // The permission refusal, specifically: alice passed the tenant check.
     assertThat(rootCause(thrown))
         .isInstanceOf(AgentConnectorException.class)
-        .hasMessageContaining("User 'alice' may not read the variables");
+        .hasMessageContaining("User 'alice' may not read the variables")
+        .hasMessageContaining("Required: READ on process instance")
+        .hasMessageNotContaining("tenant");
     assertThat(modelCalled).isFalse();
+  }
+
+  /**
+   * Review round 5, B1: a job of a tenant whose instance has no start user (a
+   * timer or message start, history level none). The job executor's user-less
+   * (null, null, [t1]) authentication must survive as the caller, or
+   * ProcessStarterTool runs without any authentication — and without one the
+   * engine's tenant check is off, so the tool could start a process of another
+   * tenant.
+   */
+  @Test
+  public void shouldKeepTheToolInTheJobsTenantWhenThereIsNoStartUser() {
+    deploy("t1", TOOL_KEY, bpmn(TOOL_KEY, true, ToolDelegate.class));
+    deploy("t2", OTHER_KEY, waitingProcess(OTHER_KEY));
+    ENGINE.getRuntimeService().createProcessInstanceByKey(TOOL_KEY)
+        .processDefinitionTenantId("t1")
+        .setVariables(Variables.createVariables().putValue("_startKey", OTHER_KEY))
+        .execute();
+
+    executeTheJob();
+
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processDefinitionKey(OTHER_KEY).count())
+        .as("instances of tenant t2's process started from a t1 job").isZero();
+    assertThat(toolFailure).isNotNull();
+    assertThat(capturedCaller).isNotNull();
+    assertThat(capturedCaller.getUserId()).isNull();
+    assertThat(capturedCaller.getTenantIds()).containsExactly("t1");
+  }
+
+  /**
+   * P3: the caller handed to ProcessStarterTool for a job is the marked start
+   * user, so an agent task in a process the tool starts recognises it as
+   * derived rather than as a login.
+   */
+  @Test
+  public void shouldHandTheToolAMarkedStartUserForAJob() {
+    deploy(null, TOOL_KEY, bpmn(TOOL_KEY, true, ToolDelegate.class));
+    startAs("alice", List.of(), TOOL_KEY, Variables.createVariables());
+
+    executeTheJob();
+
+    assertThat(capturedCaller).isInstanceOf(StartUserAuthentication.class);
+    assertThat(capturedCaller.getUserId()).isEqualTo("alice");
   }
 
   /** P1: a job executed by hand is checked for whoever executes it. */
@@ -551,7 +637,8 @@ public class ProcessVariableAuthorizationEngineTest {
 
     assertThat(rootCause(thrown))
         .isInstanceOf(AgentConnectorException.class)
-        .hasMessageContaining("User 'bob' may not read the variables");
+        .hasMessageContaining("User 'bob' may not read the variables")
+        .hasMessageContaining("Required: READ on process instance");
   }
 
   /** P3: the synchronous refusal — the caller's own tenant list lacks the tenant. */
@@ -767,13 +854,35 @@ public class ProcessVariableAuthorizationEngineTest {
   }
 
   private static void deploy(String tenantId, String key, boolean async) {
+    deploy(tenantId, key, bpmn(key, async, AgentDelegate.class));
+  }
+
+  private static void deploy(String tenantId, String key, String bpmn) {
     ENGINE.getRepositoryService().createDeployment()
         .tenantId(tenantId)
-        .addString(key + ".bpmn20.xml", bpmn(key, async))
+        .addString(key + ".bpmn20.xml", bpmn)
         .deploy();
   }
 
-  private static String bpmn(String key, boolean async) {
+  /** A process that only waits — what ProcessStarterTool is pointed at. */
+  private static String waitingProcess(String key) {
+    return ""
+        + "<?xml version='1.0' encoding='UTF-8'?>"
+        + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
+        + "             xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
+        + "             targetNamespace='http://cibseven.org/test'>"
+        + "  <process id='" + key + "' isExecutable='true'"
+        + "           camunda:historyTimeToLive='1'>"
+        + "    <startEvent id='start'/>"
+        + "    <sequenceFlow id='f1' sourceRef='start' targetRef='wait'/>"
+        + "    <userTask id='wait'/>"
+        + "    <sequenceFlow id='f2' sourceRef='wait' targetRef='end'/>"
+        + "    <endEvent id='end'/>"
+        + "  </process>"
+        + "</definitions>";
+  }
+
+  private static String bpmn(String key, boolean async, Class<?> delegate) {
     return ""
         + "<?xml version='1.0' encoding='UTF-8'?>"
         + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
@@ -784,7 +893,7 @@ public class ProcessVariableAuthorizationEngineTest {
         + "    <startEvent id='start'/>"
         + "    <sequenceFlow id='f1' sourceRef='start' targetRef='agent'/>"
         + "    <serviceTask id='agent' camunda:asyncBefore='" + async + "'"
-        + "                 camunda:class='" + AgentDelegate.class.getName() + "'/>"
+        + "                 camunda:class='" + delegate.getName() + "'/>"
         + "    <sequenceFlow id='f2' sourceRef='agent' targetRef='wait'/>"
         + "    <userTask id='wait'/>"
         + "    <sequenceFlow id='f3' sourceRef='wait' targetRef='end'/>"

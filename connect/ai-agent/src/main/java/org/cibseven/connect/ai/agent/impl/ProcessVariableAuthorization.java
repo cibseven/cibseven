@@ -147,9 +147,10 @@ final class ProcessVariableAuthorization {
       return Outcome.AUTHORIZATION_DISABLED;
     }
     if (caller == null || caller.getUserId() == null) {
-      LOG.warn("Process instance '{}': no user is authenticated and the instance has no start "
-          + "user, so the read permission for 'contextVariables'/'documents' cannot be checked. "
-          + "The variables are read unchecked.", execution.getProcessInstanceId());
+      LOG.warn("Process instance '{}': no user is authenticated and no start user could be "
+          + "determined (none recorded, history level none, or the lookup failed), so the read "
+          + "permission for 'contextVariables'/'documents' cannot be checked. The variables are "
+          + "read unchecked.", execution.getProcessInstanceId());
       return Outcome.NO_CALLER;
     }
     AuthorizationManager authorizationManager = commandContext.getAuthorizationManager();

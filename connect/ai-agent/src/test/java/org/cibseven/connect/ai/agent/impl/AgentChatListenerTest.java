@@ -938,6 +938,22 @@ public class AgentChatListenerTest {
         .containsEntry("userIdSource", "context");
   }
 
+  /** CIB7-1843: a start user derived for a job is not a login, and the audit says so. */
+  @Test
+  public void shouldStampUserIdSourceStartUserForADerivedCaller() {
+    ProcessStarterToolContext.setAuthentication(
+        new StartUserAuthentication("alice", Collections.emptyList(), null));
+    AgentChatListener listener = new AgentChatListener();
+
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    assertThat(listener.events().get(0))
+        .containsEntry("userId", "alice")
+        .containsEntry("userIdSource", "startUser");
+  }
+
   @Test
   public void shouldStampUserIdSourceMissingWhenExecutionContextHasNoAuthentication() {
     ExecutionEntity execution = mock(ExecutionEntity.class);

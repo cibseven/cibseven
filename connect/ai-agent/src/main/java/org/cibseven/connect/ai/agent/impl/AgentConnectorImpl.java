@@ -486,22 +486,29 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    *       memberships so authorization checks against group permissions
    *       still pass.</li>
    * </ol>
-   * Returns {@code null} when {@code engine} is null or neither source
-   * yields a user.
+   * When neither yields a user, the user-less authentication of the thread is
+   * returned as it is — for a job of a tenant that is the job executor's
+   * {@code (null, null, [tenantId])}. It identifies nobody, so the variable
+   * check treats it as no caller, but it keeps {@code ProcessStarterTool}
+   * confined to that tenant: without any authentication the engine's tenant
+   * check is off, and the tool could start and read processes of every tenant.
+   * Returns {@code null} when {@code engine} is null or there is nothing at all.
    */
   private Authentication captureCallerAuthentication(ProcessEngine engine) {
     if (engine == null) {
       return null;
     }
+    Authentication current = null;
     try {
-      Authentication current = engine.getIdentityService().getCurrentAuthentication();
+      current = engine.getIdentityService().getCurrentAuthentication();
       if (current != null && current.getUserId() != null) {
         return current;
       }
     } catch (Exception e) {
       LOG.debug("Could not read current authentication from IdentityService: {}", e.toString());
     }
-    return deriveAuthenticationFromProcessInstance(engine);
+    Authentication derived = deriveAuthenticationFromProcessInstance(engine);
+    return (derived != null) ? derived : current;
   }
 
   /**
