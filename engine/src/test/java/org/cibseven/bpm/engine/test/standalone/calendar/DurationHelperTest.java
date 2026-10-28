@@ -22,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import org.cibseven.bpm.engine.impl.calendar.DurationHelper;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
@@ -141,6 +143,62 @@ public class DurationHelperTest {
 
     // then
     assertThat(PnW.getDateAfter()).isEqualTo(parse("19700604-00:00:00"));
+  }
+
+  @Test
+  public void shouldNotSkipRepeatedHourByDefault() throws Exception {
+    TimeZone defaultTimeZone = TimeZone.getDefault();
+    try {
+      // 25.10.2026: clocks go back from 03:00 CEST to 02:00 CET
+      TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"));
+      Date start = parseWithZone("2026 10 25 02:45 CEST");
+      DurationHelper dh = new DurationHelper("R3/PT15M", start);
+
+      assertThat(dh.getDateAfter(start)).isEqualTo(parseWithZone("2026 10 25 02:00 CET"));
+    } finally {
+      TimeZone.setDefault(defaultTimeZone);
+    }
+  }
+
+  @Test
+  public void shouldSkipRepeatedHourWithoutCountingSkippedRepetitions() throws Exception {
+    TimeZone defaultTimeZone = TimeZone.getDefault();
+    try {
+      TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"));
+      Date start = parseWithZone("2026 10 25 02:45 CEST");
+      DurationHelper dh = new DurationHelper("R3/PT15M", start);
+      dh.setSkipRepeatedHour(true);
+
+      // 02:00, 02:15, 02:30 and 02:45 CET are skipped, the 3 repetitions follow
+      assertThat(dh.getDateAfter(start)).isEqualTo(parseWithZone("2026 10 25 03:00 CET"));
+      assertThat(dh.getDateAfter(parseWithZone("2026 10 25 03:00 CET"))).isEqualTo(parseWithZone("2026 10 25 03:15 CET"));
+      assertThat(dh.getDateAfter(parseWithZone("2026 10 25 03:15 CET"))).isEqualTo(parseWithZone("2026 10 25 03:30 CET"));
+      // 03:31, not 03:30: getDateAfter returns the last repetition itself when called exactly at it, regardless of
+      // the repeated hour; the job executor calls it after the due date, so any later time shows that none is left
+      assertThat(dh.getDateAfter(parseWithZone("2026 10 25 03:31 CET"))).isNull();
+    } finally {
+      TimeZone.setDefault(defaultTimeZone);
+    }
+  }
+
+  @Test
+  public void shouldSkipRepeatedHourOfDueDateWithRepeatOffset() throws Exception {
+    TimeZone defaultTimeZone = TimeZone.getDefault();
+    try {
+      TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"));
+      DurationHelper dh = new DurationHelper("R/PT15M", parseWithZone("2026 10 25 02:00 CEST"));
+      dh.setRepeatOffset(30 * 60 * 1000);
+      dh.setSkipRepeatedHour(true);
+
+      // the grid point 02:30 CEST is in the first pass, but its due date 02:00 CET (with the offset) is skipped
+      assertThat(dh.getDateAfter(parseWithZone("2026 10 25 02:45 CEST"))).isEqualTo(parseWithZone("2026 10 25 03:00 CET"));
+    } finally {
+      TimeZone.setDefault(defaultTimeZone);
+    }
+  }
+
+  private Date parseWithZone(String str) throws Exception {
+    return new SimpleDateFormat("yyyy MM dd HH:mm z", Locale.ENGLISH).parse(str);
   }
 
   private Date parse(String str) throws Exception {
