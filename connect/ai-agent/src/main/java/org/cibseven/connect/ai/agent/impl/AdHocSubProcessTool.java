@@ -707,7 +707,8 @@ public class AdHocSubProcessTool {
      * scopes around it, and made safe as a result value is ({@link AdHocResults#safe}). A long
      * string is cut and says so; the variable keeps its whole value. A declared variable that is
      * not set is named under {@code processDataNotSet}, so the agent tells it from one set to
-     * null, and fails nothing. Values past the budget are left out and named.
+     * null, and fails nothing. A value that does not fit what is left of the budget is left out
+     * and named, so the values never take more than the budget; a smaller one after it may fit.
      *
      * <p>Read on every step, unlike the results, which are reported once: the agent acts on what
      * the process holds now. Nothing here moves the read position of the results.
@@ -722,12 +723,17 @@ public class AdHocSubProcessTool {
             TypedValue value = scope.getVariableTyped(name, false);
             if (value == null) {
                 notSet.add(name);
-            } else if (remaining <= 0) {
+                continue;
+            }
+            // Admitted only whole and within the budget, counted as JSON writes it: a string of
+            // control characters takes six times its length (CIB7-2179, second review).
+            Object safe = AdHocResults.safe(value);
+            int written = AdHocToolProvider.writtenLength(safe);
+            if (written > remaining) {
                 leftOut.add(name);
             } else {
-                Object safe = AdHocResults.safe(value);
                 values.put(name, safe);
-                remaining -= AdHocToolProvider.writtenLength(safe);
+                remaining -= written;
             }
         }
         report.put("processData", values);

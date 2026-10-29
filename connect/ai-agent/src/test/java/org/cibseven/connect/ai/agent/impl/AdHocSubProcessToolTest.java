@@ -739,13 +739,42 @@ public class AdHocSubProcessToolTest {
         .isEqualTo("Left out because the size limit of "
             + AdHocSubProcessTool.MAX_PROCESS_DATA_CHARS
             + " characters for processData was reached: " + String.join(", ", leftOut) + ".");
+    assertThat(writtenLength(shown)).as("never over the budget")
+        .isLessThanOrEqualTo(AdHocSubProcessTool.MAX_PROCESS_DATA_CHARS);
+  }
+
+  /**
+   * The budget counts a value as JSON writes it, and admits it only whole: 2000 control
+   * characters take 12002 as written, so a second such value does not fit, and a short one
+   * after it still does.
+   */
+  @Test
+  public void aValueThatDoesNotFitIsLeftOutAndASmallerOneAfterItStillFits() {
+    ProcessInstance instance = startWithoutTurn("processDataEscaped",
+        processVariables("erste, zweite, kurz"), tool -> tool.turnReport());
+    StringBuilder controls = new StringBuilder();
+    for (int i = 0; i < AdHocSubProcessTool.MAX_RESULT_VALUE_CHARS; i++) {
+      controls.append('\u0001');
+    }
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "erste", controls.toString());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "zweite", controls.toString());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kurz", "ok");
+
+    runPendingTurn(instance);
+
+    Map<String, Object> shown = processData(result(0));
+    assertThat(new ArrayList<>(shown.keySet())).containsExactly("erste", "kurz");
+    assertThat(String.valueOf(result(0).get("processDataNote"))).endsWith(": zweite.");
+    assertThat(writtenLength(shown))
+        .isLessThanOrEqualTo(AdHocSubProcessTool.MAX_PROCESS_DATA_CHARS);
+  }
+
+  private static int writtenLength(Map<String, Object> values) {
     int written = 0;
-    for (Object value : shown.values()) {
+    for (Object value : values.values()) {
       written += AdHocToolProvider.writtenLength(value);
     }
-    assertThat(written).as("over the budget by at most the last value")
-        .isLessThan(AdHocSubProcessTool.MAX_PROCESS_DATA_CHARS
-            + AdHocSubProcessTool.MAX_RESULT_VALUE_CHARS + 100);
+    return written;
   }
 
   /**
