@@ -1922,6 +1922,50 @@ public class AgenticTurnJobTest {
         .as("the next turn has called nothing yet").doesNotContain("calledThisTurn");
   }
 
+  /**
+   * The process variables the scope declares reach the model inside the state block, on every
+   * step, with the values they hold when the request is made: a person changes one between two
+   * turns, and the next request carries the new value. A variable the scope does not declare
+   * never reaches the model (CIB7-2179).
+   */
+  @Test
+  public void theDeclaredProcessVariablesReachTheModelInsideTheStateBlock() throws IOException {
+    script.add(toolCall("worker", "{}"));
+    script.add(answer("Gestartet."));
+    script.add(answer("Erledigt."));
+    Map<String, Object> variables = new HashMap<>();
+    variables.put("kunde", "Müller GmbH");
+    variables.put("geheim", "Kennwort-4711");
+    start(connectorModel("<camunda:properties><camunda:property"
+        + " name='cibseven.agentic.processVariables' value='kunde' /></camunda:properties>",
+        "<camunda:inputParameter name='message'>Bearbeite den Auftrag.</camunda:inputParameter>",
+        "", "stub-key"), variables);
+
+    runWaitingTurn();
+    Task task = engine.getTaskService().createTaskQuery().singleResult();
+    engine.getTaskService().complete(task.getId(),
+        Collections.<String, Object>singletonMap("kunde", "Schmidt AG"));
+    runWaitingTurn();
+
+    assertThat(requestBodies).hasSize(3);
+    assertThat(stateBlock(lastUserMessage(requestBodies.get(0))))
+        .contains("\"processData\":{\"kunde\":\"Müller GmbH\"}");
+    assertThat(stateBlock(lastUserMessage(requestBodies.get(1)))).as("a further step")
+        .contains("\"processData\":{\"kunde\":\"Müller GmbH\"}");
+    assertThat(stateBlock(lastUserMessage(requestBodies.get(2)))).as("after the change")
+        .contains("\"processData\":{\"kunde\":\"Schmidt AG\"}");
+    assertThat(requestBodies).noneSatisfy(body -> assertThat(body).contains("Kennwort-4711"));
+  }
+
+  /** The state block of a user message, between its two markers. */
+  private static String stateBlock(String userMessage) {
+    int start = userMessage.indexOf("[AD HOC SCOPE STATE");
+    int end = userMessage.indexOf("[END OF AD HOC SCOPE STATE]");
+    assertThat(start).as("a state block").isNotNegative();
+    assertThat(end).as("its end").isGreaterThan(start);
+    return userMessage.substring(start, end);
+  }
+
   // --- results on the agent state (CIB7-2147)
 
   /** A tool that waits for a person and declares the value the person enters. */

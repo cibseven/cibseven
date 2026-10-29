@@ -17,6 +17,7 @@
 package org.cibseven.connect.ai.agent.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -599,6 +600,197 @@ public class AdHocSubProcessToolTest {
     // is the idle warning.
     assertThat(String.valueOf(listing.get("note")))
         .doesNotContain("nothing will wake it");
+  }
+
+  // --- the process variables the agent sees (CIB7-2179) ----------------------
+
+  @Test
+  public void theReportCarriesTheDeclaredProcessVariablesWithTheirCurrentValues() {
+    ProcessInstance instance = startWithoutTurn("processData",
+        processVariables("kunde, prioritaet, eilig, offen"), tool -> tool.turnReport());
+    Map<String, Object> variables = new LinkedHashMap<>();
+    variables.put("kunde", "Müller GmbH");
+    variables.put("prioritaet", 2);
+    variables.put("eilig", true);
+    variables.put("offen", null);
+    ENGINE.getRuntimeService().setVariables(instance.getId(), variables);
+
+    runPendingTurn(instance);
+
+    Map<String, Object> report = result(0);
+    assertThat(processData(report)).as("in the order declared, a variable set to null as null")
+        .containsExactly(entry("kunde", (Object) "Müller GmbH"), entry("prioritaet", (Object) 2),
+            entry("eilig", (Object) true), entry("offen", null));
+    assertThat(report).doesNotContainKeys("processDataNotSet", "processDataNote");
+    assertThat(String.valueOf(report.get("note")))
+        .contains("The values in processData are the current values of process variables");
+  }
+
+  /** The variables the model does not declare, and the agent's own state, stay out. */
+  @Test
+  public void anUndeclaredVariableNeverReachesTheReport() {
+    ProcessInstance instance = startWithoutTurn("processDataUndeclared",
+        processVariables("kunde"), tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "geheim", "Kennwort-4711");
+
+    runPendingTurn(instance);
+
+    String report = AdHocToolProvider.toJson(result(0));
+    assertThat(processData(result(0))).containsOnlyKeys("kunde");
+    assertThat(report).doesNotContain("geheim").doesNotContain("Kennwort-4711")
+        .doesNotContain(AdHocAgentState.STATE_MARKER);
+  }
+
+  @Test
+  public void aScopeThatDeclaresNoProcessVariablesReportsNone() {
+    ProcessInstance instance = startWithoutTurn("processDataNone", tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
+
+    runPendingTurn(instance);
+
+    assertThat(result(0)).doesNotContainKeys("processData", "processDataNotSet",
+        "processDataNote");
+    assertThat(String.valueOf(result(0).get("note"))).doesNotContain("processData");
+  }
+
+  /** Not set is not an error: the turn runs, and the agent is told which ones it lacks. */
+  @Test
+  public void aDeclaredVariableThatIsNotSetIsNamedAndFailsNothing() {
+    ProcessInstance instance = startWithoutTurn("processDataNotSet",
+        processVariables("kunde, fehlt"), tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(processData(result(0))).containsOnlyKeys("kunde");
+    assertThat(list(result(0).get("processDataNotSet"))).containsExactly("fehlt");
+    assertThat(ENGINE.getRuntimeService().createIncidentQuery()
+        .processInstanceId(instance.getId()).count()).isZero();
+    assertThat(ENGINE.getHistoryService().createHistoricIncidentQuery()
+        .processInstanceId(instance.getId()).count()).isZero();
+  }
+
+  /**
+   * The report carries a cut value and says so; the variable keeps all of it. 4000 characters
+   * are the most a string variable holds: the engine refuses a longer one.
+   */
+  @Test
+  public void aLongValueIsCutAndTheVariableKeepsAllOfIt() {
+    String text = longText(4000);
+    ProcessInstance instance = startWithoutTurn("processDataLong", processVariables("bericht"),
+        tool -> {
+          tool.startActivity("waits", Collections.<String, Object>emptyMap());
+          return tool.turnReport();
+        });
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "bericht", text);
+
+    runPendingTurn(instance);
+
+    String shown = String.valueOf(processData(result(0)).get("bericht"));
+    assertThat(shown).isEqualTo(text.substring(0, AdHocSubProcessTool.MAX_RESULT_VALUE_CHARS)
+        + "… (truncated, 4000 characters total)");
+    assertThat(ENGINE.getRuntimeService().getVariable(instance.getId(), "bericht"))
+        .isEqualTo(text);
+  }
+
+  /** As a result value is shown: one rule for every value the agent is sent. */
+  @Test
+  public void aDateAnObjectOrAFileIsAPlaceholder() {
+    ProcessInstance instance = startWithoutTurn("processDataPlaceholders",
+        processVariables("faellig, auftrag, scan"), tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "faellig", new Date(0L));
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+        Variables.objectValue(new ArrayList<>(Arrays.asList("a", "b"))).create());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "scan",
+        Variables.fileValue("auftrag.pdf").file(WritesDocument.BYTES)
+            .mimeType("application/pdf").create());
+
+    runPendingTurn(instance);
+
+    assertThat(processData(result(0)))
+        .containsEntry("faellig", "<date value, not shown>")
+        .containsEntry("auftrag", "<object value, not shown>")
+        .containsEntry("scan", "<file value, not shown>");
+  }
+
+  /** Values past the budget of their own are left out and named, in the order declared. */
+  @Test
+  public void theProcessDataStaysWithinItsOwnBudget() {
+    List<String> names = new ArrayList<>();
+    for (int i = 0; i < 12; i++) {
+      names.add("wert" + i);
+    }
+    ProcessInstance instance = startWithoutTurn("processDataBudget",
+        processVariables(String.join(",", names)), tool -> tool.turnReport());
+    for (String name : names) {
+      ENGINE.getRuntimeService().setVariable(instance.getId(), name, longText(3000));
+    }
+
+    runPendingTurn(instance);
+
+    Map<String, Object> shown = processData(result(0));
+    List<String> leftOut = names.subList(shown.size(), names.size());
+    assertThat(new ArrayList<>(shown.keySet())).as("the first ones, in their order")
+        .containsExactlyElementsOf(names.subList(0, shown.size()));
+    assertThat(leftOut).isNotEmpty();
+    assertThat(String.valueOf(result(0).get("processDataNote")))
+        .isEqualTo("Left out because the size limit of "
+            + AdHocSubProcessTool.MAX_PROCESS_DATA_CHARS
+            + " characters for processData was reached: " + String.join(", ", leftOut) + ".");
+    int written = 0;
+    for (Object value : shown.values()) {
+      written += AdHocToolProvider.writtenLength(value);
+    }
+    assertThat(written).as("over the budget by at most the last value")
+        .isLessThan(AdHocSubProcessTool.MAX_PROCESS_DATA_CHARS
+            + AdHocSubProcessTool.MAX_RESULT_VALUE_CHARS + 100);
+  }
+
+  /**
+   * Read on every step with what the process holds then; a result is reported once. A person
+   * changes the variable between two turns, and the next turn sees the new value.
+   */
+  @Test
+  public void theProcessDataComesWithEveryStepAndTheResultsOnce() {
+    ProcessInstance instance = startWithoutTurn("processDataEveryStep",
+        processVariables("kunde"),
+        tool -> {
+          tool.startActivity("waits", Collections.<String, Object>emptyMap());
+          return tool.turnReport();
+        },
+        tool -> {
+          Map<String, Object> first = tool.turnReport();
+          Agent.RESULTS.add(first);
+          return tool.turnReport();
+        });
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
+    runPendingTurn(instance);
+    assertThat(processData(result(0))).containsEntry("kunde", "Müller GmbH");
+
+    Map<String, Object> answer = new LinkedHashMap<>();
+    answer.put("kunde", "Schmidt AG");
+    ENGINE.getTaskService().complete(task(instance, "waits").getId(), answer);
+    runPendingTurn(instance);
+
+    Map<String, Object> firstStep = result(1);
+    Map<String, Object> furtherStep = result(2);
+    assertThat(processData(firstStep)).containsEntry("kunde", "Schmidt AG");
+    assertThat(finished(firstStep)).hasSize(1);
+    assertThat(processData(furtherStep)).as("again, in a further step")
+        .containsEntry("kunde", "Schmidt AG");
+    assertThat(finished(furtherStep)).as("the result only once").isEmpty();
+  }
+
+  private static String processVariables(String names) {
+    return "<camunda:property name='cibseven.agentic.processVariables' value='" + names + "' />";
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Map<String, Object> processData(Map<String, Object> report) {
+    assertThat(report).containsKey("processData");
+    return (Map<String, Object>) report.get("processData");
   }
 
   // --- startActivity ---------------------------------------------------------
