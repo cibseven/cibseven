@@ -602,29 +602,67 @@ public class AgentChatListenerTest {
 
     ChatRequest request = ChatRequest.builder()
         .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    // Two model calls: one answered, one that failed.
     listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
     listener.onResponse(new ChatModelResponseContext(
         ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
         request, null, new HashMap<>()));
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
     listener.onError(new ChatModelErrorContext(
         new RuntimeException("late failure"), request, null, new HashMap<>()));
 
-    // 3 events, two of which end a model call → two chunks, each written once and
-    // named after its first event (CIB7-2156); flag exactly once.
-    verify(execution, org.mockito.Mockito.times(1))
-        .setVariable(org.mockito.Matchers.eq(
-            AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask~0"),
-            org.mockito.Matchers.any());
-    verify(execution, org.mockito.Mockito.times(1))
-        .setVariable(org.mockito.Matchers.eq(
-            AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask~2"),
-            org.mockito.Matchers.any());
+    // Two chunks, one per model call, each written once and named after its first
+    // event (CIB7-2156); the variable without a suffix is never written; flag once.
+    assertThat(chunk(execution, "agentTask~0")).extracting(event -> event.get("type"))
+        .containsExactly("request", "response");
+    assertThat(chunk(execution, "agentTask~2")).extracting(event -> event.get("type"))
+        .containsExactly("request", "error");
+    assertThat(chunk(execution, "agentTask~2")).extracting(event -> event.get("eventSeq"))
+        .containsExactly(2, 3);
     verify(execution, org.mockito.Mockito.never())
         .setVariable(org.mockito.Matchers.eq(
             AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask"),
             org.mockito.Matchers.any());
     verify(execution, org.mockito.Mockito.times(1))
         .setVariable(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
+  }
+
+  /**
+   * A model call that fails is one chunk too: its request waits for the error that ends it
+   * (CIB7-2156).
+   */
+  @Test
+  public void shouldWriteARequestAndItsErrorAsOneChunk() {
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("agentTask");
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener();
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    listener.onError(new ChatModelErrorContext(
+        new RuntimeException("model down"), request, null, new HashMap<>()));
+
+    List<Map<String, Object>> events = chunk(execution, "agentTask~0");
+    assertThat(events).extracting(event -> event.get("type")).containsExactly("request", "error");
+    assertThat(events.get(1)).containsEntry("message", "model down");
+  }
+
+  /** The events of the chunk {@code name} (after the prefix), as written exactly once. */
+  @SuppressWarnings("unchecked")
+  private static List<Map<String, Object>> chunk(ExecutionEntity execution, String name) {
+    org.mockito.ArgumentCaptor<Object> value = org.mockito.ArgumentCaptor.forClass(Object.class);
+    verify(execution, org.mockito.Mockito.times(1)).setVariable(
+        org.mockito.Matchers.eq(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + name),
+        value.capture());
+    String json = (String) ((org.cibseven.bpm.engine.variable.value.ObjectValue) value.getValue())
+        .getValue();
+    try {
+      return new com.fasterxml.jackson.databind.ObjectMapper().readValue(json, List.class);
+    } catch (java.io.IOException e) {
+      throw new IllegalStateException(e);
+    }
   }
 
   // ── continueNumbering: a prior log is continued, not reloaded (CIB7-2156) ──
