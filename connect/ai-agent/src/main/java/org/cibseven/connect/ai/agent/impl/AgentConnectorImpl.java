@@ -244,7 +244,11 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     // Everything after the ThreadLocal writes above must sit inside this try:
     // its finally is what clears them again, and a leaked caller Authentication
     // would be visible to the next, unrelated task on this pooled thread.
-    try {
+    // The conversation is written once, when this invocation ends, rather than on every message
+    // LangChain4j adds to it: one history row per model step instead of one per message
+    // (CIB7-2156).
+    try (ProcessVariableChatMemoryStore.Batch conversations =
+        ProcessVariableChatMemoryStore.Batch.open()) {
       // Decided once per run: an agentic turn gets the scope's activities as tools,
       // the state block in its message and the scope's own loop bound.
       ExecutionEntity agenticScope = agenticTurnScope();
