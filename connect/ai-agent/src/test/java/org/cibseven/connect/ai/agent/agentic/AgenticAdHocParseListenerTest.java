@@ -2220,7 +2220,8 @@ public class AgenticAdHocParseListenerTest {
         .isInstanceOf(ProcessEngineException.class)
         .hasMessageContaining("declares adHocAgentResults, cibseven-connect-ai-agent-memory_adHoc,"
             + " where the agent keeps its own state, which never goes to the model; a name that"
-            + " begins with adHocAgent or cibseven-connect-ai-agent is the agent's.");
+            + " begins with adHocAgent or cibseven-connect-ai-agent is the agent's; give such a"
+            + " variable of the process another name, or leave it out.");
   }
 
   @Test

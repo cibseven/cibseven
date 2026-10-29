@@ -63,11 +63,11 @@ import org.slf4j.LoggerFactory;
  *
  * <p>A scope is agentic when it carries the AI agent's connector, {@code camunda:connector} with
  * the id {@code cibseven-ai-agent} -- the same element and the same input parameters as an AI
- * agent service task, evaluated on every turn instead of once. Only the agent's limits stay
- * properties of the scope.
+ * agent service task, evaluated on every turn instead of once. Only the agent's limits and
+ * settings stay properties of the scope.
  *
- * <p>Every other trace of an agent on a sub process -- the agent's element template, its limits,
- * its connector on the wrong element -- without a scope the agent can run refuses the deployment,
+ * <p>Every other trace of an agent on a sub process -- the agent's element template, its limits
+ * and settings, its connector on the wrong element -- without a scope the agent can run refuses the deployment,
  * saying why and what to do. A modeler drops a connector it does not expect on a sub process when
  * the element is copied or its type is changed; without this check such a scope would deploy as a
  * plain ad hoc scope and wait for ever.
@@ -106,8 +106,9 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
   public static final String ON_LIMIT = AgenticOutcome.ON_LIMIT_PROPERTY;
 
   /**
-   * The process variables the agent sees on every turn, by name, separated by commas: their
-   * current values go to the model as data, with the state of the scope (CIB7-2179).
+   * The process variables the agent sees, by name, separated by commas: before every model call,
+   * every step of a turn, their current values go to the model as data, with the state of the
+   * scope (CIB7-2179).
    */
   public static final String PROCESS_VARIABLES = PROPERTY_PREFIX + "processVariables";
 
@@ -179,7 +180,7 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
       // Reported, not refused (CIB7-2180). Another plugin may drive an ad hoc scope with a
       // connector of its own, found the way this module's plugin is found; refusing every
       // other id would block that. A typo in this agent's id lands here as well -- unless the
-      // scope also carries the template link or the limits, which is refused below.
+      // scope also carries the template link, a limit or a setting, which is refused below.
       LOG.warn("Ad hoc sub process '{}' carries the connector '{}', not the AI agent's"
           + " connector '{}', so it is not an agentic scope.", activity.getId(), connectorId,
           AgenticTurnRunner.AGENT_CONNECTOR_ID);
@@ -663,7 +664,8 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     if (!agentState.isEmpty()) {
       problems.add(String.join(", ", agentState) + ", where the agent keeps its own state,"
           + " which never goes to the model; a name that begins with "
-          + String.join(" or ", AGENT_STATE_PREFIXES) + " is the agent's");
+          + String.join(" or ", AGENT_STATE_PREFIXES) + " is the agent's; give such a variable of"
+          + " the process another name, or leave it out");
     }
     if (!noVariable.isEmpty()) {
       problems.add(String.join(", ", noVariable) + ", which no variable is called; name each variable"

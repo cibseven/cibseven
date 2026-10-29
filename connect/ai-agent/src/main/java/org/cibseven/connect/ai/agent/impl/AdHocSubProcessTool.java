@@ -161,8 +161,9 @@ public class AdHocSubProcessTool {
 
     /**
      * The state block of one step: what finished since the last one, what is still
-     * running, where the turn counter stands, what ending the turn now would mean, and in
-     * a further step of a turn what the agent already called in it.
+     * running, where the turn counter stands, what ending the turn now would mean, in a
+     * further step of a turn what the agent already called in it, and with a declaration the
+     * current values of the process variables the scope declares (CIB7-2179).
      *
      * <p>This used to be a tool ({@code listAvailableActivities}) and the activities
      * were text in its answer. They are the tools themselves now, so the model no

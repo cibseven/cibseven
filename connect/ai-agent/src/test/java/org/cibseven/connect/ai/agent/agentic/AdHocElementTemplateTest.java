@@ -73,9 +73,10 @@ public class AdHocElementTemplateTest {
     assertThat(fields(scope.get("properties")).get("property:connectorId").get("value").asText())
         .isEqualTo(AgenticTurnRunner.AGENT_CONNECTOR_ID);
 
-    // The agent's limits (CIB7-2148), plus where its conversation lives and what bounds it
-    // across entries (CIB7-2137) -- none of these may be a child's to rewrite, so none is an
-    // input parameter of the connector.
+    // The agent's limits (CIB7-2148), where its conversation lives and what bounds it across
+    // entries (CIB7-2137), what a limit does (CIB7-2151) and the process variables it sees
+    // (CIB7-2179) -- none of these may be a child's to rewrite, so none is an input parameter of
+    // the connector.
     assertThat(fields(template.get("properties")).keySet()).containsExactlyInAnyOrder(
         "camunda:property:" + AgenticAdHocParseListener.MAX_TURNS,
         "camunda:property:" + AgenticAdHocParseListener.MAX_MODEL_CALLS,
