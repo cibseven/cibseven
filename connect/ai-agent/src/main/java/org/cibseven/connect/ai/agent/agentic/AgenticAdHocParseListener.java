@@ -105,8 +105,26 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
   /** What a limit does to the scope: end it as any turn would, or with a BPMN error (CIB7-2151). */
   public static final String ON_LIMIT = AgenticOutcome.ON_LIMIT_PROPERTY;
 
+  /**
+   * The process variables the agent sees on every turn, by name, separated by commas: their
+   * current values go to the model as data, with the state of the scope (CIB7-2179).
+   */
+  public static final String PROCESS_VARIABLES = PROPERTY_PREFIX + "processVariables";
+
+  /** The names {@link #PROCESS_VARIABLES} declares, in their order; absent when it declares none. */
+  public static final PropertyKey<List<String>> DECLARED_PROCESS_VARIABLES =
+      new PropertyKey<List<String>>("agentProcessVariables");
+
+  /**
+   * How the variables the agent keeps its own state in begin: its state, its results, its
+   * conversation, its chat log and its memory. None of them goes to the model as process data.
+   */
+  protected static final List<String> AGENT_STATE_PREFIXES = Arrays.asList("adHocAgent",
+      org.cibseven.connect.ai.agent.AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME);
+
   /** Settings of the agent that are not limits, and mark a scope as an agent just as much. */
-  protected static final List<String> SETTINGS = Arrays.asList(CONVERSATION, ON_LIMIT);
+  protected static final List<String> SETTINGS =
+      Arrays.asList(CONVERSATION, ON_LIMIT, PROCESS_VARIABLES);
 
   /** What the element template for an agentic scope writes into {@code camunda:modelerTemplate}. */
   public static final String AD_HOC_TEMPLATE_ID = "org.cibseven.connect.ai.agent.AdHocSubProcess";
@@ -211,6 +229,16 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     if (!parsing.check(() -> refuseAnUnknownOnLimit(scopeElement, activity, declared),
         withoutOnLimit(activity))) {
       properties = without(properties, ON_LIMIT);
+    }
+    // The same for the process variables the agent sees (CIB7-2179): left out, it sees none.
+    final Map<String, String> declaring = properties;
+    if (!parsing.check(() -> refuseABadDeclarationOfProcessVariables(scopeElement, activity,
+        declaring), withoutProcessVariables(activity))) {
+      properties = without(properties, PROCESS_VARIABLES);
+    }
+    List<String> processVariables = declaredProcessVariables(properties);
+    if (!processVariables.isEmpty()) {
+      activity.getProperties().set(DECLARED_PROCESS_VARIABLES, processVariables);
     }
 
     // followUp pulled out before the mapping is stored: unlike every other input parameter, it
@@ -580,6 +608,89 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
         + "', where a limit ends the scope as any turn would and the outcome names it, or '"
         + AgenticOutcome.ON_LIMIT_ERROR + "', where a limit ends the scope with a BPMN error"
         + " whose code is the outcome.", scopeElement);
+  }
+
+  /**
+   * {@code cibseven.agentic.processVariables} names each variable once, and none of the agent's
+   * own state (CIB7-2179). An empty name is a stray comma, and a name declared twice a slip of the
+   * pen; either would leave a modeller wondering what the agent sees. The agent's own state is
+   * kept from the model on every path, and a declaration would hand it out.
+   */
+  protected void refuseABadDeclarationOfProcessVariables(Element scopeElement,
+      ActivityImpl activity, Map<String, String> properties) {
+    String declared = properties.get(PROCESS_VARIABLES);
+    if (declared == null || declared.trim().isEmpty()) {
+      return;
+    }
+    boolean empty = false;
+    List<String> names = new ArrayList<String>();
+    List<String> twice = new ArrayList<String>();
+    List<String> agentState = new ArrayList<String>();
+    for (String raw : declared.split(",", -1)) {
+      String name = raw.trim();
+      if (name.isEmpty()) {
+        empty = true;
+      } else if (names.contains(name)) {
+        if (!twice.contains(name)) {
+          twice.add(name);
+        }
+      } else {
+        names.add(name);
+        if (isAgentState(name)) {
+          agentState.add(name);
+        }
+      }
+    }
+    // One refusal names every problem, so a model is not deployed again only to learn of the next.
+    List<String> problems = new ArrayList<String>();
+    if (empty) {
+      problems.add("an empty name; separate the names by single commas");
+    }
+    if (!twice.isEmpty()) {
+      problems.add(String.join(", ", twice) + " more than once");
+    }
+    if (!agentState.isEmpty()) {
+      problems.add(String.join(", ", agentState) + ", where the agent keeps its own state,"
+          + " which never goes to the model; a name that begins with "
+          + String.join(" or ", AGENT_STATE_PREFIXES) + " is the agent's");
+    }
+    if (!problems.isEmpty()) {
+      throw new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': "
+          + PROCESS_VARIABLES + " is '" + declared + "', and declares "
+          + String.join(", and ", problems) + ".", scopeElement);
+    }
+  }
+
+  /** The names {@code properties} declare as the process variables the agent sees, in order. */
+  protected static List<String> declaredProcessVariables(Map<String, String> properties) {
+    String declared = properties.get(PROCESS_VARIABLES);
+    List<String> names = new ArrayList<String>();
+    if (declared == null) {
+      return names;
+    }
+    for (String raw : declared.split(",")) {
+      String name = raw.trim();
+      if (!name.isEmpty() && !names.contains(name)) {
+        names.add(name);
+      }
+    }
+    return names;
+  }
+
+  /** Whether {@code name} is one of the variables the agent keeps its own state in. */
+  protected static boolean isAgentState(String name) {
+    for (String prefix : AGENT_STATE_PREFIXES) {
+      if (name.startsWith(prefix)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** What a scope loads with on a parse again when its {@link #PROCESS_VARIABLES} is left out. */
+  protected static String withoutProcessVariables(ActivityImpl activity) {
+    return PROCESS_VARIABLES + " is left out of '" + activity.getId() + "', and its agent sees"
+        + " no process variables";
   }
 
   /**

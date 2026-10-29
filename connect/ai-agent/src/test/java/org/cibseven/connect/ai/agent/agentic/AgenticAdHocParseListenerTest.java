@@ -2161,6 +2161,103 @@ public class AgenticAdHocParseListenerTest {
         .hasMessageContaining("carries no connector 'cibseven-ai-agent'");
   }
 
+  // --- the process variables the agent sees (CIB7-2179)
+
+  @Test
+  public void declaresTheProcessVariablesTheAgentSeesInTheirOrder() {
+    deploy(connectorScope("<userTask id='worker' />", processVariables(" kunde, prioritaet "),
+        ""));
+
+    assertThat(declaredProcessVariablesOf("adHoc")).containsExactly("kunde", "prioritaet");
+  }
+
+  @Test
+  public void aBlankDeclarationDeclaresNoProcessVariables() {
+    deploy(connectorScope("<userTask id='worker' />", processVariables(" "), ""));
+
+    assertThat(declaredProcessVariablesOf("adHoc")).isNull();
+  }
+
+  @Test
+  public void refusesAnEmptyNameAmongTheProcessVariables() {
+    String model = connectorScope("<userTask id='worker' />", processVariables("kunde,,prioritaet"),
+        "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("cibseven.agentic.processVariables is 'kunde,,prioritaet', and"
+            + " declares an empty name; separate the names by single commas.");
+  }
+
+  @Test
+  public void refusesAProcessVariableDeclaredTwice() {
+    String model = connectorScope("<userTask id='worker' />",
+        processVariables("kunde, prioritaet, kunde"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("and declares kunde more than once.");
+  }
+
+  /** The agent's own state never reaches the model, and a declaration must not hand it out. */
+  @Test
+  public void refusesTheAgentsOwnStateAsAProcessVariable() {
+    String model = connectorScope("<userTask id='worker' />",
+        processVariables("kunde, adHocAgentResults, cibseven-connect-ai-agent-memory_adHoc"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("declares adHocAgentResults, cibseven-connect-ai-agent-memory_adHoc,"
+            + " where the agent keeps its own state, which never goes to the model; a name that"
+            + " begins with adHocAgent or cibseven-connect-ai-agent is the agent's.");
+  }
+
+  @Test
+  public void refusesEveryProblemOfADeclarationAtOnce() {
+    String model = connectorScope("<userTask id='worker' />",
+        processVariables("kunde,, kunde, adHocAgentState"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("an empty name")
+        .hasMessageContaining("kunde more than once")
+        .hasMessageContaining("adHocAgentState, where the agent keeps its own state");
+  }
+
+  @Test
+  public void processVariablesWithoutTheConnectorMarkTheScopeAsAnAgent() {
+    String model = process("<adHocSubProcess id='adHoc'><extensionElements>"
+        + processVariables("kunde") + "</extensionElements><userTask id='worker' />"
+        + "</adHocSubProcess>");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("the agent's settings cibseven.agentic.processVariables")
+        .hasMessageContaining("carries no connector 'cibseven-ai-agent'");
+  }
+
+  protected static String processVariables(String names) {
+    return "<camunda:properties><camunda:property name='cibseven.agentic.processVariables'"
+        + " value='" + names + "' /></camunda:properties>";
+  }
+
+  /** What the latest deployed definition's scope declares. Needs a command context. */
+  protected List<String> declaredProcessVariablesOf(final String activityId) {
+    final String definitionId = engine.getRepositoryService()
+        .createProcessDefinitionQuery().latestVersion().singleResult().getId();
+    return config.getCommandExecutorTxRequired().execute(
+        new org.cibseven.bpm.engine.impl.interceptor.Command<List<String>>() {
+          @Override
+          public List<String> execute(
+              org.cibseven.bpm.engine.impl.interceptor.CommandContext ctx) {
+            ProcessDefinitionEntity entity = ctx.getProcessEngineConfiguration()
+                .getDeploymentCache().findDeployedProcessDefinitionById(definitionId);
+            return entity.findActivity(activityId).getProperties()
+                .get(AgenticAdHocParseListener.DECLARED_PROCESS_VARIABLES);
+          }
+        });
+  }
+
   protected static String onLimit(String value) {
     return "<camunda:properties><camunda:property name='cibseven.agentic.onLimit' value='"
         + value + "' /></camunda:properties>";

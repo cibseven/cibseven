@@ -817,6 +817,12 @@ public class AgenticReparseTest {
                 + "</boundaryEvent><sequenceFlow id='g1' sourceRef='grenze' targetRef='end' />",
             "the event sub process 'fehler' inside it catches", leftOutOfOnLimit,
             withoutOnLimit()),
+        Arguments.of("a process variable declared twice",
+            adHoc(properties(AgenticAdHocParseListener.PROCESS_VARIABLES, "kunde, kunde")
+                + connector(MESSAGE), "<userTask id='arbeit' />"),
+            "declares kunde more than once",
+            AgenticAdHocParseListener.PROCESS_VARIABLES + " is left out of 'adHoc', and its agent"
+                + " sees no process variables", withoutProcessVariables()),
         Arguments.of("a message that does not parse",
             adHoc(connector("<camunda:inputParameter name='message'>Handle ${order."
                 + "</camunda:inputParameter>"), "<userTask id='arbeit' />"),
@@ -875,6 +881,18 @@ public class AgenticReparseTest {
       Map<String, String> properties =
           scope.getProperties().get(BpmnProperties.EXTENSION_PROPERTIES);
       assertThat(properties).doesNotContainKey(AgenticAdHocParseListener.ON_LIMIT);
+    };
+  }
+
+  /** The scope stays agentic, and declares no process variables for its agent (CIB7-2179). */
+  protected static Consumer<ActivityImpl> withoutProcessVariables() {
+    return scope -> {
+      assertThat(scope.getProperties().get(AdHocToolDescriptor.CATALOG)).isNotNull();
+      assertThat(scope.getProperties()
+          .get(AgenticAdHocParseListener.DECLARED_PROCESS_VARIABLES)).isNull();
+      Map<String, String> properties =
+          scope.getProperties().get(BpmnProperties.EXTENSION_PROPERTIES);
+      assertThat(properties).doesNotContainKey(AgenticAdHocParseListener.PROCESS_VARIABLES);
     };
   }
 
