@@ -511,7 +511,7 @@
                         <property name="jobExecutorAcquisitionName">default</property>
                         <property name="isAutoSchemaUpdate">true</property>
                         <!-- the integration tests deploy the webclient, so its tables have to be created too -->
-                        <property name="webappSchemaEnabled">true</property>
+                        <property name="webclientExtensionsEnabled">true</property>
                         <property name="authorizationEnabled">true</property>
                         <property name="jobExecutorDeploymentAware">true</property>
                         <!-- disable history cleanup job for engine integration unit tests: 

@@ -556,7 +556,7 @@
                         <property name="jobExecutorAcquisitionName">default</property>
                         <property name="isAutoSchemaUpdate">true</property>
                         <!-- create the webclient tables (modeler, chat, notifications); this distribution ships the webclient -->
-                        <property name="webappSchemaEnabled">true</property>
+                        <property name="webclientExtensionsEnabled">true</property>
                         <property name="authorizationEnabled">true</property>
                         <property name="jobExecutorDeploymentAware">true</property>
                         <property name="historyCleanupBatchWindowStartTime">00:01</property>
