@@ -100,6 +100,9 @@ public class AdHocElementTemplateTest {
     assertThat(text(window, "description"))
         .contains("Default 20")
         .contains("about the last six calls")
+        .contains("stay visible to the agent beyond the window, in the state block's toolResultsSoFar")
+        .contains("over its size limit, results already shown above are not repeated, long values are shortened, and only then entries are left out, each named or counted per tool without its values")
+        .contains("Declare what the agent must keep as a result variable of the tool")
         .contains("With 'Continue across entries' an empty value means at least 53")
         .contains("2 * the effective Max model calls per turn + 3 is rejected")
         // the user sees the dropdown's labels, not the values it writes

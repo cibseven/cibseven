@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -37,6 +38,7 @@ import org.cibseven.bpm.engine.delegate.JavaDelegate;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.history.HistoricDetail;
 import org.cibseven.bpm.engine.history.HistoricVariableUpdate;
@@ -558,7 +560,8 @@ public class AdHocSubProcessToolTest {
     // The activities are the tools themselves now; repeating them in the report
     // would be the same model data twice in one prompt.
     assertThat(listing).doesNotContainKey("activities");
-    assertThat(listing).containsKeys("finishedSinceLastTurn", "stillRunning", "turn");
+    assertThat(listing).containsKeys("finishedSinceLastTurn", "toolResultsSoFar", "stillRunning",
+        "turn");
   }
 
   @Test
@@ -962,6 +965,738 @@ public class AdHocSubProcessToolTest {
     assertThat(list(listing.get("stillRunning"))).isEmpty();
   }
 
+  // --- toolResultsSoFar (CIB7-2445) -------------------------------------------
+
+  /** No entry of finishedSinceLastTurn, for a call of soFar outside a state block. */
+  private static final Set<String> NONE_ABOVE = Collections.<String>emptySet();
+
+  /** No entry waiting for the next step, for a call of soFar outside a state block. */
+  private static final int ALL_READ = Integer.MAX_VALUE;
+
+  @SuppressWarnings("unchecked")
+  private static List<Map<String, Object>> soFar(Map<String, Object> listing) {
+    return (List<Map<String, Object>>) listing.get("toolResultsSoFar");
+  }
+
+  /**
+   * A tool called twice is two entries, oldest first, each with its own results and turn: the
+   * latest value per variable would have replaced the first answer of a person with the second,
+   * as in claims-01, where every answer of the customer comes back as one variable. The second
+   * is new in the last block, and is shown with its results in both sections.
+   */
+  @Test
+  public void toolResultsSoFarKeepsEveryCallOfATool() {
+    ProcessInstance instance = startWithoutTurn("soFarTwice",
+        tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()),
+        tool -> {
+          tool.turnReport();
+          return tool.startActivity("waits", Collections.<String, Object>emptyMap());
+        },
+        tool -> tool.turnReport());
+
+    runPendingTurn(instance);
+    ENGINE.getTaskService().complete(task(instance, "waits").getId(),
+        Collections.<String, Object>singletonMap("decision", "quote 480"));
+    runPendingTurn(instance);
+    ENGINE.getTaskService().complete(task(instance, "waits").getId(),
+        Collections.<String, Object>singletonMap("decision", "somewhere around that"));
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    Map<String, Object> listing = result(2);
+    List<Map<String, Object>> soFar = soFar(listing);
+    assertThat(soFar).hasSize(2);
+    assertThat(ids2(soFar, "activityId")).containsExactly("waits", "waits");
+    assertThat(results(soFar.get(0))).containsEntry("decision", "quote 480");
+    assertThat(results(soFar.get(1))).containsEntry("decision", "somewhere around that");
+    assertThat(ids2(soFar, "turn")).containsExactly(1, 2);
+    assertThat(soFar.get(0).get("activityInstanceId"))
+        .isNotEqualTo(soFar.get(1).get("activityInstanceId"));
+    assertThat(finished(listing)).hasSize(1);
+    assertThat(finished(listing).get(0).get("activityInstanceId"))
+        .isEqualTo(soFar.get(1).get("activityInstanceId"));
+    assertThat(results(finished(listing).get(0)))
+        .containsEntry("decision", "somewhere around that");
+    assertThat(String.valueOf(listing.get("note"))).contains(AdHocSubProcessTool.SO_FAR_NOTE);
+  }
+
+  /**
+   * Building the section moves nothing: read before {@code finishedSinceLastTurn}, twice, it
+   * leaves that showing what it would have, and a result a tool result already showed is in
+   * the section but not reported again as finished.
+   */
+  @Test
+  public void toolResultsSoFarLeavesTheReadPositionAlone() {
+    List<Object> positions = new ArrayList<>();
+    List<Object> reported = new ArrayList<>();
+    ProcessInstance instance = startWithoutTurn("soFarRead",
+        tool -> {
+          tool.startActivity("quick", Collections.<String, Object>emptyMap());
+          Map<String, Object> started =
+              tool.startActivity("waits", Collections.<String, Object>emptyMap());
+          // Moves the read position past 'quick', so there is one to keep.
+          tool.turnReport();
+          return started;
+        },
+        tool -> {
+          ExecutionEntity scope = scopeOf(Context.getBpmnExecutionContext().getExecution());
+          positions.add(AdHocAgentState.stateValue(scope, "resultsRead"));
+          reported.add(AdHocAgentState.stateValue(scope, "resultsReported"));
+          AdHocResults.soFar(scope, AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS, NONE_ABOVE, ALL_READ);
+          AdHocResults.soFar(scope, AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS, NONE_ABOVE, ALL_READ);
+          positions.add(AdHocAgentState.stateValue(scope, "resultsRead"));
+          reported.add(AdHocAgentState.stateValue(scope, "resultsReported"));
+          return tool.turnReport();
+        });
+
+    runPendingTurn(instance);
+    ENGINE.getTaskService().complete(task(instance, "waits").getId(),
+        Collections.<String, Object>singletonMap("decision", "approved"));
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    Map<String, Object> listing = result(1);
+    // 'quick' ended within its call, and its tool result showed it.
+    assertThat(ids2(finished(listing), "activityId")).containsExactly("waits");
+    assertThat(results(finished(listing).get(0))).containsEntry("decision", "approved");
+    assertThat(ids2(soFar(listing), "activityId")).containsExactly("quick", "waits");
+    assertThat(results(soFar(listing).get(0))).containsEntry("amount", Long.valueOf(200));
+    assertThat(results(soFar(listing).get(1))).containsEntry("decision", "approved");
+    assertThat(positions).as("the stored read position, before and after").hasSize(2);
+    assertThat(positions.get(0)).as("a position the first step moved").isEqualTo(1);
+    assertThat(positions.get(1)).isEqualTo(positions.get(0));
+    assertThat(reported).as("what a tool result showed, before and after").hasSize(2);
+    assertThat(reported.get(1)).isEqualTo(reported.get(0));
+    // 'quick' was never pending: it carries the turn running as it ended, the one it was called in.
+    assertThat(soFar(listing).get(0)).containsEntry("turn", 1);
+  }
+
+  /**
+   * The turn is the one the agent called the tool in, not the one its result came back in: a
+   * person who answers after two more turns still answers the question of the first.
+   */
+  @Test
+  public void toolResultsSoFarCarriesTheTurnOfTheCall() {
+    ProcessInstance instance = startWithoutTurn("soFarTurn",
+        tool -> {
+          tool.startActivity("waits", Collections.<String, Object>emptyMap());
+          return tool.startActivity("asyncChild", Collections.<String, Object>emptyMap());
+        },
+        tool -> tool.turnReport(),
+        tool -> tool.turnReport());
+
+    runPendingTurn(instance);
+    // The async child's own job; its end brings turn 2, while 'waits' still waits.
+    runPendingTurn(instance);
+    runPendingTurn(instance);
+    ENGINE.getTaskService().complete(task(instance, "waits").getId(),
+        Collections.<String, Object>singletonMap("decision", "approved"));
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    List<Map<String, Object>> soFar = soFar(result(2));
+    assertThat(ids2(soFar, "activityId")).containsExactly("asyncChild", "waits");
+    assertThat(ids2(soFar, "turn")).as("both were called in turn 1").containsExactly(1, 1);
+    assertThat(result(2).get("turn")).isEqualTo(3);
+  }
+
+  /**
+   * Over the cap, with nothing long to cut, the middle is left out: the oldest and the newest
+   * stay, and each entry left out is named with its tool, turn and the names of its results.
+   * The whole entry counts against the budget, not its values only, and the first item counts
+   * too.
+   */
+  @Test
+  public void toolResultsSoFarLeavesOutTheMiddleAndNamesIt() {
+    int[] budget = new int[1];
+    List<List<Map<String, Object>>> whole = new ArrayList<>();
+    start("soFarEmpty", tool -> {
+      for (int i = 0; i < 20; i++) {
+        tool.startActivity("gated", Collections.<String, Object>emptyMap());
+      }
+      ExecutionEntity scope = scopeOf(Context.getBpmnExecutionContext().getExecution());
+      whole.add(AdHocResults.soFar(scope, AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS, NONE_ABOVE, ALL_READ));
+      // One character short of all twenty as written: counted by their values only, all of
+      // them would pass.
+      budget[0] = AdHocToolProvider.writtenLength(whole.get(0)) - 1;
+      return AdHocResults.soFar(scope, budget[0], NONE_ABOVE, ALL_READ);
+    });
+
+    assertThat(Agent.FAILURES).isEmpty();
+    List<Map<String, Object>> all = whole.get(0);
+    assertThat(all).hasSize(20);
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> soFar = (List<Map<String, Object>>) Agent.RESULTS.get(0);
+    Map<String, Object> marker = soFar.get(0);
+    int leftOut = (Integer) marker.get("leftOut");
+    assertThat(leftOut).as("the budget does not hold all twenty").isPositive();
+    List<Map<String, Object>> shown = soFar.subList(1, soFar.size());
+    assertThat(shown).hasSize(20 - leftOut).isNotEmpty();
+    assertThat(shown.get(0).get("activityInstanceId")).as("the oldest stays")
+        .isEqualTo(all.get(0).get("activityInstanceId"));
+    assertThat(shown.get(shown.size() - 1).get("activityInstanceId")).as("the newest stays")
+        .isEqualTo(all.get(19).get("activityInstanceId"));
+    List<Map<String, Object>> named = list2(marker.get("leftOutEntries"));
+    assertThat(named).hasSize(leftOut);
+    assertThat(named.get(0)).containsEntry("activityId", "gated").containsEntry("turn", 1)
+        .containsKey("activityInstanceId").containsEntry("resultNames", Collections.emptyList())
+        .doesNotContainKey("results");
+    assertThat(String.valueOf(marker.get("note")))
+        .contains("left out for the size limit of " + AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS)
+        .contains("call a tool again only if you need one of these values")
+        .doesNotContain("not repeated").doesNotContain("cut to");
+    assertThat(AdHocToolProvider.writtenLength(soFar)).as("the first item included")
+        .isLessThanOrEqualTo(budget[0]);
+    // The ones left out are one run in the middle; those next to the oldest and the newest stay.
+    List<Object> ids = ids2(all, "activityInstanceId");
+    int first = ids.indexOf(named.get(0).get("activityInstanceId"));
+    assertThat(first).isGreaterThan(1);
+    assertThat(ids2(named, "activityInstanceId")).as("a run without gaps")
+        .isEqualTo(ids.subList(first, first + leftOut));
+    assertThat(first + leftOut).as("the one before the newest stays").isLessThan(19);
+  }
+
+  /**
+   * Many entries left out are listed per tool, how many and in which turns, so the first item
+   * does not grow with every one of them.
+   */
+  @Test
+  public void toolResultsSoFarListsManyLeftOutPerTool() {
+    start("soFarPerTool",
+        "<camunda:property name='cibseven.agentic.maxModelCalls' value='50' />",
+        tool -> {
+          for (int i = 0; i < 40; i++) {
+            tool.startActivity("gated", Collections.<String, Object>emptyMap());
+          }
+          ExecutionEntity scope = scopeOf(Context.getBpmnExecutionContext().getExecution());
+          return AdHocResults.soFar(scope, 0, NONE_ABOVE, ALL_READ);
+        });
+
+    assertThat(Agent.FAILURES).isEmpty();
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> soFar = (List<Map<String, Object>>) Agent.RESULTS.get(0);
+    assertThat(soFar).as("no room: only the first item").hasSize(1);
+    assertThat(soFar.get(0)).containsEntry("leftOut", 40).doesNotContainKey("leftOutEntries");
+    List<Map<String, Object>> perTool = list2(soFar.get(0).get("leftOutPerTool"));
+    assertThat(perTool).hasSize(1);
+    assertThat(perTool.get(0)).containsEntry("activityId", "gated").containsEntry("count", 40)
+        .containsEntry("turns", Collections.singletonList(1))
+        .containsEntry("resultNames", Collections.emptyList());
+    assertThat(String.valueOf(soFar.get(0).get("note"))).contains("in leftOutPerTool are left out");
+  }
+
+  /**
+   * Over the cap long values are cut before an entry is left out: the facts are short, and a cut
+   * value says where it was cut. Only an entry too large even with its values cut is left out,
+   * and it is named like any other.
+   */
+  @Test
+  public void toolResultsSoFarCutsLongValuesBeforeLeavingAnEntryOut() {
+    List<List<Map<String, Object>>> tight = new ArrayList<>();
+    List<List<Map<String, Object>>> noRoom = new ArrayList<>();
+    start("soFarCut", tool -> {
+      tool.startActivity("quick", Collections.<String, Object>emptyMap());
+      tool.startActivity("quotedBlock", Collections.<String, Object>emptyMap());
+      tool.startActivity("bigText", Collections.<String, Object>emptyMap());
+      ExecutionEntity scope = scopeOf(Context.getBpmnExecutionContext().getExecution());
+      tight.add(AdHocResults.soFar(scope, 3000, NONE_ABOVE, ALL_READ));
+      noRoom.add(AdHocResults.soFar(scope, 0, NONE_ABOVE, ALL_READ));
+      return AdHocResults.soFar(scope, AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS, NONE_ABOVE, ALL_READ);
+    });
+
+    assertThat(Agent.FAILURES).isEmpty();
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> soFar = (List<Map<String, Object>>) Agent.RESULTS.get(0);
+    // Twelve values of 2000 quotes take about 48000 as written, 24500 cut to 1000: cut to 500,
+    // all three fit.
+    assertThat(soFar).hasSize(4);
+    Map<String, Object> marker = soFar.get(0);
+    assertThat(marker).containsEntry("shortened", 2).containsEntry("valuesCutTo", 500)
+        .doesNotContainKey("leftOut");
+    int cutTo = (Integer) marker.get("valuesCutTo");
+    assertThat(cutTo).isLessThan(AdHocSubProcessTool.MAX_RESULT_VALUE_CHARS);
+    assertThat(String.valueOf(marker.get("note")))
+        .contains("Long values of 2 entries are cut to " + cutTo + " characters");
+    // 'report' was 2500 long and cut to 2000 as it was gathered: cut again, it still says 2500.
+    assertThat(String.valueOf(results(soFar.get(3)).get("report")))
+        .hasSizeLessThan(cutTo + 50).endsWith("(truncated, 2500 characters total)");
+    assertThat(results(soFar.get(1))).as("short values stay whole")
+        .containsEntry("amount", Long.valueOf(200));
+    assertThat(soFar.get(2)).containsEntry("activityId", "quotedBlock");
+    assertThat(String.valueOf(results(soFar.get(2)).get("quoted0")))
+        .hasSizeLessThan(cutTo + 50).contains("(truncated, 2000 characters total)");
+    assertThat(AdHocToolProvider.writtenLength(soFar))
+        .isLessThanOrEqualTo(AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS);
+
+    // 3000: too little for 'quotedBlock' even with every value cut to the shortest; it is named,
+    // and the ones on either side of it stay.
+    List<Map<String, Object>> small = tight.get(0);
+    assertThat(ids2(small.subList(1, small.size()), "activityId"))
+        .containsExactly("quick", "bigText");
+    List<Map<String, Object>> named = list2(small.get(0).get("leftOutEntries"));
+    assertThat(ids2(named, "activityId")).containsExactly("quotedBlock");
+    assertThat(named.get(0).get("resultNames")).asList().contains("quoted0", "quoted1");
+    assertThat(small.get(0)).as("cut and left out: the item says both")
+        .containsEntry("shortened", 1).containsEntry("valuesCutTo", AdHocResults.SHORTEST_VALUE);
+    assertThat(String.valueOf(small.get(0).get("note")))
+        .contains("cut to " + AdHocResults.SHORTEST_VALUE + " characters")
+        .contains("left out for the size limit");
+    assertThat(AdHocToolProvider.writtenLength(small)).isLessThanOrEqualTo(3000);
+
+    // No room at all: all named, nothing shown.
+    assertThat(noRoom.get(0)).hasSize(1);
+    assertThat(ids2(list2(noRoom.get(0).get(0).get("leftOutEntries")), "activityId"))
+        .containsExactly("quick", "quotedBlock", "bigText");
+  }
+
+  /**
+   * The newest and the oldest stay whatever their size, as long as each fits at all: the newest
+   * here takes more than half the room, and the entry between them is left out instead.
+   */
+  @Test
+  public void toolResultsSoFarKeepsTheNewestAndTheOldestOfUnevenSize() {
+    start("soFarUneven", tool -> {
+      tool.startActivity("quick", Collections.<String, Object>emptyMap());
+      tool.startActivity("quotedBlock", Collections.<String, Object>emptyMap());
+      tool.startActivity("quotedBlock", Collections.<String, Object>emptyMap());
+      ExecutionEntity scope = scopeOf(Context.getBpmnExecutionContext().getExecution());
+      return AdHocResults.soFar(scope, 9000, NONE_ABOVE, ALL_READ);
+    });
+
+    assertThat(Agent.FAILURES).isEmpty();
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> soFar = (List<Map<String, Object>>) Agent.RESULTS.get(0);
+    List<Map<String, Object>> shown = soFar.subList(1, soFar.size());
+    assertThat(ids2(shown, "activityId")).containsExactly("quick", "quotedBlock");
+    List<Map<String, Object>> named = list2(soFar.get(0).get("leftOutEntries"));
+    assertThat(ids2(named, "activityId")).containsExactly("quotedBlock");
+    assertThat(named.get(0).get("activityInstanceId")).as("the older quoted block is left out")
+        .isNotEqualTo(shown.get(1).get("activityInstanceId"));
+    assertThat(AdHocToolProvider.writtenLength(soFar)).isLessThanOrEqualTo(9000);
+  }
+
+  /**
+   * What finishedSinceLastTurn had no room for, and says comes in the next step, is not offered
+   * here as left out: the agent would be told both to wait for it and to call for it.
+   */
+  @Test
+  public void toolResultsSoFarDoesNotListWhatWaitsForTheNextStep() throws Exception {
+    ProcessInstance instance = start("soFarWaiting", tool -> {
+      for (int i = 0; i < 3; i++) {
+        tool.startActivity("quotedLater", Collections.<String, Object>emptyMap());
+      }
+      return null;
+    }, tool -> tool.turnReport());
+    String scopeId = ENGINE.getRuntimeService().createExecutionQuery()
+        .processInstanceId(instance.getId()).activityId("adHoc").singleResult().getId();
+    for (Job job : ENGINE.getManagementService().createJobQuery()
+        .processInstanceId(instance.getId()).list()) {
+      if (!scopeId.equals(job.getExecutionId())) {
+        ENGINE.getManagementService().executeJob(job.getId());
+      }
+    }
+    runPendingAgenticTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    Map<String, Object> listing = result(1);
+    List<Map<String, Object>> finished = finished(listing);
+    // Two of about 12000 each take the cap; the third waits.
+    assertThat(String.valueOf(finished.get(finished.size() - 1).get("note")))
+        .contains("You will be shown them in your next step");
+    List<Map<String, Object>> soFar = soFar(listing);
+    assertThat(soFar).hasSize(1);
+    assertThat(soFar.get(0)).containsEntry("notRepeated", 2).containsEntry("waiting", 1)
+        .doesNotContainKey("leftOut").doesNotContainKey("leftOutEntries");
+    assertThat(String.valueOf(soFar.get(0).get("note")))
+        .contains("The tool result that finishedSinceLastTurn says is waiting is not listed here")
+        .contains("it comes in a later step. Do not call a tool again for it.");
+  }
+
+  /**
+   * The turn of a multi-instance tool is the one it was called in, also when its last instance
+   * ends turns later.
+   */
+  @Test
+  public void toolResultsSoFarCarriesTheTurnOfAMultiInstanceToolThatEndsLater() {
+    ProcessInstance instance = startWithoutTurn("soFarMultiLater",
+        tool -> {
+          tool.startActivity("multi", Collections.<String, Object>emptyMap());
+          return tool.startActivity("asyncChild", Collections.<String, Object>emptyMap());
+        },
+        tool -> tool.turnReport(),
+        tool -> tool.turnReport());
+
+    runPendingTurn(instance);
+    // The async child's own job; its end brings turn 2, while the instances still wait.
+    runPendingTurn(instance);
+    runPendingTurn(instance);
+    for (Task task : ENGINE.getTaskService().createTaskQuery()
+        .processInstanceId(instance.getId()).taskDefinitionKey("multi").list()) {
+      ENGINE.getTaskService().complete(task.getId());
+    }
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    List<Map<String, Object>> soFar = soFar(result(2));
+    assertThat(ids2(soFar, "activityId")).containsExactly("asyncChild", "multi");
+    assertThat(soFar.get(1)).containsEntry("multiInstance", Boolean.TRUE)
+        .as("called in turn 1, ended in turn 3").containsEntry("turn", 1);
+    assertThat(result(2).get("turn")).isEqualTo(3);
+  }
+
+  /**
+   * A call cancelled from outside keeps how it ended when it is left out, one by one and per
+   * tool: whether its work took effect is what the agent needs before it calls the tool again.
+   */
+  @Test
+  public void toolResultsSoFarNamesHowALeftOutCallEnded() {
+    List<List<Map<String, Object>>> perTool = new ArrayList<>();
+    ProcessInstance instance = startWithoutTurn("soFarEnded",
+        "<camunda:property name='cibseven.agentic.maxModelCalls' value='50' />",
+        tool -> {
+          for (int i = 0; i < 25; i++) {
+            tool.startActivity("gated", Collections.<String, Object>emptyMap());
+          }
+          tool.startActivity("chatty", Collections.<String, Object>emptyMap());
+          return tool.startActivity("waits", Collections.<String, Object>emptyMap());
+        },
+        tool -> {
+          ExecutionEntity scope = scopeOf(Context.getBpmnExecutionContext().getExecution());
+          perTool.add(AdHocResults.soFar(scope, 0, NONE_ABOVE, ALL_READ));
+          return tool.turnReport();
+        });
+
+    runPendingTurn(instance);
+    // 'chatty' still runs, so cancelling 'waits' does not end the scope.
+    ENGINE.getRuntimeService().createProcessInstanceModification(instance.getId())
+        .cancelAllForActivity("waits").execute();
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    // Per tool: 26 named entries take more than 2000 characters.
+    List<Map<String, Object>> grouped = list2(perTool.get(0).get(0).get("leftOutPerTool"));
+    Map<String, Object> waits = grouped.get(ids2(grouped, "activityId").indexOf("waits"));
+    List<Map<String, Object>> ended = list2(waits.get("endedOtherwise"));
+    assertThat(ended).hasSize(1);
+    assertThat(ended.get(0)).containsEntry("status", "cancelled").containsKey("activityInstanceId")
+        .containsEntry("turn", 1);
+    assertThat(String.valueOf(ended.get(0).get("resultsNote")))
+        .contains("cancelled from outside the agent");
+    assertThat(grouped.get(ids2(grouped, "activityId").indexOf("gated")))
+        .doesNotContainKey("endedOtherwise");
+    assertThat(String.valueOf(perTool.get(0).get(0).get("note")))
+        .contains("each that did not end normally is in endedOtherwise with how it ended");
+  }
+
+  /** The same one by one, where the names fit. */
+  @Test
+  public void toolResultsSoFarNamesHowALeftOutCallEndedOneByOne() {
+    List<List<Map<String, Object>>> soFar = new ArrayList<>();
+    ProcessInstance instance = startWithoutTurn("soFarEndedOne",
+        tool -> {
+          tool.startActivity("chatty", Collections.<String, Object>emptyMap());
+          return tool.startActivity("waits", Collections.<String, Object>emptyMap());
+        },
+        tool -> {
+          ExecutionEntity scope = scopeOf(Context.getBpmnExecutionContext().getExecution());
+          soFar.add(AdHocResults.soFar(scope, 0, NONE_ABOVE, ALL_READ));
+          return tool.turnReport();
+        });
+
+    runPendingTurn(instance);
+    ENGINE.getRuntimeService().createProcessInstanceModification(instance.getId())
+        .cancelAllForActivity("waits").execute();
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    List<Map<String, Object>> named = list2(soFar.get(0).get(0).get("leftOutEntries"));
+    assertThat(ids2(named, "activityId")).containsExactly("waits");
+    assertThat(named.get(0)).containsEntry("status", "cancelled");
+    assertThat(String.valueOf(named.get(0).get("resultsNote")))
+        .contains("cancelled from outside the agent");
+  }
+
+  /**
+   * A value that only looks like one cut as it was gathered is cut as it is: a length that
+   * cannot be read, or that does not fit, must not stop the step.
+   */
+  @Test
+  public void aValueThatOnlyLooksCutIsCutAsItIs() {
+    StringBuilder text = new StringBuilder();
+    for (int i = 0; i < 600; i++) {
+      text.append('x');
+    }
+    String huge = text + AdHocSubProcessTool.TRUNCATED_BEFORE + "99999999999"
+        + AdHocSubProcessTool.TRUNCATED_AFTER;
+    String small = text + AdHocSubProcessTool.TRUNCATED_BEFORE + "10"
+        + AdHocSubProcessTool.TRUNCATED_AFTER;
+    String real = AdHocSubProcessTool.truncate(text.toString() + text, 600);
+
+    assertThat(AdHocResults.cut(huge, 200)).as("unreadable length: cut as it is")
+        .startsWith(text.substring(0, 200))
+        .endsWith(AdHocSubProcessTool.TRUNCATED_BEFORE + huge.length()
+            + AdHocSubProcessTool.TRUNCATED_AFTER);
+    String letters = text + AdHocSubProcessTool.TRUNCATED_BEFORE + "abc"
+        + AdHocSubProcessTool.TRUNCATED_AFTER;
+    assertThat(AdHocResults.cut(letters, 200)).as("no number: cut as it is")
+        .endsWith(AdHocSubProcessTool.TRUNCATED_BEFORE + letters.length()
+            + AdHocSubProcessTool.TRUNCATED_AFTER);
+    String overlap = text + "… (truncated, characters total)";
+    assertThat(AdHocResults.cut(overlap, 200)).as("no number, the two parts overlap: cut as it is")
+        .startsWith(text.substring(0, 200))
+        .endsWith(AdHocSubProcessTool.TRUNCATED_BEFORE + overlap.length()
+            + AdHocSubProcessTool.TRUNCATED_AFTER);
+    String shortCut = text.substring(0, 100) + AdHocSubProcessTool.TRUNCATED_BEFORE + "5000"
+        + AdHocSubProcessTool.TRUNCATED_AFTER;
+    assertThat(AdHocResults.cut(shortCut, 200)).as("cut once, short enough: kept as it is")
+        .isEqualTo(shortCut);
+    assertThat(AdHocResults.cut(small, 200)).as("a length shorter than the text: cut as it is")
+        .endsWith(AdHocSubProcessTool.TRUNCATED_BEFORE + small.length()
+            + AdHocSubProcessTool.TRUNCATED_AFTER);
+    assertThat(AdHocResults.cut(real, 200)).as("cut as it was gathered: keeps the whole length")
+        .endsWith(AdHocSubProcessTool.TRUNCATED_BEFORE + 1200
+            + AdHocSubProcessTool.TRUNCATED_AFTER);
+  }
+
+  /** A character made of two chars is not split where a value is cut. */
+  @Test
+  public void truncateDoesNotSplitACharacterOfTwoChars() {
+    String face = new String(Character.toChars(0x1F600));
+    String text = "ab" + face + "cd";
+
+    String cut = AdHocSubProcessTool.truncate(text, 3);
+
+    assertThat(cut).startsWith("ab" + AdHocSubProcessTool.TRUNCATED_BEFORE)
+        .endsWith(text.length() + AdHocSubProcessTool.TRUNCATED_AFTER);
+    assertThat(AdHocSubProcessTool.truncate(text, 4)).startsWith("ab" + face);
+  }
+
+  /**
+   * The newest that is too large even with its values cut does not hide the older ones: it is
+   * named, and the newest that fits stays.
+   */
+  @Test
+  public void toolResultsSoFarNamesANewestTooLargeAndKeepsTheOlder() {
+    start("soFarNewestTooLarge", tool -> {
+      tool.startActivity("quick", Collections.<String, Object>emptyMap());
+      tool.startActivity("quotedBlock", Collections.<String, Object>emptyMap());
+      ExecutionEntity scope = scopeOf(Context.getBpmnExecutionContext().getExecution());
+      return AdHocResults.soFar(scope, 3000, NONE_ABOVE, ALL_READ);
+    });
+
+    assertThat(Agent.FAILURES).isEmpty();
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> soFar = (List<Map<String, Object>>) Agent.RESULTS.get(0);
+    assertThat(ids2(soFar.subList(1, soFar.size()), "activityId")).containsExactly("quick");
+    assertThat(ids2(list2(soFar.get(0).get("leftOutEntries")), "activityId"))
+        .containsExactly("quotedBlock");
+  }
+
+  /**
+   * A result its tool result already showed is not waiting, even past where
+   * finishedSinceLastTurn stopped: finishedSinceLastTurn skips it, so it would never come. It is
+   * named like any left-out one instead.
+   */
+  @Test
+  public void toolResultsSoFarDoesNotCountAReportedResultAsWaiting() throws Exception {
+    ProcessInstance instance = start("soFarReportedLate", tool -> {
+      for (int i = 0; i < 3; i++) {
+        tool.startActivity("quotedLater", Collections.<String, Object>emptyMap());
+      }
+      return null;
+    }, tool -> {
+      // Ends within its call, after the three quoted ones: its tool result shows it.
+      tool.startActivity("quick", Collections.<String, Object>emptyMap());
+      return tool.turnReport();
+    });
+    String scopeId = ENGINE.getRuntimeService().createExecutionQuery()
+        .processInstanceId(instance.getId()).activityId("adHoc").singleResult().getId();
+    for (Job job : ENGINE.getManagementService().createJobQuery()
+        .processInstanceId(instance.getId()).list()) {
+      if (!scopeId.equals(job.getExecutionId())) {
+        ENGINE.getManagementService().executeJob(job.getId());
+      }
+    }
+    runPendingAgenticTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    List<Map<String, Object>> soFar = soFar(result(1));
+    assertThat(soFar.get(0)).containsEntry("notRepeated", 2).containsEntry("waiting", 1);
+    assertThat(ids2(list2(soFar.get(0).get("leftOutEntries")), "activityId"))
+        .as("named, not counted as waiting").containsExactly("quick");
+  }
+
+  /**
+   * Past the cap of finishedSinceLastTurn only results a tool result already showed: they are
+   * skipped, so nothing is said to be waiting, and toolResultsSoFar names them as left out.
+   */
+  @Test
+  public void finishedSinceLastTurnSaysNothingWaitsWhenOnlyReportedResultsAreLeft() throws Exception {
+    ProcessInstance instance = start("sinceOnlyReported", tool -> {
+      for (int i = 0; i < 2; i++) {
+        tool.startActivity("quotedLater", Collections.<String, Object>emptyMap());
+      }
+      return null;
+    }, tool -> {
+      tool.startActivity("quick", Collections.<String, Object>emptyMap());
+      return tool.turnReport();
+    });
+    String scopeId = ENGINE.getRuntimeService().createExecutionQuery()
+        .processInstanceId(instance.getId()).activityId("adHoc").singleResult().getId();
+    for (Job job : ENGINE.getManagementService().createJobQuery()
+        .processInstanceId(instance.getId()).list()) {
+      if (!scopeId.equals(job.getExecutionId())) {
+        ENGINE.getManagementService().executeJob(job.getId());
+      }
+    }
+    runPendingAgenticTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    Map<String, Object> listing = result(1);
+    List<Map<String, Object>> finished = finished(listing);
+    assertThat(ids2(finished, "activityId")).containsExactly("quotedLater", "quotedLater");
+    for (Map<String, Object> entry : finished) {
+      assertThat(entry).as("no note that something waits").doesNotContainKey("note");
+    }
+    List<Map<String, Object>> soFar = soFar(listing);
+    assertThat(soFar.get(0)).containsEntry("notRepeated", 2).doesNotContainKey("waiting");
+    assertThat(ids2(list2(soFar.get(0).get("leftOutEntries")), "activityId"))
+        .containsExactly("quick");
+  }
+
+  @SuppressWarnings("unchecked")
+  private static List<Map<String, Object>> list2(Object raw) {
+    return (List<Map<String, Object>>) raw;
+  }
+
+  /**
+   * finishedSinceLastTurn counts its entries whole too (CIB7-2445): many results that declare
+   * next to nothing are cut by the cap, though their values alone would all pass.
+   */
+  @Test
+  public void finishedSinceLastTurnCountsWholeEntries() {
+    int count = 300;
+    ProcessInstance instance = start("sinceWhole",
+        "<camunda:property name='cibseven.agentic.maxModelCalls' value='" + (count + 10) + "' />",
+        tool -> {
+          for (int i = 0; i < count; i++) {
+            tool.startActivity("asyncChild", Collections.<String, Object>emptyMap());
+          }
+          return null;
+        }, tool -> tool.turnReport());
+    String scopeId = ENGINE.getRuntimeService().createExecutionQuery()
+        .processInstanceId(instance.getId()).activityId("adHoc").singleResult().getId();
+    for (Job job : ENGINE.getManagementService().createJobQuery()
+        .processInstanceId(instance.getId()).list()) {
+      if (!scopeId.equals(job.getExecutionId())) {
+        ENGINE.getManagementService().executeJob(job.getId());
+      }
+    }
+    runPendingAgenticTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    List<Map<String, Object>> finished = finished(result(1));
+    int values = 0;
+    for (Map<String, Object> entry : finished) {
+      if (!entry.containsKey("note")) {
+        values += AdHocToolProvider.writtenLength(entry.get("results"));
+      }
+    }
+    assertThat(values).as("their values alone would all pass")
+        .isLessThan(AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS);
+    assertThat(finished.size()).as("the cap cut the section").isLessThan(count);
+    assertThat(String.valueOf(finished.get(finished.size() - 1).get("note")))
+        .contains("size limit of " + AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS);
+  }
+
+  /** The scope execution {@code execution} runs in. */
+  private static ExecutionEntity scopeOf(ExecutionEntity execution) {
+    ExecutionEntity current = execution;
+    while (current != null && !"adHoc".equals(current.getActivityId())) {
+      current = current.getParent();
+    }
+    return current;
+  }
+
+  /**
+   * One cap for both sections. Over it, what finishedSinceLastTurn shows in the same block is
+   * not repeated first, then long values are cut, and only then is the middle left out: the
+   * oldest and the newest stay.
+   */
+  @Test
+  public void toolResultsSoFarKeepsTheOldestAndTheNewestOverTheCap() throws Exception {
+    List<List<Map<String, Object>>> tight = new ArrayList<>();
+    ProcessInstance instance = start("soFarCap", tool -> {
+      for (int i = 0; i < 2; i++) {
+        tool.startActivity("quotedLater", Collections.<String, Object>emptyMap());
+      }
+      return null;
+    }, tool -> {
+      Map<String, Object> report = tool.turnReport();
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      return report;
+    }, tool -> {
+      ExecutionEntity scope = scopeOf(Context.getBpmnExecutionContext().getExecution());
+      tight.add(AdHocResults.soFar(scope, 2500, NONE_ABOVE, ALL_READ));
+      return tool.turnReport();
+    });
+    String scopeId = ENGINE.getRuntimeService().createExecutionQuery()
+        .processInstanceId(instance.getId()).activityId("adHoc").singleResult().getId();
+    for (Job job : ENGINE.getManagementService().createJobQuery()
+        .processInstanceId(instance.getId()).list()) {
+      if (!scopeId.equals(job.getExecutionId())) {
+        ENGINE.getManagementService().executeJob(job.getId());
+      }
+    }
+    runPendingAgenticTurn(instance);
+    ENGINE.getTaskService().complete(task(instance, "waits").getId(),
+        Collections.<String, Object>singletonMap("decision", "approved"));
+    runPendingAgenticTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    // Turn 2: both quoted entries are new and finishedSinceLastTurn takes the whole cap. They
+    // are not repeated: finishedSinceLastTurn shows them, nothing is lost.
+    List<Map<String, Object>> crowded = soFar(result(1));
+    assertThat(ids2(finished(result(1)), "activityId")).contains("quotedLater", "quotedLater");
+    assertThat(crowded).hasSize(1);
+    assertThat(crowded.get(0)).containsEntry("notRepeated", 2).doesNotContainKey("leftOut");
+    assertThat(String.valueOf(crowded.get(0).get("note")))
+        .contains("The 2 tool results finishedSinceLastTurn shows above are not repeated here");
+
+    // Turn 3: 'waits' is new and not repeated; the two quoted entries, about 12000 each as
+    // written, fit with their long values cut.
+    Map<String, Object> listing = result(2);
+    List<Map<String, Object>> soFar = soFar(listing);
+    assertThat(soFar).hasSize(3);
+    assertThat(soFar.get(0)).containsEntry("notRepeated", 1).containsEntry("shortened", 2)
+        .containsEntry("valuesCutTo", 1000)
+        .doesNotContainKey("leftOut");
+    assertThat(ids2(soFar.subList(1, 3), "activityId"))
+        .containsExactly("quotedLater", "quotedLater");
+    assertThat(String.valueOf(results(soFar.get(1)).get("q0")))
+        .contains("(truncated, 2000 characters total)");
+    assertThat(ids2(finished(listing), "activityId")).containsExactly("waits");
+    int written = AdHocToolProvider.writtenLength(finished(listing))
+        + AdHocToolProvider.writtenLength(soFar);
+    assertThat(written).as("both sections together, the first item included, stay within the cap")
+        .isLessThanOrEqualTo(AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS);
+
+    // 2500, nothing shown above: even cut, not all three fit. The oldest quoted entry and the
+    // newest, 'waits', stay; the one between is left out and named.
+    List<Map<String, Object>> small = tight.get(0);
+    List<Map<String, Object>> shown = small.subList(1, small.size());
+    assertThat(ids2(shown, "activityId")).containsExactly("quotedLater", "waits");
+    assertThat(shown.get(0).get("activityInstanceId")).as("the older of the two quoted stays")
+        .isEqualTo(soFar.get(1).get("activityInstanceId"));
+    List<Map<String, Object>> named = list2(small.get(0).get("leftOutEntries"));
+    assertThat(named).hasSize(1);
+    assertThat(named.get(0).get("activityInstanceId")).as("the newer of the two is left out")
+        .isEqualTo(soFar.get(2).get("activityInstanceId"));
+    assertThat(named.get(0)).containsEntry("activityId", "quotedLater").containsEntry("turn", 1)
+        .containsEntry("resultNames", Arrays.asList("q0", "q1", "q2"));
+    assertThat(AdHocToolProvider.writtenLength(small)).isLessThanOrEqualTo(2500);
+  }
+
   /**
    * What an activity declares is what the agent sees — nothing else.
    *
@@ -1174,6 +1909,33 @@ public class AdHocSubProcessToolTest {
     assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
         .processInstanceId(instance.getId()).count())
         .as("the scope ends once every instance is done").isZero();
+  }
+
+  /**
+   * A multi-instance tool is one entry of toolResultsSoFar and says so, and an entry that
+   * declares nothing says that too: its empty results are not a tool that returned nothing.
+   */
+  @Test
+  public void toolResultsSoFarMarksAMultiInstanceToolThatDeclaresNothing() {
+    ProcessInstance instance = startWithoutTurn("soFarMulti",
+        tool -> tool.startActivity("multi", Collections.<String, Object>emptyMap()),
+        tool -> tool.turnReport());
+
+    runPendingTurn(instance);
+    for (Task task : ENGINE.getTaskService().createTaskQuery()
+        .processInstanceId(instance.getId()).taskDefinitionKey("multi").list()) {
+      ENGINE.getTaskService().complete(task.getId());
+    }
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    List<Map<String, Object>> soFar = soFar(result(1));
+    assertThat(soFar).hasSize(1);
+    assertThat(soFar.get(0)).containsEntry("activityId", "multi")
+        .containsEntry("multiInstance", Boolean.TRUE)
+        .containsEntry("resultsFrom", "nothing declared")
+        .as("the turn it was called in, not the one it ended in").containsEntry("turn", 1);
+    assertThat(results(soFar.get(0))).isEmpty();
   }
 
   // --- a turn that fails, and its retry --------------------------------------

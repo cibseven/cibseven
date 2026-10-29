@@ -60,6 +60,14 @@ final class AdHocLoopState {
      */
     private static final String PENDING = "pending";
 
+    /**
+     * The turn each pending performance was called in: pairs of its execution and the turn, as
+     * {@link #PENDING} is a list of pairs (CIB7-2445). Read as it ends, so the agent is shown
+     * when it asked for the result, not when the result came back; a separate key, so the
+     * pairs of {@link #PENDING} keep the shape every reader of it expects.
+     */
+    private static final String PENDING_TURNS = "pendingTurns";
+
     /** Id of the step whose calls are being counted, so the next step resets the count. */
     private static final String CALLS_STEP = "callsStep";
 
@@ -101,7 +109,32 @@ final class AdHocLoopState {
         }
         Map<String, String> updated = pending(adHocScope);
         updated.put(executionId, activityId);
-        writePending(adHocScope, updated);
+        Map<String, Object> turns = pendingTurns(adHocScope);
+        turns.put(executionId, Integer.valueOf(turns(adHocScope)));
+        writePending(adHocScope, updated, turns);
+    }
+
+    /**
+     * The turn the pending performance whose execution is {@code executionId} was called in, or
+     * null for one the agent did not start, or started before this was recorded.
+     */
+    static Integer calledInTurn(ExecutionEntity adHocScope, String executionId) {
+        Object turn = pendingTurns(adHocScope).get(executionId);
+        return (turn instanceof Number) ? Integer.valueOf(((Number) turn).intValue()) : null;
+    }
+
+    /** {@link #PENDING_TURNS} as a map, in its order. A copy. */
+    private static Map<String, Object> pendingTurns(ExecutionEntity adHocScope) {
+        Map<String, Object> turns = new LinkedHashMap<>();
+        Object raw = AdHocAgentState.stateValue(adHocScope, PENDING_TURNS);
+        if (raw instanceof Collection) {
+            for (Object pair : (Collection<?>) raw) {
+                if (pair instanceof List && ((List<?>) pair).size() == 2) {
+                    turns.put(String.valueOf(((List<?>) pair).get(0)), ((List<?>) pair).get(1));
+                }
+            }
+        }
+        return turns;
     }
 
     /**
@@ -128,18 +161,33 @@ final class AdHocLoopState {
             }
         }
         if (!finished.isEmpty()) {
-            writePending(adHocScope, remaining);
+            // The ended performances' entries carry their turn by now: gather read it as they
+            // ended, before this step.
+            Map<String, Object> turns = pendingTurns(adHocScope);
+            turns.keySet().retainAll(remaining.keySet());
+            writePending(adHocScope, remaining, turns);
         }
         return finished;
     }
 
-    /** Stores the pending activities as a list of pairs, in their order. */
-    private static void writePending(ExecutionEntity adHocScope, Map<String, String> pending) {
+    /**
+     * Stores the pending activities and the turns they were called in, each as a list of pairs,
+     * in their order.
+     */
+    private static void writePending(ExecutionEntity adHocScope, Map<String, String> pending,
+            Map<String, Object> turns) {
         List<List<String>> pairs = new ArrayList<>();
         for (Map.Entry<String, String> entry : pending.entrySet()) {
             pairs.add(new ArrayList<>(Arrays.asList(entry.getKey(), entry.getValue())));
         }
-        AdHocAgentState.updateState(adHocScope, PENDING, pairs.isEmpty() ? null : pairs);
+        List<List<Object>> turnPairs = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : turns.entrySet()) {
+            turnPairs.add(new ArrayList<>(Arrays.asList((Object) entry.getKey(), entry.getValue())));
+        }
+        Map<String, Object> changes = new LinkedHashMap<>();
+        changes.put(PENDING, pairs.isEmpty() ? null : pairs);
+        changes.put(PENDING_TURNS, turnPairs.isEmpty() ? null : turnPairs);
+        AdHocAgentState.updateState(adHocScope, changes);
     }
 
     /** Turns taken so far. Counting lives in the engine now; this reads it for reports. */

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -109,6 +110,12 @@ public final class AdHocResults {
     private static final String VALUES = "values";
     private static final String MULTI_INSTANCE = "multiInstance";
     private static final String ENDED_AT = "endedAt";
+
+    /**
+     * The turn the agent called the tool in (CIB7-2445). For a performance it did not start, the
+     * turn it had reached as the performance ended. An entry an earlier version wrote has none.
+     */
+    private static final String TURN = "turn";
     private static final String INTERRUPTED_BY = "interruptedBy";
     private static final String CANCELLED = "cancelled";
 
@@ -206,6 +213,7 @@ public final class AdHocResults {
         // own, the same for every entry. Measured: two performances of one child both reported
         // 'adHoc:8'. The execution is one performance's own.
         entry.put(ACTIVATION_ID, ended.getId());
+        entry.put(TURN, calledInTurn(scope, ended));
         entry.put(VALUES, values);
         if (multiInstance) {
             entry.put(MULTI_INSTANCE, Boolean.TRUE);
@@ -252,6 +260,7 @@ public final class AdHocResults {
             entry.put(ENDED_AT, activity.getId());
         }
         entry.put(ACTIVATION_ID, removed.getId());
+        entry.put(TURN, calledInTurn(scope, removed));
         entry.put(VALUES, new TreeMap<String, Object>());
         entry.put(CANCELLED, Boolean.TRUE);
         // A tool with asyncAfter may have run and only wait for its job: at it says nothing then.
@@ -545,17 +554,29 @@ public final class AdHocResults {
         String note = null;
         for (; index < entries.size(); index++) {
             if (budget <= 0) {
+                // What a tool result already showed is skipped here too: only what will come is
+                // said to be waiting.
+                while (index < entries.size()
+                        && reported.remove(activationIdOf(entries.get(index)))) {
+                    index++;
+                }
+                if (index == entries.size()) {
+                    break;
+                }
                 note = "Further results are waiting: the size limit of "
-                        + AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS + " characters for one turn"
-                        + " was reached. You will be shown them in your next turn.";
+                        + AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS + " characters for the tool"
+                        + " results of one step was reached. You will be shown them in your next"
+                        + " step.";
                 break;
             }
             if (reported.remove(activationIdOf(entries.get(index)))) {
                 continue;
             }
             Map<String, Object> entry = describe(entries.get(index));
-            // What the values take in the prompt as written, not their toString (CIB7-2233).
-            budget -= AdHocToolProvider.writtenLength(entry.get("results"));
+            // What the entry takes in the prompt as written, not its values' toString
+            // (CIB7-2233), and all of it, not its values only: an entry that declares nothing
+            // costs nothing otherwise, and any number of them would pass (CIB7-2445).
+            budget -= AdHocToolProvider.writtenLength(entry);
             described.add(entry);
         }
         if (note != null) {
@@ -568,6 +589,495 @@ public final class AdHocResults {
         changes.put(REPORTED, reported.isEmpty() ? null : new ArrayList<String>(reported));
         AdHocAgentState.updateState(scope, changes);
         return described;
+    }
+
+    /**
+     * Every entry of this entry into the scope, oldest first, in a shorter shape than
+     * {@link #since} shows: which tool, in which turn it was called, its results and how it
+     * ended (CIB7-2445).
+     *
+     * <p>The memory window drops the oldest messages, the first tool results among them; this
+     * hands them to the model again on every step. Each performance is an entry of its own, not
+     * the latest value per tool: a tool called twice, a person asked twice, would otherwise lose
+     * the first answer to the second.
+     *
+     * <p>Only read: neither the read position nor what a tool result showed moves, so
+     * {@code finishedSinceLastTurn} is the same with or without this.
+     *
+     * <p>Within {@code budget} every entry carries its results, also one
+     * {@code finishedSinceLastTurn} shows in the same block. {@code budget} is what the block has
+     * left after {@code finishedSinceLastTurn}: one cap for both result sections, because the
+     * block is part of every stored message and the stored conversation has a limit of its own.
+     *
+     * <p>Over it, what goes first is what the agent loses least by, and the first item says what
+     * went and where it still is:
+     * <ol>
+     * <li>the entries {@code shownAbove}, the ones {@code finishedSinceLastTurn} shows in the same
+     * block: nothing is lost; and those from {@code waitingFrom} on, which
+     * {@code finishedSinceLastTurn} had no room for and shows in the next step;</li>
+     * <li>the length of long values, step by step down to {@link #SHORTEST_VALUE}: the facts an
+     * agent has to keep, a policy number or an amount, are short, and a cut value says so;</li>
+     * <li>then whole entries from the middle: the newest, the latest value of a tool called
+     * again, and the oldest, which the window has dropped, stay, each first if it fits at all.
+     * Each entry left out is named with its tool, turn, the names of its results and how it
+     * ended, so the agent knows what it has not got and can call a tool again for a value it
+     * needs; an entry too large to fit at all is named the same way.</li>
+     * </ol>
+     *
+     * <p>The first item counts against the budget too. Where the budget has no room even for it,
+     * as when the new results take the whole cap, it is shown anyway: the section has to say what
+     * it left out.
+     */
+    static List<Map<String, Object>> soFar(ExecutionEntity scope, int budget,
+            Set<String> shownAbove, int waitingFrom) {
+        List<Map<String, Object>> gathered = entries(scope);
+        List<Map<String, Object>> full = new ArrayList<Map<String, Object>>();
+        for (Map<String, Object> one : gathered) {
+            full.add(summarize(one, 0));
+        }
+        if (gathered.isEmpty() || listLength(full) <= budget) {
+            return full;
+        }
+        // Not repeated: what finishedSinceLastTurn shows in this block, and what it shows next.
+        List<Integer> candidates = new ArrayList<Integer>();
+        int notRepeated = 0;
+        int waiting = 0;
+        // One a tool result already showed is not waiting: since() skips it, it never comes.
+        Set<String> reported = reported(scope);
+        for (int index = 0; index < gathered.size(); index++) {
+            Object id = full.get(index).get("activityInstanceId");
+            if (id != null && shownAbove.contains(String.valueOf(id))) {
+                notRepeated++;
+            } else if (index >= waitingFrom
+                    && !reported.contains(activationIdOf(gathered.get(index)))) {
+                waiting++;
+            } else {
+                candidates.add(Integer.valueOf(index));
+            }
+        }
+        // The first item takes room of its own, and how much depends on what it says: plan again
+        // with that room kept free until it fits. Where it came out smaller than the room kept,
+        // and the plan left out or cut something, plan once more with only what it takes; the
+        // first plan that fitted stays unless that one is at least as good. After that the room
+        // kept only grows, and the item is bounded by the entries it names, so this ends.
+        int reserved = 0;
+        Plan accepted = null;
+        Map<String, Object> acceptedMarker = null;
+        while (true) {
+            Plan plan = plan(gathered, candidates, Math.max(0, budget - reserved));
+            Map<String, Object> marker = leftOutMarker(notRepeated, waiting, plan, full);
+            // With the comma that follows it.
+            int cost = AdHocToolProvider.writtenLength(marker) + 1;
+            boolean fits = cost <= reserved || (plan.shown.isEmpty() && reserved > 0);
+            if (fits && accepted == null && cost < reserved
+                    && (!plan.leftOut.isEmpty() || plan.valueLength > 0)) {
+                accepted = plan;
+                acceptedMarker = marker;
+                reserved = cost;
+                continue;
+            }
+            if (fits) {
+                if (accepted != null && worse(plan, accepted)) {
+                    plan = accepted;
+                    marker = acceptedMarker;
+                }
+                List<Map<String, Object>> described = new ArrayList<Map<String, Object>>();
+                described.add(marker);
+                described.addAll(plan.shown);
+                return described;
+            }
+            reserved = cost;
+        }
+    }
+
+    /**
+     * Whether {@code plan} leaves out more than {@code than}, or as many with values cut shorter.
+     */
+    private static boolean worse(Plan plan, Plan than) {
+        if (plan.leftOut.size() != than.leftOut.size()) {
+            return plan.leftOut.size() > than.leftOut.size();
+        }
+        return uncut(plan.valueLength) < uncut(than.valueLength);
+    }
+
+    /** A value length to compare: 0, nothing cut, is the longest. */
+    private static int uncut(int valueLength) {
+        return (valueLength == 0) ? Integer.MAX_VALUE : valueLength;
+    }
+
+    /** The shortest a long value is cut to before whole entries are left out. */
+    static final int SHORTEST_VALUE = 200;
+
+    /** The lengths long values are cut to, one after the other, until the entries fit. */
+    private static final int[] VALUE_LENGTHS = {
+        0, 1000, 500, SHORTEST_VALUE,
+    };
+
+    /** What {@link #soFar} shows of the entries it may show, and what it leaves out. */
+    private static final class Plan {
+        private final List<Map<String, Object>> shown = new ArrayList<Map<String, Object>>();
+        private final List<Integer> leftOut = new ArrayList<Integer>();
+        private int shortened;
+        private int valueLength;
+    }
+
+    /**
+     * Fits the entries at {@code candidates} into {@code room}: whole if they fit, else with long
+     * values cut shorter and shorter, else at the shortest with the middle left out.
+     */
+    private static Plan plan(List<Map<String, Object>> gathered, List<Integer> candidates,
+            int room) {
+        List<Map<String, Object>> entries = new ArrayList<Map<String, Object>>();
+        int shortened = 0;
+        for (int length : VALUE_LENGTHS) {
+            entries.clear();
+            shortened = 0;
+            for (Integer index : candidates) {
+                Map<String, Object> entry = summarize(gathered.get(index.intValue()), length);
+                if (Boolean.TRUE.equals(entry.remove(SHORTENED))) {
+                    shortened++;
+                }
+                entries.add(entry);
+            }
+            if (listLength(entries) <= room) {
+                Plan plan = new Plan();
+                plan.shown.addAll(entries);
+                plan.shortened = shortened;
+                plan.valueLength = length;
+                return plan;
+            }
+        }
+        // At the shortest: first the newest that fits at all, then the oldest that still fits;
+        // then the newer ones in half of what is left and the older ones in the rest. The middle
+        // is left out, and whatever cannot fit at all.
+        int[] costs = new int[entries.size()];
+        boolean[] kept = new boolean[entries.size()];
+        for (int at = 0; at < entries.size(); at++) {
+            costs[at] = AdHocToolProvider.writtenLength(entries.get(at)) + 1;
+        }
+        // The brackets, and no comma before the first.
+        int largest = room - 2 + 1;
+        int remaining = largest;
+        int newest = -1;
+        for (int at = entries.size() - 1; at >= 0 && newest < 0; at--) {
+            if (costs[at] <= remaining) {
+                newest = at;
+                kept[at] = true;
+                remaining -= costs[at];
+            }
+        }
+        int oldest = entries.size();
+        for (int at = 0; at < newest && oldest == entries.size(); at++) {
+            if (costs[at] <= remaining) {
+                oldest = at;
+                kept[at] = true;
+                remaining -= costs[at];
+            }
+        }
+        int tail = remaining / 2;
+        for (int at = newest - 1; at > oldest; at--) {
+            if (costs[at] > largest) {
+                continue;
+            }
+            if (costs[at] > tail) {
+                break;
+            }
+            kept[at] = true;
+            tail -= costs[at];
+            remaining -= costs[at];
+        }
+        for (int at = oldest + 1; at < newest && !kept[at]; at++) {
+            if (costs[at] > largest) {
+                continue;
+            }
+            if (costs[at] > remaining) {
+                break;
+            }
+            kept[at] = true;
+            remaining -= costs[at];
+        }
+        Plan plan = new Plan();
+        plan.valueLength = SHORTEST_VALUE;
+        for (int at = 0; at < entries.size(); at++) {
+            if (kept[at]) {
+                Map<String, Object> entry = entries.get(at);
+                plan.shown.add(entry);
+                if (!valuesOf(gathered.get(candidates.get(at).intValue()))
+                        .equals(entry.get("results"))) {
+                    plan.shortened++;
+                }
+            } else {
+                plan.leftOut.add(candidates.get(at));
+            }
+        }
+        return plan;
+    }
+
+    /** What a list of entries takes as written: each, a comma between them, the brackets. */
+    private static int listLength(List<Map<String, Object>> entries) {
+        int length = 2 + Math.max(0, entries.size() - 1);
+        for (Map<String, Object> entry : entries) {
+            length += AdHocToolProvider.writtenLength(entry);
+        }
+        return length;
+    }
+
+    /** Above this many characters the entries left out are listed per tool, not one by one. */
+    private static final int MAX_LISTED_CHARS = 2000;
+
+    /**
+     * The first item of {@link #soFar} when it did not show everything whole: what is not
+     * repeated, what is cut, which entries are left out, and what the agent should do about it.
+     */
+    private static Map<String, Object> leftOutMarker(int notRepeated, int waiting, Plan plan,
+            List<Map<String, Object>> full) {
+        String limit = "the size limit of " + AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS
+                + " characters for the tool results of one step";
+        Map<String, Object> marker = new LinkedHashMap<String, Object>();
+        StringBuilder note = new StringBuilder();
+        if (notRepeated > 0) {
+            marker.put("notRepeated", Integer.valueOf(notRepeated));
+            note.append(notRepeated == 1
+                    ? "The tool result finishedSinceLastTurn shows above is"
+                    : "The " + notRepeated + " tool results finishedSinceLastTurn shows above are")
+                    .append(" not repeated here for ").append(limit).append('.');
+        }
+        if (waiting > 0) {
+            marker.put("waiting", Integer.valueOf(waiting));
+            note.append(note.length() > 0 ? " " : "")
+                    .append(waiting == 1 ? "The tool result" : "The " + waiting + " tool results")
+                    .append(" that finishedSinceLastTurn says ")
+                    .append(waiting == 1 ? "is" : "are")
+                    .append(" waiting ").append(waiting == 1 ? "is" : "are")
+                    .append(" not listed here either; ")
+                    .append(waiting == 1 ? "it comes" : "they come")
+                    .append(" in a later step. Do not call a tool again for ")
+                    .append(waiting == 1 ? "it." : "them.");
+        }
+        if (plan.shortened > 0) {
+            marker.put("shortened", Integer.valueOf(plan.shortened));
+            marker.put("valuesCutTo", Integer.valueOf(plan.valueLength));
+            note.append(note.length() > 0 ? " " : "").append("Long values of ")
+                    .append(plan.shortened == 1 ? "1 entry are" : plan.shortened + " entries are")
+                    .append(" cut to ").append(plan.valueLength).append(" characters for ")
+                    .append(limit).append(", each saying so and how long the whole value is;"
+                            + " earlier messages may still hold more of it.");
+        }
+        if (!plan.leftOut.isEmpty()) {
+            List<Map<String, Object>> named = new ArrayList<Map<String, Object>>();
+            for (Integer index : plan.leftOut) {
+                named.add(named(full.get(index.intValue())));
+            }
+            // Per tool only where that is shorter: with many that ended otherwise it need not be.
+            List<Map<String, Object>> grouped = perTool(named);
+            int listed = AdHocToolProvider.writtenLength(named);
+            boolean perTool = listed > MAX_LISTED_CHARS
+                    && AdHocToolProvider.writtenLength(grouped) < listed;
+            String key = perTool ? "leftOutPerTool" : "leftOutEntries";
+            marker.put("leftOut", Integer.valueOf(plan.leftOut.size()));
+            marker.put(key, perTool ? grouped : named);
+            note.append(note.length() > 0 ? " " : "").append("The ")
+                    .append(plan.leftOut.size() == 1 ? "tool result in " : "tool results in ")
+                    .append(key).append(plan.leftOut.size() == 1 ? " is" : " are")
+                    .append(" left out for ").append(limit)
+                    .append(perTool ? ", counted per tool with the names of their results;"
+                            + " each that did not end normally is in endedOtherwise with how it"
+                            + " ended." : ", named with the names of their results and, where"
+                            + " they did not end normally, how they ended.")
+                    .append(" Earlier messages may still hold them; call a tool again only if you"
+                            + " need one of these values.");
+        }
+        marker.put("note", note.toString());
+        return marker;
+    }
+
+    /** Which performance an entry of {@link #soFar} is and what it returned, without values. */
+    private static Map<String, Object> named(Map<String, Object> entry) {
+        Map<String, Object> named = new LinkedHashMap<String, Object>();
+        named.put("activityId", entry.get("activityId"));
+        named.put("activityInstanceId", entry.get("activityInstanceId"));
+        if (entry.get("turn") != null) {
+            named.put("turn", entry.get("turn"));
+        }
+        Object results = entry.get("results");
+        named.put("resultNames", (results instanceof Map)
+                ? new ArrayList<Object>(((Map<?, ?>) results).keySet())
+                : new ArrayList<Object>());
+        // How it ended stays with it, as in summarize, with what its note refers to: whether its
+        // work took effect is what the agent needs before it calls the tool again.
+        for (String key : Arrays.asList("status", "endedAt", "interruptedBy", "multiInstance",
+                "resultsNote")) {
+            if (entry.get(key) != null) {
+                named.put(key, entry.get(key));
+            }
+        }
+        return named;
+    }
+
+    /**
+     * The entries left out, one item per tool: how many, in which turns, which results, and each
+     * that did not end normally on its own with how it ended, as {@link #named} keeps it.
+     */
+    private static List<Map<String, Object>> perTool(List<Map<String, Object>> named) {
+        Map<Object, Map<String, Object>> tools = new LinkedHashMap<Object, Map<String, Object>>();
+        Map<Object, Set<Object>> names = new LinkedHashMap<Object, Set<Object>>();
+        Map<Object, List<Object>> turns = new LinkedHashMap<Object, List<Object>>();
+        Map<Object, List<Object>> endedOtherwise = new LinkedHashMap<Object, List<Object>>();
+        for (Map<String, Object> one : named) {
+            Object tool = one.get("activityId");
+            Map<String, Object> item = tools.get(tool);
+            if (item == null) {
+                item = new LinkedHashMap<String, Object>();
+                item.put("activityId", tool);
+                item.put("count", Integer.valueOf(0));
+                tools.put(tool, item);
+                names.put(tool, new LinkedHashSet<Object>());
+                turns.put(tool, new ArrayList<Object>());
+                endedOtherwise.put(tool, new ArrayList<Object>());
+            }
+            item.put("count", Integer.valueOf(((Integer) item.get("count")).intValue() + 1));
+            if (one.get("turn") != null && !turns.get(tool).contains(one.get("turn"))) {
+                turns.get(tool).add(one.get("turn"));
+            }
+            names.get(tool).addAll((Collection<?>) one.get("resultNames"));
+            if (Boolean.TRUE.equals(one.get("multiInstance"))) {
+                item.put("multiInstance", Boolean.TRUE);
+            }
+            if (one.containsKey("status") || one.containsKey("resultsNote")) {
+                Map<String, Object> ended = new LinkedHashMap<String, Object>(one);
+                ended.remove("activityId");
+                ended.remove("resultNames");
+                endedOtherwise.get(tool).add(ended);
+            }
+        }
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        for (Map.Entry<Object, Map<String, Object>> tool : tools.entrySet()) {
+            // In the order of the turns: entries are in the order they ended, a turn is the call's.
+            List<Object> ordered = turns.get(tool.getKey());
+            Collections.sort(ordered, TURN_ORDER);
+            tool.getValue().put("turns", ordered);
+            tool.getValue().put("resultNames", new ArrayList<Object>(names.get(tool.getKey())));
+            if (!endedOtherwise.get(tool.getKey()).isEmpty()) {
+                tool.getValue().put("endedOtherwise", endedOtherwise.get(tool.getKey()));
+            }
+            list.add(tool.getValue());
+        }
+        return list;
+    }
+
+    /**
+     * Turns by their number; anything that is not a number, which a stored state should not hold,
+     * last.
+     */
+    private static final Comparator<Object> TURN_ORDER = new Comparator<Object>() {
+        @Override
+        public int compare(Object one, Object other) {
+            boolean oneIs = one instanceof Number;
+            boolean otherIs = other instanceof Number;
+            if (oneIs && otherIs) {
+                return Long.compare(((Number) one).longValue(), ((Number) other).longValue());
+            }
+            return (oneIs == otherIs) ? 0 : (oneIs ? -1 : 1);
+        }
+    };
+
+    /** Set by {@link #summarize} on an entry whose values it cut, and taken off again. */
+    private static final String SHORTENED = "shortened";
+
+    /**
+     * One entry in the shape {@link #soFar} shows, with each string value longer than
+     * {@code valueLength} cut to it; 0 cuts nothing.
+     */
+    private static Map<String, Object> summarize(Map<String, Object> gathered, int valueLength) {
+        Map<String, Object> entry = new LinkedHashMap<String, Object>();
+        entry.put("activityId", gathered.get(ACTIVITY_ID));
+        entry.put("activityInstanceId", gathered.get(ACTIVATION_ID));
+        if (gathered.get(TURN) != null) {
+            entry.put("turn", gathered.get(TURN));
+        }
+        // Where and how it ended, without the note: finishedSinceLastTurn or the tool result said
+        // that once, and said again for every entry it would crowd out the values.
+        String ending = describeEnd(gathered, entry);
+        Map<String, Object> values = valuesOf(gathered);
+        if (valueLength > 0) {
+            Map<String, Object> cut = new LinkedHashMap<String, Object>();
+            for (Map.Entry<String, Object> value : values.entrySet()) {
+                Object shown = value.getValue();
+                if (shown instanceof String) {
+                    String shorter = cut((String) shown, valueLength);
+                    if (shorter.length() < ((String) shown).length()) {
+                        shown = shorter;
+                        entry.put(SHORTENED, Boolean.TRUE);
+                    }
+                }
+                cut.put(value.getKey(), shown);
+            }
+            values = cut;
+        }
+        entry.put("results", values);
+        boolean cancelled = Boolean.TRUE.equals(gathered.get(CANCELLED));
+        // What empty results mean, in short: nothing declared reads otherwise as a tool that
+        // returned nothing, and one value per performance as one value per instance. Not for a
+        // tool that did not complete, which the status says: its results were not read, whatever
+        // it declares. One that ran and whose flow ended otherwise later was read.
+        if (values.isEmpty() && !cancelled && !entry.containsKey("status")) {
+            entry.put("resultsFrom", "nothing declared");
+        }
+        if (Boolean.TRUE.equals(gathered.get(MULTI_INSTANCE))) {
+            entry.put("multiInstance", Boolean.TRUE);
+        }
+        // A cancelled or interrupted performance keeps its note, whatever it costs: whether its
+        // work took effect is what the agent needs before it repeats a tool, and both are rare.
+        if (ending != null) {
+            entry.put("resultsNote", ending);
+        }
+        return entry;
+    }
+
+    /**
+     * {@code text} cut to {@code length} characters, saying so. A value already cut as it was
+     * gathered keeps the length it said: cutting it again would state the length of the cut
+     * text as the whole. What only looks like such a cut, a length that does not fit or that
+     * cannot be read, is cut as it is: a tool's value must not stop the step.
+     */
+    static String cut(String text, int length) {
+        int whole = wholeLength(text);
+        if (whole > 0) {
+            String base = text.substring(0, text.lastIndexOf(AdHocSubProcessTool.TRUNCATED_BEFORE));
+            if (base.length() <= length) {
+                return text;
+            }
+            return AdHocSubProcessTool.truncate(base, length, whole);
+        }
+        return AdHocSubProcessTool.truncate(text, length);
+    }
+
+    /**
+     * The whole length {@code text} says it was cut from, or 0 where it was not cut by
+     * {@link AdHocSubProcessTool#truncate}: the number must be one, and longer than what is left.
+     */
+    private static int wholeLength(String text) {
+        if (!text.endsWith(AdHocSubProcessTool.TRUNCATED_AFTER)) {
+            return 0;
+        }
+        int before = text.lastIndexOf(AdHocSubProcessTool.TRUNCATED_BEFORE);
+        int from = before + AdHocSubProcessTool.TRUNCATED_BEFORE.length();
+        int to = text.length() - AdHocSubProcessTool.TRUNCATED_AFTER.length();
+        // No number between them, or the two overlap ("… (truncated, characters total)").
+        if (before < 0 || from >= to) {
+            return 0;
+        }
+        String digits = text.substring(from, to);
+        if (digits.isEmpty() || digits.length() > 9) {
+            return 0;
+        }
+        for (int at = 0; at < digits.length(); at++) {
+            if (digits.charAt(at) < '0' || digits.charAt(at) > '9') {
+                return 0;
+            }
+        }
+        int whole = Integer.parseInt(digits);
+        return (whole > before) ? whole : 0;
     }
 
     /** How many entries the scope has gathered so far. */
@@ -854,6 +1364,16 @@ public final class AdHocResults {
         return (called != null) ? called : AdHocSubProcessTool.activatedTool(scope, handle.getId());
     }
 
+    /**
+     * The turn the agent called the tool of the performance {@code handle} in: recorded with the
+     * pending performance, or, for one that ends within its call, the turn running now. A child
+     * someone else started gets the turn the agent has reached.
+     */
+    private static Integer calledInTurn(ExecutionEntity scope, ExecutionEntity handle) {
+        Integer called = AdHocLoopState.calledInTurn(scope, handle.getId());
+        return (called != null) ? called : Integer.valueOf(AdHocAgentState.turns(scope));
+    }
+
     /** What {@link #carry} kept on this execution, or nothing. */
     private static Map<?, ?> carried(ExecutionEntity execution) {
         Object raw = execution.getVariableLocal(CARRIED);
@@ -888,7 +1408,11 @@ public final class AdHocResults {
         entry.put("results", values);
         // A cancelled performance read nothing, whatever it declares: where its results come from
         // would say something about the process model that is not so.
-        if (!Boolean.TRUE.equals(gathered.get(CANCELLED))) {
+        // Nor one that did not complete, which its status says: its results were not read, and
+        // "nothing declared" would contradict toolResultsSoFar in the same block (CIB7-2445).
+        boolean read = !Boolean.TRUE.equals(gathered.get(CANCELLED))
+                && !entry.containsKey("status");
+        if (read) {
             entry.put("resultsFrom", values.isEmpty() ? "nothing declared" : "model declaration");
         }
         // Both can hold: a multi-instance activity that declares nothing is still reported once.
@@ -900,8 +1424,9 @@ public final class AdHocResults {
             notes.add("A multi-instance activity, reported once, when its last instance ended. A "
                     + "variable every instance writes holds the last value.");
         }
-        // A cancelled performance has no results to declare; its note says so.
-        if (values.isEmpty() && !Boolean.TRUE.equals(gathered.get(CANCELLED))) {
+        // A cancelled performance has no results to declare, nor one that did not complete; its
+        // note says so.
+        if (values.isEmpty() && read) {
             notes.add("This activity declares no output mapping, result variable or editable form "
                     + "field, so nothing is reported even if it wrote something. Only declared "
                     + "variables are shown. Add one of those, or camunda:property "
@@ -972,7 +1497,7 @@ public final class AdHocResults {
         return (id == null) ? null : id.toString();
     }
 
-    private static int readPosition(ExecutionEntity scope) {
+    static int readPosition(ExecutionEntity scope) {
         Object raw = AdHocAgentState.stateValue(scope, READ_POSITION);
         return (raw instanceof Number) ? ((Number) raw).intValue() : 0;
     }
