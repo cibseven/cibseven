@@ -732,6 +732,8 @@ public class AdHocSubProcessToolTest {
 
     Map<String, Object> shown = processData(result(0));
     List<String> leftOut = names.subList(shown.size(), names.size());
+    assertThat(shown).as("as many as fit, each taking what it takes as written").hasSize(
+        AdHocSubProcessTool.MAX_PROCESS_DATA_CHARS / AdHocToolProvider.writtenLength(shown.get("wert0")));
     assertThat(new ArrayList<>(shown.keySet())).as("the first ones, in their order")
         .containsExactlyElementsOf(names.subList(0, shown.size()));
     assertThat(leftOut).isNotEmpty();
@@ -767,6 +769,59 @@ public class AdHocSubProcessToolTest {
     assertThat(String.valueOf(result(0).get("processDataNote"))).endsWith(": zweite.");
     assertThat(writtenLength(shown))
         .isLessThanOrEqualTo(AdHocSubProcessTool.MAX_PROCESS_DATA_CHARS);
+  }
+
+  /**
+   * The process data has a budget of its own: the results reported in the same block do not take
+   * from it. A tool that waits reports three values of 2000 quotes, about 12000 characters as
+   * written, in the next turn's block, beside nine values of process data that fill their own 20000.
+   */
+  @Test
+  public void theProcessDataHasABudgetOfItsOwnBesideTheResults() {
+    List<String> names = new ArrayList<>();
+    for (int i = 0; i < 9; i++) {
+      names.add("wert" + i);
+    }
+    ProcessInstance instance = start("processDataOwnBudget",
+        processVariables(String.join(",", names)),
+        tool -> tool.startActivity("quotedLater", Collections.<String, Object>emptyMap()),
+        tool -> tool.turnReport());
+    for (String name : names) {
+      ENGINE.getRuntimeService().setVariable(instance.getId(), name, longText(3000));
+    }
+
+    // The tool's own job, then the turn its end scheduled.
+    runPendingTurn(instance);
+    runPendingTurn(instance);
+
+    Map<String, Object> report = result(1);
+    assertThat(writtenLength(results(finished(report).get(0))))
+        .as("the results in the same block").isGreaterThan(12000);
+    assertThat(processData(report)).as("all nine fit their own budget").hasSize(9);
+    assertThat(report).doesNotContainKey("processDataNote");
+  }
+
+  /**
+   * Within a turn too: a tool the agent calls changes a declared variable, and the next step's
+   * block has the new value, read again rather than kept from the step before.
+   */
+  @Test
+  public void aValueATurnChangesIsReadAgainInItsNextStep() {
+    ProcessInstance instance = startWithoutTurn("processDataWithinATurn",
+        processVariables("amount"),
+        tool -> {
+          Map<String, Object> before = tool.turnReport();
+          Agent.RESULTS.add(before);
+          tool.startActivity("quick", Collections.<String, Object>emptyMap());
+          return tool.turnReport();
+        });
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "amount", 100);
+
+    runPendingTurn(instance);
+
+    assertThat(processData(result(0))).containsEntry("amount", 100);
+    assertThat(processData(result(1))).as("after the tool set it")
+        .containsEntry("amount", Long.valueOf(200));
   }
 
   private static int writtenLength(Map<String, Object> values) {

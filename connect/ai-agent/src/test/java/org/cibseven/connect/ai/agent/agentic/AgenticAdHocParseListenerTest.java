@@ -2192,11 +2192,22 @@ public class AgenticAdHocParseListenerTest {
   @Test
   public void refusesAProcessVariableDeclaredTwice() {
     String model = connectorScope("<userTask id='worker' />",
-        processVariables("kunde, prioritaet, kunde"), "");
+        processVariables("kunde, prioritaet, kunde, kunde"), "");
 
     assertThatThrownBy(() -> deploy(model))
         .isInstanceOf(ProcessEngineException.class)
+        .as("named once, however often it repeats")
         .hasMessageContaining("and declares kunde more than once.");
+  }
+
+  /** A comma at the end, left when a name was deleted, is an empty name too. */
+  @Test
+  public void refusesATrailingCommaAmongTheProcessVariables() {
+    String model = connectorScope("<userTask id='worker' />", processVariables("kunde,"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("declares an empty name; separate the names by single commas.");
   }
 
   /** The agent's own state never reaches the model, and a declaration must not hand it out. */
