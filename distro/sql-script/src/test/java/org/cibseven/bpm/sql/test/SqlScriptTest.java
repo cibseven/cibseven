@@ -117,7 +117,7 @@ public class SqlScriptTest {
     executeSqlScript("create", "engine");
     executeSqlScript("create", "identity");
     // the webclient tables ship as their own script since 3.0.0
-    executeSqlScript("create", "webapp");
+    executeSqlScript("create", "extensions");
     DatabaseSnapshot snapshotScripts = createCurrentDatabaseSnapshot();
     cleanUpDatabaseTables();
 
@@ -169,7 +169,7 @@ public class SqlScriptTest {
     executeSqlScript("create", "engine");
     executeSqlScript("create", "identity");
     // the webclient tables ship as their own script since 3.0.0
-    executeSqlScript("create", "webapp");
+    executeSqlScript("create", "extensions");
     DatabaseSnapshot snapshotCurrent = createCurrentDatabaseSnapshot();
 
     cleanUpDatabaseTables();
@@ -181,7 +181,7 @@ public class SqlScriptTest {
     // when UPGRADE scripts executed
     executeSqlScript("local-upgrade-test/", "upgrade", "engine_" + oldMajorMinor + "_patch");
     executeSqlScript("local-upgrade-test/", "upgrade", "engine_" + oldMajorMinor + "_to_" + currentMajorMinor);
-    executeSqlScript("local-upgrade-test/", "upgrade", "webapp_" + oldMajorMinor + "_to_" + currentMajorMinor);
+    executeSqlScript("local-upgrade-test/", "upgrade", "extensions_" + oldMajorMinor + "_to_" + currentMajorMinor);
     executeSqlScript("local-upgrade-test/", "upgrade", "engine_" + currentMajorMinor + "_patch");
 
     // then

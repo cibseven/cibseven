@@ -22,7 +22,7 @@
         desc = "Whether the password policy is enabled on the process engine." />
 
     <@lib.property
-        name = "webappSchemaVersion"
+        name = "webclientExtensionsVersion"
         type = "string"
         desc = "The version of the webclient schema present in the database, or `null` when those
                 tables are absent. The webclient reads it to decide whether the modeler, chat and

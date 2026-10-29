@@ -15,7 +15,7 @@
 -- limitations under the License.
 --
 
--- Webclient tables (MOD_, CHAT_, NOTIF_) - the webapp schema component. They are not part
+-- Webclient tables (MOD_, CHAT_, NOTIF_) - the extensions schema component. They are not part
 -- of the engine schema, so an installation without the CIB seven webclient can skip this script.
 
 -- Chat: soft-delete tombstone (long-polling change detection)
@@ -141,7 +141,7 @@ CREATE TABLE NOTIF_GROUPS (
 
 CREATE INDEX NOTIF_IDX_GROUPS_GROUP ON NOTIF_GROUPS (GROUP_ID);
 
--- Version of the webclient schema, see the create.webapp script. Deleted before inserting because
+-- Version of the webclient schema, see the create.extensions script. Deleted before inserting because
 -- a 2.2 schema has no such row yet, and this form needs no dialect-specific upsert.
-DELETE FROM ACT_GE_PROPERTY WHERE NAME_ = 'webapp.schema.version';
-INSERT INTO ACT_GE_PROPERTY VALUES ('webapp.schema.version', '3.0.0', 1);
+DELETE FROM ACT_GE_PROPERTY WHERE NAME_ = 'webclient.extensions.version';
+INSERT INTO ACT_GE_PROPERTY VALUES ('webclient.extensions.version', '3.0.0', 1);

@@ -412,7 +412,7 @@ public abstract class ProcessEngineConfiguration {
   protected String installationId;
 
   /** Version of the webclient schema found in the database, null when those tables are absent */
-  protected String webappSchemaVersion;
+  protected String webclientExtensionsVersion;
 
   /**
    * On failing activities we can skip output mapping. This might be helpful if output mapping uses variables that might not
@@ -1063,12 +1063,12 @@ public abstract class ProcessEngineConfiguration {
     return this;
   }
 
-  public String getWebappSchemaVersion() {
-    return webappSchemaVersion;
+  public String getWebclientExtensionsVersion() {
+    return webclientExtensionsVersion;
   }
 
-  public ProcessEngineConfiguration setWebappSchemaVersion(String webappSchemaVersion) {
-    this.webappSchemaVersion = webappSchemaVersion;
+  public ProcessEngineConfiguration setWebclientExtensionsVersion(String webclientExtensionsVersion) {
+    this.webclientExtensionsVersion = webclientExtensionsVersion;
     return this;
   }
 
