@@ -33,11 +33,7 @@
         <artifactId>cibseven-engine-spring</artifactId>
         <version>${project.version}</version>
       </dependency>
-      <dependency>
-        <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-engine-spring-6</artifactId>
-        <version>${project.version}</version>
-      </dependency>
+      <!-- relocation POM only, points to cibseven-engine-spring; to be removed -->
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-engine-spring-7</artifactId>
@@ -144,6 +140,11 @@
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm.springboot</groupId>
+        <artifactId>cibseven-bpm-spring-boot-starter-webapp-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.cibseven.bpm.springboot</groupId>
         <artifactId>cibseven-bpm-spring-boot-starter-security</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -158,7 +159,8 @@
         <version>${project.version}</version>
       </dependency>
 
-      <!-- Spring Boot 4 Starter artifacts -->
+      <!-- Former Spring Boot 4 Starter artifacts (suffix -4): relocation POMs only, they point
+           to the unsuffixed artifacts above. Kept so existing builds keep resolving; to be removed. -->
       <dependency>
         <groupId>org.cibseven.bpm.springboot</groupId>
         <artifactId>cibseven-bpm-spring-boot-starter-4</artifactId>

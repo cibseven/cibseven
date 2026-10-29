@@ -10,74 +10,20 @@
   </parent>
 
   <artifactId>cibseven-bpm-run4</artifactId>
-  <name>CIB seven - Run 4 - Distribution</name>
+  <name>CIB seven - Run 4 - Distribution (relocated)</name>
   <packaging>pom</packaging>
 
-  <dependencies>
-
-    <dependency>
-      <groupId>org.cibseven.bpm.run</groupId>
-      <artifactId>cibseven-bpm-run4-assembly</artifactId>
-      <version>${project.version}</version>
-      <type>tar.gz</type>
-    </dependency>
-
-    <dependency>
-      <groupId>org.cibseven.bpm.distro</groupId>
-      <artifactId>cibseven-sql-scripts</artifactId>
-      <version>${project.version}</version>
-      <type>jar</type>
-    </dependency>
-
-    <!-- make sure this runs after webapps -->
-    <dependency>
-      <groupId>org.cibseven.bpm.run</groupId>
-      <artifactId>cibseven-bpm-run4-modules-webapps</artifactId>
-      <version>${project.version}</version>
-      <type>pom</type>
-      <exclusions>
-        <!-- we don't need any transitive dependencies -->
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-  </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <configuration>
-          <appendAssemblyId>false</appendAssemblyId>
-          <outputDirectory>target/</outputDirectory>
-          <tarLongFileMode>gnu</tarLongFileMode>
-        </configuration>
-        <executions>
-          <execution>
-            <id>assemble</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>assembly.xml</descriptor>
-              </descriptors>
-              <workDirectory>target/assembly/work</workDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-
   <description>
-    Description of CIB seven - Run - Distribution
+    Relocated to cibseven-bpm-run, which is based on Spring Boot 4 now.
+    This relocation only keeps existing builds working and will be removed in a future release.
   </description>
+
+  <distributionManagement>
+    <relocation>
+      <artifactId>cibseven-bpm-run</artifactId>
+      <message>cibseven-bpm-run4 is relocated to cibseven-bpm-run, which is based on Spring Boot 4 now. Please depend on cibseven-bpm-run directly; this relocation will be removed in a future release.</message>
+    </relocation>
+  </distributionManagement>
 
   <licenses>
     <license>
@@ -85,33 +31,5 @@
       <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
     </license>
   </licenses>
-
-  <organization>
-    <name>CIB seven</name>
-    <url>https://cibseven.org</url>
-  </organization>
-
-  <url>https://cibseven.org</url>
-
-  <developers>
-    <developer>
-      <id>CIB seven</id>
-      <name>CIB seven Community</name>
-      <organization>CIB seven</organization>
-      <organizationUrl>https://cibseven.org</organizationUrl>
-    </developer>
-  </developers>
-
-  <scm>
-    <url>https://github.com/cibseven/cibseven</url>
-    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
-    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
-
-  <issueManagement>
-    <system>GitHub Issues</system>
-    <url>https://github.com/cibseven/cibseven/issues</url>
-  </issueManagement>
 
 </project>

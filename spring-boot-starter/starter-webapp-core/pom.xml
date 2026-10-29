@@ -17,9 +17,10 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- TODO CIB7-1535: switch to cibseven-webclient-web once the webclient Spring Boot 4 change is merged -->
     <dependency>
       <groupId>org.cibseven.webapp</groupId>
-      <artifactId>cibseven-webclient-web</artifactId>
+      <artifactId>cibseven-webclient-web-spring-boot-4</artifactId>
       <version>${cibseven-webapp.version}</version>
       <type>jar</type>
       <classifier>classes</classifier>
@@ -62,12 +63,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-jdbc</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <scope>test</scope>
@@ -80,6 +75,21 @@
       <version>${version.mockito}</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-resttestclient</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-jdbc</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-security</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

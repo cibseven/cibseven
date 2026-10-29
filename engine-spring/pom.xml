@@ -15,20 +15,9 @@
 
   <modules>
     <module>core</module>
+    <!-- relocation of the former Spring 7 variant to cibseven-engine-spring -->
+    <module>core-7</module>
   </modules>
-
-  <profiles>
-    <profile>
-      <id>jdk17</id>
-      <activation>
-        <jdk>[17,)</jdk>
-      </activation>
-      <modules>
-        <module>core-6</module>
-        <module>core-7</module>
-      </modules>
-    </profile>
-  </profiles>
 
   
   <description>
