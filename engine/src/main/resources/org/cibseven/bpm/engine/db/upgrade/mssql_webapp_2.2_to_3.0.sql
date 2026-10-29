@@ -83,18 +83,18 @@ ALTER TABLE MOD_FORMS ADD CONSTRAINT MOD_FK_FORMS_FOLDER FOREIGN KEY (FOLDER_ID)
 -- Modeler (CIB7-2277): a process key and a form id are unique within their folder only. 2.2
 -- declared them unique inline, so the database chose the names of those constraints.
 -- Each lookup is a single statement, since the scripts are split at semicolons.
-DECLARE @processKeyConstraint NVARCHAR(128)
-SELECT @processKeyConstraint = kc.name FROM sys.key_constraints kc
+DECLARE @processKeyConstraint NVARCHAR(258)
+SELECT @processKeyConstraint = QUOTENAME(kc.name) FROM sys.key_constraints kc
     JOIN sys.index_columns ic ON ic.object_id = kc.parent_object_id AND ic.index_id = kc.unique_index_id
     JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id
     WHERE kc.type = 'UQ' AND kc.parent_object_id = OBJECT_ID('MOD_PROCESSES_DIAGRAMS') AND c.name = 'PROCESSKEY'
-EXEC ('ALTER TABLE MOD_PROCESSES_DIAGRAMS DROP CONSTRAINT ' + QUOTENAME(@processKeyConstraint));
-DECLARE @formIdConstraint NVARCHAR(128)
-SELECT @formIdConstraint = kc.name FROM sys.key_constraints kc
+EXEC ('ALTER TABLE MOD_PROCESSES_DIAGRAMS DROP CONSTRAINT ' + @processKeyConstraint);
+DECLARE @formIdConstraint NVARCHAR(258)
+SELECT @formIdConstraint = QUOTENAME(kc.name) FROM sys.key_constraints kc
     JOIN sys.index_columns ic ON ic.object_id = kc.parent_object_id AND ic.index_id = kc.unique_index_id
     JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id
     WHERE kc.type = 'UQ' AND kc.parent_object_id = OBJECT_ID('MOD_FORMS') AND c.name = 'FORMID'
-EXEC ('ALTER TABLE MOD_FORMS DROP CONSTRAINT ' + QUOTENAME(@formIdConstraint));
+EXEC ('ALTER TABLE MOD_FORMS DROP CONSTRAINT ' + @formIdConstraint);
 ALTER TABLE MOD_PROCESSES_DIAGRAMS ADD CONSTRAINT MOD_UK_DIAGRAMS_KEY_FOLDER UNIQUE (PROCESSKEY, FOLDER_ID);
 ALTER TABLE MOD_FORMS ADD CONSTRAINT MOD_UK_FORMS_FORMID_FOLDER UNIQUE (FORMID, FOLDER_ID);
 
