@@ -363,8 +363,15 @@ public class CycleBusinessCalendarTest {
       assertThat(sdf.format(cbc.resolveDuedate("R3/PT15M", sdf.parse("2026 10 25 02:45 CEST")))).isEqualTo("2026 10 25 03:00 CET");
       // a daily cycle adds a calendar day and stays in the first pass
       assertThat(sdf.format(cbc.resolveDuedate("R/P1D", sdf.parse("2026 10 24 02:30 CEST")))).isEqualTo("2026 10 25 02:30 CEST");
+      // a cycle with an end date and no start date is calculated backwards from the end date
+      assertThat(sdf.format(cbc.resolveDuedate("R/PT15M/2026-12-31T00:00:00+01:00", sdf.parse("2026 10 25 02:30 CEST")))).isEqualTo("2026 10 25 02:45 CEST");
+      assertThat(sdf.format(cbc.resolveDuedate("R/PT15M/2026-12-31T00:00:00+01:00", sdf.parse("2026 10 25 02:45 CEST")))).isEqualTo("2026 10 25 03:00 CET");
+      assertThat(sdf.format(cbc.resolveDuedate("R/PT1H/2026-12-31T00:00:00+01:00", sdf.parse("2026 10 25 02:00 CEST")))).isEqualTo("2026 10 25 03:00 CET");
+      // the 3 repetitions before the end date 03:15 CET are 02:30 CEST, 02:45 CEST and 03:00 CET, the skipped ones are not counted
+      assertThat(sdf.format(cbc.resolveDuedate("R3/PT15M/2026-10-25T03:15:00+01:00", sdf.parse("2026 10 25 02:20 CEST")))).isEqualTo("2026 10 25 02:30 CEST");
       // spring forward is not affected
       assertThat(sdf.format(cbc.resolveDuedate("R/PT15M", sdf.parse("2026 03 29 01:45 CET")))).isEqualTo("2026 03 29 03:00 CEST");
+      assertThat(sdf.format(cbc.resolveDuedate("R/PT15M/2026-12-31T00:00:00+01:00", sdf.parse("2026 03 29 01:45 CET")))).isEqualTo("2026 03 29 03:00 CEST");
     } finally {
       TimeZone.setDefault(defaultTimeZone);
     }
@@ -382,7 +389,8 @@ public class CycleBusinessCalendarTest {
 
       // the repeated hour 02:00-02:59 CET is skipped
       // cron and ISO 8601 cycles; the ISO cycles carry their start date like a created timer (see TimerEntity#replaceRepeatCycleAndDate)
-      for (String cycle : Arrays.asList("0 0/15 * * * ?", "R/2026-10-25T02:00:00+02:00/PT15M")) {
+      // or an end date, which is kept as it is and the due dates are calculated backwards from it
+      for (String cycle : Arrays.asList("0 0/15 * * * ?", "R/2026-10-25T02:00:00+02:00/PT15M", "R/PT15M/2026-12-31T00:00:00+01:00")) {
         assertThat(simulateJobExecutor(cbc, cycle, zone, sdf)).as(cycle).containsExactly(
             "2026 10 25 02:15 CEST",
             "2026 10 25 02:30 CEST",
@@ -394,6 +402,14 @@ public class CycleBusinessCalendarTest {
       // a limited cycle fires at its start and then 3 times, the skipped repetitions are not counted
       String limitedCycle = "R3/2026-10-25T02:30:00+02:00/PT15M";
       assertThat(simulateJobExecutor(cbc, limitedCycle, zone, sdf)).as(limitedCycle).containsExactly(
+          "2026 10 25 02:30 CEST",
+          "2026 10 25 02:45 CEST",
+          "2026 10 25 03:00 CET",
+          "2026 10 25 03:15 CET");
+
+      // a limited cycle with an end date fires 3 times before the end date and at the end date
+      String limitedCycleWithEndDate = "R3/PT15M/2026-10-25T03:15:00+01:00";
+      assertThat(simulateJobExecutor(cbc, limitedCycleWithEndDate, zone, sdf)).as(limitedCycleWithEndDate).containsExactly(
           "2026 10 25 02:30 CEST",
           "2026 10 25 02:45 CEST",
           "2026 10 25 03:00 CET",

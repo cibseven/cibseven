@@ -197,6 +197,54 @@ public class DurationHelperTest {
     }
   }
 
+  @Test
+  public void shouldNotSkipRepeatedHourByDefaultWithEndDate() throws Exception {
+    TimeZone defaultTimeZone = TimeZone.getDefault();
+    try {
+      TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"));
+      DurationHelper dh = new DurationHelper("R/PT15M/2026-12-31T00:00:00+01:00");
+
+      assertThat(dh.getDateAfter(parseWithZone("2026 10 25 02:45 CEST"))).isEqualTo(parseWithZone("2026 10 25 02:00 CET"));
+    } finally {
+      TimeZone.setDefault(defaultTimeZone);
+    }
+  }
+
+  @Test
+  public void shouldSkipRepeatedHourWithEndDateWithoutCountingSkippedRepetitions() throws Exception {
+    TimeZone defaultTimeZone = TimeZone.getDefault();
+    try {
+      TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"));
+      DurationHelper dh = new DurationHelper("R3/PT15M/2026-10-25T03:15:00+01:00");
+      dh.setSkipRepeatedHour(true);
+
+      // counted backwards from the end date 03:15 CET: 03:00 CET, then 02:00-02:45 CET are skipped, 02:45 and 02:30 CEST
+      assertThat(dh.getDateAfter(parseWithZone("2026 10 25 02:20 CEST"))).isEqualTo(parseWithZone("2026 10 25 02:30 CEST"));
+      assertThat(dh.getDateAfter(parseWithZone("2026 10 25 02:30 CEST"))).isEqualTo(parseWithZone("2026 10 25 02:45 CEST"));
+      assertThat(dh.getDateAfter(parseWithZone("2026 10 25 02:45 CEST"))).isEqualTo(parseWithZone("2026 10 25 03:00 CET"));
+      assertThat(dh.getDateAfter(parseWithZone("2026 10 25 03:00 CET"))).isEqualTo(parseWithZone("2026 10 25 03:15 CET"));
+      // 03:16, not 03:15: getDateAfter returns the end date itself when called exactly at it
+      assertThat(dh.getDateAfter(parseWithZone("2026 10 25 03:16 CET"))).isNull();
+    } finally {
+      TimeZone.setDefault(defaultTimeZone);
+    }
+  }
+
+  @Test
+  public void shouldSkipEndDateInRepeatedHour() throws Exception {
+    TimeZone defaultTimeZone = TimeZone.getDefault();
+    try {
+      TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"));
+      DurationHelper dh = new DurationHelper("R/PT15M/2026-10-25T02:30:00+01:00");
+      dh.setSkipRepeatedHour(true);
+
+      // the remaining repetitions 02:00-02:30 CET, including the end date, are all in the second pass
+      assertThat(dh.getDateAfter(parseWithZone("2026 10 25 02:50 CEST"))).isNull();
+    } finally {
+      TimeZone.setDefault(defaultTimeZone);
+    }
+  }
+
   private Date parseWithZone(String str) throws Exception {
     return new SimpleDateFormat("yyyy MM dd HH:mm z", Locale.ENGLISH).parse(str);
   }

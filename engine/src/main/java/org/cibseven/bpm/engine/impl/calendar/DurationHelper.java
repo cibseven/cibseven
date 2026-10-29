@@ -138,18 +138,27 @@ public class DurationHelper {
       return repeatOffset == 0L ? cur : new Date(cur.getTime() + repeatOffset);
     }
     Date cur = add(end, period.negate());
-    Date next = end;
+    // no offset is applied when calculating backwards from the end date, so the date itself is the due date
+    Date next = isSkippedDueDate(end) ? null : end;
 
-    for (int i=0;i<times && cur.after(date);i++) {
-      next = cur;
+    // repetitions in the second pass of a repeated hour are skipped and not counted, see RepeatedHourUtil
+    for (int i=0;i<times && cur.after(date);) {
+      if (!isSkippedDueDate(cur)) {
+        next = cur;
+        i++;
+      }
       cur = add(cur, period.negate());
     }
-    return next.before(date) ? null : next;
+    return next == null || next.before(date) ? null : next;
   }
 
   private boolean isSkipped(Date date) {
     // the due date is the date with the offset added
-    return skipRepeatedHour && RepeatedHourUtil.isInSecondPassOfRepeatedHour(new Date(date.getTime() + repeatOffset));
+    return isSkippedDueDate(new Date(date.getTime() + repeatOffset));
+  }
+
+  private boolean isSkippedDueDate(Date dueDate) {
+    return skipRepeatedHour && RepeatedHourUtil.isInSecondPassOfRepeatedHour(dueDate);
   }
 
   private Date add(Date date, Duration duration) {
