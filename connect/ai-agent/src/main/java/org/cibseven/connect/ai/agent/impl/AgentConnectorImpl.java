@@ -57,6 +57,7 @@ import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.TextContent;
 import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.exception.ToolArgumentsException;
@@ -154,6 +155,19 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     Result<String> chat(@MemoryId Object memoryId, @UserMessage String message);
   }
 
+  /**
+   * The flavor for a step of an agentic scope: the message goes in as text, not as a prompt
+   * template. It carries the state block, with process data, tool results and model data, any of
+   * which may hold "{{…}}"; read as a template, such a value would fail the step on a variable
+   * nobody declared, or be replaced silently, as {@code {{current_date}}} is (CIB7-2179). A list of
+   * one text, not a single {@code TextContent}: given one content, AI services add the message's
+   * text to it a second time, and the model gets the message twice, as parts.
+   */
+  interface LangChainAgenticAgent {
+    Result<String> chat(@MemoryId Object memoryId,
+        @UserMessage List<dev.langchain4j.data.message.Content> message);
+  }
+
   public AgentConnectorImpl() {
     super(AgentConnector.ID);
   }
@@ -232,7 +246,9 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
 
       String memoryId = resolveMemoryId(request);
 
-      Class<?> agentClass = (memoryId != null) ? LangChainMemoryAgent.class : LangChainAgent.class;
+      boolean asText = agenticScope != null && memoryId != null;
+      Class<?> agentClass = asText ? LangChainAgenticAgent.class
+          : (memoryId != null) ? LangChainMemoryAgent.class : LangChainAgent.class;
       AiServices<?> builder = AiServices.builder(agentClass)
           .chatModel(chatModel)
           .systemMessageProvider(chatMemoryId -> buildSystemPrompt(request, agenticScope != null));
@@ -309,7 +325,11 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
 
       Result<String> result;
       try {
-        if (memoryId != null) {
+        if (asText) {
+          LangChainAgenticAgent agent = (LangChainAgenticAgent) builder.build();
+          result = agent.chat(memoryId,
+              java.util.Collections.singletonList(TextContent.from(userMessage)));
+        } else if (memoryId != null) {
           LangChainMemoryAgent agent = (LangChainMemoryAgent) builder.build();
           result = agent.chat(memoryId, userMessage);
         } else {

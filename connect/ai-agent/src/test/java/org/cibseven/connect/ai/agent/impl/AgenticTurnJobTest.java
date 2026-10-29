@@ -1957,6 +1957,32 @@ public class AgenticTurnJobTest {
     assertThat(requestBodies).noneSatisfy(body -> assertThat(body).contains("Kennwort-4711"));
   }
 
+  /**
+   * A step is sent as text, not as a prompt template: a value with "{{…}}", here a declared process
+   * variable and the task, reaches the model as it is. Read as a template it failed the step before
+   * the model was asked, on a variable nobody declared, or was replaced silently (CIB7-2179).
+   */
+  @Test
+  public void anAgentsStepIsSentAsTextNotAsATemplate() throws IOException {
+    script.add(answer("Erledigt."));
+    Map<String, Object> variables = new HashMap<>();
+    variables.put("kommentar", "Bitte {{name}} pruefen, Stand {{current_date}}, {{it}}");
+    ProcessInstance pi = start(connectorModel("<camunda:properties><camunda:property"
+        + " name='cibseven.agentic.processVariables' value='kommentar' /></camunda:properties>",
+        "<camunda:inputParameter name='message'>Bearbeite {{auftrag}}.</camunda:inputParameter>",
+        "", "stub-key"), variables);
+
+    runWaitingTurn();
+
+    assertThat(requestBodies).as("the model is asked").hasSize(1);
+    String message = lastUserMessage(requestBodies.get(0));
+    assertThat(stateBlock(message))
+        .contains("\"kommentar\":\"Bitte {{name}} pruefen, Stand {{current_date}}, {{it}}\"");
+    assertThat(message).endsWith("Bearbeite {{auftrag}}.");
+    assertThat(engine.getRuntimeService().createIncidentQuery()
+        .processInstanceId(pi.getId()).count()).isZero();
+  }
+
   /** The state block of a user message, between its two markers. */
   private static String stateBlock(String userMessage) {
     int start = userMessage.indexOf("[AD HOC SCOPE STATE");
