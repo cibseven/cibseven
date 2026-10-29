@@ -28,6 +28,8 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A cron timer implementation that uses cronutils library for parsing and evaluation.
@@ -35,6 +37,11 @@ import java.util.Date;
 public class CronTimer {
 
   private final static EngineUtilLogger LOG = ProcessEngineLogger.UTIL_LOGGER;
+
+  // matches '<start>/<increment>' where start is a value, a name or a range, e.g. '0/60', 'MON/8' or '0-30/60'
+  private static final Pattern INCREMENT_PATTERN = Pattern.compile("([^/]+)/(\\d+)");
+  // max values of second, minute, hour, day-of-month, month, day-of-week and year in Quartz
+  private static final int[] MAX_FIELD_VALUES = { 59, 59, 23, 31, 12, 7, 2099 };
 
   protected final Cron cron;
 
@@ -81,7 +88,8 @@ public class CronTimer {
    * @return the patched expression, or unchanged if no conflict
    */
   private static String patchLegacyCronExpression(final String expression) {
-    final String[] parts = expression.split(" ");
+    // Quartz 1.8.4 accepted any whitespace (spaces or tabs) between the fields
+    final String[] parts = expression.trim().split("\\s+");
     if (parts.length < 6) {
       return expression; // Not a valid Quartz cron expression
     }
@@ -118,6 +126,38 @@ public class CronTimer {
     } else if ("?".equals(dayOfMonth) && "?".equals(dayOfWeek)) { // both fields cannot be '?'
       parts[3] = "*"; // convert day-of-month to '*'
     }
+
+    // Increments beyond the range of the field (e.g. '0/60' for minutes) were accepted by Quartz 1.8.4
+    // and matched the start value only, so '0 0/60 * * * ?' fired hourly at minute 0.
+    // cron-utils rejects them, so the increment is removed: '0/60' -> '0', '0-30/60' -> '0'.
+    // A Quartz expression can omit the year, that's why parts.length must be checked as well
+    for (int i = 0; i < parts.length && i < MAX_FIELD_VALUES.length; i++) {
+      parts[i] = patchIncrementOutOfRange(parts[i], MAX_FIELD_VALUES[i]);
+    }
     return String.join(" ", parts);
   }
+
+  private static String patchIncrementOutOfRange(final String field, final int maxValue) {
+    final String[] elements = field.split(",", -1);
+    for (int i = 0; i < elements.length; i++) {
+      final Matcher matcher = INCREMENT_PATTERN.matcher(elements[i]);
+      if (matcher.matches() && matcher.group(1).charAt(0) != '*' && isOutOfRange(matcher.group(2), maxValue)) {
+        final String start = matcher.group(1);
+        final int rangeSeparator = start.indexOf('-');
+        // Quartz 1.8.4 never read a step after a day or month name, so 'MON-FRI/8' meant the whole range
+        final boolean hasName = start.chars().anyMatch(Character::isLetter);
+        elements[i] = rangeSeparator > 0 && !hasName ? start.substring(0, rangeSeparator) : start;
+      }
+    }
+    return String.join(",", elements);
+  }
+
+  private static boolean isOutOfRange(final String increment, final int maxValue) {
+    try {
+      return Integer.parseInt(increment) > maxValue;
+    } catch (final NumberFormatException ex) {
+      return true; // too large for an int, so larger than any field maximum
+    }
+  }
+
 }
