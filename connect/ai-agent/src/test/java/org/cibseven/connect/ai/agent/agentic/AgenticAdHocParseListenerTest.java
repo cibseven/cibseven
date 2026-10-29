@@ -2233,7 +2233,25 @@ public class AgenticAdHocParseListenerTest {
     assertThatThrownBy(() -> deploy(model))
         .isInstanceOf(ProcessEngineException.class)
         .hasMessageContaining("the agent's settings cibseven.agentic.processVariables")
-        .hasMessageContaining("carries no connector 'cibseven-ai-agent'");
+        .hasMessageContaining("carries no connector 'cibseven-ai-agent'")
+        .as("the way back to a plain scope removes what marks it")
+        .hasMessageContaining("if it is meant to be a plain ad hoc sub process, remove the"
+            + " agent's settings cibseven.agentic.processVariables.");
+  }
+
+  /** On a plain sub process too, the remedy removes a setting, not only the limits. */
+  @Test
+  public void processVariablesOnAPlainSubProcessAreNamedAmongWhatToRemove() {
+    String model = process("<subProcess id='plain'><extensionElements>"
+        + processVariables("kunde") + "</extensionElements><startEvent id='innen' />"
+        + "<sequenceFlow id='i1' sourceRef='innen' targetRef='arbeit' /><userTask id='arbeit' />"
+        + "<sequenceFlow id='i2' sourceRef='arbeit' targetRef='aus' /><endEvent id='aus' />"
+        + "</subProcess>");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("the AI agent is only valid on an adHocSubProcess")
+        .hasMessageContaining("and every cibseven.agentic.* property, the limits and the settings.");
   }
 
   protected static String processVariables(String names) {

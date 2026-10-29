@@ -361,7 +361,8 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
           + " an adHocSubProcess, and '" + activity.getId() + "' is a " + scopeElement.getTagName()
           + ". Make it an ad hoc sub process, or remove the agent from it: the connector '"
           + AgenticTurnRunner.AGENT_CONNECTOR_ID + "', the template '" + AD_HOC_TEMPLATE_NAME
-          + "' and the limits " + MAX_TURNS + " and " + MAX_MODEL_CALLS + ".", scopeElement);
+          + "' and every " + PROPERTY_PREFIX + "* property, the limits and the settings.",
+          scopeElement);
     }
 
     if (!agentConnector) {
@@ -370,8 +371,8 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
           + AgenticTurnRunner.AGENT_CONNECTOR_ID + "', so no agent would ever run it and the scope"
           + " would wait for ever. A modeler drops that connector when the element is copied and"
           + " pasted, or when its type is changed. Apply the template '" + AD_HOC_TEMPLATE_NAME
-          + "' to the element again; or, if it is meant to be a plain ad hoc sub process, remove"
-          + " the template and the limits.", scopeElement);
+          + "' to the element again; or, if it is meant to be a plain ad hoc sub process, remove "
+          + marks(template, limits, settings) + ".", scopeElement);
     }
 
     refuseTheTaskOnTheScope(scopeElement, activity);
