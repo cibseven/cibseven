@@ -15,7 +15,7 @@
 -- limitations under the License.
 --
 
--- Webclient tables (MOD_, CHAT_, NOTIF_) - the webext schema component. They are not part
+-- Webclient tables (MOD_, CHAT_, NOTIF_) - the extensions schema component. They are not part
 -- of the engine schema, so an installation without the CIB seven webclient can skip this script.
 
 -- Chat: soft-delete tombstone (long-polling change detection)
@@ -37,14 +37,14 @@ CREATE TABLE MOD_FORMS_AUD (
     DESCRIPTION VARCHAR(150),
     CREATED TIMESTAMP,
     UPDATED TIMESTAMP,
-    ACTIVE BOOLEAN DEFAULT TRUE,
+    ACTIVE SMALLINT DEFAULT 1,
     FORM_SCHEMA BLOB,
     FORMID VARCHAR(100),
     VERSION INTEGER DEFAULT 1,
-    SCHEMA_MOD BOOLEAN DEFAULT false,
+    SCHEMA_MOD SMALLINT DEFAULT 0,
     UPDATED_BY VARCHAR(100),
     REV BIGINT NOT NULL,
-    REVTYPE TINYINT,
+    REVTYPE SMALLINT,
     CONSTRAINT MOD_PK_FORMS_AUD PRIMARY KEY (ID, REV),
     CONSTRAINT MOD_FK_FORMS_AUD_REV FOREIGN KEY (REV) REFERENCES MOD_REVINFO(REV)
 );
@@ -53,7 +53,7 @@ CREATE TABLE MOD_FORMS_AUD (
 -- Modeler folders. Models of an installation that has none yet move into General, whose id is
 -- written out because the update has to name it and generating one differs on every database.
 CREATE TABLE MOD_FOLDERS (
-    ID VARCHAR(36) PRIMARY KEY,
+    ID VARCHAR(36) NOT NULL PRIMARY KEY,
     PARENT_ID VARCHAR(36),
     PROJECT_ID VARCHAR(36),
     NAME VARCHAR(255) NOT NULL,
@@ -61,15 +61,17 @@ CREATE TABLE MOD_FOLDERS (
     CREATED_BY VARCHAR(100),
     UPDATED TIMESTAMP,
     UPDATED_BY VARCHAR(100),
-    CONSTRAINT MOD_UK_FOLDERS_PARENT_NAME UNIQUE (PARENT_ID, NAME),
     CONSTRAINT MOD_FK_FOLDERS_PARENT FOREIGN KEY (PARENT_ID) REFERENCES MOD_FOLDERS(ID)
 );
+
+-- A unique constraint would need every column NOT NULL, which a top-level folder cannot be
+CREATE UNIQUE INDEX MOD_UK_FOLDERS_PARENT_NAME ON MOD_FOLDERS (PARENT_ID, NAME);
 
 CREATE INDEX MOD_IDX_FOLDERS_PARENT ON MOD_FOLDERS (PARENT_ID);
 CREATE INDEX MOD_IDX_FOLDERS_PROJECT ON MOD_FOLDERS (PROJECT_ID);
 
 INSERT INTO MOD_FOLDERS (ID, PARENT_ID, PROJECT_ID, NAME, CREATED)
-    VALUES ('00000000-0000-0000-0000-0000000000d1', NULL, '00000000-0000-0000-0000-0000000000d1', 'General', CURRENT_TIMESTAMP);
+    VALUES ('00000000-0000-0000-0000-0000000000d1', NULL, '00000000-0000-0000-0000-0000000000d1', 'General', CURRENT TIMESTAMP);
 
 ALTER TABLE MOD_PROCESSES_DIAGRAMS ADD COLUMN FOLDER_ID VARCHAR(36);
 ALTER TABLE MOD_FORMS ADD COLUMN FOLDER_ID VARCHAR(36);
@@ -111,9 +113,9 @@ CREATE TABLE NOTIF_NOTIFICATIONS (
     AUDIENCE     VARCHAR(20)   NOT NULL,
     VALID_FROM   TIMESTAMP NOT NULL,
     VALID_TO     TIMESTAMP,
-    DISMISSIBLE  BOOLEAN DEFAULT TRUE NOT NULL,
+    DISMISSIBLE  SMALLINT DEFAULT 1 NOT NULL,
     LINK         VARCHAR(1000),
-    ACTIVE       BOOLEAN DEFAULT FALSE NOT NULL,
+    ACTIVE       SMALLINT DEFAULT 0 NOT NULL,
     CREATED_AT   TIMESTAMP NOT NULL,
     CREATED_BY   VARCHAR(255)  NOT NULL,
     UPDATED_AT   TIMESTAMP,
@@ -132,7 +134,7 @@ CREATE TABLE NOTIF_GROUPS (
 
 CREATE INDEX NOTIF_IDX_GROUPS_GROUP ON NOTIF_GROUPS (GROUP_ID);
 
--- Version of the webclient schema, see the create.webext script. Deleted before inserting because
+-- Version of the webclient schema, see the create.extensions script. Deleted before inserting because
 -- a 2.2 schema has no such row yet, and this form needs no dialect-specific upsert.
 DELETE FROM ACT_GE_PROPERTY WHERE NAME_ = 'webclient.extensions.version';
 INSERT INTO ACT_GE_PROPERTY VALUES ('webclient.extensions.version', '3.0.0', 1);

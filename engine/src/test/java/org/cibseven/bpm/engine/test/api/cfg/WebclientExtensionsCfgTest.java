@@ -29,7 +29,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * The webclient tables (MOD_, CHAT_, NOTIF_) are the optional webext schema component. These tests
+ * The webclient tables (MOD_, CHAT_, NOTIF_) are the optional extensions schema component. These tests
  * cover the whole chain the configuration endpoint depends on: the switch decides whether the
  * component is created, the create script writes webclient.extensions.version into ACT_GE_PROPERTY, and
  * BootstrapEngineCommand reads it back into the configuration.
@@ -51,20 +51,20 @@ public class WebclientExtensionsCfgTest {
 
   @Test
   public void shouldNotCreateTheWebclientTablesByDefault() {
-    engine = buildEngine("webext-default", configuration -> configuration);
+    engine = buildEngine("extensions-default", configuration -> configuration);
 
-    assertThat(webextTablePresent()).isFalse();
+    assertThat(webclientExtensionsTablePresent()).isFalse();
     assertThat(webclientExtensionsVersion()).isNull();
   }
 
   @Test
   public void shouldCreateTheWebclientTablesWhenSwitchedOn() {
-    engine = buildEngine("webext-on", configuration -> {
+    engine = buildEngine("extensions-on", configuration -> {
       configuration.setWebclientExtensionsEnabled(true);
       return configuration;
     });
 
-    assertThat(webextTablePresent()).isTrue();
+    assertThat(webclientExtensionsTablePresent()).isTrue();
     assertThat(webclientExtensionsVersion())
         .as("the create script writes the release it belongs to")
         .matches("\\d+\\.\\d+\\.\\d+");
@@ -72,12 +72,12 @@ public class WebclientExtensionsCfgTest {
 
   @Test
   public void shouldLeaveTheWebclientTablesOutWhenSwitchedOff() {
-    engine = buildEngine("webext-off", configuration -> {
+    engine = buildEngine("extensions-off", configuration -> {
       configuration.setWebclientExtensionsEnabled(false);
       return configuration;
     });
 
-    assertThat(webextTablePresent()).isFalse();
+    assertThat(webclientExtensionsTablePresent()).isFalse();
     assertThat(webclientExtensionsVersion()).isNull();
   }
 
@@ -90,14 +90,14 @@ public class WebclientExtensionsCfgTest {
     });
 
     assertThat(configuration().isWebclientExtensionsEnabled()).isTrue();
-    assertThat(webextTablePresent()).isTrue();
+    assertThat(webclientExtensionsTablePresent()).isTrue();
     assertThat(webclientExtensionsVersion()).isNotNull();
   }
 
   /** Both names address one field, so neither can report something the other contradicts. */
   @Test
   public void shouldReportBothSwitchNamesConsistently() {
-    engine = buildEngine("webext-aliases", configuration -> {
+    engine = buildEngine("extensions-aliases", configuration -> {
       configuration.setWebclientExtensionsEnabled(true);
       return configuration;
     });
@@ -124,9 +124,9 @@ public class WebclientExtensionsCfgTest {
   }
 
   /** Reads the database rather than the switch, so a misnamed script resource shows up here. */
-  protected boolean webextTablePresent() {
+  protected boolean webclientExtensionsTablePresent() {
     return configuration().getCommandExecutorTxRequired()
-        .execute((CommandContext commandContext) -> commandContext.getDbSqlSession().isWebextTablePresent());
+        .execute((CommandContext commandContext) -> commandContext.getDbSqlSession().isWebclientExtensionsTablePresent());
   }
 
   protected String webclientExtensionsVersion() {

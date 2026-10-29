@@ -442,8 +442,8 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
       if (dbSqlSessionFactory.isDmnEnabled() && !isDmnTablePresent()) {
         missingComponents.add("decision.engine");
       }
-      if (dbSqlSessionFactory.isWebclientExtensionsEnabled() && !isWebextTablePresent()) {
-        missingComponents.add("webext");
+      if (dbSqlSessionFactory.isWebclientExtensionsEnabled() && !isWebclientExtensionsTablePresent()) {
+        missingComponents.add("extensions");
       }
 
       if (!missingComponents.isEmpty()) {
@@ -541,13 +541,13 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
   }
 
   @Override
-  protected void dbSchemaCreateWebext() {
-    executeMandatorySchemaResource("create", "webext");
+  protected void dbSchemaCreateWebclientExtensions() {
+    executeMandatorySchemaResource("create", "extensions");
   }
 
   @Override
-  protected void dbSchemaDropWebext() {
-    executeMandatorySchemaResource("drop", "webext");
+  protected void dbSchemaDropWebclientExtensions() {
+    executeMandatorySchemaResource("drop", "extensions");
   }
 
   public void executeMandatorySchemaResource(String operation, String component) {
@@ -588,7 +588,7 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
   }
 
   @Override
-  public boolean isWebextTablePresent() {
+  public boolean isWebclientExtensionsTablePresent() {
     return isTablePresent("MOD_ELEMENT_TEMPLATES");
   }
 

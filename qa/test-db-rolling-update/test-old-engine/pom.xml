@@ -131,7 +131,7 @@
                   <srcFiles>
                     <!-- finally drop db; the webclient tables first, their version row lives in
                          ACT_GE_PROPERTY which the engine script drops -->
-                    <srcFile>${project.build.directory}/scripts-current/sql/drop/${database.type}_webext_${project.version}.sql</srcFile>
+                    <srcFile>${project.build.directory}/scripts-current/sql/drop/${database.type}_extensions_${project.version}.sql</srcFile>
                     <srcFile>${project.build.directory}/scripts-current/sql/drop/${database.type}_engine_${project.version}.sql</srcFile>
                     <srcFile>${project.build.directory}/scripts-current/sql/drop/${database.type}_identity_${project.version}.sql</srcFile>
                   </srcFiles>

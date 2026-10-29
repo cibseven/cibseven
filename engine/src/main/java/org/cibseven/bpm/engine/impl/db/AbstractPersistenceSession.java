@@ -117,7 +117,7 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
     }
 
     if (processEngineConfiguration.isWebclientExtensionsEnabled()) {
-      dbSchemaCreateWebext();
+      dbSchemaCreateWebclientExtensions();
     }
   }
 
@@ -135,14 +135,14 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
 
   protected abstract void dbSchemaCreateDmnHistory();
 
-  protected abstract void dbSchemaCreateWebext();
+  protected abstract void dbSchemaCreateWebclientExtensions();
 
 
   public void dbSchemaDrop() {
     ProcessEngineConfigurationImpl processEngineConfiguration = Context.getProcessEngineConfiguration();
 
     if (processEngineConfiguration.isWebclientExtensionsEnabled()) {
-      dbSchemaDropWebext();
+      dbSchemaDropWebclientExtensions();
     }
 
     if (processEngineConfiguration.isDmnEnabled()) {
@@ -186,7 +186,7 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
 
   protected abstract void dbSchemaDropDmnHistory();
 
-  protected abstract void dbSchemaDropWebext();
+  protected abstract void dbSchemaDropWebclientExtensions();
 
   public void dbSchemaPrune() {
     ProcessEngineConfigurationImpl processEngineConfiguration = Context.getProcessEngineConfiguration();
@@ -208,8 +208,8 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
     if(isDmnHistoryTablePresent() && (!processEngineConfiguration.isDmnEnabled() || !processEngineConfiguration.isDbHistoryUsed())) {
       dbSchemaDropDmnHistory();
     }
-    if (isWebextTablePresent() && !processEngineConfiguration.isWebclientExtensionsEnabled()) {
-      dbSchemaDropWebext();
+    if (isWebclientExtensionsTablePresent() && !processEngineConfiguration.isWebclientExtensionsEnabled()) {
+      dbSchemaDropWebclientExtensions();
     }
   }
 
@@ -227,7 +227,7 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
 
   public abstract boolean isDmnHistoryTablePresent();
 
-  public abstract boolean isWebextTablePresent();
+  public abstract boolean isWebclientExtensionsTablePresent();
 
   public void dbSchemaUpdate() {
     ProcessEngineConfigurationImpl processEngineConfiguration = Context.getProcessEngineConfiguration();
@@ -260,8 +260,8 @@ public abstract class AbstractPersistenceSession implements PersistenceSession {
       dbSchemaCreateDmnHistory();
     }
 
-    if (!isWebextTablePresent() && processEngineConfiguration.isWebclientExtensionsEnabled()) {
-      dbSchemaCreateWebext();
+    if (!isWebclientExtensionsTablePresent() && processEngineConfiguration.isWebclientExtensionsEnabled()) {
+      dbSchemaCreateWebclientExtensions();
     }
 
   }

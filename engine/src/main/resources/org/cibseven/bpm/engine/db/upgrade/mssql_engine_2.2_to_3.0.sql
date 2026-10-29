@@ -15,7 +15,7 @@
 -- limitations under the License.
 --
 
--- The webclient tables of this release are upgraded by mssql_webext_2.2_to_3.0.sql.
+-- The webclient tables of this release are upgraded by mssql_extensions_2.2_to_3.0.sql.
 
 insert into ACT_GE_SCHEMA_LOG
 values ('1600', CURRENT_TIMESTAMP, '3.0.0');
