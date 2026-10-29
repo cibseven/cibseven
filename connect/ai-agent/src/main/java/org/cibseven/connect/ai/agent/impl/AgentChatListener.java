@@ -421,7 +421,9 @@ class AgentChatListener implements ChatModelListener {
     }
     Map<String, Object> event = newRetrievalEvent();
     event.putAll(payload);
-    appendEvent(event);
+    // A retrieval runs before the model call it grounds and is written with that call's
+    // response. One that failed ends the call there, so it is written at once.
+    appendEvent(event, payload.containsKey("errorClass"));
   }
 
   private static ExecutionEntity currentExecution() {
@@ -536,7 +538,8 @@ class AgentChatListener implements ChatModelListener {
       addToolProvenance(event, tools);
       LOG.debug("Available tools: {}", tools);
     }
-    appendEvent(event);
+    // Written with the response or the error that ends this call (CIB7-2156).
+    appendEvent(event, false);
   }
 
   @Override
@@ -603,7 +606,7 @@ class AgentChatListener implements ChatModelListener {
       event.put("tokens", tokens);
       LOG.debug("Tokens: {}", usage);
     }
-    appendEvent(event);
+    appendEvent(event, true);
   }
 
   @Override
@@ -637,7 +640,7 @@ class AgentChatListener implements ChatModelListener {
         error != null ? error.getMessage() : null,
         toolNames.size(),
         toolNames);
-    appendEvent(event);
+    appendEvent(event, true);
   }
 
   // ── event construction helpers ───────────────────────────────────────────
@@ -814,15 +817,26 @@ class AgentChatListener implements ChatModelListener {
 
   /**
    * Drains any pending tool-side-effect records onto the event before
-   * appending it to the audit list.
+   * appending it to the audit list, and writes the list when {@code persist}
+   * says the event ends a model call.
+   *
+   * <p>The chat-log variable is rewritten whole on every write, and at history
+   * level {@code full} each write is a history row holding the whole log. So
+   * it is written once per model call, with the response or the error that
+   * ends it, rather than once per event (CIB7-2156): the request and any
+   * retrieval before it wait in memory until then. That is also the moment the
+   * last of them was written before, so the variable reaches the database in
+   * the same state at the same point.
    */
-  private void appendEvent(Map<String, Object> event) {
+  private void appendEvent(Map<String, Object> event, boolean persist) {
     if (!pendingToolSideEffects.isEmpty()) {
       event.put("toolSideEffects", new ArrayList<>(pendingToolSideEffects));
       pendingToolSideEffects.clear();
     }
     events.add(event);
-    persistEvents();
+    if (persist) {
+      persistEvents();
+    }
   }
 
   /**

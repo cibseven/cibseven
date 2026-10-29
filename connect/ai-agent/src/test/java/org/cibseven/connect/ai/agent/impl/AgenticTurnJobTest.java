@@ -1039,6 +1039,60 @@ public class AgenticTurnJobTest {
     assertThat(writes).as("one when the scope was entered, one by the step").isEqualTo(2);
   }
 
+  /**
+   * A step writes the conversation once and the chat log once (CIB7-2156). Before, LangChain4j's
+   * chat memory wrote the whole conversation for the task, the model's answer and every tool
+   * result, and the chat log was written for the request and again for the response. At history
+   * level {@code full} each write is a history row holding the whole value.
+   */
+  @Test
+  public void aStepWritesTheConversationAndTheChatLogOnce() {
+    script.add(toolCall("worker", "{}"));
+    script.add(answer("Gestartet."));
+    ProcessInstance pi = startSteps();
+
+    runOneJob();
+    assertThat(writes(pi, AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX))
+        .as("the step that called a tool wrote the conversation once").isEqualTo(1);
+    assertThat(writes(pi, AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX))
+        .as("the step that called a tool wrote the chat log once").isEqualTo(1);
+
+    runOneJob();
+    assertThat(requests.get()).as("the second step answered").isEqualTo(2);
+    assertThat(writes(pi, AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX))
+        .as("one per step").isEqualTo(2);
+    assertThat(writes(pi, AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX))
+        .as("one per step").isEqualTo(2);
+
+    assertThat(historicValue(pi, AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX))
+        .as("the last write carries the whole step: the tool's result and the answer")
+        .contains("worker").contains("Gestartet.");
+    String chatLog = historicValue(pi, AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX);
+    assertThat(chatLog.split("\"type\":\"request\"", -1)).as("both requests").hasSize(3);
+    assertThat(chatLog.split("\"type\":\"response\"", -1)).as("both responses").hasSize(3);
+  }
+
+  /**
+   * The one historic variable whose name starts with {@code prefix}. Matched here rather than with
+   * {@code variableNameLike}, where the {@code _} of the chat-log prefix is a wildcard.
+   */
+  private String historicValue(ProcessInstance pi, String prefix) {
+    List<HistoricVariableInstance> matching = engine.getHistoryService()
+        .createHistoricVariableInstanceQuery().processInstanceId(pi.getId()).list().stream()
+        .filter(variable -> variable.getName().startsWith(prefix))
+        .collect(Collectors.toList());
+    assertThat(matching).as(prefix).hasSize(1);
+    return (String) matching.get(0).getValue();
+  }
+
+  /** History updates of the variables whose name starts with {@code prefix}. */
+  private long writes(ProcessInstance pi, String prefix) {
+    return engine.getHistoryService().createHistoricDetailQuery()
+        .processInstanceId(pi.getId()).variableUpdates().list().stream()
+        .filter(detail -> ((HistoricVariableUpdate) detail).getVariableName().startsWith(prefix))
+        .count();
+  }
+
   private String variableType(String name) {
     VariableInstance variable =
         engine.getRuntimeService().createVariableInstanceQuery().variableName(name).singleResult();

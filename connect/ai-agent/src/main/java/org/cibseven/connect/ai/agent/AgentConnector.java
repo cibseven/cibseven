@@ -87,8 +87,9 @@ import org.cibseven.connect.spi.Connector;
  * }</pre>
  *
  * <p>The chat log is persisted automatically into a process-scoped variable named
- * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId>} and updated on every
- * {@code request}/{@code response}/{@code error} event of the underlying chat model.
+ * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId>} and updated once per model call,
+ * on the {@code response} or {@code error} event that ends it; the {@code request}
+ * event and any {@code retrieval} before it are written with that update.
  * If a variable with that name already exists when the connector runs, its content
  * is deserialised and used as the starting point — so multiple invocations of the
  * same service task within one process instance accumulate into a single timeline.

@@ -22,8 +22,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.cibseven.bpm.engine.ProcessEngine;
+import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
+import org.cibseven.bpm.engine.history.HistoricVariableUpdate;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.Job;
@@ -36,6 +38,7 @@ import org.junit.jupiter.api.Test;
 
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.ChatMessageDeserializer;
 import dev.langchain4j.data.message.ChatMessageSerializer;
 import dev.langchain4j.data.message.UserMessage;
 
@@ -81,6 +84,8 @@ public class ProcessVariableChatMemoryStoreEngineTest {
     // Jobs are executed explicitly in the test, so the async boundary is a
     // deterministic step rather than a race with a background thread.
     configuration.setJobExecutorActivate(false);
+    // Every write of a variable is a history row at this level, which is what a batch saves.
+    configuration.setHistory(ProcessEngineConfiguration.HISTORY_FULL);
     return configuration.buildProcessEngine();
   }
 
@@ -221,6 +226,74 @@ public class ProcessVariableChatMemoryStoreEngineTest {
           + "VARCHAR(4000)-Limit ueberschreitet und in ACT_GE_BYTEARRAY landet. ");
     }
     return sb.toString();
+  }
+
+  private static final String GONE_MEMORY_ID = "engine-mem-gone";
+
+  /** Whether the variable existed while the batch was still open. */
+  static volatile Boolean writtenBeforeClose;
+
+  /**
+   * Writes the conversation twice and a second one that it then deletes, all within one batch,
+   * as a connector invocation does (CIB7-2156).
+   */
+  public static class BatchingDelegate implements JavaDelegate {
+    @Override
+    public void execute(DelegateExecution execution) {
+      ProcessVariableChatMemoryStore store = new ProcessVariableChatMemoryStore();
+      try (ProcessVariableChatMemoryStore.Batch batch = ProcessVariableChatMemoryStore.Batch.open()) {
+        store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("My name is Alice.")));
+        store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("My name is Alice."),
+            AiMessage.from("Hello Alice.")));
+        store.updateMessages(GONE_MEMORY_ID, Arrays.asList(UserMessage.from("Forget me.")));
+        store.deleteMessages(GONE_MEMORY_ID);
+        writtenBeforeClose = execution.hasVariable(VARIABLE_NAME);
+        readBack = store.getMessages(MEMORY_ID);
+      }
+    }
+  }
+
+  /**
+   * Within a batch the store reads its own latest version and writes each conversation once, when
+   * the batch closes: one history row, holding the last version. A conversation deleted within the
+   * batch is not brought back by the close.
+   */
+  @Test
+  public void aBatchWritesEachConversationOnceWhenItCloses() {
+    writtenBeforeClose = null;
+    ENGINE.getRepositoryService().createDeployment()
+        .addString("chatMemoryBatchTest.bpmn20.xml", ""
+            + "<?xml version='1.0' encoding='UTF-8'?>"
+            + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
+            + "             xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
+            + "             targetNamespace='http://cibseven.org/test'>"
+            + "  <process id='chatMemoryBatchTest' isExecutable='true'"
+            + "           camunda:historyTimeToLive='1'>"
+            + "    <startEvent id='start'/>"
+            + "    <sequenceFlow id='f1' sourceRef='start' targetRef='write'/>"
+            + "    <serviceTask id='write'"
+            + "                 camunda:class='" + BatchingDelegate.class.getName() + "'/>"
+            + "    <sequenceFlow id='f2' sourceRef='write' targetRef='wait'/>"
+            + "    <userTask id='wait'/>"
+            + "  </process>"
+            + "</definitions>")
+        .deploy();
+
+    ProcessInstance instance =
+        ENGINE.getRuntimeService().startProcessInstanceByKey("chatMemoryBatchTest");
+
+    assertThat(writtenBeforeClose).as("held back while the batch was open").isFalse();
+    assertThat(readBack).as("read its own latest version").hasSize(2);
+    assertThat(ENGINE.getHistoryService().createHistoricDetailQuery()
+        .processInstanceId(instance.getId()).variableUpdates().list())
+        .extracting(detail -> ((HistoricVariableUpdate) detail).getVariableName())
+        .as("one write of the conversation, none of the deleted one")
+        .containsExactly(VARIABLE_NAME);
+    Object stored = ENGINE.getRuntimeService().getVariable(instance.getId(), VARIABLE_NAME);
+    assertThat(ChatMessageDeserializer.messagesFromJson(stored.toString()))
+        .as("the last version").hasSize(2);
+    assertThat(ENGINE.getRuntimeService().getVariable(instance.getId(),
+        AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX + GONE_MEMORY_ID)).isNull();
   }
 
   /** Guards against the serializer silently changing shape for large payloads. */
