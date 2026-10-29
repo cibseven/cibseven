@@ -130,6 +130,16 @@ public final class AgentConnectorConstants {
    */
   public static final String AGENT_CONNECTOR_LOG_PREFIX = "cibseven-connect-ai-agent_";
 
+  /**
+   * Separates the activity id from the chunk number in a chat-log variable:
+   * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "#" + <eventSeq>}, one
+   * variable per model call holding its events, written once (CIB7-2156). A
+   * BPMN id cannot contain {@code #}, so the activity id is everything before
+   * it. The variable without a suffix is a log from before chunking, rewritten
+   * whole; a reader shows it first, then the chunks in {@code eventSeq} order.
+   */
+  public static final String AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR = "#";
+
   // ── Chat memory defaults ──────────────────────────────────────────────────
 
   /**

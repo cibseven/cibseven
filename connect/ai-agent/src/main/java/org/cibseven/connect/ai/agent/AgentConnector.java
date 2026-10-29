@@ -86,13 +86,14 @@ import org.cibseven.connect.spi.Connector;
  * </camunda:connector>
  * }</pre>
  *
- * <p>The chat log is persisted automatically into a process-scoped variable named
- * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId>} and updated once per model call,
- * on the {@code response} or {@code error} event that ends it; the {@code request}
- * event and any {@code retrieval} before it are written with that update.
- * If a variable with that name already exists when the connector runs, its content
- * is deserialised and used as the starting point — so multiple invocations of the
- * same service task within one process instance accumulate into a single timeline.
+ * <p>The chat log is persisted automatically into process-scoped variables named
+ * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "#" + <eventSeq>}, one per
+ * model call, written once on the {@code response} or {@code error} event that ends
+ * it; the {@code request} event and any {@code retrieval} before it are part of that
+ * chunk. Numbering continues across invocations of the same service task, so they
+ * form a single timeline when the chunks are read in {@code eventSeq} order, after a
+ * variable {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId>} written before chunking
+ * (see {@link AgentConnectorConstants#AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR}).
  * The chat log is not exposed as an output parameter because its serialised form
  * regularly exceeds the {@code VARCHAR(4000)} limit of Camunda's TEXT_ column.
  */

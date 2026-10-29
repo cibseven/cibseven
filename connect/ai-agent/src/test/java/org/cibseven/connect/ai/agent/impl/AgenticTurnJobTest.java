@@ -1067,22 +1067,35 @@ public class AgenticTurnJobTest {
     assertThat(historicValue(pi, AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX))
         .as("the last write carries the whole step: the tool's result and the answer")
         .contains("worker").contains("Gestartet.");
-    String chatLog = historicValue(pi, AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX);
-    assertThat(chatLog.split("\"type\":\"request\"", -1)).as("both requests").hasSize(3);
-    assertThat(chatLog.split("\"type\":\"response\"", -1)).as("both responses").hasSize(3);
+    // The chat log is one chunk per model call, each written once, named after its first event.
+    List<HistoricVariableInstance> chunks =
+        historicVariables(pi, AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX);
+    assertThat(chunks).extracting(HistoricVariableInstance::getName).containsExactlyInAnyOrder(
+        AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "adHoc#0",
+        AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "adHoc#2");
+    for (HistoricVariableInstance chunk : chunks) {
+      String events = (String) chunk.getValue();
+      assertThat(events.split("\"type\":\"request\"", -1)).as(chunk.getName()).hasSize(2);
+      assertThat(events.split("\"type\":\"response\"", -1)).as(chunk.getName()).hasSize(2);
+    }
   }
 
   /**
-   * The one historic variable whose name starts with {@code prefix}. Matched here rather than with
-   * {@code variableNameLike}, where the {@code _} of the chat-log prefix is a wildcard.
+   * The one historic variable whose name starts with {@code prefix}, its value. Matched here
+   * rather than with {@code variableNameLike}, where the {@code _} of the chat-log prefix is a
+   * wildcard.
    */
   private String historicValue(ProcessInstance pi, String prefix) {
-    List<HistoricVariableInstance> matching = engine.getHistoryService()
-        .createHistoricVariableInstanceQuery().processInstanceId(pi.getId()).list().stream()
-        .filter(variable -> variable.getName().startsWith(prefix))
-        .collect(Collectors.toList());
+    List<HistoricVariableInstance> matching = historicVariables(pi, prefix);
     assertThat(matching).as(prefix).hasSize(1);
     return (String) matching.get(0).getValue();
+  }
+
+  private List<HistoricVariableInstance> historicVariables(ProcessInstance pi, String prefix) {
+    return engine.getHistoryService().createHistoricVariableInstanceQuery()
+        .processInstanceId(pi.getId()).list().stream()
+        .filter(variable -> variable.getName().startsWith(prefix))
+        .collect(Collectors.toList());
   }
 
   /** History updates of the variables whose name starts with {@code prefix}. */

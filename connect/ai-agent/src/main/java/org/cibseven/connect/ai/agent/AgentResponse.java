@@ -38,9 +38,9 @@ import org.cibseven.connect.spi.ConnectorResponse;
  *       conversation on a subsequent invocation, e.g. after a human task</li>
  * </ul>
  *
- * <p>The chat log is not returned via the response: the connector writes/updates a
- * process variable named {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId>} directly
- * during the invocation.
+ * <p>The chat log is not returned via the response: the connector writes it directly
+ * during the invocation, one process variable per model call named
+ * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "#" + <eventSeq>}.
  */
 public interface AgentResponse extends ConnectorResponse {
 

@@ -78,13 +78,15 @@ import org.cibseven.connect.ai.agent.AgentConnectorConstants;
  * {@link ProcessStarterTool} (resulting {@code processInstanceId} +
  * executing principal).
  *
- * <p>The chat-log variable name is derived automatically from the current
- * activity: {@code AGENT_CONNECTOR_LOG_PREFIX + activityId}. When a variable
- * with that name already exists at construction time, its content is decoded
- * so subsequent events accumulate on top instead of overwriting earlier
- * history. When the listener is invoked without a {@link BpmnExecutionContext}
- * (e.g. unit tests), it just collects events in memory and never touches the
- * engine.
+ * <p>The chat-log name is derived automatically from the current activity:
+ * {@code AGENT_CONNECTOR_LOG_PREFIX + activityId}. The log is stored in chunks,
+ * one variable per model call named {@code <name>#<eventSeq of its first
+ * event>}, each written once (CIB7-2156). A reader puts the activity's log
+ * together from its chunks in {@code eventSeq} order, after the single variable
+ * {@code <name>} that versions before chunking rewrote whole. Numbering
+ * continues after whatever an earlier invocation of the activity wrote. When
+ * the listener is invoked without a {@link BpmnExecutionContext} (e.g. unit
+ * tests), it just collects events in memory and never touches the engine.
  *
  * <h3>Content redaction</h3>
  * Setting the {@value #REDACT_CONTENT_PROPERTY} system property (or the
@@ -241,7 +243,12 @@ class AgentChatListener implements ChatModelListener {
   private final String variableName;
   private final boolean chatLogVariableEnabled;
   private final List<Map<String, Object>> events = new ArrayList<>();
+  /** How many of {@link #events} are written already. */
+  private int persisted = 0;
   private boolean flagWritten = false;
+
+  private static final String CHUNK_SEPARATOR =
+      AgentConnectorConstants.AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR;
 
   // ── last-response state (for Art. 50(2) AI-output marker) ────────────────
   private volatile String lastProvider;
@@ -326,7 +333,7 @@ class AgentChatListener implements ChatModelListener {
         ? AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + activityId
         : null;
     if (this.variableName != null && this.chatLogVariableEnabled) {
-      loadExistingEvents();
+      continueNumbering();
     }
     // EU AI Act Art. 12(3) audit trail requires caller identity. Silent omission
     // is a compliance smell, so when the listener constructs inside a BPMN
@@ -342,7 +349,7 @@ class AgentChatListener implements ChatModelListener {
     }
   }
 
-  /** Package-private view of the captured events, for tests. */
+  /** Package-private view of the events this listener captured, for tests. */
   List<Map<String, Object>> events() {
     return events;
   }
@@ -448,35 +455,65 @@ class AgentChatListener implements ChatModelListener {
     }
   }
 
-  private void loadExistingEvents() {
+  /**
+   * Continues the numbering of the activity's chat log, so {@code eventSeq} is
+   * monotonic across invocations and every chunk gets a name of its own. Reads
+   * only the newest chunk, or, before the first one, the single variable an
+   * earlier version wrote.
+   */
+  private void continueNumbering() {
     ExecutionEntity execution = currentExecution();
     if (execution == null) {
       return;
     }
-    Object existing = execution.getVariable(variableName);
-    if (existing == null) {
-      return;
+    String chunkPrefix = variableName + CHUNK_SEPARATOR;
+    int lastChunk = -1;
+    for (String name : execution.getVariableNames()) {
+      if (name.startsWith(chunkPrefix)) {
+        try {
+          lastChunk = Math.max(lastChunk, Integer.parseInt(name.substring(chunkPrefix.length())));
+        } catch (NumberFormatException e) {
+          // Not a chunk of this log; whatever it is, it does not number it.
+        }
+      }
     }
-    String json = existing.toString();
-    if (json.isEmpty()) {
-      return;
-    }
-    try {
-      List<Map<String, Object>> previous = MAPPER.readValue(json, EVENT_LIST_TYPE);
-      events.addAll(previous);
-      // Continue numbering after the previous tail so eventSeq is monotonic
-      // across resumed runs.
-      eventSeq.set(previous.size());
-    } catch (JsonProcessingException e) {
-      LOG.warn("Failed to decode previous chat log from variable '{}'; starting with an empty log.",
-          variableName, e);
+    if (lastChunk >= 0) {
+      // After an undecodable chunk at least one past it, so no later name collides with it.
+      eventSeq.set(lastChunk + Math.max(1, decodedSize(execution, chunkPrefix + lastChunk)));
+    } else {
+      eventSeq.set(decodedSize(execution, variableName));
     }
   }
 
+  /** The number of events the variable {@code name} holds; 0 when absent or undecodable. */
+  private static int decodedSize(ExecutionEntity execution, String name) {
+    Object existing = execution.getVariable(name);
+    if (existing == null || existing.toString().isEmpty()) {
+      return 0;
+    }
+    try {
+      return MAPPER.readValue(existing.toString(), EVENT_LIST_TYPE).size();
+    } catch (JsonProcessingException e) {
+      LOG.warn("Failed to decode the previous chat log in variable '{}'; numbering events as if"
+          + " it were empty.", name, e);
+      return 0;
+    }
+  }
+
+  /**
+   * Writes the events since the last write as a chunk of their own, named
+   * after the first one's {@code eventSeq} (CIB7-2156). Each chunk is written
+   * once and never again, so what the chat log stores, and its history at level
+   * {@code full}, grows with the events rather than with their square, as it
+   * did while one variable holding the whole log was rewritten on every write.
+   */
   private void persistEvents() {
     if (variableName == null || !chatLogVariableEnabled) {
       // No persistence target → also no connector-flag write. The flag points
       // at the chat-log timeline and is meaningless without it.
+      return;
+    }
+    if (persisted == events.size()) {
       return;
     }
     ExecutionEntity execution = currentExecution();
@@ -490,18 +527,25 @@ class AgentChatListener implements ChatModelListener {
       execution.setVariable(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
       flagWritten = true;
     }
+    List<Map<String, Object>> chunk = new ArrayList<>(events.subList(persisted, events.size()));
     String chatLog;
     try {
-      chatLog = MAPPER.writeValueAsString(events);
+      chatLog = MAPPER.writeValueAsString(chunk);
     } catch (JsonProcessingException e) {
       LOG.error("Failed to serialise chatLog events to JSON; skipping update of '{}'.",
           variableName, e);
       return;
     }
+    persisted = events.size();
     // Default Java serialization is always registered (unlike Spin/Jackson) and stores
     // in ACT_GE_BYTEARRAY, so it bypasses the VARCHAR(4000) limit.
     Object value = Variables.objectValue(chatLog).create();
-    execution.setVariable(variableName, value);
+    execution.setVariable(chunkName(chunk.get(0).get("eventSeq")), value);
+  }
+
+  /** The variable name of the chunk whose first event has {@code firstSeq}. */
+  String chunkName(Object firstSeq) {
+    return variableName + CHUNK_SEPARATOR + firstSeq;
   }
 
   // ── ChatModelListener callbacks ──────────────────────────────────────────
@@ -820,13 +864,11 @@ class AgentChatListener implements ChatModelListener {
    * appending it to the audit list, and writes the list when {@code persist}
    * says the event ends a model call.
    *
-   * <p>The chat-log variable is rewritten whole on every write, and at history
-   * level {@code full} each write is a history row holding the whole log. So
-   * it is written once per model call, with the response or the error that
-   * ends it, rather than once per event (CIB7-2156): the request and any
+   * <p>Written once per model call, as a chunk with the response or the error
+   * that ends it, rather than once per event (CIB7-2156): the request and any
    * retrieval before it wait in memory until then. That is also the moment the
-   * last of them was written before, so the variable reaches the database in
-   * the same state at the same point.
+   * last of them was written before, so the events reach the database at the
+   * same point.
    */
   private void appendEvent(Map<String, Object> event, boolean persist) {
     if (!pendingToolSideEffects.isEmpty()) {
