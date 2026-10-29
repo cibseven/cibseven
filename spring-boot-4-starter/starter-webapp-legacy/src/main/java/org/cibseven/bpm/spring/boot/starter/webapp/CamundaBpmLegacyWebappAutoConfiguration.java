@@ -23,7 +23,9 @@ import org.cibseven.bpm.spring.boot.starter.webapp.filter.LazyInitRegistration;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.ResourceLoaderDependingFilter;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnResource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,6 +40,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Configuration
 @ConditionalOnProperty(prefix = WebappProperty.PREFIX, name = "enabled", matchIfMissing = true)
+// the classes and the UI files of the legacy webapps come from separate artifacts
+@ConditionalOnClass(name = "org.cibseven.bpm.cockpit.impl.web.bootstrap.CockpitContainerBootstrap")
+@ConditionalOnResource(resources = "classpath:/META-INF/resources/webjars/camunda/securityFilterRules.json")
 @ConditionalOnBean(CamundaBpmProperties.class)
 @ConditionalOnWebApplication
 @AutoConfigureAfter(CamundaBpmWebappAutoConfiguration.class)

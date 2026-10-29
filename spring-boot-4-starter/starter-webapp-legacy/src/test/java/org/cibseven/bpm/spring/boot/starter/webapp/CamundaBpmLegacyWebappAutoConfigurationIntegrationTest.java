@@ -24,7 +24,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
 import org.springframework.boot.jdbc.autoconfigure.DataSourceTransactionManagerAutoConfiguration;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
+import org.springframework.core.io.ClassPathResource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -63,6 +65,32 @@ public class CamundaBpmLegacyWebappAutoConfigurationIntegrationTest {
       assertThat(context).doesNotHaveBean(CamundaBpmWebappAutoConfiguration.class);
       assertThat(context).doesNotHaveBean(CamundaBpmWebappInitializer.class);
     });
+  }
+
+  @Test
+  public void test_legacyClassesAreAbsent_shouldNotInitLegacyWebapps() {
+    contextRunner
+      .withClassLoader(new FilteredClassLoader("org.cibseven.bpm.cockpit"))
+      .run(context -> {
+        assertThat(context).hasNotFailed();
+        assertThat(context).hasSingleBean(CamundaBpmWebappAutoConfiguration.class);
+        assertThat(context).doesNotHaveBean(CamundaBpmWebappInitializer.class);
+        assertThat(context).doesNotHaveBean("resourceLoaderDependingInitHook");
+        assertThat(context).doesNotHaveBean(FaviconResourceResolver.class);
+      });
+  }
+
+  @Test
+  public void test_legacyResourcesAreAbsent_shouldNotInitLegacyWebapps() {
+    contextRunner
+      .withClassLoader(new FilteredClassLoader(new ClassPathResource("META-INF/resources/webjars/camunda/securityFilterRules.json")))
+      .run(context -> {
+        assertThat(context).hasNotFailed();
+        assertThat(context).hasSingleBean(CamundaBpmWebappAutoConfiguration.class);
+        assertThat(context).doesNotHaveBean(CamundaBpmWebappInitializer.class);
+        assertThat(context).doesNotHaveBean("resourceLoaderDependingInitHook");
+        assertThat(context).doesNotHaveBean(FaviconResourceResolver.class);
+      });
   }
 
   @Test
