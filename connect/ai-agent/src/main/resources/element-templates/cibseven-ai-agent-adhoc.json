@@ -43,6 +43,22 @@
   ],
   "properties": [
     {
+      "label": "Process variables",
+      "type": "String",
+      "group": "input",
+      "description": "Process variables the agent sees, by name, separated by commas, e.g. 'customer, priority'. On every step their current values go to the agent as data, with the state of the scope, read as ${name} in 'Message' is. A text longer than 2000 characters is cut, and the variable keeps all of it; a date, an object or a file is named by its type, not shown. All values together take at most 20000 characters; those beyond are left out and named. A variable that is not set is reported as not set and fails nothing. Only the variables named here are sent this way. Leave empty for none.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.processVariables"
+      },
+      "constraints": {
+        "pattern": {
+          "value": "^\\s*$|^[^,]*[^,\\s][^,]*(,[^,]*[^,\\s][^,]*)*$",
+          "message": "Names separated by single commas, none of them empty."
+        }
+      }
+    },
+    {
       "label": "Max model calls per turn",
       "type": "String",
       "group": "limits",

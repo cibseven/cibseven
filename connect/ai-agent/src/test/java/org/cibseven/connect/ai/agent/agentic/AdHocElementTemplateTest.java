@@ -81,7 +81,32 @@ public class AdHocElementTemplateTest {
         "camunda:property:" + AgenticAdHocParseListener.MAX_MODEL_CALLS,
         "camunda:property:" + AgenticAdHocParseListener.MAX_TURNS_TOTAL,
         "camunda:property:" + AgenticAdHocParseListener.CONVERSATION,
-        "camunda:property:" + AgenticAdHocParseListener.ON_LIMIT);
+        "camunda:property:" + AgenticAdHocParseListener.ON_LIMIT,
+        "camunda:property:" + AgenticAdHocParseListener.PROCESS_VARIABLES);
+  }
+
+  /**
+   * The process variables the agent sees (CIB7-2179): a property of the scope, so no child can
+   * widen what its agent is sent, in the group with the agent's task. The modeler refuses an empty
+   * name before the deployment would.
+   */
+  @Test
+  public void theProcessVariablesAreAnInputThatRefusesAnEmptyName() throws IOException {
+    JsonNode field = fields(read(AD_HOC).get("properties"))
+        .get("camunda:property:" + AgenticAdHocParseListener.PROCESS_VARIABLES);
+
+    assertThat(text(field, "group")).isEqualTo("input");
+    assertThat(text(field, "type")).isEqualTo("String");
+    assertThat(field.has("value")).as("none by default").isFalse();
+    Pattern pattern = Pattern.compile(field.get("constraints").get("pattern").get("value").asText());
+    for (String accepted : java.util.Arrays.asList("", " ", "kunde", "kunde, prioritaet",
+        " kunde ,prioritaet ")) {
+      assertThat(pattern.matcher(accepted).matches()).as("'" + accepted + "'").isTrue();
+    }
+    for (String refused : java.util.Arrays.asList("kunde,,prioritaet", "kunde,", ",kunde",
+        "kunde, , prioritaet")) {
+      assertThat(pattern.matcher(refused).matches()).as("'" + refused + "'").isFalse();
+    }
   }
 
   @Test
