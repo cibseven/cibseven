@@ -115,6 +115,9 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
   public static final PropertyKey<List<String>> DECLARED_PROCESS_VARIABLES =
       new PropertyKey<List<String>>("agentProcessVariables");
 
+  /** The most characters a variable's name has: the engine's column for it. */
+  protected static final int MAX_VARIABLE_NAME = 255;
+
   /**
    * How the variables the agent keeps its own state in begin: its state, its results, its
    * conversation, its chat log and its memory. None of them goes to the model as process data.
@@ -238,7 +241,8 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     }
     List<String> processVariables = declaredProcessVariables(properties);
     if (!processVariables.isEmpty()) {
-      activity.getProperties().set(DECLARED_PROCESS_VARIABLES, processVariables);
+      activity.getProperties().set(DECLARED_PROCESS_VARIABLES,
+          Collections.unmodifiableList(processVariables));
     }
 
     // followUp pulled out before the mapping is stored: unlike every other input parameter, it
@@ -614,21 +618,24 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
   /**
    * {@code cibseven.agentic.processVariables} names each variable once, and none of the agent's
    * own state (CIB7-2179). An empty name is a stray comma, and a name declared twice a slip of the
-   * pen; either would leave a modeller wondering what the agent sees. The agent's own state is
-   * kept from the model on every path, and a declaration would hand it out.
+   * pen; either would leave a modeller wondering what the agent sees. A name with {@code $},
+   * braces or a semicolon, or one longer than a variable's name can be, is an expression or a list
+   * written by habit and would never match. The agent's own state is kept from the model on every
+   * path, and a declaration would hand it out.
    */
   protected void refuseABadDeclarationOfProcessVariables(Element scopeElement,
       ActivityImpl activity, Map<String, String> properties) {
     String declared = properties.get(PROCESS_VARIABLES);
-    if (declared == null || declared.trim().isEmpty()) {
+    if (declared == null || strip(declared).isEmpty()) {
       return;
     }
     boolean empty = false;
     List<String> names = new ArrayList<String>();
     List<String> twice = new ArrayList<String>();
     List<String> agentState = new ArrayList<String>();
+    List<String> noVariable = new ArrayList<String>();
     for (String raw : declared.split(",", -1)) {
-      String name = raw.trim();
+      String name = strip(raw);
       if (name.isEmpty()) {
         empty = true;
       } else if (names.contains(name)) {
@@ -639,6 +646,9 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
         names.add(name);
         if (isAgentState(name)) {
           agentState.add(name);
+        }
+        if (name.length() > MAX_VARIABLE_NAME || name.matches(".*[${};].*")) {
+          noVariable.add(name);
         }
       }
     }
@@ -655,6 +665,11 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
           + " which never goes to the model; a name that begins with "
           + String.join(" or ", AGENT_STATE_PREFIXES) + " is the agent's");
     }
+    if (!noVariable.isEmpty()) {
+      problems.add(String.join(", ", noVariable) + ", which no variable is called; name each variable"
+          + " itself, without $, braces or a semicolon, in at most " + MAX_VARIABLE_NAME
+          + " characters");
+    }
     if (!problems.isEmpty()) {
       throw new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': "
           + PROCESS_VARIABLES + " is '" + declared + "', and declares "
@@ -670,12 +685,33 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
       return names;
     }
     for (String raw : declared.split(",")) {
-      String name = raw.trim();
+      String name = strip(raw);
       if (!name.isEmpty() && !names.contains(name)) {
         names.add(name);
       }
     }
     return names;
+  }
+
+  /**
+   * {@code text} without the white space around it, Unicode's included: a non-breaking space pasted
+   * from a document or the ideographic space an input method types after a comma, which
+   * {@link String#trim()} keeps, would otherwise be part of a name that then never matches.
+   */
+  protected static String strip(String text) {
+    int start = 0;
+    int end = text.length();
+    while (start < end && isBlank(text.charAt(start))) {
+      start++;
+    }
+    while (end > start && isBlank(text.charAt(end - 1))) {
+      end--;
+    }
+    return text.substring(start, end);
+  }
+
+  protected static boolean isBlank(char c) {
+    return Character.isWhitespace(c) || Character.isSpaceChar(c);
   }
 
   /** Whether {@code name} is one of the variables the agent keeps its own state in. */

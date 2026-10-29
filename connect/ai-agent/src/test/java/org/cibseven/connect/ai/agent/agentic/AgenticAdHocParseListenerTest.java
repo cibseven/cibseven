@@ -2224,6 +2224,39 @@ public class AgenticAdHocParseListenerTest {
         .hasMessageContaining("adHocAgentState, where the agent keeps its own state");
   }
 
+  /** An expression or a list written by habit would never match, and only the model would know. */
+  @Test
+  public void refusesANameNoVariableIsCalled() {
+    String longName = new String(new char[256]).replace('\0', 'a');
+    String model = connectorScope("<userTask id='worker' />",
+        processVariables("${kunde}, kunde; prioritaet, " + longName + ", rabatt"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("declares ${kunde}, kunde; prioritaet, " + longName
+            + ", which no variable is called; name each variable itself, without $, braces or a"
+            + " semicolon, in at most 255 characters.");
+  }
+
+  /** A non-breaking or ideographic space after a comma belongs to no name. */
+  @Test
+  public void aNameIsTakenWithoutTheUnicodeSpacesAroundIt() {
+    deploy(connectorScope("<userTask id='worker' />",
+        processVariables("kunde, prioritaet　, rabatt"), ""));
+
+    assertThat(declaredProcessVariablesOf("adHoc")).containsExactly("kunde", "prioritaet", "rabatt");
+  }
+
+  /** The list lives on the cached definition, which every instance shares. */
+  @Test
+  public void theDeclaredNamesCannotBeChangedThroughTheDefinition() {
+    deploy(connectorScope("<userTask id='worker' />", processVariables("kunde"), ""));
+
+    List<String> declared = declaredProcessVariablesOf("adHoc");
+    assertThatThrownBy(() -> declared.add("geheim"))
+        .isInstanceOf(UnsupportedOperationException.class);
+  }
+
   @Test
   public void processVariablesWithoutTheConnectorMarkTheScopeAsAnAgent() {
     String model = process("<adHocSubProcess id='adHoc'><extensionElements>"
