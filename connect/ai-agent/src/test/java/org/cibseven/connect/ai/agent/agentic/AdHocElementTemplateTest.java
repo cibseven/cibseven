@@ -98,14 +98,19 @@ public class AdHocElementTemplateTest {
     assertThat(text(field, "group")).isEqualTo("input");
     assertThat(text(field, "type")).isEqualTo("String");
     assertThat(field.has("value")).as("none by default").isFalse();
-    Pattern pattern = Pattern.compile(field.get("constraints").get("pattern").get("value").asText());
+    // As the modeler applies it: JavaScript's RegExp.test, which finds a match anywhere and whose \s
+    // is Unicode. Each name can be matched one way only, so a value refused while it is typed, after a
+    // comma, costs linear time there; an ambiguous form such as [^,]*X[^,]* is exponential in the
+    // number of names and freezes the field.
+    Pattern pattern = Pattern.compile(field.get("constraints").get("pattern").get("value").asText(),
+        Pattern.UNICODE_CHARACTER_CLASS);
     for (String accepted : java.util.Arrays.asList("", " ", "kunde", "kunde, prioritaet",
-        " kunde ,prioritaet ")) {
-      assertThat(pattern.matcher(accepted).matches()).as("'" + accepted + "'").isTrue();
+        " kunde ,prioritaet ", "kunde name, prioritaet", "kunde, prioritaet")) {
+      assertThat(pattern.matcher(accepted).find()).as("'" + accepted + "'").isTrue();
     }
     for (String refused : java.util.Arrays.asList("kunde,,prioritaet", "kunde,", ",kunde",
-        "kunde, , prioritaet")) {
-      assertThat(pattern.matcher(refused).matches()).as("'" + refused + "'").isFalse();
+        "kunde, , prioritaet", "kunde, ")) {
+      assertThat(pattern.matcher(refused).find()).as("'" + refused + "'").isFalse();
     }
   }
 
