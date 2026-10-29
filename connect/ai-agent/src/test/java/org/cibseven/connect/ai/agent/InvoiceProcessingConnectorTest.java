@@ -181,7 +181,7 @@ public class InvoiceProcessingConnectorTest {
    * Verifies that the connector response contains the {@code output} parameter referenced
    * in the {@code camunda:outputParameter} section of {@code invoice-processing.bpmn}.
    * The chat log is no longer exposed via the response — it is written directly to the
-   * process variable named {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId>}.
+   * process variables named {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "#" + <eventSeq>}.
    */
   @Test
   public void shouldExposeOutputParamKeysMatchingBpmnOutputMapping() {
