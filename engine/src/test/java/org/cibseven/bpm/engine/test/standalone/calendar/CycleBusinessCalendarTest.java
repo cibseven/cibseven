@@ -259,6 +259,13 @@ public class CycleBusinessCalendarTest {
       assertThat(sdf.format(cbc.resolveDuedate("0 0/60,30 * * * ?", startDate))).isEqualTo("2010 02 11 17:30");
       // day names: "0 0 0 ? * MON/8" -> "0 0 0 ? * MON"
       assertThat(sdf.format(cbc.resolveDuedate("0 0 0 ? * MON/8", startDate))).isEqualTo("2010 02 15 00:00");
+      // a range of names keeps the whole range, only the step is removed
+      // "0 0 0 ? * MON-FRI/8" -> "0 0 0 ? * MON-FRI" (every weekday, not Mondays only)
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 0 ? * MON-FRI/8", startDate))).isEqualTo("2010 02 12 00:00");
+      // "0 0 0 ? * MON-WED/8" -> "0 0 0 ? * MON-WED"
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 0 ? * MON-WED/8", startDate))).isEqualTo("2010 02 15 00:00");
+      // "0 0 0 1 JAN-MAR/13 ?" -> "0 0 0 1 JAN-MAR ?"
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1 JAN-MAR/13 ?", startDate))).isEqualTo("2010 03 01 00:00");
       // year field: "0 0 0 1 1 ? 2027/3000" -> "0 0 0 1 1 ? 2027"
       assertThat(sdf.format(cbc.resolveDuedate("0 0 0 1 1 ? 2027/3000", startDate))).isEqualTo("2027 01 01 00:00");
       // tabs and repeated spaces between the fields

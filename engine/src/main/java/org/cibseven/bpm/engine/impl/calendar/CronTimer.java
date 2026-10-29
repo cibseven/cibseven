@@ -144,7 +144,9 @@ public class CronTimer {
       if (matcher.matches() && matcher.group(1).charAt(0) != '*' && isOutOfRange(matcher.group(2), maxValue)) {
         final String start = matcher.group(1);
         final int rangeSeparator = start.indexOf('-');
-        elements[i] = rangeSeparator > 0 ? start.substring(0, rangeSeparator) : start;
+        // Quartz 1.8.4 never read a step after a day or month name, so 'MON-FRI/8' meant the whole range
+        final boolean hasName = start.chars().anyMatch(Character::isLetter);
+        elements[i] = rangeSeparator > 0 && !hasName ? start.substring(0, rangeSeparator) : start;
       }
     }
     return String.join(",", elements);
