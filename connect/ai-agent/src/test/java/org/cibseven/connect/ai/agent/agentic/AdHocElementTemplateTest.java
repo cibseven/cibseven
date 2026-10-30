@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.Test;
@@ -138,11 +139,47 @@ public class AdHocElementTemplateTest {
     Pattern internal = Pattern.compile("CIB7-\\d+|\\bMVP\\b");
     List<String> naming = new ArrayList<String>();
     for (JsonNode node : all) {
-      if (internal.matcher(text(node, "description")).find()) {
+      // Everything the modeler shows of a field: its label, its text and its dropdown's choices.
+      StringBuilder shown = new StringBuilder(text(node, "name")).append('\n')
+          .append(text(node, "label")).append('\n').append(text(node, "description"));
+      for (JsonNode choice : node.path("choices")) {
+        shown.append('\n').append(text(choice, "name"));
+      }
+      if (internal.matcher(shown).find()) {
         naming.add(node.has("label") ? text(node, "label") : text(node, "name"));
       }
     }
     assertThat(naming).as("texts naming a ticket or a release phase").isEmpty();
+  }
+
+  /**
+   * A dropdown's text names its choices as the modeler shows them, not by a word of its own: the
+   * reader looks for the quoted name in the list.
+   */
+  @Test
+  public void aDropdownsTextQuotesOnlyTheChoicesItShows() throws IOException {
+    JsonNode template = read(AD_HOC);
+    List<JsonNode> all = new ArrayList<JsonNode>();
+    template.get("properties").forEach(all::add);
+    template.get("scopes").get(0).get("properties").forEach(all::add);
+
+    List<String> unknown = new ArrayList<String>();
+    for (JsonNode property : all) {
+      if (!"Dropdown".equals(text(property, "type"))) {
+        continue;
+      }
+      Set<String> shown = new HashSet<String>();
+      for (JsonNode choice : property.path("choices")) {
+        shown.add(text(choice, "name"));
+      }
+      Matcher quoted = Pattern.compile("'([^']+)'").matcher(text(property, "description"));
+      while (quoted.find()) {
+        if (!shown.contains(quoted.group(1))) {
+          unknown.add(text(property, "label") + " -> '" + quoted.group(1) + "'");
+        }
+      }
+    }
+    assertThat(unknown).as("quoted names that are no choice of their dropdown").isEmpty();
   }
 
   /** Same label, type and binding as the service task's field; defaults and texts may differ. */
