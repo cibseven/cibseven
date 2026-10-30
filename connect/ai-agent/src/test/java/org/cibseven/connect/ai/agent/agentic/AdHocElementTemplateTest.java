@@ -26,7 +26,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -107,15 +110,106 @@ public class AdHocElementTemplateTest {
         .doesNotContain("perActivity");
   }
 
-  /** The Conversation dropdown says which window each of its choices gets when left empty. */
+  /**
+   * The Conversation dropdown sends the reader to the field that bounds what is remembered, by
+   * the label the modeler shows; what that field holds when left empty is said there, once.
+   */
   @Test
-  public void theConversationTextNamesTheDefaultWindowOfEachChoice() throws IOException {
-    JsonNode conversation = fields(read(AD_HOC).get("properties"))
+  public void theConversationTextNamesTheWindowField() throws IOException {
+    JsonNode template = read(AD_HOC);
+    JsonNode conversation = fields(template.get("properties"))
         .get("camunda:property:" + AgenticAdHocParseListener.CONVERSATION);
+    JsonNode window = fields(template.get("scopes").get(0).get("properties"))
+        .get("camunda:inputParameter:chatMemoryMaxMessages");
 
-    assertThat(text(conversation, "description"))
-        .contains("With 'Continue across entries', chatMemoryMaxMessages must be at least")
-        .contains("With 'Start new on each entry' an unspecified window is 20 messages");
+    assertThat(text(conversation, "description")).contains(text(window, "label"));
+  }
+
+  /**
+   * With 'Throw a BPMN error' a deployment is refused unless boundary error events catch every
+   * limit the scope can reach, each by its code. The On limit text is where the modeller looks for
+   * those codes.
+   */
+  @Test
+  public void theOnLimitTextNamesEveryLimitCode() throws IOException {
+    JsonNode onLimit = fields(read(AD_HOC).get("properties"))
+        .get("camunda:property:" + AgenticAdHocParseListener.ON_LIMIT);
+
+    assertThat(text(onLimit, "description")).contains(AgenticOutcome.LIMITS);
+  }
+
+  /**
+   * The modeller's instruction is added to the agent's built-in prompt (CIB7-2235) only when the
+   * two are combined; without a value the connector replaces it. So the template presets append.
+   */
+  @Test
+  public void theTemplatePresetsAppend() throws IOException {
+    JsonNode mode = fields(read(AD_HOC).get("scopes").get(0).get("properties"))
+        .get("camunda:inputParameter:instructionMode");
+
+    assertThat(text(mode, "value")).isEqualTo(AgentConnectorConstants.INSTRUCTION_MODE_APPEND);
+  }
+
+  /**
+   * The texts are read in the modeler by whoever models the process. A ticket key or a release
+   * phase tells them nothing there, and it stays behind once the ticket is closed. Every text of
+   * the template is read, not only the fields': a group's label, a placeholder and the message of
+   * a check are shown as well.
+   */
+  @Test
+  public void noTextNamesATicketOrAReleasePhase() throws IOException {
+    List<String> naming = new ArrayList<String>();
+    findInTexts(read(AD_HOC), "", Pattern.compile("CIB7-\\d+|\\bMVP\\b"), naming);
+    assertThat(naming).as("texts naming a ticket or a release phase").isEmpty();
+  }
+
+  /** Adds where {@code pattern} is found in any text under {@code node}, and what it found. */
+  protected static void findInTexts(JsonNode node, String path, Pattern pattern,
+      List<String> found) {
+    if (node.isTextual()) {
+      Matcher match = pattern.matcher(node.asText());
+      if (match.find()) {
+        found.add(path + " -> " + match.group());
+      }
+    } else if (node.isArray()) {
+      for (int i = 0; i < node.size(); i++) {
+        findInTexts(node.get(i), path + "/" + i, pattern, found);
+      }
+    } else {
+      for (Map.Entry<String, JsonNode> field : node.properties()) {
+        findInTexts(field.getValue(), path + "/" + field.getKey(), pattern, found);
+      }
+    }
+  }
+
+  /**
+   * A dropdown's text names its choices as the modeler shows them, not by a word of its own: the
+   * reader looks for the quoted name in the list.
+   */
+  @Test
+  public void aDropdownsTextQuotesOnlyTheChoicesItShows() throws IOException {
+    JsonNode template = read(AD_HOC);
+    List<JsonNode> all = new ArrayList<JsonNode>();
+    template.get("properties").forEach(all::add);
+    template.get("scopes").get(0).get("properties").forEach(all::add);
+
+    List<String> unknown = new ArrayList<String>();
+    for (JsonNode property : all) {
+      if (!"Dropdown".equals(text(property, "type"))) {
+        continue;
+      }
+      Set<String> shown = new HashSet<String>();
+      for (JsonNode choice : property.path("choices")) {
+        shown.add(text(choice, "name"));
+      }
+      Matcher quoted = Pattern.compile("'([^']+)'").matcher(text(property, "description"));
+      while (quoted.find()) {
+        if (!shown.contains(quoted.group(1))) {
+          unknown.add(text(property, "label") + " -> '" + quoted.group(1) + "'");
+        }
+      }
+    }
+    assertThat(unknown).as("quoted names that are no choice of their dropdown").isEmpty();
   }
 
   /** Same label, type and binding as the service task's field; defaults and texts may differ. */
