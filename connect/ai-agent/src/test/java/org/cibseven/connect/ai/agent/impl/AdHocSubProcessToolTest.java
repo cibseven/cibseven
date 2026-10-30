@@ -654,11 +654,11 @@ public class AdHocSubProcessToolTest {
     assertThat(String.valueOf(result(0).get("note"))).doesNotContain("processData");
   }
 
-  /** Not set is not an error: the turn runs, and the agent is told which ones it lacks. */
+  /** For an optional one, not set is not an error: the agent is told which ones it lacks. */
   @Test
-  public void aDeclaredVariableThatIsNotSetIsNamedAndFailsNothing() {
+  public void anOptionalVariableThatIsNotSetIsNamedAndFailsNothing() {
     ProcessInstance instance = startWithoutTurn("processDataNotSet",
-        processVariables("kunde, fehlt"), tool -> tool.turnReport());
+        processVariables("kunde, fehlt", "fehlt"), tool -> tool.turnReport());
     ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
 
     runPendingTurn(instance);
@@ -670,6 +670,79 @@ public class AdHocSubProcessToolTest {
         .processInstanceId(instance.getId()).count()).isZero();
     assertThat(ENGINE.getHistoryService().createHistoricIncidentQuery()
         .processInstanceId(instance.getId()).count()).isZero();
+  }
+
+  /**
+   * A required one must reach the agent: set, null counting as a value, and seen whole. Every one
+   * that does not is named with why, beside those that were read, and the agent gets no block.
+   */
+  @Test
+  public void aRequiredVariableThatDoesNotReachTheAgentFailsTheStep() {
+    ProcessInstance instance = startWithoutTurn("processDataRequired",
+        processVariables("kunde, fehlt, leer, auftrag"), tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "leer", null);
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+        Variables.objectValue(new ArrayList<>(Arrays.asList("a", "b"))).create());
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.RESULTS).as("no block for the agent").isEmpty();
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class)
+        .hasMessage("Ad hoc sub process 'adHoc': required process variables did not reach the"
+            + " agent: fehlt (not set), auftrag (an object in"
+            + " application/x-java-serialized-object, which the agent sees only by its type;"
+            + " store it as JSON). Read: kunde, leer. Every name in"
+            + " cibseven.agentic.processVariables is required unless"
+            + " cibseven.agentic.optionalProcessVariables names it; the model was not called.");
+  }
+
+  /**
+   * The required ones take the budget first: six optional values of 3000 declared before a
+   * required one would fill it, and the required one would fail the step for want of room.
+   */
+  @Test
+  public void theRequiredOnesTakeTheBudgetFirst() {
+    List<String> optional = new ArrayList<>();
+    for (int i = 0; i < 6; i++) {
+      optional.add("wert" + i);
+    }
+    ProcessInstance instance = startWithoutTurn("processDataRequiredFirst",
+        processVariables(String.join(",", optional) + ", pflicht", String.join(",", optional)),
+        tool -> tool.turnReport());
+    for (String name : optional) {
+      ENGINE.getRuntimeService().setVariable(instance.getId(), name, longText(3000));
+    }
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "pflicht", longText(3000));
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(new ArrayList<>(processData(result(0)).keySet())).as("in the order declared")
+        .containsExactly("wert0", "wert1", "wert2", "wert3", "wert4", "pflicht");
+    assertThat(String.valueOf(result(0).get("processDataNote"))).endsWith(": wert5.");
+  }
+
+  /** A required value the budget has no room for left fails the step, never a silent gap. */
+  @Test
+  public void aRequiredValueThatDoesNotFitTheBudgetFailsTheStep() {
+    List<String> names = new ArrayList<>();
+    for (int i = 0; i < 7; i++) {
+      names.add("wert" + i);
+    }
+    ProcessInstance instance = startWithoutTurn("processDataRequiredBudget",
+        processVariables(String.join(",", names)), tool -> tool.turnReport());
+    for (String name : names) {
+      ENGINE.getRuntimeService().setVariable(instance.getId(), name, longText(3000));
+    }
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0)).hasMessageContaining("did not reach the agent: wert6"
+        + " (3002 characters as written, more than is left of the 20000 for all process"
+        + " variables). Read: wert0, wert1, wert2, wert3, wert4, wert5.");
   }
 
   /**
@@ -698,7 +771,8 @@ public class AdHocSubProcessToolTest {
   @Test
   public void aDateIsShownInIsoAndAJavaObjectAFileOrBytesArePlaceholders() {
     ProcessInstance instance = startWithoutTurn("processDataPlaceholders",
-        processVariables("faellig, auftrag, scan, roh"), tool -> tool.turnReport());
+        processVariables("faellig, auftrag, scan, roh", "auftrag, scan, roh"),
+        tool -> tool.turnReport());
     ENGINE.getRuntimeService().setVariable(instance.getId(), "faellig", new Date(0L));
     ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
         Variables.objectValue(new ArrayList<>(Arrays.asList("a", "b"))).create());
@@ -754,7 +828,8 @@ public class AdHocSubProcessToolTest {
       names.add("wert" + i);
     }
     ProcessInstance instance = startWithoutTurn("processDataBudget",
-        processVariables(String.join(",", names)), tool -> tool.turnReport());
+        processVariables(String.join(",", names), String.join(",", names)),
+        tool -> tool.turnReport());
     for (String name : names) {
       ENGINE.getRuntimeService().setVariable(instance.getId(), name, longText(3000));
     }
@@ -784,7 +859,8 @@ public class AdHocSubProcessToolTest {
   @Test
   public void aValueThatDoesNotFitIsLeftOutAndASmallerOneAfterItStillFits() {
     ProcessInstance instance = startWithoutTurn("processDataEscaped",
-        processVariables("erste, zweite, kurz"), tool -> tool.turnReport());
+        processVariables("erste, zweite, kurz", "erste, zweite, kurz"),
+        tool -> tool.turnReport());
     StringBuilder controls = new StringBuilder();
     for (int i = 0; i < AdHocSubProcessTool.MAX_RESULT_VALUE_CHARS; i++) {
       controls.append('\u0001');
@@ -900,6 +976,11 @@ public class AdHocSubProcessToolTest {
 
   private static String processVariables(String names) {
     return "<camunda:property name='cibseven.agentic.processVariables' value='" + names + "' />";
+  }
+
+  private static String processVariables(String names, String optional) {
+    return processVariables(names) + "<camunda:property"
+        + " name='cibseven.agentic.optionalProcessVariables' value='" + optional + "' />";
   }
 
   @SuppressWarnings("unchecked")

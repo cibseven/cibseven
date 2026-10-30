@@ -219,7 +219,10 @@ public class AdHocSubProcessTool {
         List<String> processVariables = scope.getActivity().getProperties()
                 .get(AgenticAdHocParseListener.DECLARED_PROCESS_VARIABLES);
         if (processVariables != null) {
-            putProcessData(scope, processVariables, result);
+            List<String> optional = scope.getActivity().getProperties()
+                    .get(AgenticAdHocParseListener.OPTIONAL_DECLARED_PROCESS_VARIABLES);
+            putProcessData(scope, adHocActivityId, processVariables,
+                    (optional == null) ? Collections.<String>emptyList() : optional, result);
         }
         result.put("turn", AdHocLoopState.turns(scope));
         result.put("maxTurns", maxTurns(scope));
@@ -716,37 +719,80 @@ public class AdHocSubProcessTool {
     /**
      * The current values of the process variables the scope declares for its agent (CIB7-2179),
      * under {@code processData}: read as {@code ${name}} in its message is, on the scope and the
-     * scopes around it, and shown as {@link #processValue} shows it. A long text is cut and says
-     * so; the variable keeps its whole value. A declared variable that is
-     * not set is named under {@code processDataNotSet}, so the agent tells it from one set to
-     * null, and fails nothing. A value that does not fit what is left of the budget is left out
-     * and named, so the values never take more than the budget; a smaller one after it may fit.
+     * scopes around it, and shown as {@link #processValue} shows it.
+     *
+     * <p>Each one is required unless the scope declares it optional. A required one must reach the
+     * agent whole: set, null counting as a value, not cut, not a placeholder, and within the
+     * budget, which the required ones take first. Otherwise the step fails before the model is
+     * called, naming each one and why, and the turn's job is retried and ends in an incident: an
+     * agent asked without what it needs answers anyway, confidently.
+     *
+     * <p>An optional one that is not set is named under {@code processDataNotSet}, so the agent
+     * tells it from one set to null; a long text is cut and says so, the variable keeping its
+     * whole value; one that does not fit what is left of the budget is left out and named, and a
+     * smaller one after it may fit. The values never take more than the budget.
      *
      * <p>Read on every step, unlike the results, which are reported once: the agent acts on what
      * the process holds now. Nothing here moves the read position of the results.
      */
-    private static void putProcessData(ExecutionEntity scope, List<String> declared,
-            Map<String, Object> report) {
-        Map<String, Object> values = new LinkedHashMap<>();
+    private static void putProcessData(ExecutionEntity scope, String adHocActivityId,
+            List<String> declared, List<String> optional, Map<String, Object> report) {
+        Map<String, Object> admitted = new LinkedHashMap<>();
         List<String> notSet = new ArrayList<>();
         List<String> leftOut = new ArrayList<>();
+        List<String> missing = new ArrayList<>();
         int remaining = MAX_PROCESS_DATA_CHARS;
+        // The required ones first, so an optional value never takes the room one of them needs.
+        for (boolean required : new boolean[] {true, false}) {
+            for (String name : declared) {
+                if (optional.contains(name) == required) {
+                    continue;
+                }
+                TypedValue value = scope.getVariableTyped(name, false);
+                if (value == null) {
+                    if (required) {
+                        missing.add(name + " (not set)");
+                    } else {
+                        notSet.add(name);
+                    }
+                    continue;
+                }
+                ProcessValue shown = processValue(value);
+                if (required && shown.notWhole != null) {
+                    missing.add(name + " (" + shown.notWhole + ")");
+                    continue;
+                }
+                // Admitted only whole and within the budget, counted as JSON writes it: a string
+                // of control characters takes six times its length (CIB7-2179, second review).
+                int written = AdHocToolProvider.writtenLength(shown.shown);
+                if (written > remaining) {
+                    if (required) {
+                        missing.add(name + " (" + written + " characters as written, more than is"
+                                + " left of the " + MAX_PROCESS_DATA_CHARS
+                                + " for all process variables)");
+                    } else {
+                        leftOut.add(name);
+                    }
+                } else {
+                    admitted.put(name, shown.shown);
+                    remaining -= written;
+                }
+            }
+        }
+        Map<String, Object> values = new LinkedHashMap<>();
         for (String name : declared) {
-            TypedValue value = scope.getVariableTyped(name, false);
-            if (value == null) {
-                notSet.add(name);
-                continue;
+            if (admitted.containsKey(name)) {
+                values.put(name, admitted.get(name));
             }
-            // Admitted only whole and within the budget, counted as JSON writes it: a string of
-            // control characters takes six times its length (CIB7-2179, second review).
-            Object safe = processValue(value).shown;
-            int written = AdHocToolProvider.writtenLength(safe);
-            if (written > remaining) {
-                leftOut.add(name);
-            } else {
-                values.put(name, safe);
-                remaining -= written;
-            }
+        }
+        if (!missing.isEmpty()) {
+            throw new AgentConnectorException("Ad hoc sub process '" + adHocActivityId
+                    + "': required process variables did not reach the agent: "
+                    + String.join(", ", missing) + ". Read: "
+                    + (values.isEmpty() ? "none" : String.join(", ", values.keySet()))
+                    + ". Every name in " + AgenticAdHocParseListener.PROCESS_VARIABLES
+                    + " is required unless " + AgenticAdHocParseListener.OPTIONAL_PROCESS_VARIABLES
+                    + " names it; the model was not called.");
         }
         report.put("processData", values);
         if (!notSet.isEmpty()) {

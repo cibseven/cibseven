@@ -67,6 +67,7 @@ import org.cibseven.bpm.engine.repository.DeploymentBuilder;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.impl.variable.serializer.AbstractObjectValueSerializer;
 import org.cibseven.bpm.engine.impl.variable.serializer.TypedValueSerializer;
+import org.cibseven.bpm.engine.runtime.Incident;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
@@ -1955,6 +1956,45 @@ public class AgenticTurnJobTest {
     assertThat(stateBlock(lastUserMessage(requestBodies.get(2)))).as("after the change")
         .contains("\"processData\":{\"kunde\":\"Schmidt AG\"}");
     assertThat(requestBodies).noneSatisfy(body -> assertThat(body).contains("Kennwort-4711"));
+  }
+
+  /**
+   * A required process variable that is not set fails the step before the model is called: the
+   * turn's job is retried and ends in an incident that names it. Set, and the job retried, the
+   * agent is asked, without the optional one that is still missing (CIB7-2179).
+   */
+  @Test
+  public void aRequiredVariableThatIsNotSetEndsInAnIncidentAndTheModelIsNotCalled()
+      throws IOException {
+    fixTheClock();
+    script.add(answer("Erledigt."));
+    ProcessInstance pi = start(connectorModel("<camunda:properties><camunda:property"
+        + " name='cibseven.agentic.processVariables' value='kunde, rabatt' /><camunda:property"
+        + " name='cibseven.agentic.optionalProcessVariables' value='rabatt' />"
+        + "</camunda:properties>",
+        "<camunda:inputParameter name='message'>Bearbeite den Auftrag.</camunda:inputParameter>",
+        "", "stub-key"), new HashMap<String, Object>());
+
+    failTheWaitingStep();
+    failTheWaitingStep();
+    Job failed = failTheWaitingStep();
+
+    assertThat(requestBodies).as("the model is not called").isEmpty();
+    assertThat(failed.getRetries()).isZero();
+    Incident incident = engine.getRuntimeService().createIncidentQuery()
+        .processInstanceId(pi.getId()).singleResult();
+    assertThat(incident.getIncidentMessage())
+        .contains("required process variables did not reach the agent: kunde (not set)")
+        .contains("the model was not called");
+
+    engine.getRuntimeService().setVariable(pi.getId(), "kunde", "Müller GmbH");
+    engine.getManagementService().setJobRetries(failed.getId(), 1);
+    runWaitingTurn();
+
+    assertThat(requestBodies).as("now the agent is asked").hasSize(1);
+    assertThat(stateBlock(lastUserMessage(requestBodies.get(0))))
+        .contains("\"processData\":{\"kunde\":\"Müller GmbH\"}")
+        .contains("\"processDataNotSet\":[\"rabatt\"]");
   }
 
   /**
