@@ -1431,10 +1431,6 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
   /** Lazily loaded cache for {@link #AD_HOC_DEFAULT_INSTRUCTION_RESOURCE}. */
   private static volatile String adHocDefaultInstructionCache;
 
-  private String buildSystemPrompt(AgentRequest request) {
-    return buildSystemPrompt(request, false);
-  }
-
   /** The system prompt; {@code agentic} when the call is a step of an agentic scope's turn. */
   private String buildSystemPrompt(AgentRequest request, boolean agentic) {
     String description = request.getAgentDescription();
