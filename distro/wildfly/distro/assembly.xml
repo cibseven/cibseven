@@ -58,7 +58,8 @@
     
     <dependencySet>
         <includes>
-          <include>org.cibseven.webapp:cibseven-webclient-web:war:wildfly</include>
+          <!-- TODO CIB7-1535: switch to cibseven-webclient-web once the webclient Spring Boot 4 change is merged -->
+          <include>org.cibseven.webapp:cibseven-webclient-web-spring-boot-4:war:wildfly</include>
          </includes>
          <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments</outputDirectory>
     </dependencySet>

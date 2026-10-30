@@ -24,8 +24,8 @@ import java.util.Set;
 
 import org.cibseven.bpm.engine.impl.ProcessEngineImpl;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
-import org.springframework.boot.actuate.health.AbstractHealthIndicator;
-import org.springframework.boot.actuate.health.Health.Builder;
+import org.springframework.boot.health.contributor.AbstractHealthIndicator;
+import org.springframework.boot.health.contributor.Health.Builder;
 
 public class JobExecutorHealthIndicator extends AbstractHealthIndicator {
 
@@ -54,8 +54,8 @@ public class JobExecutorHealthIndicator extends AbstractHealthIndicator {
     private final int maxJobsPerAcquisition;
     private final int waitTimeInMillis;
     private final Set<String> processEngineNames;
-    
-    
+
+
     private Details(DetailsBuilder builder) {
       name = builder.name;
       lockOwner = builder.lockOwner;

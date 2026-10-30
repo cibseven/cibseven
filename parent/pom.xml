@@ -20,10 +20,8 @@
   <properties>
     <version.quarkus>3.33.3</version.quarkus>
     <version.spring.framework>5.3.39</version.spring.framework>
-    <version.spring.framework6>6.2.19</version.spring.framework6>
     <version.spring.framework7>7.0.9</version.spring.framework7>
-    <version.spring-boot>3.5.16</version.spring-boot>
-    <version.spring-boot4>4.1.1</version.spring-boot4>
+    <version.spring-boot>4.1.1</version.spring-boot>
     <version.resteasy>3.15.6.Final</version.resteasy>
     <version.jersey3>3.1.11</version.jersey3>
     <version.jaxrs.api>2.0.1.Final</version.jaxrs.api>
@@ -38,7 +36,7 @@
     <version.commons-lang3>3.20.0</version.commons-lang3>
     <version.openjpa>2.4.3</version.openjpa>
     <version.hamcrest>3.0</version.hamcrest>
-    <version.hibernate>6.6.10.Final</version.hibernate>
+    <version.hibernate>7.0.10.Final</version.hibernate>
     <version.hikaricp>4.0.3</version.hikaricp>
     <version.jackson>2.21.7</version.jackson>
     <version.jackson3>3.1.7</version.jackson3>
@@ -85,6 +83,8 @@
 
     <version.jboss-javaee-spec>3.0.2.Final</version.jboss-javaee-spec>
     <version.jakarta-ee-spec>10.0.0</version.jakarta-ee-spec>
+    <!-- the Spring Framework 7 / Spring Boot 4 modules need Jakarta EE 11 -->
+    <version.jakarta-ee11-spec>11.0.0</version.jakarta-ee11-spec>
 
     <version.eirslett.frontend.maven.plugin>1.12.1</version.eirslett.frontend.maven.plugin>
     <version.nodejs>24.13.1</version.nodejs>
@@ -395,12 +395,11 @@
               </excludes>
               <includes>
                 <include>org.springframework:spring-core:[${version.spring.framework}]</include>
-                <include>org.springframework:spring-core:[${version.spring.framework6}]</include>
                 <include>org.springframework:spring-core:[${version.spring.framework7}]</include>
               </includes>
               <message>
                 Spring Framework must appear in the dependency graph only at a pinned line:
-                ${version.spring.framework} / ${version.spring.framework6} / ${version.spring.framework7}.
+                ${version.spring.framework} / ${version.spring.framework7}.
                 Note this checks the whole graph, including versions that lose mediation and
                 never reach the classpath. Two usual causes:
                   1. a Spring Boot BOM bump moved the framework line without the matching

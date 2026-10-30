@@ -17,7 +17,7 @@
        (CVE-2026-54512 / CVE-2026-54513), fixed in 2.21.4. Tomcat is the ONLY distro
        where langchain4j's Jackson is authoritative on the runtime classpath: the
        overlay's jars are the sole jackson-core/databind on the lib-ai/ common.loader
-       (run/run4 let the spring-boot BOM govern, wildfly the JBoss module). So the
+       (run lets the spring-boot BOM govern, wildfly the JBoss module). So the
        version is forced here — local to the Tomcat distro — rather than in the shared
        parent, which would raise the "then pin it in the run starter too" question.
        Tracks ${version.jackson} so a future CVE bump flows through a single knob. -->

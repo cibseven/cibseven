@@ -20,9 +20,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
-import org.springframework.boot.autoconfigure.web.servlet.JerseyApplicationPath;
+import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties;
+import org.springframework.boot.security.oauth2.server.resource.autoconfigure.OAuth2ResourceServerProperties;
+import org.springframework.boot.jersey.autoconfigure.JerseyApplicationPath;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -58,7 +58,7 @@ public class CamundaSpringSecurityOAuth2EngineAutoConfiguration {
    this.oAuth2Properties = oAuth2Properties;
    this.oAuth2ResourceServerProperties = oAuth2ResourceServerProperties;
   }
-  
+
   @Bean
   @ConditionalOnMissingBean(name = "engineRestAuthenticationFilter")
   public FilterRegistrationBean<?> engineRestAuthenticationFilter(JerseyApplicationPath applicationPath) {
@@ -68,7 +68,7 @@ public class CamundaSpringSecurityOAuth2EngineAutoConfiguration {
     filterRegistration.setInitParameters(Map.of(
         ProcessEngineAuthenticationFilter.AUTHENTICATION_PROVIDER_PARAM, OAuth2AuthenticationProvider.class.getName()));
     // make sure the filter is registered after the Spring Security Filter Chain
-    filterRegistration.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER + 1);
+    filterRegistration.setOrder(SecurityFilterProperties.DEFAULT_FILTER_ORDER + 1);
     filterRegistration.addUrlPatterns(applicationPath.getPath() + "/*");
     filterRegistration.setDispatcherTypes(DispatcherType.REQUEST);
     return filterRegistration;
@@ -103,20 +103,20 @@ public class CamundaSpringSecurityOAuth2EngineAutoConfiguration {
                  .map(SimpleGrantedAuthority::new)
                  .collect(Collectors.toList());
       });
-      
+
       String principalClaimName = Optional.ofNullable(oAuth2ResourceServerProperties.getJwt())
                 .map(OAuth2ResourceServerProperties.Jwt::getPrincipalClaimName)
                 .filter(s -> !s.isBlank())
                 .orElse("preferred_username");
       converter.setPrincipalClaimName(principalClaimName);
-      
+
       return converter;
   }
 
   @Bean
-  @Order(1) 
+  @Order(1)
   @ConditionalOnMissingBean(name = "engineRestSecurityFilterChain")
-  public SecurityFilterChain engineRestSecurityFilterChain(HttpSecurity http, 
+  public SecurityFilterChain engineRestSecurityFilterChain(HttpSecurity http,
           JerseyApplicationPath applicationPath,
           @Nullable @Qualifier("oauth2JwtAuthenticationConverter") JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
 
