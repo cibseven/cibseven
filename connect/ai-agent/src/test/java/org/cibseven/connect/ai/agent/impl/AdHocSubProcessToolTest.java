@@ -700,6 +700,30 @@ public class AdHocSubProcessToolTest {
   }
 
   /**
+   * What the incident keeps, 666 characters, says what to do whatever the ids: a scope id of 200
+   * characters and a first variable whose name and reason alone pass the room are cut there; the
+   * whole of both follows at the end, which the job's exception details keep.
+   */
+  @Test
+  public void theIncidentPartOfTheRefusalFitsWhateverTheIdsAndReasons() {
+    String scope = new String(new char[200]).replace('\0', 's');
+    String first = new String(new char[255]).replace('\0', 'a') + " (an object in"
+        + " application/x-java-serialized-object, which the agent sees only by its type; store it"
+        + " as JSON)";
+    String second = new String(new char[255]).replace('\0', 'b') + " (not set)";
+
+    String message = AdHocSubProcessTool.notReachedMessage(scope, Arrays.asList(first, second),
+        Collections.<String>emptyList());
+
+    String incident = message.substring(0, AdHocSubProcessTool.INCIDENT_MESSAGE_CHARS);
+    assertThat(incident).contains("the model was not called")
+        .contains(", and 1 more, named at the end of this message")
+        .contains("is required unless cibseven.agentic.optionalProcessVariables names it.");
+    assertThat(message).endsWith("In ad hoc sub process '" + scope + "', all that did not reach"
+        + " the agent: " + first + ", " + second + ".");
+  }
+
+  /**
    * A variable set to null is set, whatever its type: a required one set to null bytes reaches the
    * agent as null, and does not fail the step for a placeholder it would never need.
    */

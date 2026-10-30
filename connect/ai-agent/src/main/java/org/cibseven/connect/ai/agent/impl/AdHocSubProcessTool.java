@@ -801,46 +801,65 @@ public class AdHocSubProcessTool {
     }
 
     /**
-     * Characters of the list of required variables that did not reach the agent, in the part of
-     * the refusal an incident keeps: the engine keeps 666 characters of a job's exception message
-     * for its incident ({@code StringUtil.DB_MAX_STRING_LENGTH}), and what to do must fit there too.
+     * Characters of a job's exception message an incident keeps ({@code StringUtil.DB_MAX_STRING_LENGTH}):
+     * what the refusal of a missing required variable must say there fits in them.
      */
-    static final int MAX_NOT_REACHED_SHOWN_CHARS = 300;
+    static final int INCIDENT_MESSAGE_CHARS = 666;
+
+    /** Characters of the scope's id in the part of the refusal an incident keeps. */
+    static final int ID_SHOWN_CHARS = 60;
 
     /**
-     * Why the step fails, for the incident first: that the model was not called, the required
-     * variables that did not reach the agent, as many as fit, and what to do. The variables read,
-     * and every one that did not reach the agent when they did not all fit, come after: the job's
-     * exception details keep the whole message.
+     * Why the step fails, for the incident first, all of it within {@link #INCIDENT_MESSAGE_CHARS}:
+     * that the model was not called, the required variables that did not reach the agent, as many
+     * as fit, the first one cut if it alone does not, how many more, and what to do. The variables
+     * read come after, and so does every one in full, with the scope's full id, when anything was
+     * left out or cut: the job's exception details keep the whole message.
      */
     static String notReachedMessage(String adHocActivityId, List<String> notReached,
             Collection<String> read) {
+        String id = shortened(adHocActivityId, ID_SHOWN_CHARS);
+        String head = "Ad hoc sub process '" + id + "': the model was not called: required process"
+                + " variables did not reach the agent: ";
+        String remedy = ". Each name in " + AgenticAdHocParseListener.PROCESS_VARIABLES
+                + " is required unless " + AgenticAdHocParseListener.OPTIONAL_PROCESS_VARIABLES
+                + " names it.";
+        String moreNote = ", and " + notReached.size() + " more, named at the end of this message";
+        int room = INCIDENT_MESSAGE_CHARS - head.length() - remedy.length() - moreNote.length();
+        boolean cut = !id.equals(adHocActivityId);
         List<String> shown = new ArrayList<>();
         int chars = 0;
         for (String one : notReached) {
-            if (!shown.isEmpty() && chars + one.length() > MAX_NOT_REACHED_SHOWN_CHARS) {
+            int separator = shown.isEmpty() ? 0 : 2;
+            if (chars + separator + one.length() > room) {
+                if (!shown.isEmpty()) {
+                    break;
+                }
+                shown.add(shortened(one, room));
+                cut = true;
                 break;
             }
             shown.add(one);
-            chars += one.length() + 2;
+            chars += separator + one.length();
         }
         int more = notReached.size() - shown.size();
-        StringBuilder message = new StringBuilder("Ad hoc sub process '").append(adHocActivityId)
-                .append("': the model was not called: required process variables did not reach")
-                .append(" the agent: ").append(String.join(", ", shown));
+        StringBuilder message = new StringBuilder(head).append(String.join(", ", shown));
         if (more > 0) {
             message.append(", and ").append(more).append(" more, named at the end of this message");
         }
-        message.append(". Each name in ").append(AgenticAdHocParseListener.PROCESS_VARIABLES)
-                .append(" is required unless ")
-                .append(AgenticAdHocParseListener.OPTIONAL_PROCESS_VARIABLES)
-                .append(" names it. Read: ")
+        message.append(remedy).append(" Read: ")
                 .append(read.isEmpty() ? "none" : String.join(", ", read)).append('.');
-        if (more > 0) {
-            message.append(" All that did not reach the agent: ")
+        if (more > 0 || cut) {
+            message.append(" In ad hoc sub process '").append(adHocActivityId)
+                    .append("', all that did not reach the agent: ")
                     .append(String.join(", ", notReached)).append('.');
         }
         return message.toString();
+    }
+
+    /** {@code text} within {@code limit} characters, its end replaced by an ellipsis if cut. */
+    private static String shortened(String text, int limit) {
+        return (text.length() <= limit) ? text : text.substring(0, Math.max(0, limit - 1)) + "…";
     }
 
     /**
