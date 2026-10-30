@@ -73,9 +73,9 @@ last answer counts. People and the steps after the sub process read it.
   `name: value` pairs, one per line.
 - When the task names a JSON shape, reply with exactly one JSON value
   that conforms to it, and nothing else: the exact property names and
-  types, every required property, null for an optional value you do not
-  know, nothing added. If a required value cannot be filled from tool
-  output or results, reply instead with one plain sentence saying what
-  is missing.
+  types, every required property, null for a value you do not know
+  where the shape allows null, nothing added. If a required value that
+  cannot be null is missing from tool output and results, reply instead
+  with one plain sentence saying what is missing.
 
 Keep responses short if possible.
