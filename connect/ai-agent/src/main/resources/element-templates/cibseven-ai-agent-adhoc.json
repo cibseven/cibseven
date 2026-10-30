@@ -46,7 +46,7 @@
       "label": "Max model calls per turn",
       "type": "String",
       "group": "limits",
-      "description": "Model calls allowed in one turn, and activities one answer of the model may start. Default 25.",
+      "description": "The most model calls in one turn, and the most activities the agent may start with one answer. Default 25.",
       "binding": {
         "type": "camunda:property",
         "name": "cibseven.agentic.maxModelCalls"
@@ -95,7 +95,7 @@
       "type": "Dropdown",
       "group": "limits",
       "value": "continue",
-      "description": "'Continue' (default): when a limit is reached and nothing in it still runs, the sub process ends and the outcome names the limit. 'Throw a BPMN error': at that moment the sub process throws a BPMN error instead, whose code is the limit: turnLimit, callLimit or totalTurnLimit. Deployment requires boundary error events on it that catch each limit it can reach, or one that catches every error. Max model calls per turn ends only the turn: while an activity still runs, the agent is asked again when it ends.",
+      "description": "'Continue' (default): when a limit is reached and nothing runs in the sub process any more, it ends, and the outcome names the limit. 'Throw a BPMN error': at that moment it throws a BPMN error instead, whose code is the limit: turnLimit, callLimit or totalTurnLimit; deployment requires a boundary error event for each limit it can reach, or one for every error. Max model calls per turn only ends the turn while an activity still runs: the agent is asked again when that activity ends.",
       "choices": [
         {
           "name": "Continue",
@@ -116,7 +116,7 @@
       "type": "Dropdown",
       "group": "memory",
       "value": "perEntry",
-      "description": "'Start new on each entry' (default): every entry starts with an empty conversation. 'Continue across entries': the agent remembers earlier entries, e.g. in a feedback loop, within the window of Chat memory max messages. It is not available on a parallel multi-instance sub process, and while such a conversation is kept the process instance cannot be migrated: until the scope around this sub process ends, or until the instance ends when the sub process sits directly in the process.",
+      "description": "'Start new on each entry' (default): every entry starts with an empty conversation. 'Continue across entries': the agent remembers earlier entries, e.g. in a feedback loop, within the window of Chat memory max messages. Not available on a parallel multi-instance sub process. While the conversation is kept, the process instance cannot be migrated: until the scope around this sub process ends, or, for a sub process directly in the process, until the instance ends.",
       "choices": [
         {
           "name": "Start new on each entry",
