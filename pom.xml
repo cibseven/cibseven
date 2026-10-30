@@ -25,7 +25,7 @@
     <license.includeTransitiveDependencies>false</license.includeTransitiveDependencies>
 
     <!-- These properties are used in both the BOM as well as camunda-parent and subprojects -->
-    <version.mybatis>3.5.19</version.mybatis>
+    <version.mybatis>3.5.19-cibseven</version.mybatis>
     <version.joda-time>2.12.5</version.joda-time>
     <version.uuid-generator>4.3.0</version.uuid-generator>
     <version.feel-scala>1.19.3</version.feel-scala>
