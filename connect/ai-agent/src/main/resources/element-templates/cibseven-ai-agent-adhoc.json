@@ -46,7 +46,7 @@
       "label": "Max model calls per turn",
       "type": "String",
       "group": "limits",
-      "description": "Model calls allowed in one turn, and tool calls in one answer of the model. Default 25.",
+      "description": "Model calls allowed in one turn, and activities one answer of the model may start. Default 25.",
       "binding": {
         "type": "camunda:property",
         "name": "cibseven.agentic.maxModelCalls"
@@ -62,7 +62,7 @@
       "label": "Max turns",
       "type": "String",
       "group": "limits",
-      "description": "Turns allowed before the agent stops. A turn starts on entry and whenever an activity ends. Default 10. Activities already running still finish.",
+      "description": "Turns allowed before the agent stops. A turn starts on entry and each time something the agent started finishes while it waits. Default 10. Activities already running still finish.",
       "binding": {
         "type": "camunda:property",
         "name": "cibseven.agentic.maxTurns"
@@ -186,7 +186,7 @@
           "type": "Dropdown",
           "group": "input",
           "value": "append",
-          "description": "'Append' (preset): your instruction after the built-in prompt; 'Prepend': before it; 'Replace': only yours. Ignored when Instruction is empty.",
+          "description": "'Append to default' (preset): your instruction after the built-in prompt; 'Prepend to default': before it; 'Replace default': only yours. Ignored when Instruction is empty.",
           "choices": [
             {
               "name": "Replace default",
