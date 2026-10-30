@@ -46,6 +46,8 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.variable.Variables;
+import org.cibseven.bpm.engine.variable.value.SerializableValue;
+import org.cibseven.bpm.engine.variable.type.SerializableValueType;
 import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.cibseven.connect.ScriptedAgent;
@@ -690,12 +692,61 @@ public class AdHocSubProcessToolTest {
     assertThat(Agent.RESULTS).as("no block for the agent").isEmpty();
     assertThat(Agent.FAILURES).hasSize(1);
     assertThat(Agent.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class)
-        .hasMessage("Ad hoc sub process 'adHoc': required process variables did not reach the"
-            + " agent: fehlt (not set), auftrag (an object in"
+        .hasMessage("Ad hoc sub process 'adHoc': the model was not called: required process"
+            + " variables did not reach the agent: fehlt (not set), auftrag (an object in"
             + " application/x-java-serialized-object, which the agent sees only by its type;"
-            + " store it as JSON). Read: kunde, leer. Every name in"
-            + " cibseven.agentic.processVariables is required unless"
-            + " cibseven.agentic.optionalProcessVariables names it; the model was not called.");
+            + " store it as JSON). Each name in cibseven.agentic.processVariables is required"
+            + " unless cibseven.agentic.optionalProcessVariables names it. Read: kunde, leer.");
+  }
+
+  /**
+   * A variable set to null is set, whatever its type: a required one set to null bytes reaches the
+   * agent as null, and does not fail the step for a placeholder it would never need.
+   */
+  @Test
+  public void aRequiredVariableSetToATypedNullReachesTheAgentAsNull() {
+    ProcessInstance instance = startWithoutTurn("processDataTypedNull",
+        processVariables("kunde, roh"), tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "roh", Variables.byteArrayValue(null));
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(processData(result(0))).containsEntry("roh", null);
+  }
+
+  /**
+   * A value read already in the same command comes from the variable's cache, deserialized. An
+   * object whose value is null there is null; a Spin value deserialized there gave up its text,
+   * and is shown by the text its node writes, never as null.
+   */
+  @Test
+  public void aValueDeserializedInTheCommandIsNeverTakenForNullForWantOfItsText() {
+    AdHocSubProcessTool.ProcessValue cachedNull =
+        AdHocSubProcessTool.processValue(Variables.objectValue(null).create());
+    String json = "{\"auftrag\":\"A-1047\"}";
+    Object node = new Object() {
+      @Override
+      public String toString() {
+        return json;
+      }
+    };
+    SerializableValue spin = org.mockito.Mockito.mock(SerializableValue.class);
+    SerializableValueType jsonType = org.mockito.Mockito.mock(SerializableValueType.class);
+    org.mockito.Mockito.when(jsonType.getName()).thenReturn("json");
+    org.mockito.Mockito.when(spin.getType()).thenReturn(jsonType);
+    org.mockito.Mockito.when(spin.getSerializationDataFormat()).thenReturn("application/json");
+    org.mockito.Mockito.when(spin.isDeserialized()).thenReturn(true);
+    org.mockito.Mockito.when(spin.getValueSerialized()).thenReturn(null);
+    org.mockito.Mockito.when(spin.getValue()).thenReturn(node);
+
+    AdHocSubProcessTool.ProcessValue shownSpin = AdHocSubProcessTool.processValue(spin);
+
+    assertThat(cachedNull.shown).isNull();
+    assertThat(cachedNull.notWhole).isNull();
+    assertThat(shownSpin.shown).isEqualTo(json);
+    assertThat(shownSpin.notWhole).isNull();
   }
 
   /**
@@ -742,7 +793,8 @@ public class AdHocSubProcessToolTest {
     assertThat(Agent.FAILURES).hasSize(1);
     assertThat(Agent.FAILURES.get(0)).hasMessageContaining("did not reach the agent: wert6"
         + " (3002 characters as written, more than is left of the 20000 for all process"
-        + " variables). Read: wert0, wert1, wert2, wert3, wert4, wert5.");
+        + " variables). Each name in")
+        .hasMessageEndingWith(" Read: wert0, wert1, wert2, wert3, wert4, wert5.");
   }
 
   /**

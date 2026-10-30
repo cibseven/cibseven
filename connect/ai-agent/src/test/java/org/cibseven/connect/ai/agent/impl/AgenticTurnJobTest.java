@@ -2007,6 +2007,40 @@ public class AgenticTurnJobTest {
   }
 
   /**
+   * The incident keeps 666 characters of the step's message: it names the first variables that did
+   * not reach the agent, how many more there are, and what to do; the job's exception details name
+   * every one (CIB7-2179).
+   */
+  @Test
+  public void theIncidentOfManyMissingVariablesStaysWithinWhatItKeeps() {
+    fixTheClock();
+    List<String> names = new ArrayList<>();
+    for (int i = 0; i < 5; i++) {
+      names.add(new String(new char[254]).replace('\0', 'n') + i);
+    }
+    ProcessInstance pi = start(connectorModel("<camunda:properties><camunda:property"
+        + " name='cibseven.agentic.processVariables' value='" + String.join(", ", names) + "' />"
+        + "</camunda:properties>",
+        "<camunda:inputParameter name='message'>Bearbeite den Auftrag.</camunda:inputParameter>",
+        "", "stub-key"), new HashMap<String, Object>());
+
+    failTheWaitingStep();
+    failTheWaitingStep();
+    Job failed = failTheWaitingStep();
+
+    String incident = engine.getRuntimeService().createIncidentQuery()
+        .processInstanceId(pi.getId()).singleResult().getIncidentMessage();
+    assertThat(incident).hasSizeLessThanOrEqualTo(666)
+        .contains("the model was not called")
+        .contains(names.get(0) + " (not set), and 4 more, named at the end of this message")
+        .contains("is required unless cibseven.agentic.optionalProcessVariables names it.");
+    String details = engine.getManagementService().getJobExceptionStacktrace(failed.getId());
+    for (String name : names) {
+      assertThat(details).contains(name + " (not set)");
+    }
+  }
+
+  /**
    * A step is sent as text, not as a prompt template: a value with "{{…}}", here a declared process
    * variable and the task, reaches the model as it is. Read as a template it failed the step before
    * the model was asked, on a variable nobody declared, or was replaced silently (CIB7-2179).

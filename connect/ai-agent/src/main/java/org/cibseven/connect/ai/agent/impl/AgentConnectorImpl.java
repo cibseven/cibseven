@@ -1818,8 +1818,11 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         .build();
     return query -> {
       long startNanos = System.nanoTime();
+      // The query is the step's message: in an agentic scope, with the state block and its
+      // processData, which the log and the audit keep as markers only (CIB7-2179).
+      String audited = AgentChatListener.withProcessDataAsMarkers(query.text());
       Map<String, Object> retrievalEvent = new LinkedHashMap<>();
-      retrievalEvent.put("query", AgentChatListener.maybeRedact(query.text()));
+      retrievalEvent.put("query", AgentChatListener.maybeRedact(audited));
       retrievalEvent.put("embeddingModel", embeddingDesc);
       retrievalEvent.put("store", storeDesc);
       retrievalEvent.put("parameters", parameters);
@@ -1832,9 +1835,9 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         if (results.isEmpty()) {
           LOG.warn("RAG retrieved 0 results for query: \"{}\" (minScore={}, table={}). "
               + "Consider lowering minRagScore or check that content was ingested.",
-              query.text(), minScore, table);
+              audited, minScore, table);
         } else {
-          LOG.debug("RAG retrieved {} result(s) for query: \"{}\"", results.size(), query.text());
+          LOG.debug("RAG retrieved {} result(s) for query: \"{}\"", results.size(), audited);
           for (int i = 0; i < results.size(); i++) {
             String preview = results.get(i).textSegment().text().replace('\n', ' ');
             if (preview.length() > 120) preview = preview.substring(0, 120) + "…";
@@ -1850,7 +1853,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         retrievalEvent.put("message", e.getMessage());
         retrievalEvent.put("stack", AgentChatListener.shortStack(e));
         LOG.error("RAG retrieval failed for query: \"{}\" (table={}): {}",
-            query.text(), table, e.toString());
+            audited, table, e.toString());
         emitRetrievalEvent(retrievalEvent);
         throw e;
       }

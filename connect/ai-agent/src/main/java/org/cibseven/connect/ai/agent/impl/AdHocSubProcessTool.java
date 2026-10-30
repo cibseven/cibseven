@@ -786,13 +786,8 @@ public class AdHocSubProcessTool {
             }
         }
         if (!missing.isEmpty()) {
-            throw new AgentConnectorException("Ad hoc sub process '" + adHocActivityId
-                    + "': required process variables did not reach the agent: "
-                    + String.join(", ", missing) + ". Read: "
-                    + (values.isEmpty() ? "none" : String.join(", ", values.keySet()))
-                    + ". Every name in " + AgenticAdHocParseListener.PROCESS_VARIABLES
-                    + " is required unless " + AgenticAdHocParseListener.OPTIONAL_PROCESS_VARIABLES
-                    + " names it; the model was not called.");
+            throw new AgentConnectorException(
+                    notReachedMessage(adHocActivityId, missing, values.keySet()));
         }
         report.put("processData", values);
         if (!notSet.isEmpty()) {
@@ -806,12 +801,61 @@ public class AdHocSubProcessTool {
     }
 
     /**
+     * Characters of the list of required variables that did not reach the agent, in the part of
+     * the refusal an incident keeps: the engine keeps 666 characters of a job's exception message
+     * for its incident ({@code StringUtil.DB_MAX_STRING_LENGTH}), and what to do must fit there too.
+     */
+    static final int MAX_NOT_REACHED_SHOWN_CHARS = 300;
+
+    /**
+     * Why the step fails, for the incident first: that the model was not called, the required
+     * variables that did not reach the agent, as many as fit, and what to do. The variables read,
+     * and every one that did not reach the agent when they did not all fit, come after: the job's
+     * exception details keep the whole message.
+     */
+    static String notReachedMessage(String adHocActivityId, List<String> notReached,
+            Collection<String> read) {
+        List<String> shown = new ArrayList<>();
+        int chars = 0;
+        for (String one : notReached) {
+            if (!shown.isEmpty() && chars + one.length() > MAX_NOT_REACHED_SHOWN_CHARS) {
+                break;
+            }
+            shown.add(one);
+            chars += one.length() + 2;
+        }
+        int more = notReached.size() - shown.size();
+        StringBuilder message = new StringBuilder("Ad hoc sub process '").append(adHocActivityId)
+                .append("': the model was not called: required process variables did not reach")
+                .append(" the agent: ").append(String.join(", ", shown));
+        if (more > 0) {
+            message.append(", and ").append(more).append(" more, named at the end of this message");
+        }
+        message.append(". Each name in ").append(AgenticAdHocParseListener.PROCESS_VARIABLES)
+                .append(" is required unless ")
+                .append(AgenticAdHocParseListener.OPTIONAL_PROCESS_VARIABLES)
+                .append(" names it. Read: ")
+                .append(read.isEmpty() ? "none" : String.join(", ", read)).append('.');
+        if (more > 0) {
+            message.append(" All that did not reach the agent: ")
+                    .append(String.join(", ", notReached)).append('.');
+        }
+        return message.toString();
+    }
+
+    /**
      * A declared variable's value as {@code processData} shows it (CIB7-2179). A string, a number
      * and a boolean as they are; a date in ISO 8601, in UTC; an object serialized as JSON or XML,
      * a Spin {@code json} or {@code xml} value among them, as its serialized text, read without
      * deserializing it. Text is cut at {@link #MAX_PROCESS_VALUE_CHARS} and says so. Everything
      * else, an object in Java serialization, a file or bytes, is a placeholder naming its type:
      * its content would be noise to the model, or would have to be loaded and deserialized here.
+     *
+     * <p>Only a value that is itself null reads as null, a typed null of any type among them: a
+     * variable set to null is set, for a required one too. A value read already in this command
+     * comes from the variable's cache, deserialized, and a Spin value deserialized there has given
+     * up its text; such a value is shown by the text a Spin node writes, and is never taken for
+     * null for want of its text.
      */
     static ProcessValue processValue(TypedValue typed) {
         String type = (typed.getType() == null) ? "unknown" : typed.getType().getName();
@@ -821,23 +865,34 @@ public class AdHocSubProcessTool {
             String described = (typed instanceof ObjectValue
                     && ((ObjectValue) typed).getObjectTypeName() != null)
                     ? ((ObjectValue) typed).getObjectTypeName() + ", " + format : format;
-            if (format != null && (format.contains("json") || format.contains("xml"))) {
-                return ProcessValue.text(serializable.getValueSerialized());
+            boolean text = format != null && (format.contains("json") || format.contains("xml"));
+            String serialized = serializable.getValueSerialized();
+            if (serialized == null) {
+                Object value = serializable.isDeserialized() ? serializable.getValue() : null;
+                if (value == null) {
+                    return ProcessValue.whole(null);
+                }
+                if (SPIN_PROCESS_TYPES.contains(type)) {
+                    serialized = value.toString();
+                }
             }
-            if (serializable.getValueSerialized() == null && !serializable.isDeserialized()) {
-                return ProcessValue.whole(null);
+            if (text && serialized != null) {
+                return ProcessValue.text(serialized);
             }
             return ProcessValue.hidden("<" + type + " value (" + described + "), not shown>",
-                    "an object in " + format + ", which the agent sees only by its type; store it"
-                    + " as JSON");
+                    text ? "an object in " + format + " whose text is not at hand in this step"
+                         : "an object in " + format + ", which the agent sees only by its type;"
+                            + " store it as JSON");
         }
-        // Decided by the type before the value is taken, as for a result: a file's value is a
-        // stream of its bytes.
+        // A typed null is null whatever its type; otherwise decided by the type, as for a result.
+        Object value = typed.getValue();
+        if (value == null) {
+            return ProcessValue.whole(null);
+        }
         if (!SHOWN_PROCESS_TYPES.contains(type)) {
             return ProcessValue.hidden("<" + type + " value, not shown>",
                     "a " + type + " value, whose content the agent does not see");
         }
-        Object value = typed.getValue();
         if (value instanceof String) {
             return ProcessValue.text((String) value);
         }
@@ -851,6 +906,10 @@ public class AdHocSubProcessTool {
     private static final Set<String> SHOWN_PROCESS_TYPES = Collections.unmodifiableSet(
             new LinkedHashSet<>(Arrays.asList("string", "integer", "long", "short",
                     "double", "boolean", "date", "null")));
+
+    /** The Spin value types, whose deserialized node writes the same JSON or XML text. */
+    private static final Set<String> SPIN_PROCESS_TYPES = Collections.unmodifiableSet(
+            new LinkedHashSet<>(Arrays.asList("json", "xml")));
 
     /** A declared value as shown, and why the agent does not see it whole, if it does not. */
     static final class ProcessValue {

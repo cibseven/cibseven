@@ -465,6 +465,32 @@ public class AgentConnectorImplCoverageTest {
         .containsEntry("length", "BPMN models business processes.".length());
   }
 
+  /**
+   * The query of an agentic step is its message, the state block with it: the retrieval event
+   * keeps each value of processData as a marker, as the request event does (CIB7-2179).
+   */
+  @Test
+  public void retrieverLambdaShouldKeepTheProcessDataOfAStateBlockAsMarkers() {
+    RagStubConnector ragConnector = new RagStubConnector();
+    ragConnector.store.matches = List.of();
+    AgentRequest request = ragConnector.createRequest()
+        .pgHost("h").pgPort("5432").pgDatabase("d").pgUser("u").pgPassword("p")
+        .pgTable("t").embeddingDimension(8).maxRagResults(5).minRagScore(0.0);
+    AgentChatListener listener = new AgentChatListener("gpt-5.4-nano", "https://chat/v1");
+    ProcessStarterToolContext.setActiveListener(listener);
+    String message = AgentConnectorImpl.STATE_BLOCK_OPEN + "\n"
+        + "{\"processData\":{\"kunde\":\"Müller GmbH\"}}\n"
+        + AgentConnectorImpl.STATE_BLOCK_CLOSE + "\n\nBearbeite den Auftrag.";
+
+    ragConnector.createContentRetriever(request).retrieve(Query.from(message));
+
+    Map<String, Object> event = listener.events().get(0);
+    assertThat(event).containsEntry("type", "retrieval")
+        .containsEntry("query", AgentChatListener.withProcessDataAsMarkers(message));
+    assertThat(String.valueOf(event.get("query"))).doesNotContain("Müller GmbH")
+        .contains("Bearbeite den Auftrag.");
+  }
+
   @Test
   public void retrieverLambdaShouldUseOpenAiEmbeddingDescriptorWhenModelNameSet() {
     RagStubConnector ragConnector = new RagStubConnector();
