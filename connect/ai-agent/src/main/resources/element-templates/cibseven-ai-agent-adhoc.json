@@ -46,10 +46,26 @@
       "label": "Process variables",
       "type": "String",
       "group": "input",
-      "description": "Process variables the agent sees, by name, separated by commas, e.g. 'customer, priority'. Before every model call their current values go to the agent as data, next to the state of the scope; a variable that is not set is reported as such. Empty: none.",
+      "description": "Process variables the agent sees, by name, separated by commas, e.g. 'customer, priority'. Before every model call their current values go to the agent as data, next to the state of the scope, up to 4000 characters each and 20000 in all. Each one is required: if it is not set or the agent cannot see it whole, the turn fails before the model is called; list the exceptions under Optional process variables. Never list tokens or passwords: the values go to the model's provider. Empty: none.",
       "binding": {
         "type": "camunda:property",
         "name": "cibseven.agentic.processVariables"
+      },
+      "constraints": {
+        "pattern": {
+          "value": "^\\s*$|^\\s*[^,\\s]+(\\s+[^,\\s]+)*\\s*(,\\s*[^,\\s]+(\\s+[^,\\s]+)*\\s*)*$",
+          "message": "Names separated by single commas, none of them empty."
+        }
+      }
+    },
+    {
+      "label": "Optional process variables",
+      "type": "String",
+      "group": "input",
+      "description": "Those of the process variables above that may be missing, e.g. 'discount'. One that is not set is reported to the agent as such, a long one is cut, and one past the limit of all is left out and named. Empty: every one is required.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.optionalProcessVariables"
       },
       "constraints": {
         "pattern": {

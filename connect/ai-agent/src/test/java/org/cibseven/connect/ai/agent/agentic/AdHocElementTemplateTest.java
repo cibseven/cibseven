@@ -74,16 +74,17 @@ public class AdHocElementTemplateTest {
         .isEqualTo(AgenticTurnRunner.AGENT_CONNECTOR_ID);
 
     // The agent's limits (CIB7-2148), where its conversation lives and what bounds it across
-    // entries (CIB7-2137), what a limit does (CIB7-2151) and the process variables it sees
-    // (CIB7-2179) -- none of these may be a child's to rewrite, so none is an input parameter of
-    // the connector.
+    // entries (CIB7-2137), what a limit does (CIB7-2151) and the process variables it sees, and
+    // which of them are optional (CIB7-2179) -- none of these may be a child's to rewrite, so none
+    // is an input parameter of the connector.
     assertThat(fields(template.get("properties")).keySet()).containsExactlyInAnyOrder(
         "camunda:property:" + AgenticAdHocParseListener.MAX_TURNS,
         "camunda:property:" + AgenticAdHocParseListener.MAX_MODEL_CALLS,
         "camunda:property:" + AgenticAdHocParseListener.MAX_TURNS_TOTAL,
         "camunda:property:" + AgenticAdHocParseListener.CONVERSATION,
         "camunda:property:" + AgenticAdHocParseListener.ON_LIMIT,
-        "camunda:property:" + AgenticAdHocParseListener.PROCESS_VARIABLES);
+        "camunda:property:" + AgenticAdHocParseListener.PROCESS_VARIABLES,
+        "camunda:property:" + AgenticAdHocParseListener.OPTIONAL_PROCESS_VARIABLES);
   }
 
   /**
@@ -113,6 +114,32 @@ public class AdHocElementTemplateTest {
         "kunde, , prioritaet", "kunde, ")) {
       assertThat(pattern.matcher(refused).find()).as("'" + refused + "'").isFalse();
     }
+  }
+
+  /**
+   * Every process variable the agent sees is required unless the field beside it names it
+   * (CIB7-2179); the field says so, with its limits, and that a secret has no place there.
+   */
+  @Test
+  public void theOptionalProcessVariablesAreAnInputBesideThem() throws IOException {
+    Map<String, JsonNode> fields = fields(read(AD_HOC).get("properties"));
+    JsonNode seen = fields.get("camunda:property:" + AgenticAdHocParseListener.PROCESS_VARIABLES);
+    JsonNode optional =
+        fields.get("camunda:property:" + AgenticAdHocParseListener.OPTIONAL_PROCESS_VARIABLES);
+
+    assertThat(optional).as("a field of its own").isNotNull();
+    assertThat(text(optional, "label")).isEqualTo("Optional process variables");
+    assertThat(text(optional, "group")).isEqualTo("input");
+    assertThat(text(optional, "type")).isEqualTo("String");
+    assertThat(optional.has("value")).as("none by default").isFalse();
+    assertThat(optional.get("constraints")).as("names as the field it narrows takes them")
+        .isEqualTo(seen.get("constraints"));
+    assertThat(text(optional, "description")).contains("Empty: every one is required.");
+    assertThat(text(seen, "description"))
+        .contains("up to 4000 characters each and 20000 in all")
+        .contains("Each one is required")
+        .contains("list the exceptions under Optional process variables")
+        .contains("Never list tokens or passwords");
   }
 
   @Test
