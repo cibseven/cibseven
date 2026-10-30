@@ -112,7 +112,8 @@ public class AdHocDefaultInstructionHttpTest {
 
     assertThat(requestBodies).hasSize(1);
     String system = systemMessage(requestBodies.get(0));
-    assertThat(system).as("not the service task's prompt")
+    // The service task's sentences are wrapped across lines; compared with single spaces.
+    assertThat(system.replaceAll("\\s+", " ")).as("not the service task's prompt")
         .doesNotContain("service task")
         .doesNotContain("clarifying question")
         .doesNotContain("consumed by the next BPMN step")
