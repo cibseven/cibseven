@@ -1937,7 +1937,7 @@ public class AgenticTurnJobTest {
     Map<String, Object> variables = new HashMap<>();
     variables.put("kunde", "Müller GmbH");
     variables.put("geheim", "Kennwort-4711");
-    start(connectorModel("<camunda:properties><camunda:property"
+    ProcessInstance pi = start(connectorModel("<camunda:properties><camunda:property"
         + " name='cibseven.agentic.processVariables' value='kunde' /></camunda:properties>",
         "<camunda:inputParameter name='message'>Bearbeite den Auftrag.</camunda:inputParameter>",
         "", "stub-key"), variables);
@@ -1956,6 +1956,15 @@ public class AgenticTurnJobTest {
     assertThat(stateBlock(lastUserMessage(requestBodies.get(2)))).as("after the change")
         .contains("\"processData\":{\"kunde\":\"Schmidt AG\"}");
     assertThat(requestBodies).noneSatisfy(body -> assertThat(body).contains("Kennwort-4711"));
+    // The instance has ended; its history keeps the chat log's last state.
+    String chatLog = String.valueOf(engine.getHistoryService()
+        .createHistoricVariableInstanceQuery().processInstanceId(pi.getId())
+        .variableName("cibseven-connect-ai-agent_adHoc").singleResult().getValue());
+    assertThat(chatLog).as("the chat log keeps a marker, the variables keep the values")
+        .doesNotContain("Müller GmbH").doesNotContain("Schmidt AG")
+        .as("in the log's JSON, the message is a JSON string")
+        .contains("\\\"kunde\\\":{\\\"redacted\\\":true,\\\"length\\\":11,"
+            + "\\\"hash\\\":\\\"sha256:");
   }
 
   /**

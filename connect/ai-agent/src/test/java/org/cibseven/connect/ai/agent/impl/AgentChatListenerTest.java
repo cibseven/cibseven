@@ -111,6 +111,43 @@ public class AgentChatListenerTest {
     assertThat(event.get("tools")).isEqualTo(Arrays.asList("lookupCustomer", "createInvoice"));
   }
 
+  /**
+   * The chat log keeps an agentic step's process data as a marker per value, its length and
+   * hash, not the value: the process variable keeps the value (CIB7-2179). The rest of the block,
+   * the names not set among them, and the task stay as they were.
+   */
+  @Test
+  public void shouldKeepTheProcessDataOfAnAgenticStepAsMarkers() throws Exception {
+    AgentChatListener listener = new AgentChatListener();
+    String message = AgentConnectorImpl.STATE_BLOCK_OPEN + "\n"
+        + "{\"adHocActivityId\":\"adHoc\",\"processData\":{\"kunde\":\"Müller GmbH\","
+        + "\"prioritaet\":2,\"leer\":null},\"processDataNotSet\":[\"rabatt\"],\"turn\":1}\n"
+        + AgentConnectorImpl.STATE_BLOCK_CLOSE + "\n\nBearbeite den Auftrag.";
+
+    listener.onRequest(new ChatModelRequestContext(ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from(message))).build(), null,
+        new HashMap<>()));
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> messages =
+        (List<Map<String, Object>>) listener.events().get(0).get("messages");
+    String content = String.valueOf(messages.get(0).get("content"));
+    assertThat(content).doesNotContain("Müller GmbH")
+        .isEqualTo(AgentConnectorImpl.STATE_BLOCK_OPEN + "\n"
+            + "{\"adHocActivityId\":\"adHoc\",\"processData\":{\"kunde\":"
+            + AgentChatListener.redact("Müller GmbH") + ",\"prioritaet\":"
+            + AgentChatListener.redact("2") + ",\"leer\":null},"
+            + "\"processDataNotSet\":[\"rabatt\"],\"turn\":1}\n"
+            + AgentConnectorImpl.STATE_BLOCK_CLOSE + "\n\nBearbeite den Auftrag.");
+  }
+
+  /** A message without a state block, an ordinary agent's, is logged as it is. */
+  @Test
+  public void shouldLogAMessageWithoutAStateBlockAsItIs() {
+    assertThat(AgentChatListener.withProcessDataAsMarkers("processData: Müller GmbH"))
+        .isEqualTo("processData: Müller GmbH");
+  }
+
   @Test
   public void shouldCaptureResponseEventWithAnswerAndTokens() throws Exception {
     AgentChatListener listener = new AgentChatListener();
