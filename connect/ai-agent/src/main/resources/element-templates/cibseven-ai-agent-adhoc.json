@@ -2,8 +2,8 @@
   "$schema": "https://unpkg.com/@camunda/element-templates-json-schema/resources/schema.json",
   "name": "CIB seven AI Agent (ad hoc sub process)",
   "id": "org.cibseven.connect.ai.agent.AdHocSubProcess",
-  "version": 6,
-  "description": "Makes an ad hoc sub process agentic: the AI agent's connector on this element drives it, its child activities are the tools, and each turn runs as a job on the scope. The connector's input parameters are evaluated on every turn; its output parameters are applied after every turn, so they hold the last turn's answer. A tool takes values from the model through toolParameter(toolCall.<name>, '<description>', '<type>') in one of its input mappings, where the type is string, integer, number or boolean. Such a parameter is required: the model must supply it, and a call that leaves it out is refused before the activity starts, so the model calls again with it. A trailing ? on the type ('integer?') marks it optional: the model may leave it out, and toolCall.<name> then reads null.",
+  "version": 1,
+  "description": "An AI agent runs this ad hoc sub process: it decides which of its activities to start, and each activity is a tool. A tool gets a value from the model through ${toolParameter(toolCall.<name>, '<description>', '<type>')} in one of its input mappings; the type is string, integer, number or boolean, with a trailing ? when the model may leave the value out.",
   "icon": {
     "contents": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20width%3D%2224%22%20height%3D%2224%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M9%202%20L10.4%208.6%20L17%2010%20L10.4%2011.4%20L9%2018%20L7.6%2011.4%20L1%2010%20L7.6%208.6%20Z%22%20fill%3D%22%23E11E19%22/%3E%3Cpath%20d%3D%22M17.5%2013%20L18.2%2015.8%20L21%2016.5%20L18.2%2017.2%20L17.5%2020%20L16.8%2017.2%20L14%2016.5%20L16.8%2015.8%20Z%22%20fill%3D%22%230F2133%22/%3E%3C/svg%3E"
   },
@@ -46,7 +46,7 @@
       "label": "Max model calls per turn",
       "type": "String",
       "group": "limits",
-      "description": "Tool calls allowed within one turn. Default 25. A value that is not a positive number falls back to the default.",
+      "description": "Model calls allowed in one turn, and tool calls in one answer of the model. Default 25.",
       "binding": {
         "type": "camunda:property",
         "name": "cibseven.agentic.maxModelCalls"
@@ -62,7 +62,7 @@
       "label": "Max turns",
       "type": "String",
       "group": "limits",
-      "description": "Turns allowed before the agent must stop. Default 10. This stops the agent, not the work it already started: over the limit no model is asked again, and the scope ends once nothing inside it is still running.",
+      "description": "Turns allowed before the agent stops. A turn starts on entry and whenever an activity ends. Default 10. Activities already running still finish.",
       "binding": {
         "type": "camunda:property",
         "name": "cibseven.agentic.maxTurns"
@@ -78,7 +78,7 @@
       "label": "Max turns total",
       "type": "String",
       "group": "limits",
-      "description": "Turns allowed across every entry of this scope together, counted in the conversation holder. Only has a meaning with Conversation = 'Continue across entries': bounds a feedback loop that re-enters the scope, where Max turns bounds one entry only. Leave empty for no total cap. Over the limit the agent is not asked again; work already started is allowed to finish before the scope ends.",
+      "description": "Turns allowed across all entries together. Only with 'Continue across entries'; empty means no total limit.",
       "binding": {
         "type": "camunda:property",
         "name": "cibseven.agentic.maxTurnsTotal"
@@ -95,7 +95,7 @@
       "type": "Dropdown",
       "group": "limits",
       "value": "continue",
-      "description": "What reaching a limit does to the scope. 'Continue' is the default: the scope ends as after any turn, once nothing it started still runs, and the outcome (turnLimit, totalTurnLimit or callLimit) says which limit. 'Throw a BPMN error' ends the scope with a BPMN error whose code is that outcome, at the same moment; deployment requires a boundary error event on this scope that catches every limit it can reach.",
+      "description": "'Continue' (default): when a limit is reached and nothing the agent started still runs, the scope ends and the outcome names the limit. 'Throw a BPMN error': at that moment the scope throws a BPMN error with that code instead; a boundary error event on this scope must catch it. Max model calls per turn ends only the turn: while an activity still runs, the agent is asked again when it ends.",
       "choices": [
         {
           "name": "Continue",
@@ -116,7 +116,7 @@
       "type": "Dropdown",
       "group": "memory",
       "value": "perEntry",
-      "description": "Whether the agent's conversation survives leaving this scope and entering it again, e.g. after a user-feedback loop. The same goes for an AI agent task the agent calls as a tool without a Memory ID of its own: with 'Start new on each entry' it leaves one conversation behind per entry, and per instance of a multi-instance scope, each kept in the database until the process instance ends and in the history after that. 'Start new on each entry' is the default. 'Continue across entries' keeps only a bounded sliding message window, not unlimited history or arbitrary tool-call batches. With 'Continue across entries', chatMemoryMaxMessages must be at least 2 * the effective Max model calls per turn + 3; if unspecified it defaults to at least 53 messages and grows with that call limit. With 'Start new on each entry' an unspecified window is 20 messages. Sequential multi-instance iterations share the conversation and total cap; later iterations are re-entries and use Follow-up. Parallel multi-instance is not supported. The holder survives until the enclosing scope ends; at process root it persists until the instance ends and blocks all migration while it exists (temporary MVP restriction pending CIB7-2167). Activity ids must fit the 255-character memory variable name, reserving 64 characters for the enclosing execution id; deployment rejects overly long ids.",
+      "description": "'Start new on each entry' (default): every entry starts with an empty conversation. 'Continue across entries': the agent remembers earlier entries, e.g. in a feedback loop, within the window of Chat memory max messages. It is not available on a parallel multi-instance scope, and while such a conversation is kept the process instance cannot be migrated: until the scope around this sub process ends, or until the instance ends when the sub process sits directly in the process.",
       "choices": [
         {
           "name": "Start new on each entry",
@@ -169,7 +169,7 @@
           "constraints": {
             "notEmpty": true
           },
-          "description": "The agent's task. Evaluated on every turn, so it may be assembled from process data and reaches the agent as it is now, e.g. 'Handle order ${orderNumber}.'"
+          "description": "The agent's task, e.g. 'Handle order ${orderNumber}.' Evaluated again for every model call, so it shows the current process data."
         },
         {
           "label": "Instruction",
@@ -186,7 +186,7 @@
           "type": "Dropdown",
           "group": "input",
           "value": "append",
-          "description": "How 'Instruction' is combined with the bundled CIB seven default prompt. 'Replace' uses only your instruction. 'Append', pre-set in this template, keeps the default and adds your instruction after it. 'Prepend' puts your instruction before the default. Without a value the connector replaces. Ignored when 'Instruction' is empty.",
+          "description": "'Append' (preset): your instruction after the built-in prompt; 'Prepend': before it; 'Replace': only yours. Ignored when Instruction is empty.",
           "choices": [
             {
               "name": "Replace default",
@@ -210,7 +210,7 @@
           "label": "Follow-up on re-entry",
           "type": "Text",
           "group": "input",
-          "description": "Sent instead of 'Message' on the first turn of a re-entry with Conversation = 'Continue across entries', including later sequential multi-instance iterations. Evaluated once on re-entry and frozen for that entry's first turn, never evaluated on the first entry; later turns use 'Message' again. For example: 'The user said: ${feedback}.' If expression evaluation fails, a warning is logged and 'Message' is used instead; re-entry continues.",
+          "description": "Only with 'Continue across entries': sent instead of Message in the first turn after the scope is entered again, e.g. 'The user said: ${feedback}.' If it fails or is empty, Message is used.",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "followUp"
@@ -295,7 +295,7 @@
           "label": "Chat memory max messages",
           "type": "String",
           "group": "memory",
-          "description": "Default 20. Each model call adds about three messages, so 20 holds about the last six calls; earlier tool results and answers are dropped. Raise it if the agent needs more; every call then sends more and the stored conversation grows. With 'Continue across entries' an empty value means at least 53, more with a higher Max model calls per turn, and an explicit value below 2 * the effective Max model calls per turn + 3 is rejected.",
+          "description": "Default 20, about the last six calls; earlier tool results and answers are dropped, and a larger window sends more with every call. With 'Continue across entries' an empty value means at least 53, and a value below 2 * the effective Max model calls per turn + 3 is rejected.",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "chatMemoryMaxMessages"
@@ -447,7 +447,7 @@
         },
         {
           "label": "Output variable for AI-output marker (EU AI Act Art. 50(2))",
-          "description": "Process variable that will receive a machine-readable marker for AI-generated output (${outputAiMeta}): a Map with aiGenerated=true, runId, provider, model, responseId, generatedAt. Map it as a sibling of the agent response (e.g. agentOutput_aiMeta) so downstream tasks and history consumers can distinguish AI-generated values from human-authored ones. Leave the field unset to skip this output.",
+          "description": "Process variable for the marker of AI-generated output (${outputAiMeta}): aiGenerated, runId, provider, model, responseId, generatedAt. After a limit it holds only aiGenerated=false and generatedAt. Leave the field unset to skip this output.",
           "type": "String",
           "value": "agentOutput_aiMeta",
           "binding": {
@@ -457,7 +457,7 @@
         },
         {
           "label": "Output variable for the turn's outcome",
-          "description": "Process variable that will receive how the last turn ended (${outcome}), for a gateway after the scope: completed (the agent called completeScope), ended (it answered and nothing it started still runs), waiting (it answered while work still runs; the next turn overwrites it), turnLimit, totalTurnLimit or callLimit. Leave the field unset to skip this output.",
+          "description": "How the agent's last turn ended, for a gateway after the scope: completed (it called completeScope), ended (it answered and nothing runs), turnLimit, totalTurnLimit or callLimit. While the scope runs it may read waiting. Leave the field unset to skip this output.",
           "type": "String",
           "value": "agentOutput_outcome",
           "binding": {
