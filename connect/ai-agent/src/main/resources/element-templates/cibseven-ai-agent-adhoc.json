@@ -62,7 +62,7 @@
       "label": "Max turns",
       "type": "String",
       "group": "limits",
-      "description": "Turns allowed before the agent stops. A turn starts on entry and each time something the agent started finishes while it waits. Default 10. Activities already running still finish.",
+      "description": "Turns allowed before the agent stops. A turn starts on entry, and again when activities of this sub process end or are cancelled while the agent waits. Default 10. Activities already running still finish.",
       "binding": {
         "type": "camunda:property",
         "name": "cibseven.agentic.maxTurns"

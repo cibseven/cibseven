@@ -126,30 +126,34 @@ public class AdHocElementTemplateTest {
 
   /**
    * The texts are read in the modeler by whoever models the process. A ticket key or a release
-   * phase tells them nothing there, and it stays behind once the ticket is closed.
+   * phase tells them nothing there, and it stays behind once the ticket is closed. Every text of
+   * the template is read, not only the fields': a group's label, a placeholder and the message of
+   * a check are shown as well.
    */
   @Test
   public void noTextNamesATicketOrAReleasePhase() throws IOException {
-    JsonNode template = read(AD_HOC);
-    List<JsonNode> all = new ArrayList<JsonNode>();
-    all.add(template);
-    template.get("properties").forEach(all::add);
-    template.get("scopes").get(0).get("properties").forEach(all::add);
-
-    Pattern internal = Pattern.compile("CIB7-\\d+|\\bMVP\\b");
     List<String> naming = new ArrayList<String>();
-    for (JsonNode node : all) {
-      // Everything the modeler shows of a field: its label, its text and its dropdown's choices.
-      StringBuilder shown = new StringBuilder(text(node, "name")).append('\n')
-          .append(text(node, "label")).append('\n').append(text(node, "description"));
-      for (JsonNode choice : node.path("choices")) {
-        shown.append('\n').append(text(choice, "name"));
+    findInTexts(read(AD_HOC), "", Pattern.compile("CIB7-\\d+|\\bMVP\\b"), naming);
+    assertThat(naming).as("texts naming a ticket or a release phase").isEmpty();
+  }
+
+  /** Adds where {@code pattern} is found in any text under {@code node}, and what it found. */
+  protected static void findInTexts(JsonNode node, String path, Pattern pattern,
+      List<String> found) {
+    if (node.isTextual()) {
+      Matcher match = pattern.matcher(node.asText());
+      if (match.find()) {
+        found.add(path + " -> " + match.group());
       }
-      if (internal.matcher(shown).find()) {
-        naming.add(node.has("label") ? text(node, "label") : text(node, "name"));
+    } else if (node.isArray()) {
+      for (int i = 0; i < node.size(); i++) {
+        findInTexts(node.get(i), path + "/" + i, pattern, found);
+      }
+    } else {
+      for (Map.Entry<String, JsonNode> field : node.properties()) {
+        findInTexts(field.getValue(), path + "/" + field.getKey(), pattern, found);
       }
     }
-    assertThat(naming).as("texts naming a ticket or a release phase").isEmpty();
   }
 
   /**
