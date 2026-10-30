@@ -120,7 +120,10 @@ public class AdHocDefaultInstructionHttpTest {
     assertThat(system).isEqualTo(resource(AD_HOC_PROMPT));
   }
 
-  /** The template presets append: the modeller's instruction follows the scope's own prompt. */
+  /**
+   * Under append, the mode the template presets (AdHocElementTemplateTest), the modeller's
+   * instruction follows the scope's own prompt.
+   */
   @Test
   public void underAppendTheInstructionFollowsTheAdHocPrompt() throws IOException {
     script.add(answer("Nothing to do."));
@@ -135,6 +138,35 @@ public class AdHocDefaultInstructionHttpTest {
         + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR + "Answer in German.");
   }
 
+  /**
+   * An AI agent task the scope's agent starts as a tool runs as a service task of its own: under
+   * append and with no instruction it reads the service task's prompt, not the scope's.
+   */
+  @Test
+  public void anAgentTaskStartedAsAToolKeepsTheServiceTasksPrompt() throws IOException {
+    script.add(toolCall("berater"));
+    script.add(answer("Advice given."));
+    script.add(answer("Done."));
+
+    runToTheEnd(start(adHocModel("",
+        "      <serviceTask id='berater' name='Berater'><extensionElements><camunda:connector>"
+        + "<camunda:connectorId>cibseven-ai-agent</camunda:connectorId><camunda:inputOutput>"
+        + "<camunda:inputParameter name='agentName'>berater</camunda:inputParameter>"
+        + "<camunda:inputParameter name='message'>Give advice.</camunda:inputParameter>"
+        + "<camunda:inputParameter name='instructionMode'>append</camunda:inputParameter>"
+        + connection()
+        + "</camunda:inputOutput></camunda:connector></extensionElements></serviceTask>")));
+
+    assertThat(requestBodies).as("the scope's agent, the agent task, the scope's agent again")
+        .hasSize(3);
+    assertThat(systemMessage(requestBodies.get(0))).as("the scope's agent")
+        .isEqualTo(resource(AD_HOC_PROMPT));
+    assertThat(requestBodies.get(1)).as("the agent task's request").contains("Give advice.");
+    assertThat(systemMessage(requestBodies.get(1))).as("the agent task")
+        .isEqualTo(resource(SERVICE_TASK_PROMPT));
+  }
+
+  /** A service task outside any scope keeps the prompt it had. */
   @Test
   public void aServiceTaskKeepsItsOwnPrompt() throws IOException {
     script.add(answer("Done."));
@@ -148,6 +180,11 @@ public class AdHocDefaultInstructionHttpTest {
   // --- the models ------------------------------------------------------------------
 
   private static String adHocModel(String moreInputs) {
+    return adHocModel(moreInputs,
+        "      <serviceTask id='worker' camunda:expression='${\"handled\"}' camunda:resultVariable='status' />");
+  }
+
+  private static String adHocModel(String moreInputs, String tools) {
     return "<?xml version='1.0' encoding='UTF-8'?>"
         + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
         + "             xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
@@ -164,7 +201,7 @@ public class AdHocDefaultInstructionHttpTest {
         + moreInputs
         + "        </camunda:inputOutput>"
         + "      </camunda:connector></extensionElements>"
-        + "      <serviceTask id='worker' camunda:expression='${\"handled\"}' camunda:resultVariable='status' />"
+        + tools
         + "    </adHocSubProcess>"
         + "    <sequenceFlow id='f2' sourceRef='adHoc' targetRef='end' />"
         + "    <endEvent id='end' />"
@@ -232,6 +269,15 @@ public class AdHocDefaultInstructionHttpTest {
       engine.getManagementService().executeJob(jobs.get(0).getId());
     }
     throw new AssertionError("more than 60 steps, the turn does not end");
+  }
+
+  private static String toolCall(String name) {
+    return "{\"id\":\"c\",\"object\":\"chat.completion\",\"created\":1,"
+        + "\"model\":\"stub\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\","
+        + "\"content\":null,\"tool_calls\":[{\"id\":\"call_1\",\"type\":\"function\","
+        + "\"function\":{\"name\":\"" + name + "\",\"arguments\":\"{}\"}}]},"
+        + "\"finish_reason\":\"tool_calls\"}],"
+        + "\"usage\":{\"prompt_tokens\":1,\"completion_tokens\":1,\"total_tokens\":2}}";
   }
 
   private static String answer(String text) {

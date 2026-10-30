@@ -674,6 +674,44 @@ public class AgentConnectorImplCoverageTest {
     }
   }
 
+  // ── buildSystemPrompt — a step of an agentic scope reads its own prompt (CIB7-2235) ─
+
+  @Test
+  public void anAgenticStepWithoutAnInstructionReadsTheAdHocPrompt() throws Exception {
+    String prompt = invokeBuildSystemPrompt(connector.createRequest(), true);
+    assertThat(prompt).isEqualTo(AgentConnectorImpl.loadAdHocDefaultInstruction());
+  }
+
+  @Test
+  public void anAgenticStepUnderAppendPutsTheInstructionAfterTheAdHocPrompt() throws Exception {
+    AgentRequest request = connector.createRequest()
+        .instruction("Return JSON.")
+        .instructionMode(AgentConnectorConstants.INSTRUCTION_MODE_APPEND);
+    String prompt = invokeBuildSystemPrompt(request, true);
+    assertThat(prompt).isEqualTo(AgentConnectorImpl.loadAdHocDefaultInstruction()
+        + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR
+        + "Return JSON.");
+  }
+
+  @Test
+  public void anAgenticStepUnderPrependPutsTheInstructionBeforeTheAdHocPrompt() throws Exception {
+    AgentRequest request = connector.createRequest()
+        .instruction("Return JSON.")
+        .instructionMode(AgentConnectorConstants.INSTRUCTION_MODE_PREPEND);
+    String prompt = invokeBuildSystemPrompt(request, true);
+    assertThat(prompt).isEqualTo("Return JSON."
+        + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR
+        + AgentConnectorImpl.loadAdHocDefaultInstruction());
+  }
+
+  @Test
+  public void anAgenticStepUnderReplaceReadsOnlyTheInstruction() throws Exception {
+    AgentRequest request = connector.createRequest()
+        .instruction("Return JSON.")
+        .instructionMode(AgentConnectorConstants.INSTRUCTION_MODE_REPLACE);
+    assertThat(invokeBuildSystemPrompt(request, true)).isEqualTo("Return JSON.");
+  }
+
   // ── buildMcpClient — exercise the real factory body once ────────────────
 
   /**
@@ -754,12 +792,55 @@ public class AgentConnectorImplCoverageTest {
     assertThat(AgentConnectorImpl.loadDefaultInstruction()).isSameAs(repopulated);
   }
 
+  // ── the two bundled prompts, each from its own file and cache (CIB7-2235) ─
+
+  /**
+   * Each loader returns its own file, whichever is loaded first. The caches are emptied first, so
+   * the outcome does not depend on what ran before in the same JVM.
+   */
+  @Test
+  public void eachLoaderReturnsItsOwnFileWhicheverIsLoadedFirst() throws Exception {
+    String serviceTask = resource(AgentConnectorImpl.DEFAULT_INSTRUCTION_RESOURCE);
+    String adHoc = resource(AgentConnectorImpl.AD_HOC_DEFAULT_INSTRUCTION_RESOURCE);
+    assertThat(adHoc).isNotEqualTo(serviceTask);
+
+    emptyPromptCaches();
+    assertThat(AgentConnectorImpl.loadDefaultInstruction()).isEqualTo(serviceTask);
+    assertThat(AgentConnectorImpl.loadAdHocDefaultInstruction()).isEqualTo(adHoc);
+
+    emptyPromptCaches();
+    assertThat(AgentConnectorImpl.loadAdHocDefaultInstruction()).isEqualTo(adHoc);
+    assertThat(AgentConnectorImpl.loadDefaultInstruction()).isEqualTo(serviceTask);
+  }
+
+  private static void emptyPromptCaches() throws Exception {
+    for (String name : new String[] { "defaultInstructionCache", "adHocDefaultInstructionCache" }) {
+      java.lang.reflect.Field cache = AgentConnectorImpl.class.getDeclaredField(name);
+      cache.setAccessible(true);
+      cache.set(null, null);
+    }
+  }
+
+  private static String resource(String name) throws Exception {
+    try (java.io.InputStream in = AgentConnectorImplCoverageTest.class.getResourceAsStream(name)) {
+      assertThat(in).as(name + " on the classpath").isNotNull();
+      return new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+    }
+  }
+
   // ── Reflection helper for buildSystemPrompt ─────────────────────────────
 
+  /** The system prompt of a service task. */
   private String invokeBuildSystemPrompt(AgentRequest request) throws Exception {
-    Method m = AgentConnectorImpl.class.getDeclaredMethod("buildSystemPrompt", AgentRequest.class);
+    return invokeBuildSystemPrompt(request, false);
+  }
+
+  /** The system prompt; {@code agentic} for a step of an agentic scope's turn. */
+  private String invokeBuildSystemPrompt(AgentRequest request, boolean agentic) throws Exception {
+    Method m = AgentConnectorImpl.class.getDeclaredMethod("buildSystemPrompt", AgentRequest.class,
+        boolean.class);
     m.setAccessible(true);
-    return (String) m.invoke(connector, request);
+    return (String) m.invoke(connector, request, agentic);
   }
 
   // ── Stubs ────────────────────────────────────────────────────────────────
