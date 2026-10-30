@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.Test;
 
@@ -107,15 +108,41 @@ public class AdHocElementTemplateTest {
         .doesNotContain("perActivity");
   }
 
-  /** The Conversation dropdown says which window each of its choices gets when left empty. */
+  /**
+   * The Conversation dropdown sends the reader to the field that bounds what is remembered, by
+   * the label the modeler shows; what that field holds when left empty is said there, once.
+   */
   @Test
-  public void theConversationTextNamesTheDefaultWindowOfEachChoice() throws IOException {
-    JsonNode conversation = fields(read(AD_HOC).get("properties"))
+  public void theConversationTextNamesTheWindowField() throws IOException {
+    JsonNode template = read(AD_HOC);
+    JsonNode conversation = fields(template.get("properties"))
         .get("camunda:property:" + AgenticAdHocParseListener.CONVERSATION);
+    JsonNode window = fields(template.get("scopes").get(0).get("properties"))
+        .get("camunda:inputParameter:chatMemoryMaxMessages");
 
-    assertThat(text(conversation, "description"))
-        .contains("With 'Continue across entries', chatMemoryMaxMessages must be at least")
-        .contains("With 'Start new on each entry' an unspecified window is 20 messages");
+    assertThat(text(conversation, "description")).contains(text(window, "label"));
+  }
+
+  /**
+   * The texts are read in the modeler by whoever models the process. A ticket key or a release
+   * phase tells them nothing there, and it stays behind once the ticket is closed.
+   */
+  @Test
+  public void noTextNamesATicketOrAReleasePhase() throws IOException {
+    JsonNode template = read(AD_HOC);
+    List<JsonNode> all = new ArrayList<JsonNode>();
+    all.add(template);
+    template.get("properties").forEach(all::add);
+    template.get("scopes").get(0).get("properties").forEach(all::add);
+
+    Pattern internal = Pattern.compile("CIB7-\\d+|\\bMVP\\b");
+    List<String> naming = new ArrayList<String>();
+    for (JsonNode node : all) {
+      if (internal.matcher(text(node, "description")).find()) {
+        naming.add(node.has("label") ? text(node, "label") : text(node, "name"));
+      }
+    }
+    assertThat(naming).as("texts naming a ticket or a release phase").isEmpty();
   }
 
   /** Same label, type and binding as the service task's field; defaults and texts may differ. */
