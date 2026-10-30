@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -122,6 +123,31 @@ public class AdHocElementTemplateTest {
         .get("camunda:inputParameter:chatMemoryMaxMessages");
 
     assertThat(text(conversation, "description")).contains(text(window, "label"));
+  }
+
+  /**
+   * With 'Throw a BPMN error' a deployment is refused unless boundary error events catch every
+   * limit the scope can reach, each by its code. The On limit text is where the modeller looks for
+   * those codes.
+   */
+  @Test
+  public void theOnLimitTextNamesEveryLimitCode() throws IOException {
+    JsonNode onLimit = fields(read(AD_HOC).get("properties"))
+        .get("camunda:property:" + AgenticAdHocParseListener.ON_LIMIT);
+
+    assertThat(text(onLimit, "description")).contains(AgenticOutcome.LIMITS);
+  }
+
+  /**
+   * The modeller's instruction is added to the agent's built-in prompt (CIB7-2235) only when the
+   * two are combined; without a value the connector replaces it. So the template presets append.
+   */
+  @Test
+  public void theTemplatePresetsAppend() throws IOException {
+    JsonNode mode = fields(read(AD_HOC).get("scopes").get(0).get("properties"))
+        .get("camunda:inputParameter:instructionMode");
+
+    assertThat(text(mode, "value")).isEqualTo(AgentConnectorConstants.INSTRUCTION_MODE_APPEND);
   }
 
   /**
