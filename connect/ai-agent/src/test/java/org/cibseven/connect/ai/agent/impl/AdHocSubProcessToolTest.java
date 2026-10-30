@@ -673,11 +673,11 @@ public class AdHocSubProcessToolTest {
   }
 
   /**
-   * The report carries a cut value and says so; the variable keeps all of it. 4000 characters
-   * are the most a string variable holds: the engine refuses a longer one.
+   * 4000 characters are the most a string variable holds: the engine refuses a longer one. Such
+   * a value reaches the agent whole.
    */
   @Test
-  public void aLongValueIsCutAndTheVariableKeepsAllOfIt() {
+  public void aValueAsLongAsAStringVariableHoldsGoesWhole() {
     String text = longText(4000);
     ProcessInstance instance = startWithoutTurn("processDataLong", processVariables("bericht"),
         tool -> {
@@ -688,31 +688,62 @@ public class AdHocSubProcessToolTest {
 
     runPendingTurn(instance);
 
-    String shown = String.valueOf(processData(result(0)).get("bericht"));
-    assertThat(shown).isEqualTo(text.substring(0, AdHocSubProcessTool.MAX_RESULT_VALUE_CHARS)
-        + "… (truncated, 4000 characters total)");
-    assertThat(ENGINE.getRuntimeService().getVariable(instance.getId(), "bericht"))
-        .isEqualTo(text);
+    assertThat(processData(result(0))).containsEntry("bericht", text);
   }
 
-  /** As a result value is shown: one rule for every value the agent is sent. */
+  /**
+   * A date in ISO 8601, in UTC. An object in Java serialization, a file and bytes are a
+   * placeholder naming their type: the agent cannot read them, and nothing is deserialized.
+   */
   @Test
-  public void aDateAnObjectOrAFileIsAPlaceholder() {
+  public void aDateIsShownInIsoAndAJavaObjectAFileOrBytesArePlaceholders() {
     ProcessInstance instance = startWithoutTurn("processDataPlaceholders",
-        processVariables("faellig, auftrag, scan"), tool -> tool.turnReport());
+        processVariables("faellig, auftrag, scan, roh"), tool -> tool.turnReport());
     ENGINE.getRuntimeService().setVariable(instance.getId(), "faellig", new Date(0L));
     ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
         Variables.objectValue(new ArrayList<>(Arrays.asList("a", "b"))).create());
     ENGINE.getRuntimeService().setVariable(instance.getId(), "scan",
         Variables.fileValue("auftrag.pdf").file(WritesDocument.BYTES)
             .mimeType("application/pdf").create());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "roh", new byte[] {1, 2, 3});
 
     runPendingTurn(instance);
 
     assertThat(processData(result(0)))
-        .containsEntry("faellig", "<date value, not shown>")
-        .containsEntry("auftrag", "<object value, not shown>")
-        .containsEntry("scan", "<file value, not shown>");
+        .containsEntry("faellig", "1970-01-01T00:00:00Z")
+        .containsEntry("auftrag", "<object value (java.util.ArrayList,"
+            + " application/x-java-serialized-object), not shown>")
+        .containsEntry("scan", "<file value, not shown>")
+        .containsEntry("roh", "<bytes value, not shown>");
+  }
+
+  /**
+   * An object serialized as JSON or XML, as a Spin value is, is shown as its text, read without
+   * deserializing it, and cut past the limit of one value. Shown on the value itself: this engine
+   * has no serializer for JSON.
+   */
+  @Test
+  public void aJsonOrXmlObjectIsShownAsItsTextAndCutPastTheLimit() {
+    String json = "{\"auftrag\":\"A-1047\",\"positionen\":3}";
+    String xml = "<auftrag nummer=\"A-1047\"/>";
+    String longJson = "[\"" + longText(4996) + "\"]";
+
+    AdHocSubProcessTool.ProcessValue shownJson = AdHocSubProcessTool.processValue(
+        Variables.serializedObjectValue(json).serializationDataFormat("application/json")
+            .objectTypeName("java.util.HashMap").create());
+    AdHocSubProcessTool.ProcessValue shownXml = AdHocSubProcessTool.processValue(
+        Variables.serializedObjectValue(xml).serializationDataFormat("application/xml")
+            .objectTypeName("org.example.Auftrag").create());
+    AdHocSubProcessTool.ProcessValue cut = AdHocSubProcessTool.processValue(
+        Variables.serializedObjectValue(longJson).serializationDataFormat("application/json")
+            .create());
+
+    assertThat(shownJson.shown).isEqualTo(json);
+    assertThat(shownJson.notWhole).isNull();
+    assertThat(shownXml.shown).isEqualTo(xml);
+    assertThat(cut.shown).isEqualTo(longJson.substring(0,
+        AdHocSubProcessTool.MAX_PROCESS_VALUE_CHARS) + "… (truncated, 5000 characters total)");
+    assertThat(cut.notWhole).isEqualTo("5000 characters, over the limit of 4000");
   }
 
   /** Values past the budget of their own are left out and named, in the order declared. */
@@ -787,7 +818,7 @@ public class AdHocSubProcessToolTest {
         tool -> tool.startActivity("quotedLater", Collections.<String, Object>emptyMap()),
         tool -> tool.turnReport());
     for (String name : names) {
-      ENGINE.getRuntimeService().setVariable(instance.getId(), name, longText(3000));
+      ENGINE.getRuntimeService().setVariable(instance.getId(), name, longText(2000));
     }
 
     // The tool's own job, then the turn its end scheduled.

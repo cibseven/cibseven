@@ -17,8 +17,10 @@
 package org.cibseven.connect.ai.agent.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -44,6 +46,8 @@ import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
 import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
+import org.cibseven.bpm.engine.variable.value.ObjectValue;
+import org.cibseven.bpm.engine.variable.value.SerializableValue;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 
 /**
@@ -137,6 +141,13 @@ public class AdHocSubProcessTool {
      * they the results.
      */
     static final int MAX_PROCESS_DATA_CHARS = 20000;
+
+    /**
+     * Characters of one declared value the agent is sent, counted on the value itself
+     * (CIB7-2179): the most a string variable holds, so a string is never cut. A longer text is
+     * a JSON or XML object.
+     */
+    static final int MAX_PROCESS_VALUE_CHARS = 4000;
 
     /**
      * Characters allowed for an activity's documentation, and for its name.
@@ -705,8 +716,8 @@ public class AdHocSubProcessTool {
     /**
      * The current values of the process variables the scope declares for its agent (CIB7-2179),
      * under {@code processData}: read as {@code ${name}} in its message is, on the scope and the
-     * scopes around it, and made safe as a result value is ({@link AdHocResults#safe}). A long
-     * string is cut and says so; the variable keeps its whole value. A declared variable that is
+     * scopes around it, and shown as {@link #processValue} shows it. A long text is cut and says
+     * so; the variable keeps its whole value. A declared variable that is
      * not set is named under {@code processDataNotSet}, so the agent tells it from one set to
      * null, and fails nothing. A value that does not fit what is left of the budget is left out
      * and named, so the values never take more than the budget; a smaller one after it may fit.
@@ -728,7 +739,7 @@ public class AdHocSubProcessTool {
             }
             // Admitted only whole and within the budget, counted as JSON writes it: a string of
             // control characters takes six times its length (CIB7-2179, second review).
-            Object safe = AdHocResults.safe(value);
+            Object safe = processValue(value).shown;
             int written = AdHocToolProvider.writtenLength(safe);
             if (written > remaining) {
                 leftOut.add(name);
@@ -745,6 +756,81 @@ public class AdHocSubProcessTool {
             report.put("processDataNote", "Left out because the size limit of "
                     + MAX_PROCESS_DATA_CHARS + " characters for processData was reached: "
                     + String.join(", ", leftOut) + ".");
+        }
+    }
+
+    /**
+     * A declared variable's value as {@code processData} shows it (CIB7-2179). A string, a number
+     * and a boolean as they are; a date in ISO 8601, in UTC; an object serialized as JSON or XML,
+     * a Spin {@code json} or {@code xml} value among them, as its serialized text, read without
+     * deserializing it. Text is cut at {@link #MAX_PROCESS_VALUE_CHARS} and says so. Everything
+     * else, an object in Java serialization, a file or bytes, is a placeholder naming its type:
+     * its content would be noise to the model, or would have to be loaded and deserialized here.
+     */
+    static ProcessValue processValue(TypedValue typed) {
+        String type = (typed.getType() == null) ? "unknown" : typed.getType().getName();
+        if (typed instanceof SerializableValue) {
+            SerializableValue serializable = (SerializableValue) typed;
+            String format = serializable.getSerializationDataFormat();
+            String described = (typed instanceof ObjectValue
+                    && ((ObjectValue) typed).getObjectTypeName() != null)
+                    ? ((ObjectValue) typed).getObjectTypeName() + ", " + format : format;
+            if (format != null && (format.contains("json") || format.contains("xml"))) {
+                return ProcessValue.text(serializable.getValueSerialized());
+            }
+            if (serializable.getValueSerialized() == null && !serializable.isDeserialized()) {
+                return ProcessValue.whole(null);
+            }
+            return ProcessValue.hidden("<" + type + " value (" + described + "), not shown>",
+                    "an object in " + format + ", which the agent sees only by its type; store it"
+                    + " as JSON");
+        }
+        // Decided by the type before the value is taken, as for a result: a file's value is a
+        // stream of its bytes.
+        if (!SHOWN_PROCESS_TYPES.contains(type)) {
+            return ProcessValue.hidden("<" + type + " value, not shown>",
+                    "a " + type + " value, whose content the agent does not see");
+        }
+        Object value = typed.getValue();
+        if (value instanceof String) {
+            return ProcessValue.text((String) value);
+        }
+        if (value instanceof Date) {
+            return ProcessValue.whole(((Date) value).toInstant().toString());
+        }
+        return ProcessValue.whole(value);
+    }
+
+    /** The types of a declared value that are shown as their value; JSON and XML come apart. */
+    private static final Set<String> SHOWN_PROCESS_TYPES = Collections.unmodifiableSet(
+            new LinkedHashSet<>(Arrays.asList("string", "integer", "long", "short",
+                    "double", "boolean", "date", "null")));
+
+    /** A declared value as shown, and why the agent does not see it whole, if it does not. */
+    static final class ProcessValue {
+        final Object shown;
+        /** Why the agent does not see the value whole, or {@code null} when it does. */
+        final String notWhole;
+
+        private ProcessValue(Object shown, String notWhole) {
+            this.shown = shown;
+            this.notWhole = notWhole;
+        }
+
+        static ProcessValue whole(Object shown) {
+            return new ProcessValue(shown, null);
+        }
+
+        static ProcessValue text(String text) {
+            if (text == null || text.length() <= MAX_PROCESS_VALUE_CHARS) {
+                return whole(text);
+            }
+            return new ProcessValue(truncate(text, MAX_PROCESS_VALUE_CHARS), text.length()
+                    + " characters, over the limit of " + MAX_PROCESS_VALUE_CHARS);
+        }
+
+        static ProcessValue hidden(String placeholder, String why) {
+            return new ProcessValue(placeholder, why);
         }
     }
 
