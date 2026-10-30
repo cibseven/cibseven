@@ -108,13 +108,24 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
   /**
    * The process variables the agent sees, by name, separated by commas: before every model call,
    * every step of a turn, their current values go to the model as data, with the state of the
-   * scope (CIB7-2179).
+   * scope (CIB7-2179). Each is required unless {@link #OPTIONAL_PROCESS_VARIABLES} names it.
    */
   public static final String PROCESS_VARIABLES = PROPERTY_PREFIX + "processVariables";
 
   /** The names {@link #PROCESS_VARIABLES} declares, in their order; absent when it declares none. */
   public static final PropertyKey<List<String>> DECLARED_PROCESS_VARIABLES =
       new PropertyKey<List<String>>("agentProcessVariables");
+
+  /**
+   * Those of {@link #PROCESS_VARIABLES} that may be missing: the agent is asked without them. Every
+   * other one must reach it, or the step fails before the model is called (CIB7-2179).
+   */
+  public static final String OPTIONAL_PROCESS_VARIABLES =
+      PROPERTY_PREFIX + "optionalProcessVariables";
+
+  /** The names {@link #OPTIONAL_PROCESS_VARIABLES} declares; absent when it declares none. */
+  public static final PropertyKey<List<String>> OPTIONAL_DECLARED_PROCESS_VARIABLES =
+      new PropertyKey<List<String>>("agentOptionalProcessVariables");
 
   /** The most characters a variable's name has: the engine's column for it. */
   protected static final int MAX_VARIABLE_NAME = 255;
@@ -128,7 +139,7 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
 
   /** Settings of the agent that are not limits, and mark a scope as an agent just as much. */
   protected static final List<String> SETTINGS =
-      Arrays.asList(CONVERSATION, ON_LIMIT, PROCESS_VARIABLES);
+      Arrays.asList(CONVERSATION, ON_LIMIT, PROCESS_VARIABLES, OPTIONAL_PROCESS_VARIABLES);
 
   /** What the element template for an agentic scope writes into {@code camunda:modelerTemplate}. */
   public static final String AD_HOC_TEMPLATE_ID = "org.cibseven.connect.ai.agent.AdHocSubProcess";
@@ -234,16 +245,22 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
         withoutOnLimit(activity))) {
       properties = without(properties, ON_LIMIT);
     }
-    // The same for the process variables the agent sees (CIB7-2179): left out, it sees none.
+    // The same for the process variables the agent sees (CIB7-2179): left out, it sees none. Both
+    // lists go together: the optional ones left alone would turn into required ones.
     final Map<String, String> declaring = properties;
     if (!parsing.check(() -> refuseABadDeclarationOfProcessVariables(scopeElement, activity,
         declaring), withoutProcessVariables(activity))) {
-      properties = without(properties, PROCESS_VARIABLES);
+      properties = without(without(properties, PROCESS_VARIABLES), OPTIONAL_PROCESS_VARIABLES);
     }
-    List<String> processVariables = declaredProcessVariables(properties);
+    List<String> processVariables = declaredNames(properties.get(PROCESS_VARIABLES));
     if (!processVariables.isEmpty()) {
       activity.getProperties().set(DECLARED_PROCESS_VARIABLES,
           Collections.unmodifiableList(processVariables));
+      List<String> optional = declaredNames(properties.get(OPTIONAL_PROCESS_VARIABLES));
+      if (!optional.isEmpty()) {
+        activity.getProperties().set(OPTIONAL_DECLARED_PROCESS_VARIABLES,
+            Collections.unmodifiableList(optional));
+      }
     }
 
     // followUp pulled out before the mapping is stored: unlike every other input parameter, it
@@ -620,18 +637,59 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
    * {@code cibseven.agentic.processVariables} names each variable once, and none of the agent's
    * own state (CIB7-2179). An empty name is a stray comma, and a name declared twice a slip of the
    * pen; either would leave a modeller wondering what the agent sees. A name with {@code $},
-   * braces or a semicolon, or one longer than a variable's name can be, is an expression or a list
-   * written by habit and would never match. The agent's own state is kept from the model on every
-   * path, and a declaration would hand it out.
+   * braces, a semicolon or an asterisk, or one longer than a variable's name can be, is an
+   * expression, a list or a pattern written by habit and would never match. The agent's own state
+   * is kept from the model on every path, and a declaration would hand it out.
+   *
+   * <p>{@code cibseven.agentic.optionalProcessVariables} is checked the same way, and names only
+   * variables the agent sees: a name it adds would be a typo, and the variable meant would stay
+   * required.
    */
   protected void refuseABadDeclarationOfProcessVariables(Element scopeElement,
       ActivityImpl activity, Map<String, String> properties) {
+    List<String> seen = new ArrayList<String>();
+    List<String> refusals = new ArrayList<String>();
     String declared = properties.get(PROCESS_VARIABLES);
+    List<String> problems = problemsOfADeclaration(declared, seen);
+    if (!problems.isEmpty()) {
+      refusals.add(PROCESS_VARIABLES + " is '" + declared + "', and declares "
+          + String.join(", and ", problems));
+    }
+    String optional = properties.get(OPTIONAL_PROCESS_VARIABLES);
+    List<String> optionalNames = new ArrayList<String>();
+    List<String> optionalProblems = problemsOfADeclaration(optional, optionalNames);
+    List<String> unseen = new ArrayList<String>();
+    for (String name : optionalNames) {
+      if (!seen.contains(name)) {
+        unseen.add(name);
+      }
+    }
+    if (!unseen.isEmpty()) {
+      optionalProblems.add(String.join(", ", unseen) + ", which " + PROCESS_VARIABLES
+          + " does not declare; only a variable the agent sees can be optional, so name it there"
+          + " too, or leave it out");
+    }
+    if (!optionalProblems.isEmpty()) {
+      refusals.add(OPTIONAL_PROCESS_VARIABLES + " is '" + optional + "', and declares "
+          + String.join(", and ", optionalProblems));
+    }
+    // One refusal names every problem, so a model is not deployed again only to learn of the next.
+    if (!refusals.isEmpty()) {
+      throw new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': "
+          + String.join("; ", refusals) + ".", scopeElement);
+    }
+  }
+
+  /**
+   * What is wrong with one list of names, in words for a refusal; the names it declares, each
+   * once, are added to {@code names}. Nothing is wrong with a list that is not there.
+   */
+  protected static List<String> problemsOfADeclaration(String declared, List<String> names) {
+    List<String> problems = new ArrayList<String>();
     if (declared == null || strip(declared).isEmpty()) {
-      return;
+      return problems;
     }
     boolean empty = false;
-    List<String> names = new ArrayList<String>();
     List<String> twice = new ArrayList<String>();
     List<String> agentState = new ArrayList<String>();
     List<String> noVariable = new ArrayList<String>();
@@ -653,8 +711,6 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
         }
       }
     }
-    // One refusal names every problem, so a model is not deployed again only to learn of the next.
-    List<String> problems = new ArrayList<String>();
     if (empty) {
       problems.add("an empty name; separate the names by single commas");
     }
@@ -668,20 +724,16 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
           + " the process another name, or leave it out");
     }
     if (!noVariable.isEmpty()) {
-      problems.add(String.join(", ", noVariable) + ", which reads as an expression or a list, not as"
-          + " the name of a variable; name each variable itself, without $, braces, a semicolon or a"
-          + " line break, in at most " + MAX_VARIABLE_NAME + " characters");
+      problems.add(String.join(", ", noVariable) + ", which reads as an expression, a list or a"
+          + " pattern, not as the name of a variable; name each variable itself, without $,"
+          + " braces, a semicolon, an asterisk or a line break, in at most " + MAX_VARIABLE_NAME
+          + " characters");
     }
-    if (!problems.isEmpty()) {
-      throw new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': "
-          + PROCESS_VARIABLES + " is '" + declared + "', and declares "
-          + String.join(", and ", problems) + ".", scopeElement);
-    }
+    return problems;
   }
 
-  /** The names {@code properties} declare as the process variables the agent sees, in order. */
-  protected static List<String> declaredProcessVariables(Map<String, String> properties) {
-    String declared = properties.get(PROCESS_VARIABLES);
+  /** The names a list declares, in order, each once. */
+  protected static List<String> declaredNames(String declared) {
     List<String> names = new ArrayList<String>();
     if (declared == null) {
       return names;
@@ -717,14 +769,15 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
   }
 
   /**
-   * Whether {@code name} reads as the name of a variable rather than an expression or a list: no
-   * {@code $}, brace or semicolon, and no line break or other control character, which an XML
-   * attribute keeps when it is written as a character reference.
+   * Whether {@code name} reads as the name of a variable rather than an expression, a list or a
+   * pattern: no {@code $}, brace, semicolon or asterisk, and no line break or other control
+   * character, which an XML attribute keeps when it is written as a character reference. Every
+   * variable at once is not something a declaration can say.
    */
   protected static boolean looksLikeAName(String name) {
     for (int i = 0; i < name.length(); i++) {
       char c = name.charAt(i);
-      if (c == '$' || c == '{' || c == '}' || c == ';' || Character.isISOControl(c)) {
+      if (c == '$' || c == '{' || c == '}' || c == ';' || c == '*' || Character.isISOControl(c)) {
         return false;
       }
     }
@@ -743,8 +796,8 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
 
   /** What a scope loads with on a parse again when its {@link #PROCESS_VARIABLES} is left out. */
   protected static String withoutProcessVariables(ActivityImpl activity) {
-    return PROCESS_VARIABLES + " is left out of '" + activity.getId() + "', and its agent sees"
-        + " no process variables";
+    return PROCESS_VARIABLES + " and " + OPTIONAL_PROCESS_VARIABLES + " are left out of '"
+        + activity.getId() + "', and its agent sees no process variables";
   }
 
   /**

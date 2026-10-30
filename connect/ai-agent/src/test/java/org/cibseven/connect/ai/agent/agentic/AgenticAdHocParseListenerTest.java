@@ -2246,9 +2246,9 @@ public class AgenticAdHocParseListenerTest {
     assertThatThrownBy(() -> deploy(model))
         .isInstanceOf(ProcessEngineException.class)
         .hasMessageContaining("declares ${kunde}, kunde; prioritaet, " + longName
-            + ", which reads as an expression or a list, not as the name of a variable; name each"
-            + " variable itself, without $, braces, a semicolon or a line break, in at most 255"
-            + " characters.");
+            + ", which reads as an expression, a list or a pattern, not as the name of a variable;"
+            + " name each variable itself, without $, braces, a semicolon, an asterisk or a line"
+            + " break, in at most 255 characters.");
   }
 
   /** A line break written as a character reference stays in the attribute, and in the name. */
@@ -2279,6 +2279,83 @@ public class AgenticAdHocParseListenerTest {
     List<String> declared = declaredProcessVariablesOf("adHoc");
     assertThatThrownBy(() -> declared.add("geheim"))
         .isInstanceOf(UnsupportedOperationException.class);
+  }
+
+  /** Every variable at once is not something a declaration can say: it would match none. */
+  @Test
+  public void refusesAnAsteriskForEveryVariable() {
+    String model = connectorScope("<userTask id='worker' />", processVariables("kunde, *"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("declares *, which reads as an expression, a list or a pattern");
+  }
+
+  @Test
+  public void declaresWhichOfTheProcessVariablesAreOptional() {
+    deploy(connectorScope("<userTask id='worker' />",
+        processVariables("kunde, rabatt, notiz", " notiz, rabatt "), ""));
+
+    assertThat(declaredProcessVariablesOf("adHoc")).containsExactly("kunde", "rabatt", "notiz");
+    assertThat(optionalProcessVariablesOf("adHoc")).containsExactly("notiz", "rabatt");
+  }
+
+  @Test
+  public void withoutOptionalOnesEveryProcessVariableIsRequired() {
+    deploy(connectorScope("<userTask id='worker' />", processVariables("kunde", " "), ""));
+
+    assertThat(optionalProcessVariablesOf("adHoc")).isNull();
+  }
+
+  /** A name the agent does not see is a typo, and the variable meant would stay required. */
+  @Test
+  public void refusesAnOptionalVariableTheAgentDoesNotSee() {
+    String model = connectorScope("<userTask id='worker' />",
+        processVariables("kunde, rabatt", "rabat"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("cibseven.agentic.optionalProcessVariables is 'rabat', and declares"
+            + " rabat, which cibseven.agentic.processVariables does not declare; only a variable"
+            + " the agent sees can be optional, so name it there too, or leave it out.");
+  }
+
+  @Test
+  public void refusesOptionalVariablesWithoutTheOnesTheAgentSees() {
+    String model = connectorScope("<userTask id='worker' />", processVariables(null, "rabatt"),
+        "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("declares rabatt, which cibseven.agentic.processVariables does not"
+            + " declare");
+  }
+
+  @Test
+  public void refusesEveryProblemOfBothListsAtOnce() {
+    String model = connectorScope("<userTask id='worker' />",
+        processVariables("kunde, kunde", "kunde,, ${rabatt}"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("cibseven.agentic.processVariables is 'kunde, kunde', and declares"
+            + " kunde more than once; cibseven.agentic.optionalProcessVariables is"
+            + " 'kunde,, ${rabatt}', and declares an empty name")
+        .hasMessageContaining("${rabatt}, which reads as an expression")
+        .hasMessageContaining("${rabatt}, which cibseven.agentic.processVariables does not"
+            + " declare");
+  }
+
+  @Test
+  public void optionalProcessVariablesWithoutTheConnectorMarkTheScopeAsAnAgent() {
+    String model = process("<adHocSubProcess id='adHoc'><extensionElements>"
+        + processVariables(null, "rabatt") + "</extensionElements><userTask id='worker' />"
+        + "</adHocSubProcess>");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("the agent's settings cibseven.agentic.optionalProcessVariables")
+        .hasMessageContaining("carries no connector 'cibseven-ai-agent'");
   }
 
   @Test
@@ -2316,8 +2393,27 @@ public class AgenticAdHocParseListenerTest {
         + " value='" + names + "' /></camunda:properties>";
   }
 
+  /** Both lists; a list that is null is not written. */
+  protected static String processVariables(String names, String optional) {
+    return "<camunda:properties>" + (names == null ? ""
+        : "<camunda:property name='cibseven.agentic.processVariables' value='" + names + "' />")
+        + "<camunda:property name='cibseven.agentic.optionalProcessVariables' value='" + optional
+        + "' /></camunda:properties>";
+  }
+
   /** What the latest deployed definition's scope declares. Needs a command context. */
   protected List<String> declaredProcessVariablesOf(final String activityId) {
+    return processVariablesOf(activityId, AgenticAdHocParseListener.DECLARED_PROCESS_VARIABLES);
+  }
+
+  /** Which of them the latest deployed definition's scope declares optional. */
+  protected List<String> optionalProcessVariablesOf(final String activityId) {
+    return processVariablesOf(activityId,
+        AgenticAdHocParseListener.OPTIONAL_DECLARED_PROCESS_VARIABLES);
+  }
+
+  protected List<String> processVariablesOf(final String activityId,
+      final org.cibseven.bpm.engine.impl.core.model.PropertyKey<List<String>> key) {
     final String definitionId = engine.getRepositoryService()
         .createProcessDefinitionQuery().latestVersion().singleResult().getId();
     return config.getCommandExecutorTxRequired().execute(
@@ -2327,8 +2423,7 @@ public class AgenticAdHocParseListenerTest {
               org.cibseven.bpm.engine.impl.interceptor.CommandContext ctx) {
             ProcessDefinitionEntity entity = ctx.getProcessEngineConfiguration()
                 .getDeploymentCache().findDeployedProcessDefinitionById(definitionId);
-            return entity.findActivity(activityId).getProperties()
-                .get(AgenticAdHocParseListener.DECLARED_PROCESS_VARIABLES);
+            return entity.findActivity(activityId).getProperties().get(key);
           }
         });
   }

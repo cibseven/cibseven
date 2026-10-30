@@ -693,6 +693,9 @@ public class AgenticReparseTest {
     Consumer<ActivityImpl> withoutTheAgent = withoutTheAgent();
     String leftOutOfOnLimit = AgenticAdHocParseListener.ON_LIMIT + " is left out of 'adHoc', and"
         + " a limit ends it as any turn would";
+    String processVariablesLeftOut = AgenticAdHocParseListener.PROCESS_VARIABLES + " and "
+        + AgenticAdHocParseListener.OPTIONAL_PROCESS_VARIABLES + " are left out of 'adHoc', and"
+        + " its agent sees no process variables";
     return Stream.of(
         Arguments.of("the agent on a sub process",
             "<subProcess id='adHoc'><extensionElements>" + connector(MESSAGE)
@@ -820,9 +823,13 @@ public class AgenticReparseTest {
         Arguments.of("a process variable declared twice",
             adHoc(properties(AgenticAdHocParseListener.PROCESS_VARIABLES, "kunde, kunde")
                 + connector(MESSAGE), "<userTask id='arbeit' />"),
-            "declares kunde more than once",
-            AgenticAdHocParseListener.PROCESS_VARIABLES + " is left out of 'adHoc', and its agent"
-                + " sees no process variables", withoutProcessVariables()),
+            "declares kunde more than once", processVariablesLeftOut, withoutProcessVariables()),
+        Arguments.of("an optional process variable the agent does not see",
+            adHoc(properties(AgenticAdHocParseListener.PROCESS_VARIABLES, "kunde, rabatt",
+                AgenticAdHocParseListener.OPTIONAL_PROCESS_VARIABLES, "rabat")
+                + connector(MESSAGE), "<userTask id='arbeit' />"),
+            "declares rabat, which cibseven.agentic.processVariables does not declare",
+            processVariablesLeftOut, withoutProcessVariables()),
         Arguments.of("a message that does not parse",
             adHoc(connector("<camunda:inputParameter name='message'>Handle ${order."
                 + "</camunda:inputParameter>"), "<userTask id='arbeit' />"),
@@ -893,6 +900,10 @@ public class AgenticReparseTest {
       Map<String, String> properties =
           scope.getProperties().get(BpmnProperties.EXTENSION_PROPERTIES);
       assertThat(properties).doesNotContainKey(AgenticAdHocParseListener.PROCESS_VARIABLES);
+      assertThat(properties).as("the optional ones alone would turn into required ones")
+          .doesNotContainKey(AgenticAdHocParseListener.OPTIONAL_PROCESS_VARIABLES);
+      assertThat(scope.getProperties()
+          .get(AgenticAdHocParseListener.OPTIONAL_DECLARED_PROCESS_VARIABLES)).isNull();
     };
   }
 
