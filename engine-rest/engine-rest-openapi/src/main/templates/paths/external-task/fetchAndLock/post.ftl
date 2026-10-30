@@ -6,7 +6,10 @@
       tag = "External Task"
       summary = "Fetch and Lock"
       desc = "Fetches and locks a specific number of external tasks for execution by a worker. Query can be restricted
-              to specific task topics and for each task topic an individual lock time can be provided." />
+              to specific task topics and for each task topic an individual lock time can be provided. Note: if a
+              retry cycle is configured for a fetched task's activity (modeled via `camunda:failedJobRetryTimeCycle`,
+              or an engine-wide default), each successful fetch of that task consumes one of its configured retries,
+              regardless of whether it is later reported back as failed." />
 
   <@lib.requestBody
       mediaType = "application/json"

@@ -64,7 +64,11 @@
       name = "retries"
       type = "integer"
       format = "int32"
-      desc = "The number of retries the task currently has left." />
+      desc = "The number of retries the task currently has left. `null` if the task's activity has no retry cycle
+              configured (neither modeled via `camunda:failedJobRetryTimeCycle` nor an engine-wide default) and no
+              client has reported a failure for it yet. When a retry cycle does apply, the engine itself initializes
+              this value from the cycle's configured number of retries, and decrements it by one on every successful
+              fetch of the task - independently of whatever a client later reports via `POST /external-task/{id}/failure`." />
 
   <@lib.property
       name = "suspended"
