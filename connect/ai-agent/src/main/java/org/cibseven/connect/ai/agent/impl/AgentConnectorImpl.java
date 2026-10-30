@@ -235,7 +235,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       Class<?> agentClass = (memoryId != null) ? LangChainMemoryAgent.class : LangChainAgent.class;
       AiServices<?> builder = AiServices.builder(agentClass)
           .chatModel(chatModel)
-          .systemMessageProvider(chatMemoryId -> buildSystemPrompt(request));
+          .systemMessageProvider(chatMemoryId -> buildSystemPrompt(request, agenticScope != null));
       if (!tools.isEmpty()) {
         builder.tools(tools.toArray());
       }
@@ -1419,15 +1419,32 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
   /** Lazily loaded cache for {@link #DEFAULT_INSTRUCTION_RESOURCE}. */
   private static volatile String defaultInstructionCache;
 
+  /**
+   * Classpath resource used in place of {@link #DEFAULT_INSTRUCTION_RESOURCE} when the agent
+   * runs an ad hoc sub process (CIB7-2235). There an answer in text ends the turn, and with
+   * nothing running the scope: the service task's prompt asks for a clarifying question in the
+   * answer, which then reaches no one.
+   */
+  static final String AD_HOC_DEFAULT_INSTRUCTION_RESOURCE =
+      "/org/cibseven/connect/ai/agent/default-instruction-adhoc.txt";
+
+  /** Lazily loaded cache for {@link #AD_HOC_DEFAULT_INSTRUCTION_RESOURCE}. */
+  private static volatile String adHocDefaultInstructionCache;
+
   private String buildSystemPrompt(AgentRequest request) {
+    return buildSystemPrompt(request, false);
+  }
+
+  /** The system prompt; {@code agentic} when the call is a step of an agentic scope's turn. */
+  private String buildSystemPrompt(AgentRequest request, boolean agentic) {
     String description = request.getAgentDescription();
     String callerInstruction = request.getInstruction();
     String mode = request.getInstructionMode();
     boolean hasCallerInstruction = callerInstruction != null && !callerInstruction.isEmpty();
-    LOG.debug("buildSystemPrompt: callerInstructionPresent={}, instructionMode={}, descriptionPresent={}",
-        hasCallerInstruction, mode, description != null && !description.isEmpty());
+    LOG.debug("buildSystemPrompt: callerInstructionPresent={}, instructionMode={}, descriptionPresent={}, agentic={}",
+        hasCallerInstruction, mode, description != null && !description.isEmpty(), agentic);
 
-    String instruction = combineWithDefault(callerInstruction, mode);
+    String instruction = combineWithDefault(callerInstruction, mode, agentic);
 
     boolean hasDescription = description != null && !description.isEmpty();
     boolean hasInstruction = instruction != null && !instruction.isEmpty();
@@ -1444,25 +1461,26 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    * Combines the caller-supplied {@code instruction} with the bundled default
    * prompt according to {@code mode}. When the caller did not supply an
    * instruction, the bundled default is returned regardless of the mode.
+   * In an agentic scope's turn the bundled default is the ad hoc one.
    *
    * @throws AgentConnectorException when {@code mode} is set to an unknown value
    */
-  private String combineWithDefault(String callerInstruction, String mode) {
+  private String combineWithDefault(String callerInstruction, String mode, boolean agentic) {
     boolean hasCallerInstruction = callerInstruction != null && !callerInstruction.isEmpty();
     if (!hasCallerInstruction) {
-      return loadDefaultInstruction();
+      return defaultInstruction(agentic);
     }
     switch (mode) {
       case AgentConnectorConstants.INSTRUCTION_MODE_REPLACE:
         return callerInstruction;
       case AgentConnectorConstants.INSTRUCTION_MODE_APPEND: {
-        String defaultPrompt = loadDefaultInstruction();
+        String defaultPrompt = defaultInstruction(agentic);
         return (defaultPrompt == null || defaultPrompt.isEmpty())
             ? callerInstruction
             : defaultPrompt + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR + callerInstruction;
       }
       case AgentConnectorConstants.INSTRUCTION_MODE_PREPEND: {
-        String defaultPrompt = loadDefaultInstruction();
+        String defaultPrompt = defaultInstruction(agentic);
         return (defaultPrompt == null || defaultPrompt.isEmpty())
             ? callerInstruction
             : callerInstruction + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR + defaultPrompt;
@@ -1490,43 +1508,64 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       LOG.debug("loadDefaultInstruction: cache hit ({} chars)", cached.length());
       return cached;
     }
+    cached = readInstruction(DEFAULT_INSTRUCTION_RESOURCE);
+    defaultInstructionCache = cached;
+    return cached;
+  }
 
+  /**
+   * Loads the bundled default system prompt of an agentic scope's turn from the classpath and
+   * caches it, as {@link #loadDefaultInstruction()} does for the service task's.
+   */
+  static String loadAdHocDefaultInstruction() {
+    String cached = adHocDefaultInstructionCache;
+    if (cached != null) {
+      LOG.debug("loadAdHocDefaultInstruction: cache hit ({} chars)", cached.length());
+      return cached;
+    }
+    cached = readInstruction(AD_HOC_DEFAULT_INSTRUCTION_RESOURCE);
+    adHocDefaultInstructionCache = cached;
+    return cached;
+  }
+
+  private static String defaultInstruction(boolean agentic) {
+    return agentic ? loadAdHocDefaultInstruction() : loadDefaultInstruction();
+  }
+
+  /** Reads one bundled prompt; {@code null}, logged at ERROR level, when it cannot be read. */
+  private static String readInstruction(String resource) {
     ClassLoader ownCl = AgentConnectorImpl.class.getClassLoader();
     ClassLoader ctxCl = Thread.currentThread().getContextClassLoader();
-    LOG.debug("loadDefaultInstruction: cache miss, resource='{}', "
+    LOG.debug("readInstruction: cache miss, resource='{}', "
         + "AgentConnectorImpl classLoader={}, contextClassLoader={}",
-        DEFAULT_INSTRUCTION_RESOURCE, ownCl, ctxCl);
+        resource, ownCl, ctxCl);
 
-    java.net.URL url = AgentConnectorImpl.class.getResource(DEFAULT_INSTRUCTION_RESOURCE);
-    LOG.debug("loadDefaultInstruction: AgentConnectorImpl.class.getResource -> {}", url);
+    java.net.URL url = AgentConnectorImpl.class.getResource(resource);
+    LOG.debug("readInstruction: AgentConnectorImpl.class.getResource -> {}", url);
 
-    InputStream in = AgentConnectorImpl.class.getResourceAsStream(DEFAULT_INSTRUCTION_RESOURCE);
+    InputStream in = AgentConnectorImpl.class.getResourceAsStream(resource);
     if (in == null && ctxCl != null) {
-      LOG.debug("loadDefaultInstruction: own classloader miss, retrying via contextClassLoader");
+      LOG.debug("readInstruction: own classloader miss, retrying via contextClassLoader");
       // contextClassLoader.getResource expects no leading slash
-      String name = DEFAULT_INSTRUCTION_RESOURCE.startsWith("/")
-          ? DEFAULT_INSTRUCTION_RESOURCE.substring(1)
-          : DEFAULT_INSTRUCTION_RESOURCE;
+      String name = resource.startsWith("/") ? resource.substring(1) : resource;
       java.net.URL ctxUrl = ctxCl.getResource(name);
-      LOG.debug("loadDefaultInstruction: contextClassLoader.getResource('{}') -> {}", name, ctxUrl);
+      LOG.debug("readInstruction: contextClassLoader.getResource('{}') -> {}", name, ctxUrl);
       in = ctxCl.getResourceAsStream(name);
     }
 
     if (in == null) {
       LOG.error("Default agent instruction resource not found on classpath: {} "
           + "(own classloader={}, contextClassLoader={})",
-          DEFAULT_INSTRUCTION_RESOURCE, ownCl, ctxCl);
+          resource, ownCl, ctxCl);
       return null;
     }
 
     try (InputStream stream = in) {
-      cached = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
-      defaultInstructionCache = cached;
-      LOG.debug("loadDefaultInstruction: loaded {} chars from {}",
-          cached.length(), DEFAULT_INSTRUCTION_RESOURCE);
-      return cached;
+      String loaded = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+      LOG.debug("readInstruction: loaded {} chars from {}", loaded.length(), resource);
+      return loaded;
     } catch (IOException e) {
-      LOG.error("Failed to read {} from classpath", DEFAULT_INSTRUCTION_RESOURCE, e);
+      LOG.error("Failed to read {} from classpath", resource, e);
       return null;
     }
   }

@@ -175,7 +175,7 @@
           "label": "Instruction",
           "type": "Text",
           "group": "input",
-          "description": "System prompt for the LLM. Leave empty to use the bundled default prompt (generic CIB seven agent that uses any wired-in tools, RAG and chat memory). Override to specialise the agent for a concrete task. See 'Instruction mode' to control whether this value replaces or augments the bundled default.",
+          "description": "What this agent is for, e.g. the rules of the case. The built-in prompt already says how an agent runs an ad hoc sub process: its activities are its tools, a question goes to a person only through an activity that waits, and completeScope ends it. Instruction mode says how the two are combined.",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "instruction"

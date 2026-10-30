@@ -25,7 +25,9 @@ import org.cibseven.connect.spi.Connector;
  * shows every supported input/output parameter; only {@code agentName} and
  * {@code message} are required, the rest are optional. When {@code instruction}
  * is empty, the bundled default system prompt from
- * {@code /org/cibseven/connect/ai/agent/default-instruction.txt} is used.
+ * {@code /org/cibseven/connect/ai/agent/default-instruction.txt} is used; when
+ * the connector drives an agentic ad hoc sub process, the one from
+ * {@code /org/cibseven/connect/ai/agent/default-instruction-adhoc.txt}.
  * <pre>{@code
  * <camunda:connector>
  *     <camunda:connectorId>cibseven-ai-agent</camunda:connectorId>
@@ -113,7 +115,10 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * the connector falls back to the bundled default prompt at
    * {@code /org/cibseven/connect/ai/agent/default-instruction.txt}, which
    * describes the generic CIB seven agent role and its possible capabilities
-   * (tools, RAG, chat memory, reasoning). Override this parameter to specialise
+   * (tools, RAG, chat memory, reasoning); when the connector drives an agentic
+   * ad hoc sub process, at
+   * {@code /org/cibseven/connect/ai/agent/default-instruction-adhoc.txt}, which
+   * describes an agent that runs the sub process. Override this parameter to specialise
    * the agent for a concrete task. See {@link #PARAM_NAME_INSTRUCTION_MODE} for
    * how this value is combined with the bundled default.
    */
