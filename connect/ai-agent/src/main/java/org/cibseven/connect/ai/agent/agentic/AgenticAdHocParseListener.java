@@ -648,7 +648,7 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
         if (isAgentState(name)) {
           agentState.add(name);
         }
-        if (name.length() > MAX_VARIABLE_NAME || name.matches(".*[${};].*")) {
+        if (name.length() > MAX_VARIABLE_NAME || !looksLikeAName(name)) {
           noVariable.add(name);
         }
       }
@@ -668,9 +668,9 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
           + " the process another name, or leave it out");
     }
     if (!noVariable.isEmpty()) {
-      problems.add(String.join(", ", noVariable) + ", which no variable is called; name each variable"
-          + " itself, without $, braces or a semicolon, in at most " + MAX_VARIABLE_NAME
-          + " characters");
+      problems.add(String.join(", ", noVariable) + ", which reads as an expression or a list, not as"
+          + " the name of a variable; name each variable itself, without $, braces, a semicolon or a"
+          + " line break, in at most " + MAX_VARIABLE_NAME + " characters");
     }
     if (!problems.isEmpty()) {
       throw new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': "
@@ -714,6 +714,21 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
 
   protected static boolean isBlank(char c) {
     return Character.isWhitespace(c) || Character.isSpaceChar(c);
+  }
+
+  /**
+   * Whether {@code name} reads as the name of a variable rather than an expression or a list: no
+   * {@code $}, brace or semicolon, and no line break or other control character, which an XML
+   * attribute keeps when it is written as a character reference.
+   */
+  protected static boolean looksLikeAName(String name) {
+    for (int i = 0; i < name.length(); i++) {
+      char c = name.charAt(i);
+      if (c == '$' || c == '{' || c == '}' || c == ';' || Character.isISOControl(c)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /** Whether {@code name} is one of the variables the agent keeps its own state in. */

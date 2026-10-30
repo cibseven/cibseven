@@ -2246,8 +2246,20 @@ public class AgenticAdHocParseListenerTest {
     assertThatThrownBy(() -> deploy(model))
         .isInstanceOf(ProcessEngineException.class)
         .hasMessageContaining("declares ${kunde}, kunde; prioritaet, " + longName
-            + ", which no variable is called; name each variable itself, without $, braces or a"
-            + " semicolon, in at most 255 characters.");
+            + ", which reads as an expression or a list, not as the name of a variable; name each"
+            + " variable itself, without $, braces, a semicolon or a line break, in at most 255"
+            + " characters.");
+  }
+
+  /** A line break written as a character reference stays in the attribute, and in the name. */
+  @Test
+  public void refusesANameWithALineBreakInIt() {
+    String model = connectorScope("<userTask id='worker' />",
+        processVariables("kunde;&#10;prioritaet, rabatt&#10;kunde"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("declares kunde;\nprioritaet, rabatt\nkunde, which reads as");
   }
 
   /** A non-breaking or ideographic space after a comma belongs to no name. */
