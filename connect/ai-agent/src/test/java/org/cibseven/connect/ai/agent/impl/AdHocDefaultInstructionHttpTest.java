@@ -100,6 +100,10 @@ public class AdHocDefaultInstructionHttpTest {
     }
   }
 
+  /**
+   * Without an instruction the agent reads the scope's own prompt alone. It keeps none of the
+   * service task's sentences that send the answer on as if a next step read it.
+   */
   @Test
   public void anAgentWithoutAnInstructionReadsTheAdHocPrompt() throws IOException {
     script.add(answer("Nothing to do."));
@@ -110,6 +114,8 @@ public class AdHocDefaultInstructionHttpTest {
     String system = systemMessage(requestBodies.get(0));
     assertThat(system).as("not the service task's prompt")
         .doesNotContain("service task")
+        .doesNotContain("clarifying question")
+        .doesNotContain("consumed by the next BPMN step")
         .contains("completeScope");
     assertThat(system).isEqualTo(resource(AD_HOC_PROMPT));
   }
