@@ -3,7 +3,7 @@
   "name": "CIB seven AI Agent (ad hoc sub process)",
   "id": "org.cibseven.connect.ai.agent.AdHocSubProcess",
   "version": 1,
-  "description": "An AI agent runs this ad hoc sub process: it decides which of its activities to start, and each activity is a tool. A tool gets a value from the model through ${toolParameter(toolCall.<name>, '<description>', '<type>')} in one of its input mappings; the type is string, integer, number or boolean, with a trailing ? when the model may leave the value out.",
+  "description": "An AI agent runs this ad hoc sub process: it decides which of its activities to start. Each activity it can start directly, one without an incoming sequence flow, is a tool, chosen by its name and documentation. A tool gets a value from the model through ${toolParameter(toolCall.<name>, '<description>', '<type>')} in one of its input mappings; the type is string, integer, number or boolean, with a trailing ? when the model may leave the value out.",
   "icon": {
     "contents": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20width%3D%2224%22%20height%3D%2224%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M9%202%20L10.4%208.6%20L17%2010%20L10.4%2011.4%20L9%2018%20L7.6%2011.4%20L1%2010%20L7.6%208.6%20Z%22%20fill%3D%22%23E11E19%22/%3E%3Cpath%20d%3D%22M17.5%2013%20L18.2%2015.8%20L21%2016.5%20L18.2%2017.2%20L17.5%2020%20L16.8%2017.2%20L14%2016.5%20L16.8%2015.8%20Z%22%20fill%3D%22%230F2133%22/%3E%3C/svg%3E"
   },
@@ -86,7 +86,7 @@
       "constraints": {
         "pattern": {
           "value": "^([1-9][0-9]*)?$",
-          "message": "A positive whole number, or empty for no total cap."
+          "message": "A positive whole number, or empty for no total limit."
         }
       }
     },
@@ -95,7 +95,7 @@
       "type": "Dropdown",
       "group": "limits",
       "value": "continue",
-      "description": "'Continue' (default): when a limit is reached and nothing the agent started still runs, the scope ends and the outcome names the limit. 'Throw a BPMN error': at that moment the scope throws a BPMN error with that code instead; a boundary error event on this scope must catch it. Max model calls per turn ends only the turn: while an activity still runs, the agent is asked again when it ends.",
+      "description": "'Continue' (default): when a limit is reached and nothing in it still runs, the sub process ends and the outcome names the limit. 'Throw a BPMN error': at that moment the sub process throws a BPMN error instead, whose code is the limit: turnLimit, callLimit or totalTurnLimit. Deployment requires boundary error events on it that catch each limit it can reach, or one that catches every error. Max model calls per turn ends only the turn: while an activity still runs, the agent is asked again when it ends.",
       "choices": [
         {
           "name": "Continue",
@@ -116,7 +116,7 @@
       "type": "Dropdown",
       "group": "memory",
       "value": "perEntry",
-      "description": "'Start new on each entry' (default): every entry starts with an empty conversation. 'Continue across entries': the agent remembers earlier entries, e.g. in a feedback loop, within the window of Chat memory max messages. It is not available on a parallel multi-instance scope, and while such a conversation is kept the process instance cannot be migrated: until the scope around this sub process ends, or until the instance ends when the sub process sits directly in the process.",
+      "description": "'Start new on each entry' (default): every entry starts with an empty conversation. 'Continue across entries': the agent remembers earlier entries, e.g. in a feedback loop, within the window of Chat memory max messages. It is not available on a parallel multi-instance sub process, and while such a conversation is kept the process instance cannot be migrated: until the scope around this sub process ends, or until the instance ends when the sub process sits directly in the process.",
       "choices": [
         {
           "name": "Start new on each entry",
@@ -175,7 +175,7 @@
           "label": "Instruction",
           "type": "Text",
           "group": "input",
-          "description": "What this agent is for, e.g. the rules of the case. The built-in prompt already says how an agent runs an ad hoc sub process: its activities are its tools, a question goes to a person only through an activity that waits, and completeScope ends it. Instruction mode says how the two are combined.",
+          "description": "Rules for this agent beyond its task, e.g. the policy of the case. Leave it empty to use the built-in prompt alone, which says how an agent runs an ad hoc sub process: its activities are its tools, a question goes to a person only through an activity that waits, and completeScope ends it. Instruction mode says how the two are combined.",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "instruction"
@@ -210,7 +210,7 @@
           "label": "Follow-up on re-entry",
           "type": "Text",
           "group": "input",
-          "description": "Only with 'Continue across entries': sent instead of Message in the first turn after the scope is entered again, e.g. 'The user said: ${feedback}.' If it fails or is empty, Message is used.",
+          "description": "Only with 'Continue across entries': sent instead of Message in the first turn after the sub process is entered again, e.g. 'The user said: ${feedback}.' If it fails or is empty, Message is used.",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "followUp"
@@ -457,7 +457,7 @@
         },
         {
           "label": "Output variable for the turn's outcome",
-          "description": "How the agent's last turn ended, for a gateway after the scope: completed (it called completeScope), ended (it answered and nothing runs), turnLimit, totalTurnLimit or callLimit. While the scope runs it may read waiting. Leave the field unset to skip this output.",
+          "description": "How the agent's last turn ended, for a gateway after the sub process: completed (it called completeScope, its tool that ends the sub process), ended (it answered and nothing runs), turnLimit, totalTurnLimit or callLimit. While the sub process runs it may read waiting. Leave the field unset to skip this output.",
           "type": "String",
           "value": "agentOutput_outcome",
           "binding": {
