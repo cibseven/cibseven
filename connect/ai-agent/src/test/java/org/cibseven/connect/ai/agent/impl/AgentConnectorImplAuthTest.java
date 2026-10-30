@@ -155,6 +155,48 @@ public class AgentConnectorImplAuthTest {
     assertThat(captured).isNull();
   }
 
+  // ── resolveCheckedCaller ────────────────────────────────────────────────
+
+  @Test
+  public void resolveCheckedCallerShouldKeepAToolAuthenticationThatNamesAUser() throws Exception {
+    Authentication toolAuth = new Authentication("alice", List.of());
+
+    Object caller = invokePrivate("resolveCheckedCaller",
+        new Class<?>[] { ProcessEngine.class, Authentication.class },
+        new Object[] { mock(ProcessEngine.class), toolAuth });
+
+    assertThat(caller).isSameAs(toolAuth);
+  }
+
+  @Test
+  public void resolveCheckedCallerShouldDeriveTheStartUserForAUserlessToolAuthentication()
+      throws Exception {
+    pushExecutionContext("pi-T");
+    ProcessEngine engine = mockEngineWithHistoricInstance("pi-T", "alice", "tenant-1",
+        List.of("g1"));
+    Authentication toolAuth = new Authentication(null, null, List.of("tenant-1"));
+
+    Authentication caller = (Authentication) invokePrivate("resolveCheckedCaller",
+        new Class<?>[] { ProcessEngine.class, Authentication.class },
+        new Object[] { engine, toolAuth });
+
+    assertThat(caller).isInstanceOf(StartUserAuthentication.class);
+    assertThat(caller.getUserId()).isEqualTo("alice");
+  }
+
+  @Test
+  public void resolveCheckedCallerShouldKeepAUserlessToolAuthenticationWithoutAStartUser()
+      throws Exception {
+    // No execution on the thread, so no start user can be derived.
+    Authentication toolAuth = new Authentication(null, null, List.of("tenant-1"));
+
+    Object caller = invokePrivate("resolveCheckedCaller",
+        new Class<?>[] { ProcessEngine.class, Authentication.class },
+        new Object[] { mock(ProcessEngine.class), toolAuth });
+
+    assertThat(caller).isSameAs(toolAuth);
+  }
+
   // ── deriveAuthenticationFromProcessInstance ─────────────────────────────
 
   @Test
@@ -249,6 +291,7 @@ public class AgentConnectorImplAuthTest {
     assertThat(derived.getUserId()).isEqualTo("alice");
     assertThat(derived.getGroupIds()).containsExactlyInAnyOrder("g1", "g2");
     assertThat(derived.getTenantIds()).containsExactly("tenant-1");
+    assertThat(derived).isInstanceOf(StartUserAuthentication.class);
   }
 
   @Test

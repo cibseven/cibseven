@@ -56,8 +56,32 @@ import dev.langchain4j.agent.tool.Tool;
  * <h3>Authorization</h3>
  * Engine calls run under the authentication carried by
  * {@link ProcessStarterToolContext}, populated by {@link AgentConnectorImpl}
- * from {@code IdentityService.getCurrentAuthentication()} at the start of the
- * connector invocation.
+ * at the start of the connector invocation:
+ * <ul>
+ *   <li>the authentication on the thread — the user of a synchronous agent
+ *       task or of a job executed by hand, and for a job of a tenant the job
+ *       executor's user-less {@code (null, null, [tenantId])}: the tool then
+ *       reaches that tenant's processes and no other, and the engine checks no
+ *       permissions, as for any user-less command;</li>
+ *   <li>otherwise the start user of the process instance — for a job without
+ *       a tenant, and for a synchronous run that has no authentication at all —
+ *       with their groups and the instance's tenant;</li>
+ *   <li>otherwise none at all.</li>
+ * </ul>
+ * This is not necessarily the caller {@code contextVariables} and
+ * {@code documents} are checked for: for a job of a tenant that check uses the
+ * start user, the tool keeps the job's tenant authentication.
+ *
+ * <p>Permissions needed: {@code CREATE} on process instances and
+ * {@code CREATE_INSTANCE} on the definition to start; {@code READ} on the
+ * instance or {@code READ_INSTANCE} on the definition, plus {@code READ_HISTORY},
+ * to follow it; and to read its variables, with
+ * {@code enforceSpecificVariablePermission}, also {@code READ_INSTANCE_VARIABLE}
+ * and {@code READ_HISTORY_VARIABLE}. Without the read permissions the result is
+ * misleading rather than an error: with {@code maxRetries > 0} the first poll
+ * cannot see the instance and takes it for ended, so the tool reports
+ * {@code ended=true}, {@code state="ACTIVE"} and empty {@code outputs}; with
+ * {@code maxRetries = 0} it reports {@code ended=false} and empty outputs.
  */
 public class ProcessStarterTool {
 
