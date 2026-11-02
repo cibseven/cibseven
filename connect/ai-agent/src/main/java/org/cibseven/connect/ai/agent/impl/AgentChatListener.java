@@ -523,7 +523,9 @@ class AgentChatListener implements ChatModelListener {
         m.put("toolCallId", ((ToolExecutionResultMessage) msg).id());
       }
       messages.add(m);
-      LOG.debug("[{}] {}", msg.type(), msg);
+      // What the log keeps, not the message: a step's processData as markers, and the content
+      // redacted when the deployment redacts it (CIB7-2179).
+      LOG.debug("[{}] {}", msg.type(), m.get("content"));
     }
     event.put("messages", messages);
 

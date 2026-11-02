@@ -141,6 +141,38 @@ public class AgentChatListenerTest {
             + AgentConnectorImpl.STATE_BLOCK_CLOSE + "\n\nBearbeite den Auftrag.");
   }
 
+  /**
+   * The DEBUG log prints a request's messages as the chat log keeps them: a step's process data
+   * as markers, not the values (CIB7-2179).
+   */
+  @Test
+  public void shouldLogAStepAtDebugAsTheChatLogKeepsIt() {
+    ch.qos.logback.classic.Logger logger =
+        (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(AgentChatListener.class);
+    ch.qos.logback.classic.Level level = logger.getLevel();
+    ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> appender =
+        new ch.qos.logback.core.read.ListAppender<>();
+    appender.start();
+    logger.addAppender(appender);
+    logger.setLevel(ch.qos.logback.classic.Level.DEBUG);
+    String message = AgentConnectorImpl.STATE_BLOCK_OPEN + "\n"
+        + "{\"processData\":{\"kunde\":\"Müller GmbH\"}}\n"
+        + AgentConnectorImpl.STATE_BLOCK_CLOSE + "\n\nBearbeite den Auftrag.";
+    try {
+      new AgentChatListener().onRequest(new ChatModelRequestContext(ChatRequest.builder()
+          .messages(Collections.singletonList(UserMessage.from(message))).build(), null,
+          new HashMap<>()));
+    } finally {
+      logger.detachAppender(appender);
+      logger.setLevel(level);
+      appender.stop();
+    }
+
+    assertThat(appender.list).extracting(e -> e.getFormattedMessage())
+        .noneSatisfy(line -> assertThat(line).contains("Müller GmbH"))
+        .anySatisfy(line -> assertThat(line).contains(AgentChatListener.redact("Müller GmbH")));
+  }
+
   /** A message without a state block, an ordinary agent's, is logged as it is. */
   @Test
   public void shouldLogAMessageWithoutAStateBlockAsItIs() {
