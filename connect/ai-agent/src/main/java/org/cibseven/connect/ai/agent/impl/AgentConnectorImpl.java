@@ -1431,16 +1431,19 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
   /** Lazily loaded cache for {@link #AD_HOC_DEFAULT_INSTRUCTION_RESOURCE}. */
   private static volatile String adHocDefaultInstructionCache;
 
-  /** The system prompt; {@code agentic} when the call is a step of an agentic scope's turn. */
-  private String buildSystemPrompt(AgentRequest request, boolean agentic) {
+  /**
+   * The system prompt; {@code runsAdHocSubProcess} when the call is a step of the agent that runs an
+   * ad hoc sub process, not of an agent task inside one.
+   */
+  private String buildSystemPrompt(AgentRequest request, boolean runsAdHocSubProcess) {
     String description = request.getAgentDescription();
     String callerInstruction = request.getInstruction();
     String mode = request.getInstructionMode();
     boolean hasCallerInstruction = callerInstruction != null && !callerInstruction.isEmpty();
-    LOG.debug("buildSystemPrompt: callerInstructionPresent={}, instructionMode={}, descriptionPresent={}, agentic={}",
-        hasCallerInstruction, mode, description != null && !description.isEmpty(), agentic);
+    LOG.debug("buildSystemPrompt: callerInstructionPresent={}, instructionMode={}, descriptionPresent={}, runsAdHocSubProcess={}",
+        hasCallerInstruction, mode, description != null && !description.isEmpty(), runsAdHocSubProcess);
 
-    String instruction = combineWithDefault(callerInstruction, mode, agentic);
+    String instruction = combineWithDefault(callerInstruction, mode, runsAdHocSubProcess);
 
     boolean hasDescription = description != null && !description.isEmpty();
     boolean hasInstruction = instruction != null && !instruction.isEmpty();
@@ -1461,22 +1464,23 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    *
    * @throws AgentConnectorException when {@code mode} is set to an unknown value
    */
-  private String combineWithDefault(String callerInstruction, String mode, boolean agentic) {
+  private String combineWithDefault(String callerInstruction, String mode,
+      boolean runsAdHocSubProcess) {
     boolean hasCallerInstruction = callerInstruction != null && !callerInstruction.isEmpty();
     if (!hasCallerInstruction) {
-      return defaultInstruction(agentic);
+      return defaultInstruction(runsAdHocSubProcess);
     }
     switch (mode) {
       case AgentConnectorConstants.INSTRUCTION_MODE_REPLACE:
         return callerInstruction;
       case AgentConnectorConstants.INSTRUCTION_MODE_APPEND: {
-        String defaultPrompt = defaultInstruction(agentic);
+        String defaultPrompt = defaultInstruction(runsAdHocSubProcess);
         return (defaultPrompt == null || defaultPrompt.isEmpty())
             ? callerInstruction
             : defaultPrompt + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR + callerInstruction;
       }
       case AgentConnectorConstants.INSTRUCTION_MODE_PREPEND: {
-        String defaultPrompt = defaultInstruction(agentic);
+        String defaultPrompt = defaultInstruction(runsAdHocSubProcess);
         return (defaultPrompt == null || defaultPrompt.isEmpty())
             ? callerInstruction
             : callerInstruction + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR + defaultPrompt;
@@ -1524,8 +1528,8 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     return cached;
   }
 
-  private static String defaultInstruction(boolean agentic) {
-    return agentic ? loadAdHocDefaultInstruction() : loadDefaultInstruction();
+  private static String defaultInstruction(boolean runsAdHocSubProcess) {
+    return runsAdHocSubProcess ? loadAdHocDefaultInstruction() : loadDefaultInstruction();
   }
 
   /** Reads one bundled prompt; {@code null}, logged at ERROR level, when it cannot be read. */

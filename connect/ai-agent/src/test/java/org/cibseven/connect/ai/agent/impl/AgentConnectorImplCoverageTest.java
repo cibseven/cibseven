@@ -835,12 +835,16 @@ public class AgentConnectorImplCoverageTest {
     return invokeBuildSystemPrompt(request, false);
   }
 
-  /** The system prompt; {@code agentic} for a step of an agentic scope's turn. */
-  private String invokeBuildSystemPrompt(AgentRequest request, boolean agentic) throws Exception {
+  /**
+   * The system prompt; {@code runsAdHocSubProcess} for a step of the agent that runs an ad hoc
+   * sub process.
+   */
+  private String invokeBuildSystemPrompt(AgentRequest request, boolean runsAdHocSubProcess)
+      throws Exception {
     Method m = AgentConnectorImpl.class.getDeclaredMethod("buildSystemPrompt", AgentRequest.class,
         boolean.class);
     m.setAccessible(true);
-    return (String) m.invoke(connector, request, agentic);
+    return (String) m.invoke(connector, request, runsAdHocSubProcess);
   }
 
   // ── Stubs ────────────────────────────────────────────────────────────────
