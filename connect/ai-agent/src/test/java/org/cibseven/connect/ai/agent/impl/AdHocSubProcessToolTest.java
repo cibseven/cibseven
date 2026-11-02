@@ -774,6 +774,31 @@ public class AdHocSubProcessToolTest {
   }
 
   /**
+   * A Spin value deserialized in the command keeps the text it was read with; an expression of the
+   * step may have changed its node since. The agent is shown the node as it is now.
+   */
+  @Test
+  public void aDeserializedSpinValueIsShownAsItsNodeIsNow() {
+    String now = "{\"status\":\"freigegeben\"}";
+    Object node = new Object() {
+      @Override
+      public String toString() {
+        return now;
+      }
+    };
+    SerializableValue spin = org.mockito.Mockito.mock(SerializableValue.class);
+    SerializableValueType jsonType = org.mockito.Mockito.mock(SerializableValueType.class);
+    org.mockito.Mockito.when(jsonType.getName()).thenReturn("json");
+    org.mockito.Mockito.when(spin.getType()).thenReturn(jsonType);
+    org.mockito.Mockito.when(spin.getSerializationDataFormat()).thenReturn("application/json");
+    org.mockito.Mockito.when(spin.isDeserialized()).thenReturn(true);
+    org.mockito.Mockito.when(spin.getValueSerialized()).thenReturn("{\"status\":\"offen\"}");
+    org.mockito.Mockito.when(spin.getValue()).thenReturn(node);
+
+    assertThat(AdHocSubProcessTool.processValue(spin).shown).isEqualTo(now);
+  }
+
+  /**
    * The required ones take the budget first: six optional values of 3000 declared before a
    * required one would fill it, and the required one would fail the step for want of room.
    */

@@ -872,9 +872,9 @@ public class AdHocSubProcessTool {
      *
      * <p>Only a value that is itself null reads as null, a typed null of any type among them: a
      * variable set to null is set, for a required one too. A value read already in this command
-     * comes from the variable's cache, deserialized, and a Spin value deserialized there has given
-     * up its text; such a value is shown by the text a Spin node writes, and is never taken for
-     * null for want of its text.
+     * comes from the variable's cache, deserialized: a Spin value is then shown by the text its node
+     * writes now, which an expression of the step may have changed, and is never taken for null for
+     * want of its text. Another object in JSON or XML shows the text it was stored with.
      */
     static ProcessValue processValue(TypedValue typed) {
         String type = (typed.getType() == null) ? "unknown" : typed.getType().getName();
@@ -886,14 +886,13 @@ public class AdHocSubProcessTool {
                     ? ((ObjectValue) typed).getObjectTypeName() + ", " + format : format;
             boolean text = format != null && (format.contains("json") || format.contains("xml"));
             String serialized = serializable.getValueSerialized();
-            if (serialized == null) {
-                Object value = serializable.isDeserialized() ? serializable.getValue() : null;
-                if (value == null) {
-                    return ProcessValue.whole(null);
-                }
-                if (SPIN_PROCESS_TYPES.contains(type)) {
-                    serialized = value.toString();
-                }
+            Object live = serializable.isDeserialized() ? serializable.getValue() : null;
+            if (live != null && SPIN_PROCESS_TYPES.contains(type)) {
+                // The node as it is now: an expression of this step may have changed it after it
+                // was read, and the text it was read with would show the value before.
+                serialized = live.toString();
+            } else if (serialized == null && live == null) {
+                return ProcessValue.whole(null);
             }
             if (text && serialized != null) {
                 return ProcessValue.text(serialized);
