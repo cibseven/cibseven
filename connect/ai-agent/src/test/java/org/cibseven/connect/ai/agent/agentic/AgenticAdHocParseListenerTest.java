@@ -2278,7 +2278,7 @@ public class AgenticAdHocParseListenerTest {
   @Test
   public void refusesTheAgentsTemplateWithoutItsConnector() {
     String model = process("<adHocSubProcess id='adHoc' camunda:modelerTemplate='"
-        + AgenticAdHocParseListener.AD_HOC_TEMPLATE_ID + "' camunda:modelerTemplateVersion='3'>"
+        + AgenticAdHocParseListener.AD_HOC_TEMPLATE_ID + "' camunda:modelerTemplateVersion='1'>"
         + "<userTask id='worker' /></adHocSubProcess>");
 
     assertThatThrownBy(() -> deploy(model))
