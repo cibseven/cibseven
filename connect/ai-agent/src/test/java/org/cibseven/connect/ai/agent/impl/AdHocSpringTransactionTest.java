@@ -60,7 +60,7 @@ import com.sun.net.httpserver.HttpServer;
  * failure. Both were the same bug; only one of the two messages pointed at it.
  *
  * <p>This closes the gap named as open throughout the ticket. It is Spring's
- * transaction management, not the whole Spring Boot chain of the run4 distribution —
+ * transaction management, not the whole Spring Boot chain of the Run distribution —
  * the layer where that difference lives, and no further.
  *
  * <p>The model is stubbed by a local HTTP server, so the run needs no network and no

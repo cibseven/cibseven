@@ -18,6 +18,21 @@
     <version.langchain4j-beta>1.16.3-beta26</version.langchain4j-beta>
   </properties>
 
+  <dependencyManagement>
+    <dependencies>
+      <!-- JUnit 6, as in engine-spring: AdHocSpringTransactionTest runs on Spring Framework 7,
+           whose spring-test needs JUnit 6. Imported first so that it wins for every JUnit
+           artifact of this module, also those that come transitively. -->
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${version.junit6}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
 
     <dependency>
@@ -92,21 +107,21 @@
 
     <!-- Test dependencies -->
 
-    <!-- JUnit 5 Jupiter API for unit testing -->
+    <!-- JUnit Jupiter API for unit testing (JUnit 6, see dependencyManagement) -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>${version.junit5}</version>
+      <version>${version.junit6}</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
-      <version>${version.junit5}</version>
+      <version>${version.junit6}</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>${version.junit5}</version>
+      <version>${version.junit6}</version>
       <scope>test</scope>
     </dependency>
 
@@ -181,38 +196,38 @@
          report the same defect differently. -->
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-spring-6</artifactId>
+      <artifactId>cibseven-engine-spring</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <!--
       Versioned through the property rather than left to dependencyManagement: the connect
-      reactor inherits cibseven-parent, which defines version.spring.framework6, but it does
+      reactor inherits cibseven-parent, which defines version.spring.framework7, but it does
       not inherit a dependencyManagement entry for the individual Spring artifacts. Same
       reason the h2 version is pinned above. Keep it in step with parent/pom.xml.
     -->
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
-      <version>${version.spring.framework6}</version>
+      <version>${version.spring.framework7}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jdbc</artifactId>
-      <version>${version.spring.framework6}</version>
+      <version>${version.spring.framework7}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-tx</artifactId>
-      <version>${version.spring.framework6}</version>
+      <version>${version.spring.framework7}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
-      <version>${version.spring.framework6}</version>
+      <version>${version.spring.framework7}</version>
       <scope>test</scope>
     </dependency>
 
