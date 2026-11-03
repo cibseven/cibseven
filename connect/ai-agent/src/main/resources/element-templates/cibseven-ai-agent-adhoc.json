@@ -175,7 +175,7 @@
           "label": "Context variables",
           "type": "String",
           "group": "input",
-          "description": "Process variables the agent sees as data, by name, separated by commas, e.g. 'customer, priority': the name of a variable, not a path into it, read as ${name} is read. Use it instead of ${name} in Message to give the agent a value as data, apart from your instructions. Before every model call the current values go to the agent with the state of this sub process, up to 4000 characters each and about 20000 in all. Each one is required unless Optional context variables names it: if it is not set or null, or it is a file, bytes or a Java object, which the agent never sees, the step fails and, after the job's retries, the sub process gets an incident naming it. The chat log keeps a marker in place of each value; the value is in the variable's history. Never list tokens or passwords: the values go to the model's and the embedding's provider. Empty: none.",
+          "description": "Process variables the agent sees as data, by name, separated by commas, e.g. 'customer, priority': the name of a variable, not a path into it, read as ${name} is read. Use it instead of ${name} in Message to give the agent a value as data, apart from your instructions. Before every model call the current values go to the agent with the state of this sub process, up to 4000 characters each and about 20000 in all. Each one is required unless Optional context variables names it: if it is not set or null, the step fails and, after the job's retries, the sub process gets an incident naming it. A file, bytes or a Java object reaches the agent by its name and type only, never its content. The chat log keeps a marker in place of each value; the value is in the variable's history. Never list tokens or passwords: the values go to the model's and the embedding's provider. Empty: none.",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "contextVariables"
@@ -191,7 +191,7 @@
           "label": "Optional context variables",
           "type": "String",
           "group": "input",
-          "description": "Those of the context variables above that may be missing, e.g. 'discount'. One that is not set is reported to the agent as such, a long one is cut, one past the limit of all is left out and named, and a file, bytes or a Java object is shown by its type only. Empty: every one is required.",
+          "description": "Those of the context variables above that may be missing, e.g. 'discount'. One that is not set is reported to the agent as such, a long one is cut, and one past the limit of all is left out and named. Empty: every one is required.",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "optionalContextVariables"

@@ -796,6 +796,8 @@ public class AdHocSubProcessToolTest {
 
   // --- the process variables the agent sees (CIB7-2179) ----------------------
 
+  private static final String NOT_SENT = AdHocSubProcessTool.CONTENT_NOT_SENT;
+
   @Test
   public void theReportCarriesTheDeclaredProcessVariablesWithTheirCurrentValues() {
     ProcessInstance instance = startWithoutTurn("processData",
@@ -890,12 +892,10 @@ public class AdHocSubProcessToolTest {
     assertThat(Agent.FAILURES).hasSize(1);
     assertThat(Agent.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class)
         .hasMessage("Ad hoc sub process 'adHoc': required process variables did not reach the"
-            + " agent: fehlt (not set), leer (null), roh (null), auftrag (an object in"
-            + " application/x-java-serialized-object,"
-            + " which the agent sees only by its type; store it as JSON); the model was not called."
+            + " agent: fehlt (not set), leer (null), roh (null); the model was not called."
             + " Set the variable on the process instance and retry the job, or change the model:"
             + " make it optional (optionalContextVariables) or leave it out of"
-            + " contextVariables. Reached the agent: kunde.");
+            + " contextVariables. Reached the agent: kunde, auftrag.");
   }
 
   /**
@@ -916,23 +916,25 @@ public class AdHocSubProcessToolTest {
   }
 
   /**
-   * A required file, bytes or Java object fails every instance, since the agent never sees its
-   * content: the refusal says what to do instead of listing it.
+   * A required file, bytes or Java object reaches the agent described, by its name and type, never
+   * its content: the description is all the agent is given of it, so it reaches the agent whole,
+   * as on the AI agent task (CIB7-1843).
    */
   @Test
-  public void aRequiredFileFailsTheStepSayingWhatToDo() {
+  public void aRequiredFileReachesTheAgentDescribed() {
     ProcessInstance instance = startWithoutTurn("processDataRequiredFile",
-        processVariables("scan"), tool -> tool.turnReport());
+        processVariables("scan, roh"), tool -> tool.turnReport());
     ENGINE.getRuntimeService().setVariable(instance.getId(), "scan",
         Variables.fileValue("auftrag.pdf").file(WritesDocument.BYTES)
             .mimeType("application/pdf").create());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "roh", new byte[] {1, 2, 3});
 
     runPendingTurn(instance);
 
-    assertThat(Agent.FAILURES).hasSize(1);
-    assertThat(Agent.FAILURES.get(0)).hasMessageContaining("did not reach the agent: scan (a file"
-        + " value, whose content the agent never sees; leave it out of the list, or store what the"
-        + " agent needs of it in a string or JSON variable); the model was not called.");
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(processData(result(0)))
+        .containsEntry("scan", "(file \"auftrag.pdf\", \"application/pdf\", " + NOT_SENT + ")")
+        .containsEntry("roh", "(bytes, " + NOT_SENT + ")");
   }
 
   /**
@@ -944,8 +946,8 @@ public class AdHocSubProcessToolTest {
   public void theIncidentPartOfTheRefusalFitsWhateverTheIdsAndReasons() {
     String scope = new String(new char[200]).replace('\0', 's');
     String first = new String(new char[255]).replace('\0', 'a') + " (an object in"
-        + " application/x-java-serialized-object, which the agent sees only by its type; store it"
-        + " as JSON)";
+        + " application/json that its serializer could not write again, so the agent cannot read it"
+        + " as it is now)";
     String second = new String(new char[255]).replace('\0', 'b') + " (not set)";
 
     String message = AdHocSubProcessTool.notReachedMessage(scope, Arrays.asList(first, second),
@@ -1103,11 +1105,11 @@ public class AdHocSubProcessToolTest {
   }
 
   /**
-   * A date in ISO 8601, in UTC. An object in Java serialization, a file and bytes are a
-   * placeholder naming their type: the agent cannot read them, and nothing is deserialized.
+   * A date in ISO 8601, in UTC. An object in Java serialization, a file and bytes are described:
+   * the agent cannot read them, and nothing is deserialized.
    */
   @Test
-  public void aDateIsShownInIsoAndAJavaObjectAFileOrBytesArePlaceholders() {
+  public void aDateIsShownInIsoAndAJavaObjectAFileOrBytesAreDescribed() {
     ProcessInstance instance = startWithoutTurn("processDataPlaceholders",
         processVariables("faellig, auftrag, scan, roh", "auftrag, scan, roh"),
         tool -> tool.turnReport());
@@ -1123,10 +1125,31 @@ public class AdHocSubProcessToolTest {
 
     assertThat(processData(result(0)))
         .containsEntry("faellig", "1970-01-01T00:00:00Z")
-        .containsEntry("auftrag", "<object value (java.util.ArrayList,"
-            + " application/x-java-serialized-object), not shown>")
-        .containsEntry("scan", "<file value, not shown>")
-        .containsEntry("roh", "<bytes value, not shown>");
+        .containsEntry("auftrag", "(object \"java.util.ArrayList\","
+            + " \"application/x-java-serialized-object\", " + NOT_SENT + ")")
+        .containsEntry("scan", "(file \"auftrag.pdf\", \"application/pdf\", " + NOT_SENT + ")")
+        .containsEntry("roh", "(bytes, " + NOT_SENT + ")");
+  }
+
+  /**
+   * A value set in the step itself is described from the value, as it was given: a file without a
+   * media type has an unknown one, and a quote in a file's name cannot close the quote around it
+   * and go on to describe a file that is not there.
+   */
+  @Test
+  public void aValueGivenInTheStepIsDescribedFromItself() {
+    assertThat(AdHocSubProcessTool.processValue(Variables.fileValue("a\", sent \"b.pdf")
+        .file(WritesDocument.BYTES).create()).shown)
+        .isEqualTo("(file \"a\\\", sent \\\"b.pdf\", \"unknown\", " + NOT_SENT + ")");
+    assertThat(AdHocSubProcessTool.processValue(Variables.byteArrayValue(new byte[] {1})).shown)
+        .isEqualTo("(bytes, " + NOT_SENT + ")");
+    AdHocSubProcessTool.ProcessValue order = AdHocSubProcessTool.processValue(
+        Variables.serializedObjectValue("rO0AB")
+            .serializationDataFormat("application/x-java-serialized-object")
+            .objectTypeName("com.acme.Order").create());
+    assertThat(order.shown).isEqualTo("(object \"com.acme.Order\","
+        + " \"application/x-java-serialized-object\", " + NOT_SENT + ")");
+    assertThat(order.notWhole).as("all the agent is given of it").isNull();
   }
 
   /**
@@ -1327,15 +1350,15 @@ public class AdHocSubProcessToolTest {
   }
 
   /**
-   * A declared file, bytes or object outside JSON and XML is shown by its type without its value
-   * being read: the placeholder comes from what the variable instance holds besides the value, so
+   * A declared file, bytes or object outside JSON and XML is described without its value being
+   * read: the description comes from what the variable instance holds besides the value, so
    * a declared file is not read from the database on every step (CIB7-2513, here for the declared
    * variables). A serializer that refuses to read stands in for that cost on the object; for the
    * file and the bytes, which come first, the byte arrays the engine read while the step built its
    * report are looked at: none of theirs is among them.
    */
   @Test
-  public void aHiddenValueIsAPlaceholderWithoutBeingRead() {
+  public void aHiddenValueIsDescribedWithoutBeingRead() {
     VariableSerializers serializers = ((ProcessEngineConfigurationImpl)
         ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
     BlobSerializer blob = new BlobSerializer();
@@ -1375,10 +1398,10 @@ public class AdHocSubProcessToolTest {
           .doesNotContainAnyElementsOf(theirBytes);
       assertThat(Agent.FAILURES).isEmpty();
       assertThat(processData(result(0)))
-          .containsEntry("auftrag",
-              "<object value (java.util.LinkedHashMap, application/x-test-blob), not shown>")
-          .containsEntry("scan", "<file value, not shown>")
-          .containsEntry("roh", "<bytes value, not shown>");
+          .containsEntry("auftrag", "(object \"java.util.LinkedHashMap\","
+              + " \"application/x-test-blob\", " + NOT_SENT + ")")
+          .containsEntry("scan", "(file \"auftrag.pdf\", \"application/pdf\", " + NOT_SENT + ")")
+          .containsEntry("roh", "(bytes, " + NOT_SENT + ")");
     } finally {
       serializers.removeSerializer(blob);
     }

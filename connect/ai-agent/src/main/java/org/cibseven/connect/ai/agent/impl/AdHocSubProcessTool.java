@@ -56,6 +56,7 @@ import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
 import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
+import org.cibseven.bpm.engine.variable.value.FileValue;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.engine.variable.value.SerializableValue;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
@@ -764,9 +765,9 @@ public class AdHocSubProcessTool {
                     continue;
                 }
                 CoreVariableInstance instance = scope.getVariableInstance(name);
-                // A file, bytes or a Java object is shown by its type alone, decided from what the
-                // instance holds besides the value, so that its bytes are not read on every step.
-                ProcessValue shown = placeholderWithoutReading(instance);
+                // A file, bytes or a Java object is described by its name and type alone, from
+                // what the instance holds besides the value: its bytes are not read on every step.
+                ProcessValue shown = describedWithoutReading(instance);
                 if (shown == null) {
                     TypedValue value = scope.getVariableTyped(name, false);
                     if (value == null) {
@@ -910,8 +911,11 @@ public class AdHocSubProcessTool {
      * and a boolean as they are; a date in ISO 8601, in UTC; an object serialized as JSON or XML,
      * a Spin {@code json} or {@code xml} value among them, as its serialized text, read without
      * deserializing it. Text is cut at {@link #MAX_PROCESS_VALUE_CHARS} and says so. Everything
-     * else, an object in Java serialization, a file or bytes, is a placeholder naming its type:
-     * its content would be noise to the model, or would have to be loaded and deserialized here.
+     * else, an object in Java serialization, a file or bytes, is described: what it is, its class
+     * or its name and media type, and that its content is not sent. Its content would be noise to
+     * the model, or would have to be loaded and deserialized here. The description is the whole of
+     * what the agent is given of it, so a required one reaches the agent, as on the AI agent task
+     * (CIB7-1843).
      *
      * <p>Only a value that is itself null reads as null, a typed null of any type among them: a
      * variable set to null is set, and is null, not a placeholder of its type. A value read already
@@ -964,7 +968,8 @@ public class AdHocSubProcessTool {
                 return ProcessValue.text(serialized);
             }
             if (!text) {
-                return hiddenObject(type, described, format);
+                return objectDescribed((typed instanceof ObjectValue)
+                        ? ((ObjectValue) typed).getObjectTypeName() : null, format);
             }
             // Text without its text: an object set in this very step, written when the step ends.
             return ProcessValue.hidden("<" + type + " value (" + described + "), not shown>",
@@ -976,8 +981,12 @@ public class AdHocSubProcessTool {
         if (value == null) {
             return ProcessValue.whole(null);
         }
+        if (typed instanceof FileValue) {
+            FileValue file = (FileValue) typed;
+            return fileDescribed(file.getFilename(), file.getMimeType());
+        }
         if (!SHOWN_PROCESS_TYPES.contains(type)) {
-            return hiddenType(type);
+            return described(type);
         }
         if (value instanceof String) {
             return ProcessValue.text((String) value);
@@ -1006,15 +1015,15 @@ public class AdHocSubProcessTool {
     }
 
     /**
-     * The placeholder of a value the agent never sees, a file, bytes or an object outside JSON and
-     * XML, decided from what the variable instance holds besides its value: its type, the serializer
-     * that wrote it, the object's class, and whether there are bytes at all. The bytes are not
-     * read: a declared file was read from the database on every step otherwise, only to show its
-     * type (CIB7-2513). {@code null} when the value is to be read: a type that is shown, an object
-     * in a text format, a value without bytes (a typed null, which reads as null), or an instance
-     * this cannot tell about.
+     * The description of a value whose content the agent never sees, a file, bytes or an object
+     * outside JSON and XML, from what the variable instance holds besides its value: its type, the
+     * serializer that wrote it, the object's class, a file's name and media type, and whether there
+     * are bytes at all. The bytes are not read: a declared file was read from the database on every
+     * step otherwise, only to describe it (CIB7-2513). {@code null} when the value is to be read: a
+     * type that is shown, an object in a text format, a value without bytes (a typed null, which
+     * reads as null), or an instance this cannot tell about.
      */
-    private static ProcessValue placeholderWithoutReading(CoreVariableInstance instance) {
+    private static ProcessValue describedWithoutReading(CoreVariableInstance instance) {
         if (!(instance instanceof VariableInstanceEntity)) {
             return null;
         }
@@ -1024,9 +1033,17 @@ public class AdHocSubProcessTool {
             if (type == null || entity.getByteArrayValueId() == null) {
                 return null;
             }
+            if ("file".equals(type)) {
+                // As the engine stores a file: its name in the first text field, its media type
+                // before the '#' in the second.
+                String mediaAndEncoding = entity.getTextValue2();
+                int separator = (mediaAndEncoding == null) ? -1 : mediaAndEncoding.indexOf('#');
+                return fileDescribed(entity.getTextValue(), (separator < 0) ? mediaAndEncoding
+                        : mediaAndEncoding.substring(0, separator));
+            }
             if (!"object".equals(type)) {
                 return SHOWN_PROCESS_TYPES.contains(type) || SPIN_PROCESS_TYPES.contains(type)
-                        ? null : hiddenType(type);
+                        ? null : described(type);
             }
             TypedValueSerializer<?> serializer = entity.getSerializer();
             if (!(serializer instanceof AbstractSerializableValueSerializer)) {
@@ -1037,27 +1054,41 @@ public class AdHocSubProcessTool {
             if (format == null || format.contains("json") || format.contains("xml")) {
                 return null;
             }
-            String objectType = entity.getTextValue2();
-            return hiddenObject(type, (objectType != null) ? objectType + ", " + format : format,
-                    format);
+            return objectDescribed(entity.getTextValue2(), format);
         } catch (RuntimeException e) {
             // Told nothing for sure: read the value, as before.
             return null;
         }
     }
 
-    /** A value of a type the agent never sees, as a placeholder with what to do instead. */
-    private static ProcessValue hiddenType(String type) {
-        return ProcessValue.hidden("<" + type + " value, not shown>",
-                "a " + type + " value, whose content the agent never sees; leave it out of the"
-                        + " list, or store what the agent needs of it in a string or JSON variable");
+    /** What a description says of the content of a value the agent never sees. */
+    static final String CONTENT_NOT_SENT = "content not sent to the model";
+
+    /** A file, by its name and media type, as the AI agent task describes it (CIB7-1843). */
+    private static ProcessValue fileDescribed(String fileName, String mediaType) {
+        return ProcessValue.whole("(file " + quoted(fileName) + ", " + quoted(mediaType) + ", "
+                + CONTENT_NOT_SENT + ")");
     }
 
-    /** An object outside JSON and XML, as a placeholder naming its class and format. */
-    private static ProcessValue hiddenObject(String type, String described, String format) {
-        return ProcessValue.hidden("<" + type + " value (" + described + "), not shown>",
-                "an object in " + format + ", which the agent sees only by its type; store it as"
-                        + " JSON");
+    /** An object outside JSON and XML, by its class and format. */
+    private static ProcessValue objectDescribed(String objectType, String format) {
+        return ProcessValue.whole("(object " + quoted(objectType) + ", " + quoted(format) + ", "
+                + CONTENT_NOT_SENT + ")");
+    }
+
+    /** A value of another type the agent never reads, bytes among them, by its type. */
+    private static ProcessValue described(String type) {
+        return ProcessValue.whole("(" + type + ", " + CONTENT_NOT_SENT + ")");
+    }
+
+    /**
+     * A field of a description in quotes, a quote or a backslash in it escaped, {@code unknown}
+     * when there is none: a file's name is whatever the one who uploaded it chose, and must not
+     * close its quote and go on to describe a file that is not there.
+     */
+    private static String quoted(String field) {
+        String known = (field == null || field.isEmpty()) ? "unknown" : field;
+        return "\"" + known.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
 
     /**

@@ -142,7 +142,7 @@ public class AdHocElementTemplateTest {
     assertThat(optional.get("constraints")).as("names as the field it narrows takes them")
         .isEqualTo(seen.get("constraints"));
     assertThat(text(optional, "description")).contains("Empty: every one is required.")
-        .contains("a file, bytes or a Java object is shown by its type only");
+        .contains("one past the limit of all is left out and named");
     // What a process developer asked of the text (the review pass of 2026-11-02): a name, not a
     // path; when to use it instead of ${name}; what fails, and what the operator then sees, null
     // among it; what the agent never sees; where the value is, since the chat log keeps a marker.
@@ -152,7 +152,8 @@ public class AdHocElementTemplateTest {
         .contains("with the state of this sub process")
         .contains("up to 4000 characters each and about 20000 in all")
         .contains("Each one is required unless Optional context variables names it")
-        .contains("a file, bytes or a Java object, which the agent never sees")
+        .contains("A file, bytes or a Java object reaches the agent by its name and type only,"
+            + " never its content")
         .contains("after the job's retries, the sub process gets an incident naming it")
         .contains("if it is not set or null")
         .contains("the value is in the variable's history")
