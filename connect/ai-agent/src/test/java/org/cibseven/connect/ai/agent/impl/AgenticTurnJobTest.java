@@ -1937,9 +1937,9 @@ public class AgenticTurnJobTest {
     Map<String, Object> variables = new HashMap<>();
     variables.put("kunde", "Müller GmbH");
     variables.put("geheim", "Kennwort-4711");
-    ProcessInstance pi = start(connectorModel("<camunda:properties><camunda:property"
-        + " name='cibseven.agentic.processVariables' value='kunde' /></camunda:properties>",
-        "<camunda:inputParameter name='message'>Bearbeite den Auftrag.</camunda:inputParameter>",
+    ProcessInstance pi = start(connectorModel("",
+        "<camunda:inputParameter name='contextVariables'>kunde</camunda:inputParameter>"
+        + "<camunda:inputParameter name='message'>Bearbeite den Auftrag.</camunda:inputParameter>",
         "", "stub-key"), variables);
 
     runWaitingTurn();
@@ -1977,11 +1977,10 @@ public class AgenticTurnJobTest {
       throws IOException {
     fixTheClock();
     script.add(answer("Erledigt."));
-    ProcessInstance pi = start(connectorModel("<camunda:properties><camunda:property"
-        + " name='cibseven.agentic.processVariables' value='kunde, rabatt' /><camunda:property"
-        + " name='cibseven.agentic.optionalProcessVariables' value='rabatt' />"
-        + "</camunda:properties>",
-        "<camunda:inputParameter name='message'>Bearbeite den Auftrag.</camunda:inputParameter>",
+    ProcessInstance pi = start(connectorModel("",
+        "<camunda:inputParameter name='contextVariables'>kunde, rabatt</camunda:inputParameter>"
+        + "<camunda:inputParameter name='optionalContextVariables'>rabatt</camunda:inputParameter>"
+        + "<camunda:inputParameter name='message'>Bearbeite den Auftrag.</camunda:inputParameter>",
         "", "stub-key"), new HashMap<String, Object>());
 
     failTheWaitingStep();
@@ -2014,9 +2013,9 @@ public class AgenticTurnJobTest {
   @Test
   public void aRequiredVariableThatIsNotSetFailsBeforeAnyMcpClientIsMade() throws IOException {
     fixTheClock();
-    ProcessInstance pi = start(connectorModel("<camunda:properties><camunda:property"
-        + " name='cibseven.agentic.processVariables' value='kunde' /></camunda:properties>",
-        "<camunda:inputParameter name='message'>Bearbeite den Auftrag.</camunda:inputParameter>"
+    ProcessInstance pi = start(connectorModel("",
+        "<camunda:inputParameter name='contextVariables'>kunde</camunda:inputParameter>"
+        + "<camunda:inputParameter name='message'>Bearbeite den Auftrag.</camunda:inputParameter>"
         + "<camunda:inputParameter name='mcpServers'>[{\"url\":\"http://127.0.0.1:1/mcp\"}]"
         + "</camunda:inputParameter>",
         "", "stub-key"), new HashMap<String, Object>());
@@ -2042,10 +2041,10 @@ public class AgenticTurnJobTest {
     for (int i = 0; i < 5; i++) {
       names.add(new String(new char[254]).replace('\0', 'n') + i);
     }
-    ProcessInstance pi = start(connectorModel("<camunda:properties><camunda:property"
-        + " name='cibseven.agentic.processVariables' value='" + String.join(", ", names) + "' />"
-        + "</camunda:properties>",
-        "<camunda:inputParameter name='message'>Bearbeite den Auftrag.</camunda:inputParameter>",
+    ProcessInstance pi = start(connectorModel("",
+        "<camunda:inputParameter name='contextVariables'>" + String.join(", ", names)
+        + "</camunda:inputParameter>"
+        + "<camunda:inputParameter name='message'>Bearbeite den Auftrag.</camunda:inputParameter>",
         "", "stub-key"), new HashMap<String, Object>());
 
     failTheWaitingStep();
@@ -2057,8 +2056,8 @@ public class AgenticTurnJobTest {
     assertThat(incident).hasSizeLessThanOrEqualTo(666)
         .contains("the model was not called")
         .contains(names.get(0) + " (not set), and 4 more, named at the end of this message")
-        .contains("make it optional (cibseven.agentic.optionalProcessVariables) or leave it out"
-            + " of cibseven.agentic.processVariables.");
+        .contains("make it optional (optionalContextVariables) or leave it out"
+            + " of contextVariables.");
     String details = engine.getManagementService().getJobExceptionStacktrace(failed.getId());
     for (String name : names) {
       assertThat(details).contains(name + " (not set)");
@@ -2075,9 +2074,9 @@ public class AgenticTurnJobTest {
     script.add(answer("Erledigt."));
     Map<String, Object> variables = new HashMap<>();
     variables.put("kommentar", "Bitte {{name}} pruefen, Stand {{current_date}}, {{it}}");
-    ProcessInstance pi = start(connectorModel("<camunda:properties><camunda:property"
-        + " name='cibseven.agentic.processVariables' value='kommentar' /></camunda:properties>",
-        "<camunda:inputParameter name='message'>Bearbeite {{auftrag}}.</camunda:inputParameter>",
+    ProcessInstance pi = start(connectorModel("",
+        "<camunda:inputParameter name='contextVariables'>kommentar</camunda:inputParameter>"
+        + "<camunda:inputParameter name='message'>Bearbeite {{auftrag}}.</camunda:inputParameter>",
         "", "stub-key"), variables);
 
     runWaitingTurn();

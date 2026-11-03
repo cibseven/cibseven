@@ -858,8 +858,8 @@ public class AdHocSubProcessTool {
                 + " the agent: ";
         String remedy = "; the model was not called. Set the variable on the process instance and"
                 + " retry the job, or change the model: make it optional ("
-                + AgenticAdHocParseListener.OPTIONAL_PROCESS_VARIABLES + ") or leave it out of "
-                + AgenticAdHocParseListener.PROCESS_VARIABLES + ".";
+                + AgenticAdHocParseListener.OPTIONAL_CONTEXT_VARIABLES + ") or leave it out of "
+                + AgenticAdHocParseListener.CONTEXT_VARIABLES + ".";
         String moreNote = ", and " + notReached.size() + " more, named at the end of this message";
         int room = INCIDENT_MESSAGE_CHARS - head.length() - remedy.length() - moreNote.length();
         boolean cut = !id.equals(adHocActivityId);

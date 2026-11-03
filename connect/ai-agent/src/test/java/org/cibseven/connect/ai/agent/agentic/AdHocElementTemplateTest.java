@@ -53,7 +53,10 @@ public class AdHocElementTemplateTest {
    * outcome (CIB7-2151) says how a turn ended, which a single run does not have.
    */
   protected static final List<String> AD_HOC_ONLY = Arrays.asList(
-      "camunda:inputParameter:followUp", "camunda:outputParameter:${outcome}");
+      "camunda:inputParameter:followUp", "camunda:outputParameter:${outcome}",
+      // the AI agent task gets the same two inputs with CIB7-1843; until then only this template has them
+      "camunda:inputParameter:" + AgenticAdHocParseListener.CONTEXT_VARIABLES,
+      "camunda:inputParameter:" + AgenticAdHocParseListener.OPTIONAL_CONTEXT_VARIABLES);
 
   @Test
   public void itIsTheTemplateTheParseListenerLooksFor() throws IOException {
@@ -75,28 +78,27 @@ public class AdHocElementTemplateTest {
         .isEqualTo(AgenticTurnRunner.AGENT_CONNECTOR_ID);
 
     // The agent's limits (CIB7-2148), where its conversation lives and what bounds it across
-    // entries (CIB7-2137), what a limit does (CIB7-2151) and the process variables it sees, and
-    // which of them are optional (CIB7-2179) -- none of these may be a child's to rewrite, so none
-    // is an input parameter of the connector.
+    // entries (CIB7-2137) and what a limit does (CIB7-2151) -- none of these may be a child's to
+    // rewrite, so none is an input parameter of the connector. The process variables it sees are
+    // the connector's inputs, as on the AI agent task, read once at deployment (CIB7-2179).
     assertThat(fields(template.get("properties")).keySet()).containsExactlyInAnyOrder(
         "camunda:property:" + AgenticAdHocParseListener.MAX_TURNS,
         "camunda:property:" + AgenticAdHocParseListener.MAX_MODEL_CALLS,
         "camunda:property:" + AgenticAdHocParseListener.MAX_TURNS_TOTAL,
         "camunda:property:" + AgenticAdHocParseListener.CONVERSATION,
-        "camunda:property:" + AgenticAdHocParseListener.ON_LIMIT,
-        "camunda:property:" + AgenticAdHocParseListener.PROCESS_VARIABLES,
-        "camunda:property:" + AgenticAdHocParseListener.OPTIONAL_PROCESS_VARIABLES);
+        "camunda:property:" + AgenticAdHocParseListener.ON_LIMIT);
   }
 
   /**
-   * The process variables the agent sees (CIB7-2179): a property of the scope, so no child can
-   * widen what its agent is sent, in the group with the agent's task. The modeler refuses an empty
+   * The process variables the agent sees (CIB7-2179): the connector's input, as on the AI agent
+   * task, in the group with the agent's task; read once at deployment, so no child can widen what
+   * its agent is sent. The modeler refuses an empty
    * name before the deployment would.
    */
   @Test
   public void theProcessVariablesAreAnInputThatRefusesAnEmptyName() throws IOException {
-    JsonNode field = fields(read(AD_HOC).get("properties"))
-        .get("camunda:property:" + AgenticAdHocParseListener.PROCESS_VARIABLES);
+    JsonNode field = fields(read(AD_HOC).get("scopes").get(0).get("properties"))
+        .get("camunda:inputParameter:" + AgenticAdHocParseListener.CONTEXT_VARIABLES);
 
     assertThat(text(field, "group")).isEqualTo("input");
     assertThat(text(field, "type")).isEqualTo("String");
@@ -125,13 +127,15 @@ public class AdHocElementTemplateTest {
    */
   @Test
   public void theOptionalProcessVariablesAreAnInputBesideThem() throws IOException {
-    Map<String, JsonNode> fields = fields(read(AD_HOC).get("properties"));
-    JsonNode seen = fields.get("camunda:property:" + AgenticAdHocParseListener.PROCESS_VARIABLES);
+    Map<String, JsonNode> fields = fields(read(AD_HOC).get("scopes").get(0).get("properties"));
+    JsonNode seen =
+        fields.get("camunda:inputParameter:" + AgenticAdHocParseListener.CONTEXT_VARIABLES);
     JsonNode optional =
-        fields.get("camunda:property:" + AgenticAdHocParseListener.OPTIONAL_PROCESS_VARIABLES);
+        fields.get("camunda:inputParameter:" + AgenticAdHocParseListener.OPTIONAL_CONTEXT_VARIABLES);
 
     assertThat(optional).as("a field of its own").isNotNull();
-    assertThat(text(optional, "label")).isEqualTo("Optional process variables");
+    assertThat(text(seen, "label")).isEqualTo("Context variables");
+    assertThat(text(optional, "label")).isEqualTo("Optional context variables");
     assertThat(text(optional, "group")).isEqualTo("input");
     assertThat(text(optional, "type")).isEqualTo("String");
     assertThat(optional.has("value")).as("none by default").isFalse();
@@ -147,7 +151,7 @@ public class AdHocElementTemplateTest {
         .contains("instead of ${name} in Message")
         .contains("with the state of this sub process")
         .contains("up to 4000 characters each and about 20000 in all")
-        .contains("Each one is required unless Optional process variables names it")
+        .contains("Each one is required unless Optional context variables names it")
         .contains("a file, bytes or a Java object, which the agent never sees")
         .contains("after the job's retries, the sub process gets an incident naming it")
         .contains("null counts as set")
@@ -157,7 +161,7 @@ public class AdHocElementTemplateTest {
     JsonNode message = fields(read(AD_HOC).get("scopes").get(0).get("properties"))
         .get("camunda:inputParameter:message");
     assertThat(text(message, "description")).as("the task points at the field for data")
-        .contains("list the variable under Process variables");
+        .contains("list the variable under Context variables");
   }
 
   @Test

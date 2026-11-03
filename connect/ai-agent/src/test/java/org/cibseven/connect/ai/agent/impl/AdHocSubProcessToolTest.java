@@ -34,6 +34,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -484,6 +486,14 @@ public class AdHocSubProcessToolTest {
    * attribute to derive from.
    */
   private static String model(String processId, String extraScopeProperties) {
+    // The connector's inputs among them go to the connector, the rest stays a property.
+    StringBuilder inputs = new StringBuilder();
+    Matcher input = Pattern.compile("<camunda:inputParameter .*?</camunda:inputParameter>")
+        .matcher(extraScopeProperties);
+    while (input.find()) {
+      inputs.append(input.group());
+    }
+    extraScopeProperties = input.replaceAll("");
     return "<?xml version='1.0' encoding='UTF-8'?>"
         + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
         + " xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
@@ -499,6 +509,7 @@ public class AdHocSubProcessToolTest {
         + "      <camunda:connectorId>cibseven-ai-agent</camunda:connectorId>"
         + "      <camunda:inputOutput>"
         + "        <camunda:inputParameter name='message'>Do the work.</camunda:inputParameter>"
+        + inputs
         + "      </camunda:inputOutput>"
         + "    </camunda:connector></extensionElements>"
         + "    <userTask id='waits' name='Waits for a person'>"
@@ -880,8 +891,8 @@ public class AdHocSubProcessToolTest {
             + " agent: fehlt (not set), auftrag (an object in application/x-java-serialized-object,"
             + " which the agent sees only by its type; store it as JSON); the model was not called."
             + " Set the variable on the process instance and retry the job, or change the model:"
-            + " make it optional (cibseven.agentic.optionalProcessVariables) or leave it out of"
-            + " cibseven.agentic.processVariables. Reached the agent: kunde, leer.");
+            + " make it optional (optionalContextVariables) or leave it out of"
+            + " contextVariables. Reached the agent: kunde, leer.");
   }
 
   /**
@@ -940,8 +951,8 @@ public class AdHocSubProcessToolTest {
     String incident = message.substring(0, AdHocSubProcessTool.INCIDENT_MESSAGE_CHARS);
     assertThat(incident).contains("the model was not called")
         .contains(", and 1 more, named at the end of this message")
-        .contains("make it optional (cibseven.agentic.optionalProcessVariables) or leave it out"
-            + " of cibseven.agentic.processVariables.");
+        .contains("make it optional (optionalContextVariables) or leave it out"
+            + " of contextVariables.");
     assertThat(message).endsWith("In ad hoc sub process '" + scope + "', all that did not reach"
         + " the agent: " + first + ", " + second + ".");
   }
@@ -1579,13 +1590,14 @@ public class AdHocSubProcessToolTest {
     assertThat(finished(furtherStep)).as("the result only once").isEmpty();
   }
 
+  /** The connector's input contextVariables (CIB7-2179); {@link #model} puts it on the connector. */
   private static String processVariables(String names) {
-    return "<camunda:property name='cibseven.agentic.processVariables' value='" + names + "' />";
+    return "<camunda:inputParameter name='contextVariables'>" + names + "</camunda:inputParameter>";
   }
 
   private static String processVariables(String names, String optional) {
-    return processVariables(names) + "<camunda:property"
-        + " name='cibseven.agentic.optionalProcessVariables' value='" + optional + "' />";
+    return processVariables(names) + "<camunda:inputParameter name='optionalContextVariables'>"
+        + optional + "</camunda:inputParameter>";
   }
 
   @SuppressWarnings("unchecked")

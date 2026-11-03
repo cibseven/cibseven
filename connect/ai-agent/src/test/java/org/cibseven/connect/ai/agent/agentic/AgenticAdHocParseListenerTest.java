@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -32,6 +33,7 @@ import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessActivityBehavio
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessObserver;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.core.model.PropertyKey;
+import org.cibseven.bpm.engine.impl.core.variable.mapping.InputParameter;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.deploy.cache.DeploymentCache;
@@ -2186,7 +2188,7 @@ public class AgenticAdHocParseListenerTest {
 
     assertThatThrownBy(() -> deploy(model))
         .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("cibseven.agentic.processVariables is 'kunde,,prioritaet', and"
+        .hasMessageContaining("contextVariables is 'kunde,,prioritaet', and"
             + " declares an empty name; separate the names by single commas.");
   }
 
@@ -2318,10 +2320,56 @@ public class AgenticAdHocParseListenerTest {
 
     assertThatThrownBy(() -> deploy(model))
         .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("cibseven.agentic.processVariables is 'kunde prioritaet, rabatt', and"
+        .hasMessageContaining("contextVariables is 'kunde prioritaet, rabatt', and"
             + " declares kunde prioritaet, with a space inside the name: a missing comma? separate"
-            + " the names by commas; cibseven.agentic.optionalProcessVariables is 'rabatt  notiz',"
+            + " the names by commas; optionalContextVariables is 'rabatt  notiz',"
             + " and declares rabatt  notiz, with a space inside the name");
+  }
+
+  /**
+   * The declaration is the text of the connector's input, read once at deployment: a list, a map
+   * or a script has none (CIB7-2179).
+   */
+  @Test
+  public void refusesADeclarationThatIsNotText() {
+    String model = connectorScope("<userTask id='worker' />",
+        "<camunda:inputParameter name='contextVariables'><camunda:list>"
+            + "<camunda:value>kunde</camunda:value></camunda:list></camunda:inputParameter>", "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("contextVariables is not text: give the names of the variables,"
+            + " separated by commas, as the text of the input");
+  }
+
+  /**
+   * Read once, the two inputs are taken out of the mapping every step evaluates: no step reads
+   * them again, and the connector's request never carries them (CIB7-2179).
+   */
+  @Test
+  public void theDeclarationIsTakenOutOfTheInputsOfAStep() {
+    deploy(connectorScope("<userTask id='worker' />", processVariables("kunde, rabatt", "rabatt"),
+        ""));
+
+    assertThat(declaredProcessVariablesOf("adHoc")).containsExactly("kunde", "rabatt");
+    final String definitionId = engine.getRepositoryService()
+        .createProcessDefinitionQuery().latestVersion().singleResult().getId();
+    List<String> stepInputs = config.getCommandExecutorTxRequired().execute(
+        new Command<List<String>>() {
+          @Override
+          public List<String> execute(CommandContext ctx) {
+            ProcessDefinitionEntity entity = ctx.getProcessEngineConfiguration()
+                .getDeploymentCache().findDeployedProcessDefinitionById(definitionId);
+            List<String> inputs = new ArrayList<>();
+            for (InputParameter input : entity.findActivity("adHoc").getProperties()
+                .get(AgenticAdHocParseListener.AGENT_CONNECTOR_IO).getInputParameters()) {
+              inputs.add(input.getName());
+            }
+            return inputs;
+          }
+        });
+    assertThat(stepInputs).contains("message")
+        .doesNotContain("contextVariables", "optionalContextVariables");
   }
 
   @Test
@@ -2348,8 +2396,8 @@ public class AgenticAdHocParseListenerTest {
 
     assertThatThrownBy(() -> deploy(model))
         .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("cibseven.agentic.optionalProcessVariables is 'rabat', and declares"
-            + " rabat, which cibseven.agentic.processVariables does not declare; only a variable"
+        .hasMessageContaining("optionalContextVariables is 'rabat', and declares"
+            + " rabat, which contextVariables does not declare; only a variable"
             + " the agent sees can be optional, so name it there too, or leave it out.");
   }
 
@@ -2360,7 +2408,7 @@ public class AgenticAdHocParseListenerTest {
 
     assertThatThrownBy(() -> deploy(model))
         .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("declares rabatt, which cibseven.agentic.processVariables does not"
+        .hasMessageContaining("declares rabatt, which contextVariables does not"
             + " declare");
   }
 
@@ -2371,67 +2419,23 @@ public class AgenticAdHocParseListenerTest {
 
     assertThatThrownBy(() -> deploy(model))
         .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("cibseven.agentic.processVariables is 'kunde, kunde', and declares"
-            + " kunde more than once; cibseven.agentic.optionalProcessVariables is"
+        .hasMessageContaining("contextVariables is 'kunde, kunde', and declares"
+            + " kunde more than once; optionalContextVariables is"
             + " 'kunde,, ${rabatt}', and declares an empty name")
         .hasMessageContaining("${rabatt}, which reads as an expression")
-        .hasMessageContaining("${rabatt}, which cibseven.agentic.processVariables does not"
+        .hasMessageContaining("${rabatt}, which contextVariables does not"
             + " declare");
   }
 
-  @Test
-  public void optionalProcessVariablesWithoutTheConnectorMarkTheScopeAsAnAgent() {
-    String model = process("<adHocSubProcess id='adHoc'><extensionElements>"
-        + processVariables(null, "rabatt") + "</extensionElements><userTask id='worker' />"
-        + "</adHocSubProcess>");
-
-    assertThatThrownBy(() -> deploy(model))
-        .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("the agent's settings cibseven.agentic.optionalProcessVariables")
-        .hasMessageContaining("carries no connector 'cibseven-ai-agent'");
-  }
-
-  @Test
-  public void processVariablesWithoutTheConnectorMarkTheScopeAsAnAgent() {
-    String model = process("<adHocSubProcess id='adHoc'><extensionElements>"
-        + processVariables("kunde") + "</extensionElements><userTask id='worker' />"
-        + "</adHocSubProcess>");
-
-    assertThatThrownBy(() -> deploy(model))
-        .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("the agent's settings cibseven.agentic.processVariables")
-        .hasMessageContaining("carries no connector 'cibseven-ai-agent'")
-        .as("the way back to a plain scope removes what marks it")
-        .hasMessageContaining("if it is meant to be a plain ad hoc sub process, remove the"
-            + " agent's settings cibseven.agentic.processVariables.");
-  }
-
-  /** On a plain sub process too, the remedy removes a setting, not only the limits. */
-  @Test
-  public void processVariablesOnAPlainSubProcessAreNamedAmongWhatToRemove() {
-    String model = process("<subProcess id='plain'><extensionElements>"
-        + processVariables("kunde") + "</extensionElements><startEvent id='innen' />"
-        + "<sequenceFlow id='i1' sourceRef='innen' targetRef='arbeit' /><userTask id='arbeit' />"
-        + "<sequenceFlow id='i2' sourceRef='arbeit' targetRef='aus' /><endEvent id='aus' />"
-        + "</subProcess>");
-
-    assertThatThrownBy(() -> deploy(model))
-        .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("the AI agent is only valid on an adHocSubProcess")
-        .hasMessageContaining("and every cibseven.agentic.* property, the limits and the settings.");
-  }
-
   protected static String processVariables(String names) {
-    return "<camunda:properties><camunda:property name='cibseven.agentic.processVariables'"
-        + " value='" + names + "' /></camunda:properties>";
+    return "<camunda:inputParameter name='contextVariables'>" + names + "</camunda:inputParameter>";
   }
 
   /** Both lists; a list that is null is not written. */
   protected static String processVariables(String names, String optional) {
-    return "<camunda:properties>" + (names == null ? ""
-        : "<camunda:property name='cibseven.agentic.processVariables' value='" + names + "' />")
-        + "<camunda:property name='cibseven.agentic.optionalProcessVariables' value='" + optional
-        + "' /></camunda:properties>";
+    return (names == null ? "" : processVariables(names))
+        + "<camunda:inputParameter name='optionalContextVariables'>" + optional
+        + "</camunda:inputParameter>";
   }
 
   /** What the latest deployed definition's scope declares. Needs a command context. */
@@ -2745,8 +2749,12 @@ public class AgenticAdHocParseListenerTest {
 
   /** An ad hoc scope with the agent's connector, plus further extension elements of the scope. */
   protected static String connectorScope(String children, String properties, String scopeIo) {
-    return process("<adHocSubProcess id='adHoc'><extensionElements>" + properties + scopeIo
-        + connectorElement(message()) + "</extensionElements>" + children + "</adHocSubProcess>");
+    // The variables the agent sees are declared as the connector's inputs (CIB7-2179).
+    String inputs = properties.startsWith("<camunda:inputParameter") ? properties : "";
+    String extensions = inputs.isEmpty() ? properties : "";
+    return process("<adHocSubProcess id='adHoc'><extensionElements>" + extensions + scopeIo
+        + connectorElement(message() + inputs) + "</extensionElements>" + children
+        + "</adHocSubProcess>");
   }
 
   private static String memoryWindowModel(int maxModelCalls, String window) {

@@ -19,6 +19,7 @@ package org.cibseven.connect.ai.agent.agentic;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,24 +108,27 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
   public static final String ON_LIMIT = AgenticOutcome.ON_LIMIT_PROPERTY;
 
   /**
-   * The process variables the agent sees, by name, separated by commas: before every model call,
-   * every step of a turn, their current values go to the model as data, with the state of the
-   * scope (CIB7-2179). Each is required unless {@link #OPTIONAL_PROCESS_VARIABLES} names it.
+   * The connector's input naming the process variables the agent sees, separated by commas:
+   * before every model call, every step of a turn, their current values go to the model as data,
+   * with the state of the scope (CIB7-2179). Each is required unless
+   * {@link #OPTIONAL_CONTEXT_VARIABLES} names it. The input of the same name on the AI agent task
+   * (CIB7-1843), so an agent moved from a task into a scope keeps it; here it is read once, at
+   * deployment, as plain text, and no step evaluates it.
    */
-  public static final String PROCESS_VARIABLES = PROPERTY_PREFIX + "processVariables";
+  public static final String CONTEXT_VARIABLES = "contextVariables";
 
-  /** The names {@link #PROCESS_VARIABLES} declares, in their order; absent when it declares none. */
+  /** The names {@link #CONTEXT_VARIABLES} declares, in their order; absent when it declares none. */
   public static final PropertyKey<List<String>> DECLARED_PROCESS_VARIABLES =
       new PropertyKey<List<String>>("agentProcessVariables");
 
   /**
-   * Those of {@link #PROCESS_VARIABLES} that may be missing: the agent is asked without them. Every
-   * other one must reach it, or the step fails before the model is called (CIB7-2179).
+   * The connector's input naming those of {@link #CONTEXT_VARIABLES} that may be missing: the
+   * agent is asked without them. Every other one must reach it, or the step fails before the model
+   * is called (CIB7-2179).
    */
-  public static final String OPTIONAL_PROCESS_VARIABLES =
-      PROPERTY_PREFIX + "optionalProcessVariables";
+  public static final String OPTIONAL_CONTEXT_VARIABLES = "optionalContextVariables";
 
-  /** The names {@link #OPTIONAL_PROCESS_VARIABLES} declares; absent when it declares none. */
+  /** The names {@link #OPTIONAL_CONTEXT_VARIABLES} declares; absent when it declares none. */
   public static final PropertyKey<List<String>> OPTIONAL_DECLARED_PROCESS_VARIABLES =
       new PropertyKey<List<String>>("agentOptionalProcessVariables");
 
@@ -140,7 +144,7 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
 
   /** Settings of the agent that are not limits, and mark a scope as an agent just as much. */
   protected static final List<String> SETTINGS =
-      Arrays.asList(CONVERSATION, ON_LIMIT, PROCESS_VARIABLES, OPTIONAL_PROCESS_VARIABLES);
+      Arrays.asList(CONVERSATION, ON_LIMIT);
 
   /** What the element template for an agentic scope writes into {@code camunda:modelerTemplate}. */
   public static final String AD_HOC_TEMPLATE_ID = "org.cibseven.connect.ai.agent.AdHocSubProcess";
@@ -246,18 +250,21 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
         withoutOnLimit(activity))) {
       properties = without(properties, ON_LIMIT);
     }
-    // The same for the process variables the agent sees (CIB7-2179): left out, it sees none. Both
-    // lists go together: the optional ones left alone would turn into required ones.
-    final Map<String, String> declaring = properties;
+    // The same for the process variables the agent sees (CIB7-2179), the connector's inputs
+    // contextVariables and optionalContextVariables: taken out of the mapping, so no step
+    // evaluates them, and read here once. Left out, the agent sees none. Both lists go together:
+    // the optional ones left alone would turn into required ones.
+    Map<String, String> declaring = declarationInputs(connector, io);
+    final Map<String, String> checking = declaring;
     if (!parsing.check(() -> refuseABadDeclarationOfProcessVariables(scopeElement, activity,
-        declaring), withoutProcessVariables(activity))) {
-      properties = without(without(properties, PROCESS_VARIABLES), OPTIONAL_PROCESS_VARIABLES);
+        checking), withoutProcessVariables(activity))) {
+      declaring = Collections.emptyMap();
     }
-    List<String> processVariables = declaredNames(properties.get(PROCESS_VARIABLES));
+    List<String> processVariables = declaredNames(declaring.get(CONTEXT_VARIABLES));
     if (!processVariables.isEmpty()) {
       activity.getProperties().set(DECLARED_PROCESS_VARIABLES,
           Collections.unmodifiableList(processVariables));
-      List<String> optional = declaredNames(properties.get(OPTIONAL_PROCESS_VARIABLES));
+      List<String> optional = declaredNames(declaring.get(OPTIONAL_CONTEXT_VARIABLES));
       if (!optional.isEmpty()) {
         activity.getProperties().set(OPTIONAL_DECLARED_PROCESS_VARIABLES,
             Collections.unmodifiableList(optional));
@@ -635,8 +642,8 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
   }
 
   /**
-   * {@code cibseven.agentic.processVariables} names each variable once, and none of the agent's
-   * own state (CIB7-2179). An empty name is a stray comma, and a name declared twice a slip of the
+   * {@code contextVariables} is plain text, and names each variable once, and none of the agent's
+   * own state (CIB7-2179). A list, a map or a script has no text to read once. An empty name is a stray comma, and a name declared twice a slip of the
    * pen; either would leave a modeller wondering what the agent sees. A name with {@code $},
    * braces, a semicolon or an asterisk, or one longer than a variable's name can be, is an
    * expression, a list or a pattern written by habit and would never match. A name with a space
@@ -644,21 +651,27 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
    * name anyway. The agent's own state is kept from the model on every path, and a declaration
    * would hand it out.
    *
-   * <p>{@code cibseven.agentic.optionalProcessVariables} is checked the same way, and names only
+   * <p>{@code optionalContextVariables} is checked the same way, and names only
    * variables the agent sees: a name it adds would be a typo, and the variable meant would stay
    * required.
    */
   protected void refuseABadDeclarationOfProcessVariables(Element scopeElement,
-      ActivityImpl activity, Map<String, String> properties) {
+      ActivityImpl activity, Map<String, String> inputs) {
     List<String> seen = new ArrayList<String>();
     List<String> refusals = new ArrayList<String>();
-    String declared = properties.get(PROCESS_VARIABLES);
+    for (String input : Arrays.asList(CONTEXT_VARIABLES, OPTIONAL_CONTEXT_VARIABLES)) {
+      if (inputs.containsKey(input) && inputs.get(input) == null) {
+        refusals.add(input + " is not text: give the names of the variables, separated by"
+            + " commas, as the text of the input, not as a list, a map or a script");
+      }
+    }
+    String declared = inputs.get(CONTEXT_VARIABLES);
     List<String> problems = problemsOfADeclaration(declared, seen);
     if (!problems.isEmpty()) {
-      refusals.add(PROCESS_VARIABLES + " is '" + declared + "', and declares "
+      refusals.add(CONTEXT_VARIABLES + " is '" + declared + "', and declares "
           + String.join(", and ", problems));
     }
-    String optional = properties.get(OPTIONAL_PROCESS_VARIABLES);
+    String optional = inputs.get(OPTIONAL_CONTEXT_VARIABLES);
     List<String> optionalNames = new ArrayList<String>();
     List<String> optionalProblems = problemsOfADeclaration(optional, optionalNames);
     List<String> unseen = new ArrayList<String>();
@@ -668,12 +681,12 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
       }
     }
     if (!unseen.isEmpty()) {
-      optionalProblems.add(String.join(", ", unseen) + ", which " + PROCESS_VARIABLES
+      optionalProblems.add(String.join(", ", unseen) + ", which " + CONTEXT_VARIABLES
           + " does not declare; only a variable the agent sees can be optional, so name it there"
           + " too, or leave it out");
     }
     if (!optionalProblems.isEmpty()) {
-      refusals.add(OPTIONAL_PROCESS_VARIABLES + " is '" + optional + "', and declares "
+      refusals.add(OPTIONAL_CONTEXT_VARIABLES + " is '" + optional + "', and declares "
           + String.join(", and ", optionalProblems));
     }
     // One refusal names every problem, so a model is not deployed again only to learn of the next.
@@ -822,9 +835,39 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     return false;
   }
 
-  /** What a scope loads with on a parse again when its {@link #PROCESS_VARIABLES} is left out. */
+  /**
+   * The connector's inputs {@link #CONTEXT_VARIABLES} and {@link #OPTIONAL_CONTEXT_VARIABLES}, by
+   * name, as the text the model gives them, taken out of {@code io} so that no step evaluates
+   * them: they are read once, here. One given as a list, a map or a script has no text and maps
+   * to {@code null}. {@code io.getInputParameters()} is the live list, as in
+   * {@link #extractFollowUp}.
+   */
+  protected static Map<String, String> declarationInputs(Element connector, IoMapping io) {
+    Map<String, String> declared = new LinkedHashMap<String, String>();
+    Element inputOutput = (connector == null) ? null
+        : connector.elementNS(BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS, "inputOutput");
+    if (inputOutput == null || io == null) {
+      return declared;
+    }
+    for (Element input : inputOutput.elementsNS(BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS,
+        "inputParameter")) {
+      String name = input.attribute("name");
+      if (CONTEXT_VARIABLES.equals(name) || OPTIONAL_CONTEXT_VARIABLES.equals(name)) {
+        declared.put(name, input.elements().isEmpty() ? input.getText() : null);
+      }
+    }
+    Iterator<InputParameter> inputs = io.getInputParameters().iterator();
+    while (inputs.hasNext()) {
+      if (declared.containsKey(inputs.next().getName())) {
+        inputs.remove();
+      }
+    }
+    return declared;
+  }
+
+  /** What a scope loads with on a parse again when its {@link #CONTEXT_VARIABLES} is left out. */
   protected static String withoutProcessVariables(ActivityImpl activity) {
-    return PROCESS_VARIABLES + " and " + OPTIONAL_PROCESS_VARIABLES + " are left out of '"
+    return CONTEXT_VARIABLES + " and " + OPTIONAL_CONTEXT_VARIABLES + " are left out of '"
         + activity.getId() + "', and its agent sees no process variables";
   }
 
