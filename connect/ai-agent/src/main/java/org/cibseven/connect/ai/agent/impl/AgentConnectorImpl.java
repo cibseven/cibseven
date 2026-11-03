@@ -216,6 +216,14 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       // the state block in its message and the scope's own loop bound.
       ExecutionEntity agenticScope = agenticTurnScope();
 
+      // In an agentic scope the task message carries the turn's state up front:
+      // what finished since the last turn, what still runs, where the turn counter
+      // stands, the declared process variables. Delimited as data, because it is
+      // process data next to instructions. Built before the model and the MCP
+      // clients: a required variable that did not reach the agent fails the step
+      // here, before a connection is opened for a model call that never comes.
+      String userMessage = buildUserMessage(request, agenticScope);
+
       ChatModel chatModel = createChatModel(request, apiKey, baseUrl, customHeaders);
 
       List<McpServerSpec> mcpServerSpecs = parseMcpServers(request.getMcpServers());
@@ -317,11 +325,6 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
           throw new HallucinatedToolException(toolRequest);
         });
       }
-
-      // In an agentic scope the task message carries the turn's state up front:
-      // what finished since the last turn, what still runs, where the turn counter
-      // stands. Delimited as data, because it is process data next to instructions.
-      String userMessage = buildUserMessage(request, agenticScope);
 
       Result<String> result;
       try {

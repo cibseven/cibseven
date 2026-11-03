@@ -2007,6 +2007,30 @@ public class AgenticTurnJobTest {
   }
 
   /**
+   * The state block, the required variables with it, is built before the model and the MCP
+   * clients: a step that fails for a variable opens no connection, and the failure the developer
+   * sees is the variable's, not that of an MCP server the step would never have used (CIB7-2179).
+   */
+  @Test
+  public void aRequiredVariableThatIsNotSetFailsBeforeAnyMcpClientIsMade() throws IOException {
+    fixTheClock();
+    ProcessInstance pi = start(connectorModel("<camunda:properties><camunda:property"
+        + " name='cibseven.agentic.processVariables' value='kunde' /></camunda:properties>",
+        "<camunda:inputParameter name='message'>Bearbeite den Auftrag.</camunda:inputParameter>"
+        + "<camunda:inputParameter name='mcpServers'>[{\"url\":\"http://127.0.0.1:1/mcp\"}]"
+        + "</camunda:inputParameter>",
+        "", "stub-key"), new HashMap<String, Object>());
+
+    Job failed = failTheWaitingStep();
+
+    assertThat(requestBodies).as("the model is not called").isEmpty();
+    assertThat(engine.getManagementService().getJobExceptionStacktrace(failed.getId()))
+        .contains("required process variables did not reach the agent: kunde (not set)")
+        .doesNotContain("127.0.0.1:1");
+    assertThat(alive(pi)).isTrue();
+  }
+
+  /**
    * The incident keeps 666 characters of the step's message: it names the first variables that did
    * not reach the agent, how many more there are, and what to do; the job's exception details name
    * every one (CIB7-2179).
