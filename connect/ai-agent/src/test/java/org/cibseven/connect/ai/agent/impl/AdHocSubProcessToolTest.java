@@ -697,11 +697,49 @@ public class AdHocSubProcessToolTest {
     assertThat(Agent.RESULTS).as("no block for the agent").isEmpty();
     assertThat(Agent.FAILURES).hasSize(1);
     assertThat(Agent.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class)
-        .hasMessage("Ad hoc sub process 'adHoc': the model was not called: required process"
-            + " variables did not reach the agent: fehlt (not set), auftrag (an object in"
-            + " application/x-java-serialized-object, which the agent sees only by its type;"
-            + " store it as JSON). Each name in cibseven.agentic.processVariables is required"
-            + " unless cibseven.agentic.optionalProcessVariables names it. Read: kunde, leer.");
+        .hasMessage("Ad hoc sub process 'adHoc': required process variables did not reach the"
+            + " agent: fehlt (not set), auftrag (an object in application/x-java-serialized-object,"
+            + " which the agent sees only by its type; store it as JSON); the model was not called."
+            + " Set the variable on the process instance and retry the job, or change the model:"
+            + " make it optional (cibseven.agentic.optionalProcessVariables) or leave it out of"
+            + " cibseven.agentic.processVariables. Reached the agent: kunde, leer.");
+  }
+
+  /**
+   * A developer used to {@code ${order.customer}} lists a path into a JSON value; a dot is legal in
+   * a name, so the deployment cannot refuse it, and the refusal says what was meant instead.
+   */
+  @Test
+  public void aNotSetNameWithADotHintsAtTheVariableItself() {
+    ProcessInstance instance = startWithoutTurn("processDataPath",
+        processVariables("auftrag.kunde"), tool -> tool.turnReport());
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0)).hasMessageContaining("did not reach the agent: auftrag.kunde"
+        + " (not set; a path into a variable? declare the variable itself, 'auftrag', and the agent"
+        + " sees all of it); the model was not called.");
+  }
+
+  /**
+   * A required file, bytes or Java object fails every instance, since the agent never sees its
+   * content: the refusal says what to do instead of listing it.
+   */
+  @Test
+  public void aRequiredFileFailsTheStepSayingWhatToDo() {
+    ProcessInstance instance = startWithoutTurn("processDataRequiredFile",
+        processVariables("scan"), tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "scan",
+        Variables.fileValue("auftrag.pdf").file(WritesDocument.BYTES)
+            .mimeType("application/pdf").create());
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0)).hasMessageContaining("did not reach the agent: scan (a file"
+        + " value, whose content the agent never sees; leave it out of the list, or store what the"
+        + " agent needs of it in a string or JSON variable); the model was not called.");
   }
 
   /**
@@ -723,7 +761,8 @@ public class AdHocSubProcessToolTest {
     String incident = message.substring(0, AdHocSubProcessTool.INCIDENT_MESSAGE_CHARS);
     assertThat(incident).contains("the model was not called")
         .contains(", and 1 more, named at the end of this message")
-        .contains("is required unless cibseven.agentic.optionalProcessVariables names it.");
+        .contains("make it optional (cibseven.agentic.optionalProcessVariables) or leave it out"
+            + " of cibseven.agentic.processVariables.");
     assertThat(message).endsWith("In ad hoc sub process '" + scope + "', all that did not reach"
         + " the agent: " + first + ", " + second + ".");
   }
@@ -847,8 +886,8 @@ public class AdHocSubProcessToolTest {
     assertThat(Agent.FAILURES).hasSize(1);
     assertThat(Agent.FAILURES.get(0)).hasMessageContaining("did not reach the agent: wert6"
         + " (3002 characters as written, more than is left of the 20000 for all process"
-        + " variables). Each name in")
-        .hasMessageEndingWith(" Read: wert0, wert1, wert2, wert3, wert4, wert5.");
+        + " variables); the model was not called. Set")
+        .hasMessageEndingWith(" Reached the agent: wert0, wert1, wert2, wert3, wert4, wert5.");
   }
 
   /**

@@ -754,7 +754,7 @@ public class AdHocSubProcessTool {
                 TypedValue value = scope.getVariableTyped(name, false);
                 if (value == null) {
                     if (required) {
-                        missing.add(name + " (not set)");
+                        missing.add(name + notSetReason(name));
                     } else {
                         notSet.add(name);
                     }
@@ -804,6 +804,20 @@ public class AdHocSubProcessTool {
     }
 
     /**
+     * Why a required variable that is not set did not reach the agent: not set, and for a name with
+     * a dot in it, which a developer used to {@code ${order.customer}} writes for a path into a JSON
+     * value, that the variable itself is what a declaration takes, and the agent then sees all of it.
+     */
+    private static String notSetReason(String name) {
+        int dot = name.indexOf('.');
+        if (dot > 0) {
+            return " (not set; a path into a variable? declare the variable itself, '"
+                    + name.substring(0, dot) + "', and the agent sees all of it)";
+        }
+        return " (not set)";
+    }
+
+    /**
      * Characters of a job's exception message an incident keeps ({@code StringUtil.DB_MAX_STRING_LENGTH}):
      * what the refusal of a missing required variable must say there fits in them.
      */
@@ -814,19 +828,21 @@ public class AdHocSubProcessTool {
 
     /**
      * Why the step fails, for the incident first, all of it within {@link #INCIDENT_MESSAGE_CHARS}:
-     * that the model was not called, the required variables that did not reach the agent, as many
-     * as fit, the first one cut if it alone does not, how many more, and what to do. The variables
-     * read come after, and so does every one in full, with the scope's full id, when anything was
-     * left out or cut: the job's exception details keep the whole message.
+     * the required variables that did not reach the agent, as many as fit, the first one cut if it
+     * alone does not, how many more, that the model was not called, and what to do: an operator
+     * reads the action, not the rule it follows from. The variables that reached the agent come
+     * after, and so does every one in full, with the scope's full id, when anything was left out
+     * or cut: the job's exception details keep the whole message.
      */
     static String notReachedMessage(String adHocActivityId, List<String> notReached,
             Collection<String> read) {
         String id = shortened(adHocActivityId, ID_SHOWN_CHARS);
-        String head = "Ad hoc sub process '" + id + "': the model was not called: required process"
-                + " variables did not reach the agent: ";
-        String remedy = ". Each name in " + AgenticAdHocParseListener.PROCESS_VARIABLES
-                + " is required unless " + AgenticAdHocParseListener.OPTIONAL_PROCESS_VARIABLES
-                + " names it.";
+        String head = "Ad hoc sub process '" + id + "': required process variables did not reach"
+                + " the agent: ";
+        String remedy = "; the model was not called. Set the variable on the process instance and"
+                + " retry the job, or change the model: make it optional ("
+                + AgenticAdHocParseListener.OPTIONAL_PROCESS_VARIABLES + ") or leave it out of "
+                + AgenticAdHocParseListener.PROCESS_VARIABLES + ".";
         String moreNote = ", and " + notReached.size() + " more, named at the end of this message";
         int room = INCIDENT_MESSAGE_CHARS - head.length() - remedy.length() - moreNote.length();
         boolean cut = !id.equals(adHocActivityId);
@@ -850,7 +866,7 @@ public class AdHocSubProcessTool {
         if (more > 0) {
             message.append(", and ").append(more).append(" more, named at the end of this message");
         }
-        message.append(remedy).append(" Read: ")
+        message.append(remedy).append(" Reached the agent: ")
                 .append(read.isEmpty() ? "none" : String.join(", ", read)).append('.');
         if (more > 0 || cut) {
             message.append(" In ad hoc sub process '").append(adHocActivityId)
@@ -900,8 +916,10 @@ public class AdHocSubProcessTool {
             if (text && serialized != null) {
                 return ProcessValue.text(serialized);
             }
+            // Text without its text: an object set in this very step, written when the step ends.
             return ProcessValue.hidden("<" + type + " value (" + described + "), not shown>",
-                    text ? "an object in " + format + " whose text is not at hand in this step"
+                    text ? "an object in " + format + " set in this step, whose text is written"
+                            + " when the step ends; the next step shows it"
                          : "an object in " + format + ", which the agent sees only by its type;"
                             + " store it as JSON");
         }
@@ -912,7 +930,9 @@ public class AdHocSubProcessTool {
         }
         if (!SHOWN_PROCESS_TYPES.contains(type)) {
             return ProcessValue.hidden("<" + type + " value, not shown>",
-                    "a " + type + " value, whose content the agent does not see");
+                    "a " + type + " value, whose content the agent never sees; leave it out of the"
+                            + " list, or store what the agent needs of it in a string or JSON"
+                            + " variable");
         }
         if (value instanceof String) {
             return ProcessValue.text((String) value);

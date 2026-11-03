@@ -2033,7 +2033,8 @@ public class AgenticTurnJobTest {
     assertThat(incident).hasSizeLessThanOrEqualTo(666)
         .contains("the model was not called")
         .contains(names.get(0) + " (not set), and 4 more, named at the end of this message")
-        .contains("is required unless cibseven.agentic.optionalProcessVariables names it.");
+        .contains("make it optional (cibseven.agentic.optionalProcessVariables) or leave it out"
+            + " of cibseven.agentic.processVariables.");
     String details = engine.getManagementService().getJobExceptionStacktrace(failed.getId());
     for (String name : names) {
       assertThat(details).contains(name + " (not set)");
