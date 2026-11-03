@@ -80,7 +80,7 @@ public interface HistoricExternalTaskLogQuery extends Query<HistoricExternalTask
   /**
    * Only select fetched historic external task log entries.
    *
-   * @since cibseven 2.3.0
+   * @since cibseven 3.0.0
    */
   HistoricExternalTaskLogQuery fetchedLog();
 

@@ -138,7 +138,7 @@ public interface HistoricExternalTaskLog {
    * Default method, so that existing implementations of this interface
    * keep compiling; they never represent a fetched log.
    *
-   * @since cibseven 2.3.0
+   * @since cibseven 3.0.0
    */
   default boolean isFetchedLog() {
     return false;

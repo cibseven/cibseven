@@ -201,7 +201,7 @@ public enum HistoryEventTypes implements HistoryEventType {
   /**
    * fired when an external task is fetched.
    *
-   * @since cibseven 2.3.0
+   * @since cibseven 3.0.0
    */
   EXTERNAL_TASK_FETCH("external-task", "fetch");
 

@@ -311,7 +311,7 @@ public interface HistoryEventProducer {
    * Default method returning <code>null</code> (no event), so that existing
    * custom producers keep compiling.
    *
-   * @since cibseven 2.3.0
+   * @since cibseven 3.0.0
    */
   default HistoryEvent createHistoricExternalTaskLogFetchedEvt(ExternalTask task) {
     return null;
