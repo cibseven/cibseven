@@ -213,6 +213,19 @@ public class AgentConnectorImplCoverageTest {
     assertThat(first).isSameAs(second);
   }
 
+  /**
+   * The parts of the state block are named to the model, the process data among them (CIB7-2179):
+   * what processData holds, and what its two companions say.
+   */
+  @Test
+  public void theAdHocInstructionNamesTheProcessDataOfTheStateBlock() {
+    String content = AgentConnectorImpl.loadAdHocDefaultInstruction();
+    assertThat(content).contains("AD HOC SCOPE STATE")
+        .contains("processData: the current values of the process")
+        .contains("processDataNotSet names those the process has not set")
+        .contains("processDataNote those left out for size");
+  }
+
   // ── createContentRetriever — early-return null paths ────────────────────
 
   @Test

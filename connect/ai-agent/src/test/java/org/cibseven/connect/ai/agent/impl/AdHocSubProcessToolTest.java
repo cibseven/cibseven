@@ -668,6 +668,11 @@ public class AdHocSubProcessToolTest {
     assertThat(Agent.FAILURES).isEmpty();
     assertThat(processData(result(0))).containsOnlyKeys("kunde");
     assertThat(list(result(0).get("processDataNotSet"))).containsExactly("fehlt");
+    // The model is told what the key means, and that a null in processData is not this.
+    assertThat(String.valueOf(result(0).get("note")))
+        .contains("processDataNotSet names the declared variables the process has not set"
+            + " (a null in processData is set to null); processDataNote says which were left out"
+            + " for size.");
     assertThat(ENGINE.getRuntimeService().createIncidentQuery()
         .processInstanceId(instance.getId()).count()).isZero();
     assertThat(ENGINE.getHistoryService().createHistoricIncidentQuery()
