@@ -68,6 +68,7 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.variable.Variables;
+import org.cibseven.bpm.engine.variable.impl.value.ObjectValueImpl;
 import org.cibseven.bpm.engine.variable.value.SerializableValue;
 import org.cibseven.bpm.engine.variable.type.SerializableValueType;
 import org.cibseven.bpm.engine.variable.type.ValueType;
@@ -977,6 +978,23 @@ public class AdHocSubProcessToolTest {
 
     assertThat(Agent.FAILURES).isEmpty();
     assertThat(processData(result(0))).containsEntry("roh", null);
+  }
+
+  /**
+   * An object deserialized in the command to null, from the JSON literal null, keeps that text
+   * beside it: it is null all the same, so a required one fails as a null does and is never sent
+   * as the word "null" (the second model's review of 14637f31c5). One never deserialized shows
+   * the text it was stored with, as the AI agent task does.
+   */
+  @Test
+  public void anObjectDeserializedToNullIsNullWhateverTextItKept() {
+    AdHocSubProcessTool.ProcessValue deserialized = AdHocSubProcessTool.processValue(
+        new ObjectValueImpl(null, "null", "application/json", "java.util.LinkedHashMap", true));
+    assertThat(deserialized.shown).isNull();
+    assertThat(deserialized.notWhole).isNull();
+    assertThat(AdHocSubProcessTool.processValue(Variables.serializedObjectValue("null")
+        .serializationDataFormat("application/json").objectTypeName("java.util.LinkedHashMap")
+        .create()).shown).as("never deserialized: its text").isEqualTo("null");
   }
 
   /**

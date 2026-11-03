@@ -919,10 +919,11 @@ public class AdHocSubProcessTool {
      *
      * <p>Only a value that is itself null reads as null, a typed null of any type among them: a
      * variable set to null is set, and is null, not a placeholder of its type. A value read already
-     * in this command
-     * comes from the variable's cache, deserialized: a Spin value is then shown by the text its node
-     * writes now, which an expression of the step may have changed, and is never taken for null for
-     * want of its text. Another object in JSON or XML shows the text it was stored with.
+     * in this command comes from the variable's cache, deserialized: an object deserialized to null,
+     * from the JSON literal {@code null} for example, is null whatever text it kept beside it; a
+     * Spin value is shown by the text its node writes now, which an expression of the step may have
+     * changed, and is never taken for null for want of its text. An object never deserialized
+     * shows the text it was stored with, {@code null} as the text "null".
      */
     static ProcessValue processValue(TypedValue typed) {
         return processValue(typed, null);
@@ -943,6 +944,11 @@ public class AdHocSubProcessTool {
             boolean text = format != null && (format.contains("json") || format.contains("xml"));
             String serialized = serializable.getValueSerialized();
             Object live = serializable.isDeserialized() ? serializable.getValue() : null;
+            if (serializable.isDeserialized() && live == null) {
+                // Null, whatever text it kept: shown as that text, a required one would pass as
+                // the word "null" (the second model's review of 14637f31c5).
+                return ProcessValue.whole(null);
+            }
             if (live != null && SPIN_PROCESS_TYPES.contains(type)) {
                 // The node as it is now: an expression of this step may have changed it after it
                 // was read, and the text it was read with would show the value before.
