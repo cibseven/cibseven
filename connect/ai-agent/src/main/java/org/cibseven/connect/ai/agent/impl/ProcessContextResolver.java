@@ -215,14 +215,17 @@ public final class ProcessContextResolver {
 
   /**
    * Throws when a declared variable that is <em>not</em> marked optional will
-   * not reach the model — because it is absent, holds {@code null}, or was
-   * dropped from the rendered block by the size cap.
+   * not reach the model whole — because it is absent, holds {@code null}, is
+   * longer than the value limit, or was dropped from the rendered block by the
+   * size cap.
    *
    * <p>Required is the default, so this fires for anything the modeler did not
    * consciously list in {@code optionalContextVariables}. Without it the agent
    * answers fluently over missing data, which is the worst failure mode
    * available — wrong, but confidently phrased. "Resolved but omitted" produces
-   * exactly the same blind spot as "absent", so it has to fail the same way.
+   * exactly the same blind spot as "absent", so it has to fail the same way, and
+   * so does "resolved but cut": half an order reads to the model like a whole
+   * one. Only an optional value is sent cut, with a marker.
    *
    * <p><b>Call this after {@link #render(List, int)}</b>: the omission flag is
    * set there. Calling it earlier silently skips the omission check.
@@ -232,23 +235,28 @@ public final class ProcessContextResolver {
     List<String> resolved = new ArrayList<>();
     for (ContextVariable variable : variables) {
       boolean reached = variable.present && !variable.nullValued && !variable.omitted;
-      if (reached) {
+      boolean whole = reached && !variable.truncated;
+      if (whole || (reached && variable.optional)) {
         resolved.add(variable.name);
       }
-      if (variable.optional || reached) {
+      if (variable.optional || whole) {
         continue;
       }
       if (!variable.present) {
         missing.add(variable.name + (variable.unreadable ? " (unreadable)" : " (absent)"));
       } else if (variable.nullValued) {
         missing.add(variable.name + " (null)");
+      } else if (variable.truncated) {
+        missing.add(variable.name + " (too long: " + variable.rawValue.length()
+            + " characters, limit " + variable.maxValueChars
+            + "; list it in 'optionalContextVariables' to send it cut)");
       } else {
         missing.add(variable.name + " (omitted: context block size limit reached)");
       }
     }
     if (!missing.isEmpty()) {
       throw new AgentConnectorException(
-          "Required process context variable(s) did not reach the model: "
+          "Required process context variable(s) did not reach the model whole: "
           + String.join(", ", missing)
           // The failure rolls the transaction back and takes the `context` audit
           // event with it, so this message is the only surviving record of the
@@ -335,8 +343,10 @@ public final class ProcessContextResolver {
   /**
    * Builds the payload of the {@code context} audit event: which variables were
    * declared, which resolved, their types, and a SHA-256 plus length per value —
-   * never the value itself, which is already carried (and redaction-gated) by the
-   * system message on the {@code request} event.
+   * never the value itself. The values are process variables already; the
+   * {@code request} events do not repeat them either, they reference this event
+   * in place of the block (see
+   * {@link AgentChatListener#recordContextEvent(Map, String)}).
    *
    * <p>Serves EU AI Act Art. 12 record-keeping: the rendered prompt alone does
    * not say which process data reached the model, this event does.
@@ -384,6 +394,11 @@ public final class ProcessContextResolver {
     payload.put("sent", sent);
     payload.put("omitted", omitted);
     payload.put("blockChars", renderedBlock == null ? 0 : renderedBlock.length());
+    if (renderedBlock != null) {
+      // The request events reference this event instead of repeating the block,
+      // so the hash is what ties the system prompt the model got to it.
+      payload.put("blockSha256", AgentChatListener.sha256(renderedBlock));
+    }
     payload.put("variables", entries);
     return payload;
   }
@@ -561,52 +576,19 @@ public final class ProcessContextResolver {
   }
 
   /**
-   * Cuts an already-escaped value to {@code max} characters without leaving a
-   * broken fragment behind: no lone high surrogate (which would be invalid
-   * UTF-16), no dangling backslash from a half-cut {@code \\n} / {@code \\"},
-   * and no partial {@code &lt;} entity produced by
-   * {@link #neuterDelimiters(String)}.
+   * Cuts a raw value to {@code max} characters without leaving a lone high
+   * surrogate behind, which would be invalid UTF-16. Escaping runs on the
+   * result, so no escape sequence or {@code &lt;} entity can be cut in half.
    */
-  static String cutSafely(String escaped, int max) {
-    int end = Math.min(max, escaped.length());
+  static String cutAtCharacter(String raw, int max) {
+    int end = Math.min(max, raw.length());
     if (end <= 0) {
       return "";
     }
-    if (Character.isHighSurrogate(escaped.charAt(end - 1))) {
+    if (Character.isHighSurrogate(raw.charAt(end - 1))) {
       end--;
     }
-    // Never end inside a six-character unicode escape written by escape(): a
-    // half escape is neither the character nor readable text. A backslash
-    // starts an escape only when it is not itself escaped, i.e. preceded by an
-    // even number of backslashes.
-    for (int start = end - 1; start >= Math.max(0, end - 5); start--) {
-      if (escaped.charAt(start) == '\\' && start + 1 < escaped.length()
-          && escaped.charAt(start + 1) == 'u' && start + 6 > end
-          && precedingBackslashes(escaped, start) % 2 == 0) {
-        end = start;
-        break;
-      }
-    }
-    // Trim only when the cut lands *inside* a real "&lt;" entity — a stray '&'
-    // in ordinary text is not an entity and must survive. Before the backslash
-    // check, because the entity trim can expose a backslash of its own.
-    int amp = escaped.lastIndexOf('&', end - 1);
-    if (amp >= 0 && escaped.startsWith(ESCAPED_ANGLE, amp)
-        && amp + ESCAPED_ANGLE.length() > end) {
-      end = amp;
-    }
-    if (end > 0 && precedingBackslashes(escaped, end) % 2 == 1) {
-      end--;
-    }
-    return escaped.substring(0, Math.max(0, end));
-  }
-
-  private static int precedingBackslashes(String text, int index) {
-    int count = 0;
-    for (int i = index - 1; i >= 0 && text.charAt(i) == '\\'; i--) {
-      count++;
-    }
-    return count;
+    return raw.substring(0, end);
   }
 
   /**
@@ -694,11 +676,14 @@ public final class ProcessContextResolver {
     /**
      * Rendered value <em>before</em> escaping and truncation. Hashed and
      * measured for the audit event, so the digest is reproducible from the
-     * process variable rather than from the prompt's presentation form.
+     * process variable rather than from the prompt's presentation form. The
+     * value limit is measured on it too, so quotes and line breaks count once.
      */
     final String rawValue;
-    /** Escaped length before truncation — the unit the block's notice reports. */
-    final int escapedLength;
+    /** Characters of {@link #rawValue} that the block shows. */
+    final int shownChars;
+    /** The value limit this variable was resolved with. */
+    final int maxValueChars;
     final boolean truncated;
     final boolean quoted;
     /** Set by {@link #render(List, int)} when the block size limit cut it off. */
@@ -707,8 +692,8 @@ public final class ProcessContextResolver {
     boolean unreadable;
 
     private ContextVariable(String name, boolean optional, boolean present, boolean nullValued,
-        String type, String value, String rawValue, int escapedLength, boolean truncated,
-        boolean quoted) {
+        String type, String value, String rawValue, int shownChars, int maxValueChars,
+        boolean truncated, boolean quoted) {
       this.name = name;
       this.optional = optional;
       this.present = present;
@@ -716,13 +701,15 @@ public final class ProcessContextResolver {
       this.type = type;
       this.value = value;
       this.rawValue = rawValue;
-      this.escapedLength = escapedLength;
+      this.shownChars = shownChars;
+      this.maxValueChars = maxValueChars;
       this.truncated = truncated;
       this.quoted = quoted;
     }
 
     static ContextVariable absent(String name, boolean optional) {
-      return new ContextVariable(name, optional, false, false, null, null, null, 0, false, false);
+      return new ContextVariable(name, optional, false, false, null, null, null, 0, 0, false,
+          false);
     }
 
     /**
@@ -731,23 +718,30 @@ public final class ProcessContextResolver {
      * the process does not have the value.
      */
     static ContextVariable unreadable(String name, boolean optional) {
-      ContextVariable variable =
-          new ContextVariable(name, optional, false, false, null, null, null, 0, false, false);
+      ContextVariable variable = new ContextVariable(name, optional, false, false, null, null,
+          null, 0, 0, false, false);
       variable.unreadable = true;
       return variable;
     }
 
     static ContextVariable nullValued(String name, boolean optional, String type) {
-      return new ContextVariable(name, optional, true, true, type, null, null, 0, false, false);
+      return new ContextVariable(name, optional, true, true, type, null, null, 0, 0, false,
+          false);
     }
 
+    /**
+     * Cuts the value <em>before</em> escaping, so the limit counts the
+     * characters of the value itself — a quote or a line break is one character,
+     * not the two of its escape — and no escape sequence can be cut in half.
+     */
     static ContextVariable present(String name, boolean optional, String type,
         Rendered rendered, int maxValueChars) {
-      String escaped = escape(rendered.text, rendered.quoted);
-      boolean truncated = maxValueChars > 0 && escaped.length() > maxValueChars;
-      String shown = truncated ? cutSafely(escaped, maxValueChars) : escaped;
-      return new ContextVariable(name, optional, true, false, type, shown, rendered.text,
-          escaped.length(), truncated, rendered.quoted);
+      String raw = rendered.text;
+      boolean truncated = maxValueChars > 0 && raw.length() > maxValueChars;
+      String shown = truncated ? cutAtCharacter(raw, maxValueChars) : raw;
+      return new ContextVariable(name, optional, true, false, type,
+          escape(shown, rendered.quoted), raw, shown.length(), maxValueChars, truncated,
+          rendered.quoted);
     }
 
     /**
@@ -772,8 +766,8 @@ public final class ProcessContextResolver {
         sb.append(value);
       }
       if (truncated) {
-        sb.append(" … (truncated, ").append(value.length())
-          .append(" of ").append(escapedLength).append(" chars shown)");
+        sb.append(" … (truncated, ").append(shownChars)
+          .append(" of ").append(rawValue.length()).append(" chars shown)");
       }
       return sb.toString();
     }

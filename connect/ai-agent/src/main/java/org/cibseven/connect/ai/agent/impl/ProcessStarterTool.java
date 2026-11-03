@@ -68,9 +68,6 @@ import dev.langchain4j.agent.tool.Tool;
  *       with their groups and the instance's tenant;</li>
  *   <li>otherwise none at all.</li>
  * </ul>
- * This is not necessarily the caller {@code contextVariables} and
- * {@code documents} are checked for: for a job of a tenant that check uses the
- * start user, the tool keeps the job's tenant authentication.
  *
  * <p>Permissions needed: {@code CREATE} on process instances and
  * {@code CREATE_INSTANCE} on the definition to start; {@code READ} on the

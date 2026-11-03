@@ -1121,7 +1121,7 @@ public class AgentChatListenerTest {
     payload.put("declared", 2);
     payload.put("sent", 1);
 
-    listener.recordContextEvent(payload);
+    listener.recordContextEvent(payload, null);
 
     assertThat(listener.events()).hasSize(1);
     Map<String, Object> event = listener.events().get(0);
@@ -1138,7 +1138,7 @@ public class AgentChatListenerTest {
   public void contextEventShouldOmitChatModelIdentityFields() {
     AgentChatListener listener = new AgentChatListener("gpt-5.4-nano", "https://example/v1");
 
-    listener.recordContextEvent(new HashMap<>(Map.of("declared", 1)));
+    listener.recordContextEvent(new HashMap<>(Map.of("declared", 1)), null);
 
     // Resolving process variables is not a model call — stamping the chat
     // model's identity onto it would be misleading.
@@ -1151,8 +1151,54 @@ public class AgentChatListenerTest {
   @Test
   public void shouldIgnoreNullContextPayload() {
     AgentChatListener listener = new AgentChatListener();
-    listener.recordContextEvent(null);
+    listener.recordContextEvent(null, "<process-context>");
     assertThat(listener.events()).isEmpty();
+  }
+
+  /**
+   * Review round 2, point 1: every request event used to repeat the whole
+   * context block, so the values were copied into the chat log, and into the
+   * history, once per model call.
+   */
+  @Test
+  @SuppressWarnings("unchecked")
+  public void shouldReferenceTheContextEventInsteadOfRepeatingTheBlock() {
+    AgentChatListener listener = new AgentChatListener();
+    String block = String.join(NEWLINE, "<process-context>", "orderId (string) = \"4711\"",
+        "</process-context>");
+    listener.recordContextEvent(new HashMap<>(Map.of("declared", 1)), block);
+    ChatRequest request = ChatRequest.builder()
+        .messages(SystemMessage.from("You are an order agent." + NEWLINE + block),
+            UserMessage.from("What is the order about?"))
+        .build();
+
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    String runId = String.valueOf(listener.events().get(0).get("runId"));
+    for (Map<String, Object> event : listener.events().subList(1, 3)) {
+      Map<String, Object> system =
+          ((List<Map<String, Object>>) event.get("messages")).get(0);
+      assertThat(system.get("content")).isEqualTo("You are an order agent." + NEWLINE
+          + "[process context: see the context event, runId " + runId + ", eventSeq 0]");
+    }
+  }
+
+  private static final String NEWLINE = String.valueOf((char) 10);
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void shouldKeepTheSystemPromptWhenNoContextWasDeclared() {
+    AgentChatListener listener = new AgentChatListener();
+    ChatRequest request = ChatRequest.builder()
+        .messages(SystemMessage.from("You are an order agent."), UserMessage.from("Hi"))
+        .build();
+
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+
+    Map<String, Object> system =
+        ((List<Map<String, Object>>) listener.events().get(0).get("messages")).get(0);
+    assertThat(system.get("content")).isEqualTo("You are an order agent.");
   }
 
   // ── RAG retrieval audit (Art. 10 / 12 / 26) ──────────────────────────────

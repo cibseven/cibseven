@@ -173,11 +173,9 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     // authentication in its constructor to capture userId / groupIds on every
     // audit event (Art. 12 record-keeping).
     ProcessEngine callerEngine = captureProcessEngine();
-    Authentication toolAuth = captureCallerAuthentication(callerEngine);
-    Authentication callerAuth = resolveCheckedCaller(callerEngine, toolAuth);
+    Authentication callerAuth = captureCallerAuthentication(callerEngine);
     ProcessStarterToolContext.setEngine(callerEngine);
-    ProcessStarterToolContext.setAuthentication(toolAuth);
-    ProcessStarterToolContext.setCaller(callerAuth);
+    ProcessStarterToolContext.setAuthentication(callerAuth);
 
     // MCP clients live for the duration of this single agent invocation. Declared
     // out here (not inside the try) so the finally block can close them — without
@@ -189,11 +187,6 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     // its finally is what clears them again, and a leaked caller Authentication
     // would be visible to the next, unrelated task on this pooled thread.
     try {
-      // Both features read variables straight off the execution, which checks
-      // nothing. Check the caller's read permission once, before the first read.
-      ProcessVariableAuthorization.Outcome variableAccess = authorizeVariableReads(request,
-          callerAuth);
-
       // Read the declared process-variable allowlist before any model object
       // exists — the read is local and cheap, and a mis-declared context should
       // not first build a chat model. The audit event and the required-variable
@@ -232,8 +225,8 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       if (!contextVariables.isEmpty()) {
         AgentChatListener contextListener = ProcessStarterToolContext.getActiveListener();
         if (contextListener != null) {
-          contextListener.recordContextEvent(withAuthorization(
-              ProcessContextResolver.describe(contextVariables, contextBlock), variableAccess));
+          contextListener.recordContextEvent(
+              ProcessContextResolver.describe(contextVariables, contextBlock), contextBlock);
         }
         ProcessContextResolver.failOnMissingRequired(contextVariables);
       }
@@ -250,8 +243,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         if (documentListener != null) {
           documentListener.setDocumentDescriptors(
               DocumentContentResolver.describeByContent(documents));
-          documentListener.recordDocumentsEvent(withAuthorization(
-              DocumentContentResolver.describe(documents), variableAccess));
+          documentListener.recordDocumentsEvent(DocumentContentResolver.describe(documents));
         }
       }
 
@@ -492,9 +484,8 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    * Returns {@code null} when {@code engine} is null or neither source yields
    * an authentication.
    *
-   * <p>The variable check of {@code contextVariables} and {@code documents}
-   * needs a user and resolves its caller separately, see
-   * {@link #resolveCheckedCaller}.
+   * <p>{@code contextVariables} and {@code documents} do not use it: they read
+   * the declared variables as process data, like any other service task.
    */
   private Authentication captureCallerAuthentication(ProcessEngine engine) {
     if (engine == null) {
@@ -512,31 +503,6 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
   }
 
   /**
-   * The caller whose read permission {@link ProcessVariableAuthorization}
-   * checks, and whom the audit events name.
-   *
-   * <p>Equal to the tools' authentication whenever that names a user. A
-   * user-less one — the job executor's {@code (null, null, [tenantId])} for a
-   * job of a tenant — identifies nobody, so the start user of the process
-   * instance is derived instead. It is used for the check only: the tools keep
-   * the job's tenant authentication. Handing them the start user would mean
-   * choosing its tenants, and both choices are wrong — the instance's tenant
-   * grants it to a start user who is no member, the identity service's
-   * memberships leave LDAP and OAuth2 setups, whose tenant queries return
-   * nothing, without any tenant.
-   *
-   * <p>When no start user can be derived either, the user-less authentication
-   * is returned as it is, which the check records as {@code NO_CALLER}.
-   */
-  private Authentication resolveCheckedCaller(ProcessEngine engine, Authentication toolAuth) {
-    if (engine == null || toolAuth == null || toolAuth.getUserId() != null) {
-      return toolAuth;
-    }
-    Authentication derived = deriveAuthenticationFromProcessInstance(engine);
-    return (derived != null) ? derived : toolAuth;
-  }
-
-  /**
    * Builds an {@link Authentication} from the start user of the BPMN process
    * instance currently on the thread. Used as a fallback when no interactive
    * authentication is available (typical for async service tasks executed by
@@ -547,9 +513,8 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
    *
    * <p>The tenant list says nothing about membership. Tools only receive this
    * authentication when the thread carried none at all, so it narrows rather
-   * than widens what they reach; {@link ProcessVariableAuthorization} reads the
-   * memberships of a {@link StartUserAuthentication} from the identity service
-   * and ignores the list.
+   * than widens what they reach. The {@link StartUserAuthentication} type lets
+   * the audit events say where the user id came from.
    */
   private Authentication deriveAuthenticationFromProcessInstance(ProcessEngine engine) {
     ExecutionEntity execution = currentExecution();
@@ -751,32 +716,6 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         new HashSet<>(ProcessContextResolver.parseNames(request.getDocuments())),
         name -> execution.getVariableTyped(name, false),
         AgentConnectorConstants.DEFAULT_MAX_CONTEXT_VALUE_CHARS);
-  }
-
-  /**
-   * Runs {@link ProcessVariableAuthorization} when {@code contextVariables} or
-   * {@code documents} is declared and a BPMN execution is on the thread.
-   * Returns {@code null} when there is nothing to check; without an execution
-   * the resolvers fail with their own, more specific message.
-   */
-  private static ProcessVariableAuthorization.Outcome authorizeVariableReads(
-      AgentRequest request, Authentication caller) {
-    if (!isDeclared(request.getContextVariables()) && !isDeclared(request.getDocuments())) {
-      return null;
-    }
-    ExecutionEntity execution = currentExecution();
-    return (execution == null) ? null
-        : ProcessVariableAuthorization.check(execution, caller);
-  }
-
-  /** Adds the authorization outcome to a {@code context} or {@code documents} event. */
-  private static Map<String, Object> withAuthorization(Map<String, Object> payload,
-      ProcessVariableAuthorization.Outcome outcome) {
-    Map<String, Object> event = new LinkedHashMap<>(payload);
-    if (outcome != null) {
-      event.put("authorization", outcome.name());
-    }
-    return event;
   }
 
   /** True when the list names at least one variable — " , " names none. */

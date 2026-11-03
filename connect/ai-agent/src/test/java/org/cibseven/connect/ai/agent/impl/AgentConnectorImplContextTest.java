@@ -200,8 +200,8 @@ public class AgentConnectorImplContextTest {
   /**
    * Smoke test only: without an engine the {@link ProcessStarterToolContext}
    * values are null before the failure too, so this cannot catch a missed
-   * clear. The real check — a refused run with an engine and a caller — is in
-   * ProcessVariableAuthorizationEngineTest.
+   * clear. The real check — a failed run with an engine and an authentication —
+   * is in ProcessVariableAccessEngineTest.
    */
   @Test
   public void shouldClearTheToolContextEvenWhenContextResolutionFails() {
@@ -215,7 +215,6 @@ public class AgentConnectorImplContextTest {
 
     assertThat(ProcessStarterToolContext.getEngine()).isNull();
     assertThat(ProcessStarterToolContext.getAuthentication()).isNull();
-    assertThat(ProcessStarterToolContext.getCaller()).isNull();
   }
 
   /**

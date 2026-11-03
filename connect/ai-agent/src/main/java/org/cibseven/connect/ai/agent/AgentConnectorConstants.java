@@ -171,13 +171,15 @@ public final class AgentConnectorConstants {
   public static final String CONTEXT_BLOCK_CLOSE = "</process-context>";
 
   /**
-   * Maximum number of characters rendered per context variable value before it
-   * is truncated. Prompt size is the dominant cost lever of an agent
-   * invocation, and a single large JSON variable would otherwise silently
-   * dominate it. Truncation is always visible — both in the block itself and in
-   * the {@code context} audit event.
+   * Maximum number of characters per context variable value, counted on the
+   * value itself, before escaping. At least what a string variable holds in the
+   * database (4000 characters, 2000 on Oracle), so a string variable always fits.
+   * A required value that is longer fails the activity, naming the variable and
+   * its length; an optional one is sent cut, which is visible both in the block
+   * and in the {@code context} audit event. JSON and XML object variables have no
+   * database limit, so for them this is the real cap.
    */
-  public static final int DEFAULT_MAX_CONTEXT_VALUE_CHARS = 2000;
+  public static final int DEFAULT_MAX_CONTEXT_VALUE_CHARS = 4000;
 
   /**
    * Maximum number of characters of the whole rendered process-context block.

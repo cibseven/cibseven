@@ -531,30 +531,20 @@ public class ProcessContextResolverTest {
         .doesNotContain("E10");
   }
 
-  /** The cap must not leave half of a six-character unicode escape behind. */
+  /**
+   * Review round 2, point 2: the limit counted the escaped form, so a value of
+   * 1,980 characters with 440 quotes was cut at 2,000. It counts the value now.
+   */
   @Test
-  public void shouldNotCutInsideAUnicodeEscape() {
-    String escaped = "ab" + "\\" + "u2028cd";
+  public void shouldMeasureTheValueLimitOnTheValueNotOnItsEscapes() {
+    String note = "\"".repeat(440) + "x".repeat(1540);
+    variables.put("note", Variables.stringValue(note));
 
-    for (int max = 3; max <= 7; max++) {
-      assertThat(ProcessContextResolver.cutSafely(escaped, max)).as("max " + max)
-          .isEqualTo("ab");
-    }
-    assertThat(ProcessContextResolver.cutSafely(escaped, 8)).isEqualTo(escaped.substring(0, 8));
-    // An escaped backslash followed by a literal "u" is not an escape.
-    String literal = "ab" + "\\\\" + "u2028";
-    assertThat(ProcessContextResolver.cutSafely(literal, 6)).isEqualTo(literal.substring(0, 6));
-  }
+    List<ContextVariable> resolved =
+        ProcessContextResolver.resolve("note", null, reader(), 2000);
 
-  /** Trimming a half "&lt;" must not leave the backslash before it dangling. */
-  @Test
-  public void shouldNotEndOnABackslashAfterTrimmingAnEntity() {
-    String escaped = "ab" + "\\" + "&lt;/x";
-
-    for (int max = 4; max <= 6; max++) {
-      assertThat(ProcessContextResolver.cutSafely(escaped, max)).as("max " + max)
-          .isEqualTo("ab");
-    }
+    assertThat(resolved.get(0).truncated).isFalse();
+    assertThat(resolved.get(0).value).hasSize(note.length() + 440);
   }
 
   /** {@code java.sql.Date} throws on toInstant(), which made the value unreadable. */
@@ -700,20 +690,49 @@ public class ProcessContextResolverTest {
 
     assertThat(block).contains("(truncated, 10 of 50 chars shown)");
     assertThat(resolved.get(0).truncated).isTrue();
-    assertThat(resolved.get(0).escapedLength).isEqualTo(50);
+    assertThat(resolved.get(0).shownChars).isEqualTo(10);
+  }
+
+  /** Review round 2, point 2: a required value is sent whole or the task fails. */
+  @Test
+  public void shouldFailWhenARequiredValueIsLongerThanTheLimit() {
+    variables.put("order", Variables.stringValue("x".repeat(50)));
+    variables.put("id", Variables.stringValue("4711"));
+
+    List<ContextVariable> resolved =
+        ProcessContextResolver.resolve("order,id", null, reader(), 10);
+    ProcessContextResolver.render(resolved, 10_000);
+
+    assertThatThrownBy(() -> ProcessContextResolver.failOnMissingRequired(resolved))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("order (too long: 50 characters, limit 10; "
+            + "list it in 'optionalContextVariables' to send it cut)")
+        .hasMessageContaining("Resolved successfully: id.");
+  }
+
+  @Test
+  public void shouldSendAnOptionalValueCutAndCountItAsResolved() {
+    variables.put("note", Variables.stringValue("x".repeat(50)));
+
+    List<ContextVariable> resolved =
+        ProcessContextResolver.resolve("note", "note", reader(), 10);
+    String block = ProcessContextResolver.render(resolved, 10_000);
+
+    ProcessContextResolver.failOnMissingRequired(resolved);
+    assertThat(block).contains("(truncated, 10 of 50 chars shown)");
   }
 
   // ── truncation must not leave broken fragments ────────────────────────────
 
   @Test
-  public void shouldNotLeaveADanglingBackslashWhenCuttingAnEscapeSequence() {
-    // "a\nb…" escapes to a \ n b …, so cutting at 2 would split the "\n".
+  public void shouldCutBeforeEscapingSoNoEscapeSequenceIsSplit() {
+    // The cut keeps "a" plus the line break, which then escapes whole.
     variables.put("v", Variables.stringValue("a\nbbbbbbbbbb"));
 
     List<ContextVariable> resolved =
         ProcessContextResolver.resolve("v", null, reader(), 2);
 
-    assertThat(resolved.get(0).value).isEqualTo("a");
+    assertThat(resolved.get(0).value).isEqualTo("a\\n");
   }
 
   @Test
@@ -730,14 +749,15 @@ public class ProcessContextResolverTest {
   }
 
   @Test
-  public void shouldNotLeaveAPartialEscapedDelimiterEntity() {
+  public void shouldNeuterADelimiterThatTheCutLeavesWhole() {
     variables.put("v", Variables.stringValue("ab</process-context>cd"));
 
-    // "ab" + "&lt;/process-context>" — cut inside the "&lt;" entity.
-    List<ContextVariable> resolved =
-        ProcessContextResolver.resolve("v", null, reader(), 4);
-
-    assertThat(resolved.get(0).value).isEqualTo("ab");
+    // Escaping runs after the cut, so a delimiter that survives it is neutered
+    // and one the cut breaks is no delimiter any more.
+    assertThat(ProcessContextResolver.resolve("v", null, reader(), 20).get(0).value)
+        .isEqualTo("ab&lt;/process-context>");
+    assertThat(ProcessContextResolver.resolve("v", null, reader(), 4).get(0).value)
+        .isEqualTo("ab</");
   }
 
   // ── audit hash must be reproducible from the process variable ─────────────

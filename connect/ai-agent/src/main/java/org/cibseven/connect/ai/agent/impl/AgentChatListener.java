@@ -138,9 +138,10 @@ class AgentChatListener implements ChatModelListener {
    * or removing top-level fields so downstream consumers (Vue webclient, future
    * Kafka sink, SAP integration) can detect and adapt to changes.
    *
-   * <p>2: {@code context} and {@code documents} events with their
-   * {@code authorization} field, and {@code userIdSource = "startUser"} for a
-   * caller derived from the process instance's start user.
+   * <p>2: {@code context} and {@code documents} events, the system message of
+   * a {@code request} event referencing the {@code context} event instead of
+   * carrying the process-context block, and {@code userIdSource = "startUser"}
+   * for a user derived from the process instance's start user.
    */
   static final int SCHEMA_VERSION = 2;
 
@@ -241,9 +242,11 @@ class AgentChatListener implements ChatModelListener {
   private final String userId;
   /**
    * {@code "context"} for a user authenticated on the thread, {@code "startUser"}
-   * when the connector derived the process instance's start user because none
-   * was — for a job run by the job executor, or a synchronous run without
-   * authentication.
+   * when the connector derived the process instance's start user because the
+   * thread carried no authentication at all — for a job without a tenant run by
+   * the job executor, or a synchronous run without authentication. A job of a
+   * tenant carries the job executor's user-less authentication and is recorded
+   * as {@code "missing"}.
    */
   private final String userIdSource;
   private final List<String> groupIds;
@@ -289,6 +292,14 @@ class AgentChatListener implements ChatModelListener {
   private volatile Map<dev.langchain4j.data.message.Content, Map<String, Object>>
       documentDescriptors;
 
+  /**
+   * The process-context block appended to the system prompt, and the text that
+   * replaces it in the {@code request} events. {@code null} when this run
+   * declares no context. Set by {@link #recordContextEvent(Map, String)}.
+   */
+  private volatile String contextBlock;
+  private volatile String contextBlockReference;
+
   AgentChatListener() {
     this(null, null, null);
   }
@@ -327,12 +338,7 @@ class AgentChatListener implements ChatModelListener {
       this.executionId = null;
     }
 
-    // The checked caller, not the tools' authentication: for a job of a tenant
-    // the tools run user-less, but the audit names the start user it checked.
-    Authentication auth = ProcessStarterToolContext.getCaller();
-    if (auth == null) {
-      auth = ProcessStarterToolContext.getAuthentication();
-    }
+    Authentication auth = ProcessStarterToolContext.getAuthentication();
     this.userIdSource = (auth instanceof StartUserAuthentication) ? "startUser" : "context";
     if (auth != null) {
       this.userId = auth.getUserId();
@@ -466,13 +472,25 @@ class AgentChatListener implements ChatModelListener {
    * aborted runs: when a missing required variable fails the activity, the
    * transaction rolls back and this event goes with it, like every other write
    * to the chat-log variable.
+   *
+   * <p>{@code renderedBlock} is the block as appended to the system prompt. The
+   * {@code request} events of this run name this event in its place, as they
+   * describe documents instead of carrying them: the chat log is rewritten on
+   * every event and, at history level FULL, kept as a full copy each time, so a
+   * block repeated per model call would multiply the values in the history — and
+   * keep them there after the variable itself is deleted or anonymised.
    */
-  void recordContextEvent(Map<String, Object> payload) {
+  void recordContextEvent(Map<String, Object> payload, String renderedBlock) {
     if (payload == null) {
       return;
     }
     Map<String, Object> event = newCorrelatedEvent("context");
     event.putAll(payload);
+    if (renderedBlock != null && !renderedBlock.isEmpty()) {
+      this.contextBlockReference = "[process context: see the context event, runId " + runId
+          + ", eventSeq " + event.get("eventSeq") + "]";
+      this.contextBlock = renderedBlock;
+    }
     appendEvent(event);
   }
 
@@ -960,13 +978,27 @@ class AgentChatListener implements ChatModelListener {
     return plain;
   }
 
+  /**
+   * Replaces the process-context block in a system prompt with the reference to
+   * the {@code context} event. The block is the exact string the connector
+   * appended, so an exact match is enough; a prompt without it is returned
+   * unchanged.
+   */
+  private String withoutContextBlock(String text) {
+    String block = this.contextBlock;
+    if (text == null || block == null || !text.contains(block)) {
+      return text;
+    }
+    return text.replace(block, contextBlockReference);
+  }
+
   private String extractPlainContent(ChatMessage msg) {
     if (msg instanceof UserMessage) {
       UserMessage user = (UserMessage) msg;
       return user.hasSingleText() ? user.singleText() : renderMultiContent(user);
     }
     if (msg instanceof SystemMessage) {
-      return ((SystemMessage) msg).text();
+      return withoutContextBlock(((SystemMessage) msg).text());
     }
     if (msg instanceof AiMessage) {
       String text = ((AiMessage) msg).text();

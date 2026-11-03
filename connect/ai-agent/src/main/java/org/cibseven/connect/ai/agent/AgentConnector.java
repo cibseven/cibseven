@@ -220,43 +220,27 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * over missing data) fails silently.
    *
    * <p>Variables holding files or raw bytes are rendered as a descriptor, never
-   * as content. Values are escaped and capped
-   * ({@value AgentConnectorConstants#DEFAULT_MAX_CONTEXT_VALUE_CHARS} characters
-   * per value, {@value AgentConnectorConstants#DEFAULT_MAX_CONTEXT_BLOCK_CHARS}
-   * per block); truncation and omission are visible in the block and in the
-   * {@code context} audit event.
+   * as content. Values are escaped and capped: at
+   * {@value AgentConnectorConstants#DEFAULT_MAX_CONTEXT_VALUE_CHARS} characters
+   * per value, counted on the value itself, and
+   * {@value AgentConnectorConstants#DEFAULT_MAX_CONTEXT_BLOCK_CHARS} for the
+   * whole block. A required value is sent whole or the activity fails, naming it
+   * and its length; an optional one is sent cut. Cuts and omissions are visible
+   * in the block and in the {@code context} audit event.
    *
-   * <p><b>Authorization:</b> the same check covers {@link #PARAM_NAME_DOCUMENTS}.
-   * <ul>
-   *   <li>Who: the authenticated user — for a synchronous task, and for a job
-   *       a user executes by hand. Without one — a job run by the job executor,
-   *       or a synchronous run without authentication — the start user of the
-   *       process instance, not whoever led to the task.</li>
-   *   <li>Permissions, when authorization is enabled — one of {@code READ} on the
-   *       process instance, or {@code READ_INSTANCE} or {@code READ_TASK} on the
-   *       process definition; with {@code enforceSpecificVariablePermission},
-   *       {@code READ_INSTANCE_VARIABLE} or {@code READ_TASK_VARIABLE} on the
-   *       definition. Grants on a single task do not count: they are removed
-   *       when the task completes. Otherwise the activity fails.</li>
-   *   <li>Tenant: when the instance belongs to a tenant and tenant checks are
-   *       enabled — the default — the caller must be a member, also when
-   *       authorization is disabled. Admins skip this part. For the start user
-   *       of a job, membership is read from the identity service, so with LDAP
-   *       or OAuth2 tenants, whose tenant queries return nothing, such jobs
-   *       always fail this check.</li>
-   *   <li>Without a caller (no authentication and no start user) the variables
-   *       are read unchecked; this is logged at WARN and recorded as
-   *       {@code NO_CALLER} in the audit event.</li>
-   * </ul>
-   * Trade-off: the engine lets {@code READ_TASK} (and {@code READ_TASK_VARIABLE})
-   * read only through an existing task and in that task's scope. Here it admits
-   * the whole instance — the same variables in the usual case of an agent task
-   * after a user task, more for an instance without user tasks or for variables
-   * in a subprocess, multi-instance or input-mapping scope that no task sees.
+   * <p><b>Access:</b> the declared variables are process data, read like any
+   * other service task reads them — no user's permissions are checked, whoever
+   * triggered the task and whether it runs synchronously or as a job. The same
+   * holds for {@link #PARAM_NAME_DOCUMENTS}. The declaration is the control.
    *
-   * <p><b>Security:</b> process variables routinely hold user- or
-   * document-sourced text. Everything listed here becomes part of the prompt of
-   * a possibly tool-enabled agent — declare the minimum the task needs.
+   * <p><b>Security:</b> everything listed here goes to the model provider as it
+   * is, so list only what the model may see. Tokens, passwords and keys belong in
+   * system variables (environment or system properties), as the connector's own
+   * {@code OPENAI_API_KEY} does, not in process variables listed here — in
+   * particular, do not build this list from all variable names. The connector's
+   * own variables (chat log, chat memory) are not meant to be listed either.
+   * Process variables also routinely hold user- or document-sourced text, which
+   * becomes part of the prompt of a possibly tool-enabled agent.
    */
   String PARAM_NAME_CONTEXT_VARIABLES = "contextVariables";
 
@@ -279,11 +263,13 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * exactly one place that decides what the agent sees.
    *
    * <p>Note that an <em>empty string</em> counts as a value. A required variable
-   * fails the activity in four cases, not only when it was never written: it is
-   * not set, it holds {@code null}, it cannot be read, or it was omitted because
-   * the block reached
+   * fails the activity in five cases, not only when it was never written: it is
+   * not set, it holds {@code null}, it cannot be read, its value is longer than
+   * {@value AgentConnectorConstants#DEFAULT_MAX_CONTEXT_VALUE_CHARS} characters,
+   * or it was omitted because the block reached
    * {@value AgentConnectorConstants#DEFAULT_MAX_CONTEXT_BLOCK_CHARS} characters.
-   * List a variable here if any of these is acceptable for the task.
+   * List a variable here if any of these is acceptable for the task; a value that
+   * is too long is then sent cut, with a marker.
    */
   String PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES = "optionalContextVariables";
 
@@ -312,7 +298,7 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * agent asked to read an invoice that was not attached is not working on
    * degraded input, it is working on a different task.
    *
-   * <p>Needs the same read permission as
+   * <p>Read as process data without a permission check, like
    * {@link #PARAM_NAME_CONTEXT_VARIABLES}; see there.
    *
    * <p>With chat memory, the documents belong to this turn only: memory keeps

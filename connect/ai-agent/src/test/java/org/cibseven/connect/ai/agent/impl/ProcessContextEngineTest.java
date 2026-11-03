@@ -368,9 +368,35 @@ public class ProcessContextEngineTest {
         .containsEntry("type", "string")
         .containsEntry("valueLength", 4);
     assertThat((String) entries.get(0).get("valueSha256")).startsWith("sha256:");
-    // The value itself belongs in the request event's system message, not here.
+    // The value itself is a process variable already; the audit does not copy it.
     assertThat(entries.get(0).values()).doesNotContain("4711");
     assertThat(entries.get(1)).containsEntry("name", "missing").containsEntry("present", false);
+    assertThat((String) contextEvent.get("blockSha256")).startsWith("sha256:");
+  }
+
+  /**
+   * Review round 2, point 1: the request event used to carry the whole system
+   * prompt, block and values included, so every model call copied them into the
+   * chat log and, at history level FULL, into the history.
+   */
+  @Test
+  @SuppressWarnings("unchecked")
+  public void shouldReferenceTheContextEventInTheRequestInsteadOfCopyingTheValues()
+      throws Exception {
+    start(Variables.createVariables()
+        .putValue("_declared", "note")
+        .putValue("note", "confidential-note-value"));
+
+    assertThat(capturedSystemMessage).contains("confidential-note-value");
+    Map<String, Object> contextEvent = singleEventOfType("context");
+    Map<String, Object> request = singleEventOfType("request");
+    String system = (String) ((List<Map<String, Object>>) request.get("messages")).get(0)
+        .get("content");
+    assertThat(system)
+        .doesNotContain("confidential-note-value")
+        .doesNotContain(AgentConnectorConstants.CONTEXT_BLOCK_OPEN)
+        .endsWith("[process context: see the context event, runId " + contextEvent.get("runId")
+            + ", eventSeq " + contextEvent.get("eventSeq") + "]");
   }
 
   /**
