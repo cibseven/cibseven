@@ -210,7 +210,7 @@ pipeline {
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
                                 -DOPTIONAL_PGTEST_EXCLUDE=org/cibseven/bpm/engine/impl/identity/db/DbIdentityServicePGTest.java \
-                                -pl !org.cibseven.bpm:cibseven-engine-spring-6,!:cibseven-spin-core,!:cibseven-engine-rest-core,!:cibseven-webapp,!:cibseven-engine-cdi,!:cibseven-example-invoice,!:cibseven-ejb-client,!:cibseven-sql-scripts
+                                -pl !:cibseven-spin-core,!:cibseven-engine-rest-core,!:cibseven-webapp,!:cibseven-engine-cdi,!:cibseven-example-invoice,!:cibseven-ejb-client,!:cibseven-sql-scripts
                         """
 
                         sh """
@@ -219,7 +219,7 @@ pipeline {
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
                                 -DOPTIONAL_PGTEST_EXCLUDE=org/cibseven/bpm/engine/impl/identity/db/DbIdentityServicePGTest.java \
-                                -pl org.cibseven.bpm:cibseven-engine-spring-6,:cibseven-spin-core,:cibseven-engine-rest-core,:cibseven-webapp,:cibseven-engine-cdi,:cibseven-example-invoice,:cibseven-ejb-client,:cibseven-sql-scripts \
+                                -pl :cibseven-spin-core,:cibseven-engine-rest-core,:cibseven-webapp,:cibseven-engine-cdi,:cibseven-example-invoice,:cibseven-ejb-client,:cibseven-sql-scripts \
                                 -fn
                         """
                     }
@@ -291,14 +291,12 @@ pipeline {
                     when { expression { params.QA_RUN_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script { withMaven { sh "mvn -f distro/run/pom.xml clean install -Pintegration-test-run" }}
-                        script { withMaven { sh "mvn -f distro/run4/pom.xml clean install -Pintegration-test-run" }}
                     }
                 }
                 stage('Spring Boot Integration') {
                     when { expression { params.QA_SPRING_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script { withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }}
-                        script { withMaven { sh "mvn -f spring-boot-4-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }}
                     }
                 }
                 stage('Performance') {
@@ -811,7 +809,7 @@ def isSNAPSHOTVersion() {
 def deployDistroSboms(String deploymentArgs) {
     Map sbomDeployRepository = getSbomDeployRepository(deploymentArgs)
 
-    def distroSbomProjects = ['distro/run', 'distro/run4', 'distro/tomcat', 'distro/wildfly']
+    def distroSbomProjects = ['distro/run', 'distro/tomcat', 'distro/wildfly']
 
     // Each invocation uses a distinct -f path and -DoutputName, so they can
     // run concurrently without conflicting on the shared output directory.

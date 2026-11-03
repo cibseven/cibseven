@@ -714,7 +714,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected boolean isDbIdentityUsed = true;
   protected boolean isDbHistoryUsed = true;
   /** Off by default: the webclient tables (MOD_, CHAT_, NOTIF_) belong to the webclient. */
-  protected boolean webappSchemaEnabled = false;
+  protected boolean webclientExtensionsEnabled = false;
 
   protected DelegateInterceptor delegateInterceptor;
 
@@ -2102,7 +2102,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     dbSqlSessionFactory.setDbHistoryUsed(isDbHistoryUsed);
     dbSqlSessionFactory.setCmmnEnabled(cmmnEnabled);
     dbSqlSessionFactory.setDmnEnabled(dmnEnabled);
-    dbSqlSessionFactory.setWebappSchemaEnabled(webappSchemaEnabled);
+    dbSqlSessionFactory.setWebclientExtensionsEnabled(webclientExtensionsEnabled);
     dbSqlSessionFactory.setDatabaseTablePrefix(databaseTablePrefix);
 
     //hack for the case when schema is defined via databaseTablePrefix parameter and not via databaseSchema parameter
@@ -3822,30 +3822,30 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     this.isDbHistoryUsed = isDbHistoryUsed;
   }
 
-  public boolean isWebappSchemaEnabled() {
-    return webappSchemaEnabled;
+  public boolean isWebclientExtensionsEnabled() {
+    return webclientExtensionsEnabled;
   }
 
-  public void setWebappSchemaEnabled(boolean webappSchemaEnabled) {
-    this.webappSchemaEnabled = webappSchemaEnabled;
+  public void setWebclientExtensionsEnabled(boolean webclientExtensionsEnabled) {
+    this.webclientExtensionsEnabled = webclientExtensionsEnabled;
   }
 
   /**
-   * @deprecated since 3.0.0, use {@link #isWebappSchemaEnabled()}. The component covers the chat and
+   * @deprecated since 3.0.0, use {@link #isWebclientExtensionsEnabled()}. The component covers the chat and
    *             notification tables as well, not only the modeler ones.
    */
   @Deprecated
   public boolean isModelerEnabled() {
-    return webappSchemaEnabled;
+    return webclientExtensionsEnabled;
   }
 
   /**
-   * @deprecated since 3.0.0, use {@link #setWebappSchemaEnabled(boolean)}. Kept so that an existing
+   * @deprecated since 3.0.0, use {@link #setWebclientExtensionsEnabled(boolean)}. Kept so that an existing
    *             bpm-platform.xml or spring configuration naming modelerEnabled keeps working.
    */
   @Deprecated
   public void setModelerEnabled(boolean modelerEnabled) {
-    this.webappSchemaEnabled = modelerEnabled;
+    this.webclientExtensionsEnabled = modelerEnabled;
   }
 
   public List<ResolverFactory> getResolverFactories() {

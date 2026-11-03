@@ -5,177 +5,30 @@
   <parent>
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-database-settings</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
     <relativePath>../../database</relativePath>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <groupId>org.cibseven.bpm.run</groupId>
   <artifactId>cibseven-bpm-run4-root</artifactId>
-  <name>CIB seven - Run 4 - Root</name>
-  <description>This is the root of CIB seven Run 4</description>
+  <name>CIB seven - Run 4 - Relocations</name>
   <packaging>pom</packaging>
 
-  <dependencyManagement>
-    <dependencies>
+  <description>
+    Maven relocations from the former CIB seven Run 4 artifacts to the default CIB seven Run artifacts.
+  </description>
 
-      <!-- Addressing Jackson 2 CVEs coming from v2.21.5
-        jackson-core:
-        CVE-2026-89407, CVE-2026-89425,
-        CVE-2026-19032, CVE-2026-83557
-        jackson-databind:
-        CVE-2026-68497, CVE-2026-91776, CVE-2026-91777 -->
-      <dependency>
-        <groupId>com.fasterxml.jackson</groupId>
-        <artifactId>jackson-bom</artifactId>
-        <version>${version.jackson}</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-
-      <!-- Addressing Jackson 3 CVEs coming from v3.1.5
-        jackson-core:
-        CVE-2026-91776, CVE-2026-91777,
-        CVE-2026-89407, CVE-2026-89425.
-        jackson-databind:
-        CVE-2026-83557, CVE-2026-19032, CVE-2026-83557 -->
-      <dependency>
-        <groupId>tools.jackson</groupId>
-        <artifactId>jackson-bom</artifactId>
-        <version>${version.jackson3}</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-dependencies</artifactId>
-        <version>${version.spring-boot4}</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-
-      <!-- Temporary Apache HttpComponents CVE overrides.
-           Remove these once the imported Spring Boot BOM manages fixed versions. -->
-      <dependency>
-        <groupId>org.apache.httpcomponents.client5</groupId>
-        <artifactId>httpclient5</artifactId>
-        <version>${version.httpclient5}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.httpcomponents.core5</groupId>
-        <artifactId>httpcore5</artifactId>
-        <version>${version.httpcore5}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.httpcomponents.core5</groupId>
-        <artifactId>httpcore5-h2</artifactId>
-        <version>${version.httpcore5}</version>
-      </dependency>
-
-      <!-- Temporary Apache Tomcat CVE overrides (BOM pins a vulnerable version).
-           Remove these once the imported Spring Boot 4 BOM manages fixed versions. -->
-      <dependency>
-        <groupId>org.apache.tomcat.embed</groupId>
-        <artifactId>tomcat-embed-core</artifactId>
-        <version>${version.tomcat}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.tomcat.embed</groupId>
-        <artifactId>tomcat-embed-el</artifactId>
-        <version>${version.tomcat}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.tomcat.embed</groupId>
-        <artifactId>tomcat-embed-websocket</artifactId>
-        <version>${version.tomcat}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.graalvm.js</groupId>
-        <artifactId>js</artifactId>
-        <version>${version.graal.js}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.graalvm.js</groupId>
-        <artifactId>js-scriptengine</artifactId>
-        <version>${version.graal.js}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.nimbusds</groupId>
-        <artifactId>nimbus-jose-jwt</artifactId>
-        <version>9.37.4</version>
-      </dependency>
-
-    </dependencies>
-  </dependencyManagement>
-
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-maven-plugin</artifactId>
-          <version>${version.spring-boot4}</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-
-    <plugins>
-
-      <!-- Enforces Java 17 during the build -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.0.0-M1</version>
-        <configuration>
-          <rules>
-            <requireJavaVersion>
-              <version>[17,)</version>
-            </requireJavaVersion>
-          </rules>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-    </plugins>
-  </build>
-
-  <profiles>
-    <profile>
-      <id>distro</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <modules>
-        <module>distro</module>
-        <module>modules</module>
-        <module>modules/rest</module>
-        <module>modules/oauth2</module>
-        <module>modules/example</module>
-        <module>modules/webapps</module>
-        <module>modules/ai-agent</module>
-        <module>modules/http-client</module>
-        <module>modules/soap-http-client</module>
-        <module>core</module>
-        <module>assembly</module>
-        <module>qa</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>integration-test-run</id>
-      <modules>
-        <module>qa</module>
-      </modules>
-    </profile>
-  </profiles>
+  <modules>
+    <module>core</module>
+    <module>distro</module>
+    <module>modules/rest</module>
+    <module>modules/webapps</module>
+    <module>modules/oauth2</module>
+    <module>modules/example</module>
+    <module>modules/ai-agent</module>
+    <module>modules/http-client</module>
+    <module>modules/soap-http-client</module>
+  </modules>
 
   <licenses>
     <license>
@@ -183,33 +36,5 @@
       <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
     </license>
   </licenses>
-
-  <organization>
-    <name>CIB seven</name>
-    <url>https://cibseven.org</url>
-  </organization>
-
-  <url>https://cibseven.org</url>
-
-  <developers>
-    <developer>
-      <id>CIB seven</id>
-      <name>CIB seven Community</name>
-      <organization>CIB seven</organization>
-      <organizationUrl>https://cibseven.org</organizationUrl>
-    </developer>
-  </developers>
-
-  <scm>
-    <url>https://github.com/cibseven/cibseven</url>
-    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
-    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
-
-  <issueManagement>
-    <system>GitHub Issues</system>
-    <url>https://github.com/cibseven/cibseven/issues</url>
-  </issueManagement>
 
 </project>

@@ -13,6 +13,17 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- Deliberately JUnit 6 here, and deliberately declared BEFORE
+           cibseven-core-internal-dependencies so that it wins: this module builds against Spring
+           Framework 7 (${version.spring.framework7}), whose spring-test aligns with JUnit 6. The
+           rest of the reactor stays on ${version.junit5}. -->
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${version.junit6}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
 
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
@@ -23,20 +34,20 @@
       </dependency>
 
       <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-framework-bom</artifactId>
-        <version>${version.spring.framework6}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <dependency>
         <groupId>jakarta.platform</groupId>
         <artifactId>jakarta.jakartaee-bom</artifactId>
-        <version>10.0.0</version>
+        <version>${version.jakarta-ee11-spec}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
 
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-framework-bom</artifactId>
+        <version>${version.spring.framework7}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -44,6 +55,20 @@
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-engine</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-params</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-engine</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -71,17 +96,25 @@
       <!--  do not expose -->
       <scope>provided</scope>
     </dependency>
-    
+
     <!-- servlet API -->
-<!--    <dependency>
-      <groupId>org.jboss.spec.javax.servlet</groupId>
-      <artifactId>jboss-servlet-api_3.0_spec</artifactId>
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
       <scope>provided</scope>
-    </dependency>-->
-    
+    </dependency>
+
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- Jakarta EL implementation (reference impl) required at runtime by the JUEL script engine.
+         Only the jakarta.el-api is provided by the Jakarta EE BOM; the impl (com.sun.el.ExpressionFactoryImpl) is missing. -->
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>jakarta.el</artifactId>
+      <version>4.0.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -92,6 +125,11 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -169,24 +207,6 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-
-    <!-- Jakarta EL implementation needed for JUEL script execution in tests -->
-    <dependency>
-      <groupId>org.glassfish</groupId>
-      <artifactId>jakarta.el</artifactId>
-      <version>4.0.2</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>jakarta.servlet</groupId>
-      <artifactId>jakarta.servlet-api</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>jakarta.persistence</groupId>
-      <artifactId>jakarta.persistence-api</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
 
@@ -218,14 +238,50 @@
               <excludes>
                 <!-- this is re-defined in the consuming artifacts -->
                 <exclude>META-INF/services/org.cibseven.bpm.engine.spring.test.SpringTestHelper</exclude>
+                <!-- Nashorn is not part of the JDK anymore in Java 15+, so its test is not run either -->
+                <exclude>**/*NashornTest.class</exclude>
               </excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-java</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>[17,)</version>
+                  <message>You must use at least JDK 17 to build the Process Engine Spring integration (Spring Framework 7).</message>
+                </requireJavaVersion>
+              </rules>
+              <failFast>true</failFast>
             </configuration>
           </execution>
         </executions>
       </plugin>
     </plugins>
   </build>
-  
   <profiles>
     <profile>
      <id>exclude-post-jdk15-tests</id>
@@ -250,6 +306,7 @@
       </build>
     </profile>
   </profiles>
+
   <description>
     Description of CIB seven - engine - Spring
   </description>

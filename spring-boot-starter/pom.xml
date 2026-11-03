@@ -22,15 +22,11 @@
 
   <dependencyManagement>
     <dependencies>
-      <!-- Must stay FIRST, ahead of spring-boot-dependencies: among imported BOMs the earliest
-           declaration wins. Spring Boot manages the JUnit artifacts itself, so without this the
-           Jupiter version follows ${version.junit5} (where a module pins it explicitly) while
-           junit-platform-* stays on Spring Boot's, and surefire dies with
-           "conflicting versions were detected". -->
       <dependency>
-        <groupId>org.junit</groupId>
-        <artifactId>junit-bom</artifactId>
-        <version>${version.junit5}</version>
+        <!-- Override HK2 from 4.0.0-M3 (bundled with Spring Boot) to 4.0.0 stable -->
+        <groupId>org.glassfish.hk2</groupId>
+        <artifactId>hk2-bom</artifactId>
+        <version>4.0.0</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -45,6 +41,20 @@
         <groupId>com.fasterxml.jackson</groupId>
         <artifactId>jackson-bom</artifactId>
         <version>${version.jackson}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+
+      <!-- Addressing Jackson 3 CVEs coming from v3.1.5
+        jackson-core:
+        CVE-2026-91776, CVE-2026-91777,
+        CVE-2026-89407, CVE-2026-89425.
+        jackson-databind:
+        CVE-2026-83557, CVE-2026-19032, CVE-2026-83557 -->
+      <dependency>
+        <groupId>tools.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson3}</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -76,22 +86,31 @@
         <version>${version.httpcore5}</version>
       </dependency>
 
+      <!-- hk2-bom (imported above, ahead of Spring Boot) manages spring-context 6.2.x for its
+           spring-bridge, and that would win over Spring Boot's Framework 7.
+           Pin it back to the Framework line Spring Boot ships. -->
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+        <version>${version.spring.framework7}</version>
+      </dependency>
+
       <!-- Temporary Apache Tomcat CVE overrides (BOM pins a vulnerable version).
            Remove these once the imported Spring Boot BOM manages fixed versions. -->
       <dependency>
         <groupId>org.apache.tomcat.embed</groupId>
         <artifactId>tomcat-embed-core</artifactId>
-        <version>${version.tomcat10}</version>
+        <version>${version.tomcat}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.tomcat.embed</groupId>
         <artifactId>tomcat-embed-el</artifactId>
-        <version>${version.tomcat10}</version>
+        <version>${version.tomcat}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.tomcat.embed</groupId>
         <artifactId>tomcat-embed-websocket</artifactId>
-        <version>${version.tomcat10}</version>
+        <version>${version.tomcat}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

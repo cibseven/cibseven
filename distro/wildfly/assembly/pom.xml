@@ -53,7 +53,7 @@
     
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-spring-6</artifactId>
+      <artifactId>cibseven-engine-spring</artifactId>
     </dependency>
     
     <dependency>

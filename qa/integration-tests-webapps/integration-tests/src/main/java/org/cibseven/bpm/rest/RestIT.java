@@ -107,7 +107,7 @@ public class RestIT extends AbstractWebIntegrationTest {
    * present, so it has to hold against a deployed engine, not only a mocked configuration.
    */
   @Test
-  public void shouldReportTheWebappSchemaVersion() {
+  public void shouldReportTheWebclientExtensionsVersion() {
     log.info("Checking " + appBasePath + CONFIGURATION_PATH);
 
     HttpResponse<JsonNode> response = Unirest.get(appBasePath + CONFIGURATION_PATH)
@@ -117,13 +117,13 @@ public class RestIT extends AbstractWebIntegrationTest {
     assertThat(response.getStatus()).isEqualTo(200);
 
     JSONObject configuration = response.getBody().getObject();
-    assertTrue(configuration.has("webappSchemaVersion"), "the configuration endpoint has to expose webappSchemaVersion");
+    assertTrue(configuration.has("webclientExtensionsVersion"), "the configuration endpoint has to expose webclientExtensionsVersion");
 
-    // this runtime switches the webapp schema on, so the create script wrote its version
-    assertThat(configuration.isNull("webappSchemaVersion"))
-        .as("webappSchemaVersion is absent, so the webapp tables were not created")
+    // this runtime switches the webclient extensions on, so the create script wrote its version
+    assertThat(configuration.isNull("webclientExtensionsVersion"))
+        .as("webclientExtensionsVersion is absent, so the webclient tables were not created")
         .isFalse();
-    assertThat(configuration.getString("webappSchemaVersion")).matches("\\d+\\.\\d+\\.\\d+");
+    assertThat(configuration.getString("webclientExtensionsVersion")).matches("\\d+\\.\\d+\\.\\d+");
   }
 
   @Test

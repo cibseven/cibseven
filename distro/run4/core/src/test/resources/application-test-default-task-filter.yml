@@ -1,3 +1,0 @@
-camunda.bpm:
-  filter:
-    create: All tasks
