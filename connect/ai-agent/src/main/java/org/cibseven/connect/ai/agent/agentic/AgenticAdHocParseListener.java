@@ -597,8 +597,15 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     InputParameter memoryWindow = null;
     Element memoryWindowElement = null;
     Element inputOutput = connector.elementNS(BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS, "inputOutput");
-    List<Element> inputElements = inputOutput.elementsNS(
-        BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS, "inputParameter");
+    // The elements io was built from, in its order: without the declaration, which
+    // connectorInputOutput leaves out, an index names the same input in both.
+    List<Element> inputElements = new ArrayList<Element>();
+    for (Element input : inputOutput.elementsNS(BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS,
+        "inputParameter")) {
+      if (!isADeclarationInput(input)) {
+        inputElements.add(input);
+      }
+    }
     for (int i = 0; i < io.getInputParameters().size(); i++) {
       InputParameter input = io.getInputParameters().get(i);
       if ("chatMemoryMaxMessages".equals(input.getName())) {

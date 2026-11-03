@@ -2536,6 +2536,19 @@ public class AgenticAdHocParseListenerTest {
         .hasMessageContaining("but is 6");
   }
 
+  /**
+   * The declaration is no input of a step: left out of the connector's mapping, it must not shift
+   * which input the check of the memory window reads (the second model's review of cfe15a536a).
+   */
+  @Test
+  public void aDeclarationBeforeTheMemoryWindowLeavesItsCheckAsItWas() {
+    deploy(memoryWindowModel(2, "7", processVariables("kunde", "kunde")));
+    assertThatThrownBy(() -> deploy(memoryWindowModel(2, "6", processVariables("kunde"))))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("chatMemoryMaxMessages must be at least 7 messages")
+        .hasMessageContaining("but is 6");
+  }
+
   @Test
   public void refusesAWindowRequirementThatExceedsTheSupportedIntegerSize() {
     String model = memoryWindowModel(Integer.MAX_VALUE, null);
@@ -2784,13 +2797,18 @@ public class AgenticAdHocParseListenerTest {
   }
 
   private static String memoryWindowModel(int maxModelCalls, String window) {
+    return memoryWindowModel(maxModelCalls, window, "");
+  }
+
+  /** As above, with {@code before}, further inputs of the connector, ahead of the window. */
+  private static String memoryWindowModel(int maxModelCalls, String window, String before) {
     String properties = "<camunda:properties>"
         + "<camunda:property name='cibseven.agentic.conversation' value='perActivity' />"
         + "<camunda:property name='cibseven.agentic.maxModelCalls' value='"
         + maxModelCalls + "' /></camunda:properties>";
-    String additionalInput = (window == null) ? ""
+    String additionalInput = before + ((window == null) ? ""
         : "<camunda:inputParameter name='chatMemoryMaxMessages'>" + window
-            + "</camunda:inputParameter>";
+            + "</camunda:inputParameter>");
     String model = connectorScope("<userTask id='worker' />", properties, "");
     return model.replace("</camunda:inputParameter></camunda:inputOutput>",
         "</camunda:inputParameter>" + additionalInput + "</camunda:inputOutput>");
