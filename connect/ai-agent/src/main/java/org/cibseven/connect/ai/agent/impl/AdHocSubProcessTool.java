@@ -42,7 +42,10 @@ import org.cibseven.bpm.engine.runtime.AdHocSubProcessActivationBuilder;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
 import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.core.variable.CoreVariableInstance;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
+import org.cibseven.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
+import org.cibseven.bpm.engine.impl.persistence.entity.util.TypedValueField;
 import org.cibseven.bpm.engine.impl.util.StringUtil;
 import org.cibseven.bpm.engine.impl.variable.serializer.TypedValueSerializer;
 import org.cibseven.bpm.engine.impl.variable.serializer.ValueFields;
@@ -764,7 +767,7 @@ public class AdHocSubProcessTool {
                     }
                     continue;
                 }
-                ProcessValue shown = processValue(value);
+                ProcessValue shown = processValue(value, ownSerializer(scope, name));
                 if (required && shown.notWhole != null) {
                     missing.add(name + " (" + shown.notWhole + ")");
                     continue;
@@ -900,6 +903,14 @@ public class AdHocSubProcessTool {
      * want of its text. Another object in JSON or XML shows the text it was stored with.
      */
     static ProcessValue processValue(TypedValue typed) {
+        return processValue(typed, null);
+    }
+
+    /**
+     * As {@link #processValue(TypedValue)}; {@code own} is the serializer that read the variable,
+     * which writes a deserialized object again, or {@code null} when there is none at hand.
+     */
+    static ProcessValue processValue(TypedValue typed, TypedValueSerializer<?> own) {
         String type = (typed.getType() == null) ? "unknown" : typed.getType().getName();
         if (typed instanceof SerializableValue) {
             SerializableValue serializable = (SerializableValue) typed;
@@ -917,7 +928,7 @@ public class AdHocSubProcessTool {
             } else if (live != null && text && typed instanceof ObjectValue) {
                 // The same for an object in JSON or XML: written again by its own serializer, as
                 // the engine writes it when the command closes; the stored text when that fails.
-                String now = writtenNow((ObjectValue) typed);
+                String now = writtenNow((ObjectValue) typed, own);
                 if (now != null) {
                     serialized = now;
                 }
@@ -955,29 +966,51 @@ public class AdHocSubProcessTool {
     }
 
     /**
-     * The text of a deserialized object as it is now, written by the serializer the engine keeps
-     * for its format into fields that go nowhere; {@code null} outside a command, without a
-     * serializer, or when the write fails, and the text the object was stored with is shown then.
-     * Only an object deserialized already is written: nothing is deserialized for this. The engine
-     * writes a changed object back itself when the command closes; this is that write, one step
-     * earlier, so the model reads the object as the step left it.
+     * The serializer that read the variable {@code name} of {@code scope}, resolved as the engine
+     * resolves it, the process application's serializers included; {@code null} without one.
      */
-    @SuppressWarnings("unchecked")
-    private static String writtenNow(ObjectValue value) {
-        ProcessEngineConfigurationImpl configuration = Context.getProcessEngineConfiguration();
-        if (configuration == null) {
+    private static TypedValueSerializer<?> ownSerializer(ExecutionEntity scope, String name) {
+        CoreVariableInstance instance = scope.getVariableInstance(name);
+        if (!(instance instanceof VariableInstanceEntity)) {
             return null;
         }
         try {
-            TypedValueSerializer<TypedValue> serializer = (TypedValueSerializer<TypedValue>)
-                    configuration.getVariableSerializers().findSerializerForValue(value);
+            return ((VariableInstanceEntity) instance).getSerializer();
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    /**
+     * The text of a deserialized object as it is now, written again by the serializer that read it
+     * into fields that go nowhere, so that a process application's serializer writes what it read;
+     * without one, by the serializer the engine would pick for a new value of this kind, the
+     * application's included. {@code null} outside a command, without a serializer, or when the
+     * write fails, and the text the object was stored with is shown then. Only an object
+     * deserialized already is written: nothing is deserialized for this. The engine writes a changed
+     * object back itself when the command closes; this is that write, one step earlier, so the model
+     * reads the object as the step left it.
+     */
+    @SuppressWarnings("unchecked")
+    private static String writtenNow(ObjectValue value, TypedValueSerializer<?> own) {
+        ProcessEngineConfigurationImpl configuration = Context.getProcessEngineConfiguration();
+        if (configuration == null || Context.getCommandContext() == null) {
+            return null;
+        }
+        try {
+            TypedValueSerializer<TypedValue> serializer = (TypedValueSerializer<TypedValue>) own;
+            if (serializer == null) {
+                serializer = (TypedValueSerializer<TypedValue>) TypedValueField.getSerializers()
+                        .findSerializerForValue(value, configuration.getFallbackSerializerFactory());
+            }
             NowhereValueFields fields = new NowhereValueFields();
             serializer.writeValue(value, fields);
             byte[] bytes = fields.getByteArrayValue();
             return (bytes == null) ? null : StringUtil.fromBytes(bytes);
         } catch (RuntimeException e) {
-            LOG.debug("processData: an object in {} is shown by the text it was stored with: {}",
-                    value.getSerializationDataFormat(), e.getMessage());
+            // The class alone: the engine's message names the value, which no log line holds.
+            LOG.debug("processData: an object in {} is shown by the text it was stored with ({})",
+                    value.getSerializationDataFormat(), e.getClass().getName());
             return null;
         }
     }

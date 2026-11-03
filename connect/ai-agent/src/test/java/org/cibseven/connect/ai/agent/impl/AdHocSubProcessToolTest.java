@@ -116,14 +116,25 @@ public class AdHocSubProcessToolTest {
    */
   static final class JsonMapSerializer extends AbstractObjectValueSerializer {
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private final String name;
+    /** Writes the keys in upper case: another serializer of the same format writes otherwise. */
+    private final boolean upperCaseKeys;
+    /** How many of the next writes fail, as a serializer that cannot write an object would. */
+    volatile int failNextWrites;
 
     JsonMapSerializer() {
+      this("json-map-test", false);
+    }
+
+    JsonMapSerializer(String name, boolean upperCaseKeys) {
       super("application/json");
+      this.name = name;
+      this.upperCaseKeys = upperCaseKeys;
     }
 
     @Override
     public String getName() {
-      return "json-map-test";
+      return name;
     }
 
     @Override
@@ -138,7 +149,20 @@ public class AdHocSubProcessToolTest {
 
     @Override
     protected byte[] serializeToByteArray(Object deserializedObject) throws Exception {
-      return MAPPER.writeValueAsBytes(deserializedObject);
+      if (failNextWrites > 0) {
+        failNextWrites--;
+        // As a serializer may: the message names the object, as the engine's own messages do.
+        throw new IllegalStateException("cannot write " + deserializedObject);
+      }
+      Object written = deserializedObject;
+      if (upperCaseKeys) {
+        Map<String, Object> upper = new LinkedHashMap<>();
+        for (Map.Entry<?, ?> entry : ((Map<?, ?>) deserializedObject).entrySet()) {
+          upper.put(String.valueOf(entry.getKey()).toUpperCase(), entry.getValue());
+        }
+        written = upper;
+      }
+      return MAPPER.writeValueAsBytes(written);
     }
 
     @Override
@@ -1015,6 +1039,100 @@ public class AdHocSubProcessToolTest {
       assertThat(processData(result(0)))
           .containsEntry("auftrag", "{\"nummer\":\"A-1047\",\"positionen\":4}");
     } finally {
+      serializers.removeSerializer(json);
+    }
+  }
+
+  /**
+   * The serializer that read the variable writes it again, not the first the engine finds for its
+   * format: another serializer of the same format, a process application's for instance, would
+   * write the object otherwise (second model, 2026-11-03).
+   */
+  @Test
+  public void anObjectIsWrittenAgainByTheSerializerThatReadIt() {
+    VariableSerializers serializers = ((ProcessEngineConfigurationImpl)
+        ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
+    JsonMapSerializer own = new JsonMapSerializer();
+    JsonMapSerializer other = new JsonMapSerializer("json-map-other", true);
+    serializers.addSerializer(own, 0);
+    try {
+      ProcessInstance instance = startWithoutTurn("processDataOwnSerializer",
+          processVariables("auftrag"), tool -> {
+            ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> auftrag =
+                (Map<String, Object>) scope.getVariableTyped("auftrag").getValue();
+            auftrag.put("positionen", 4);
+            return tool.turnReport();
+          });
+      Map<String, Object> auftrag = new LinkedHashMap<>();
+      auftrag.put("nummer", "A-1047");
+      auftrag.put("positionen", 3);
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+          Variables.objectValue(auftrag).serializationDataFormat("application/json").create());
+      // From now on the engine would pick the other one for a new value of this format.
+      serializers.addSerializer(other, 0);
+
+      runPendingTurn(instance);
+
+      assertThat(Agent.FAILURES).isEmpty();
+      assertThat(processData(result(0))).as("written by the serializer that read it")
+          .containsEntry("auftrag", "{\"nummer\":\"A-1047\",\"positionen\":4}");
+    } finally {
+      serializers.removeSerializer(other);
+      serializers.removeSerializer(own);
+    }
+  }
+
+  /**
+   * A write that fails leaves the stored text, and the log says only that it did: a serializer's
+   * message may name the object, and the log holds no process data (second model, 2026-11-03).
+   */
+  @Test
+  public void aFailedWriteShowsTheStoredTextAndLogsNoValue() {
+    VariableSerializers serializers = ((ProcessEngineConfigurationImpl)
+        ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
+    JsonMapSerializer json = new JsonMapSerializer();
+    serializers.addSerializer(json, 0);
+    ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger)
+        org.slf4j.LoggerFactory.getLogger(AdHocSubProcessTool.class);
+    ch.qos.logback.classic.Level level = logger.getLevel();
+    ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> appender =
+        new ch.qos.logback.core.read.ListAppender<>();
+    appender.start();
+    logger.addAppender(appender);
+    logger.setLevel(ch.qos.logback.classic.Level.DEBUG);
+    try {
+      ProcessInstance instance = startWithoutTurn("processDataFailedWrite",
+          processVariables("auftrag"), tool -> {
+            ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> auftrag =
+                (Map<String, Object>) scope.getVariableTyped("auftrag").getValue();
+            auftrag.put("positionen", 4);
+            return tool.turnReport();
+          });
+      Map<String, Object> auftrag = new LinkedHashMap<>();
+      auftrag.put("nummer", "A-1047-GEHEIM");
+      auftrag.put("positionen", 3);
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+          Variables.objectValue(auftrag).serializationDataFormat("application/json").create());
+      // The step's write fails; the engine's own write when the command closes goes through.
+      json.failNextWrites = 1;
+
+      runPendingTurn(instance);
+
+      assertThat(Agent.FAILURES).isEmpty();
+      assertThat(processData(result(0))).as("the stored text")
+          .containsEntry("auftrag", "{\"nummer\":\"A-1047-GEHEIM\",\"positionen\":3}");
+      assertThat(appender.list).extracting(e -> e.getFormattedMessage())
+          .noneSatisfy(line -> assertThat(line).contains("A-1047-GEHEIM"))
+          .anySatisfy(line -> assertThat(line)
+              .contains("is shown by the text it was stored with"));
+    } finally {
+      logger.detachAppender(appender);
+      logger.setLevel(level);
+      appender.stop();
       serializers.removeSerializer(json);
     }
   }
