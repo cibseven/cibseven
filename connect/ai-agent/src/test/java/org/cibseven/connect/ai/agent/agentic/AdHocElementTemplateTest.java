@@ -134,12 +134,27 @@ public class AdHocElementTemplateTest {
     assertThat(optional.has("value")).as("none by default").isFalse();
     assertThat(optional.get("constraints")).as("names as the field it narrows takes them")
         .isEqualTo(seen.get("constraints"));
-    assertThat(text(optional, "description")).contains("Empty: every one is required.");
+    assertThat(text(optional, "description")).contains("Empty: every one is required.")
+        .contains("a file, bytes or a Java object is shown by its type only");
+    // What a process developer asked of the text (the review pass of 2026-11-02): a name, not a
+    // path; when to use it instead of ${name}; what fails, and what the operator then sees; that
+    // null is set; what the agent never sees; where the value is, since the chat log keeps a marker.
     assertThat(text(seen, "description"))
-        .contains("up to 4000 characters each and 20000 in all")
-        .contains("Each one is required")
-        .contains("list the exceptions under Optional process variables")
-        .contains("Never list tokens or passwords");
+        .contains("the name of a variable, not a path into it")
+        .contains("instead of ${name} in Message")
+        .contains("with the state of this sub process")
+        .contains("up to 4000 characters each and about 20000 in all")
+        .contains("Each one is required unless Optional process variables names it")
+        .contains("a file, bytes or a Java object, which the agent never sees")
+        .contains("after the job's retries, the sub process gets an incident naming it")
+        .contains("null counts as set")
+        .contains("the value is in the variable's history")
+        .contains("Never list tokens or passwords: the values go to the model's and the"
+            + " embedding's provider");
+    JsonNode message = fields(read(AD_HOC).get("scopes").get(0).get("properties"))
+        .get("camunda:inputParameter:message");
+    assertThat(text(message, "description")).as("the task points at the field for data")
+        .contains("list the variable under Process variables");
   }
 
   @Test
