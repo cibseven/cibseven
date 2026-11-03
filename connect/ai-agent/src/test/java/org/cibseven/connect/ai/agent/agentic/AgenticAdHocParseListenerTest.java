@@ -31,6 +31,7 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessActivityBehavior;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessObserver;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.engine.impl.core.model.PropertyKey;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.deploy.cache.DeploymentCache;
@@ -2445,14 +2446,13 @@ public class AgenticAdHocParseListenerTest {
   }
 
   protected List<String> processVariablesOf(final String activityId,
-      final org.cibseven.bpm.engine.impl.core.model.PropertyKey<List<String>> key) {
+      final PropertyKey<List<String>> key) {
     final String definitionId = engine.getRepositoryService()
         .createProcessDefinitionQuery().latestVersion().singleResult().getId();
     return config.getCommandExecutorTxRequired().execute(
-        new org.cibseven.bpm.engine.impl.interceptor.Command<List<String>>() {
+        new Command<List<String>>() {
           @Override
-          public List<String> execute(
-              org.cibseven.bpm.engine.impl.interceptor.CommandContext ctx) {
+          public List<String> execute(CommandContext ctx) {
             ProcessDefinitionEntity entity = ctx.getProcessEngineConfiguration()
                 .getDeploymentCache().findDeployedProcessDefinitionById(definitionId);
             return entity.findActivity(activityId).getProperties().get(key);

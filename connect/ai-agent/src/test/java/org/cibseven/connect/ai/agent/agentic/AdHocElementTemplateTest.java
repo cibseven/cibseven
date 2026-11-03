@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -51,7 +52,7 @@ public class AdHocElementTemplateTest {
    * task on the first turn of a re-entry, which only a looping scope ever has, and the turn's
    * outcome (CIB7-2151) says how a turn ended, which a single run does not have.
    */
-  protected static final List<String> AD_HOC_ONLY = java.util.Arrays.asList(
+  protected static final List<String> AD_HOC_ONLY = Arrays.asList(
       "camunda:inputParameter:followUp", "camunda:outputParameter:${outcome}");
 
   @Test
@@ -106,13 +107,13 @@ public class AdHocElementTemplateTest {
     // number of names and freezes the field.
     Pattern pattern = Pattern.compile(field.get("constraints").get("pattern").get("value").asText(),
         Pattern.UNICODE_CHARACTER_CLASS);
-    for (String accepted : java.util.Arrays.asList("", " ", "kunde", "kunde, prioritaet",
+    for (String accepted : Arrays.asList("", " ", "kunde", "kunde, prioritaet",
         " kunde ,prioritaet ", "kunde.name, prioritaet", "kunde, prioritaet")) {
       assertThat(pattern.matcher(accepted).find()).as("'" + accepted + "'").isTrue();
     }
     // A space inside a name is a comma left out, and ${…} or braces an expression or a list: the
     // panel says so before the deployment would (the review pass of 2026-11-02, findings 5 and 7).
-    for (String refused : java.util.Arrays.asList("kunde,,prioritaet", "kunde,", ",kunde",
+    for (String refused : Arrays.asList("kunde,,prioritaet", "kunde,", ",kunde",
         "kunde, , prioritaet", "kunde, ", "kunde name, prioritaet", "${kunde}", "kunde, {a}")) {
       assertThat(pattern.matcher(refused).find()).as("'" + refused + "'").isFalse();
     }

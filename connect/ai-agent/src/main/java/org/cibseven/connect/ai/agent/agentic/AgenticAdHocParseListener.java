@@ -53,6 +53,7 @@ import org.cibseven.bpm.engine.impl.pvm.process.ProcessDefinitionImpl;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.cibseven.bpm.engine.impl.util.xml.Element;
 import org.cibseven.bpm.impl.juel.TreeBuilderException;
+import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,7 +136,7 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
    * conversation, its chat log and its memory. None of them goes to the model as process data.
    */
   protected static final List<String> AGENT_STATE_PREFIXES = Arrays.asList("adHocAgent",
-      org.cibseven.connect.ai.agent.AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME);
+      AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME);
 
   /** Settings of the agent that are not limits, and mark a scope as an agent just as much. */
   protected static final List<String> SETTINGS =
@@ -1076,7 +1077,7 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
 
     // Reserve the engine's full 64-character execution id without changing normal memory ids.
     int maxActivityIdLength = 255
-        - org.cibseven.connect.ai.agent.AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX.length()
+        - AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX.length()
         - "adhoc-".length() - 64 - 1;
     if (perActivity && activity.getId().length() > maxActivityIdLength) {
       throw new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': perActivity"

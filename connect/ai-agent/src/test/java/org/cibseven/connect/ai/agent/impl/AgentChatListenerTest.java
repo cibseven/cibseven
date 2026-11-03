@@ -33,6 +33,7 @@ import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
@@ -51,6 +52,11 @@ import dev.langchain4j.model.chat.response.ChatResponseMetadata;
 import dev.langchain4j.model.openai.OpenAiChatRequestParameters;
 import dev.langchain4j.model.output.FinishReason;
 import dev.langchain4j.model.output.TokenUsage;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 
 public class AgentChatListenerTest {
 
@@ -147,14 +153,12 @@ public class AgentChatListenerTest {
    */
   @Test
   public void shouldLogAStepAtDebugAsTheChatLogKeepsIt() {
-    ch.qos.logback.classic.Logger logger =
-        (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(AgentChatListener.class);
-    ch.qos.logback.classic.Level level = logger.getLevel();
-    ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> appender =
-        new ch.qos.logback.core.read.ListAppender<>();
+    Logger logger = (Logger) LoggerFactory.getLogger(AgentChatListener.class);
+    Level level = logger.getLevel();
+    ListAppender<ILoggingEvent> appender = new ListAppender<>();
     appender.start();
     logger.addAppender(appender);
-    logger.setLevel(ch.qos.logback.classic.Level.DEBUG);
+    logger.setLevel(Level.DEBUG);
     String message = AgentConnectorImpl.STATE_BLOCK_OPEN + "\n"
         + "{\"processData\":{\"kunde\":\"Müller GmbH\"}}\n"
         + AgentConnectorImpl.STATE_BLOCK_CLOSE + "\n\nBearbeite den Auftrag.";

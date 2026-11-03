@@ -18,7 +18,11 @@ package org.cibseven.connect.ai.agent.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.nio.charset.StandardCharsets;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -26,11 +30,21 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.apache.ibatis.executor.Executor;
+import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.plugin.Interceptor;
+import org.apache.ibatis.plugin.Intercepts;
+import org.apache.ibatis.plugin.Invocation;
+import org.apache.ibatis.plugin.Signature;
+import org.apache.ibatis.session.ResultHandler;
+import org.apache.ibatis.session.RowBounds;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
@@ -40,6 +54,7 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.cibseven.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
 import org.cibseven.bpm.engine.impl.variable.serializer.AbstractObjectValueSerializer;
 import org.cibseven.bpm.engine.impl.variable.serializer.ValueFields;
 import org.cibseven.bpm.engine.impl.variable.serializer.VariableSerializers;
@@ -62,6 +77,12 @@ import org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 
 /**
  * {@link AdHocSubProcessTool} — the three tools the model calls to see, start and
@@ -117,17 +138,17 @@ public class AdHocSubProcessToolTest {
    * value is loaded with: what a declared value shown by its type alone must not cost. Installed
    * once into the engine's MyBatis configuration; a plugin cannot be removed, so it stays and counts.
    */
-  @org.apache.ibatis.plugin.Intercepts({@org.apache.ibatis.plugin.Signature(
-      type = org.apache.ibatis.executor.Executor.class, method = "query",
-      args = {org.apache.ibatis.mapping.MappedStatement.class, Object.class,
-          org.apache.ibatis.session.RowBounds.class, org.apache.ibatis.session.ResultHandler.class})})
-  static final class ByteArrayReads implements org.apache.ibatis.plugin.Interceptor {
+  @Intercepts({@Signature(
+      type = Executor.class, method = "query",
+      args = {MappedStatement.class, Object.class,
+          RowBounds.class, ResultHandler.class})})
+  static final class ByteArrayReads implements Interceptor {
     /**
      * The ids of the byte arrays read since the last {@code clear()}; the engine reads every one of a
      * process when it ends, to delete it, so a test looks at the set while the step still runs.
      */
-    static final java.util.Set<String> READ_IDS =
-        Collections.synchronizedSet(new java.util.LinkedHashSet<>());
+    static final Set<String> READ_IDS =
+        Collections.synchronizedSet(new LinkedHashSet<>());
     private static boolean installed;
 
     static synchronized void install(ProcessEngine engine) {
@@ -139,9 +160,8 @@ public class AdHocSubProcessToolTest {
     }
 
     @Override
-    public Object intercept(org.apache.ibatis.plugin.Invocation invocation) throws Throwable {
-      org.apache.ibatis.mapping.MappedStatement statement =
-          (org.apache.ibatis.mapping.MappedStatement) invocation.getArgs()[0];
+    public Object intercept(Invocation invocation) throws Throwable {
+      MappedStatement statement = (MappedStatement) invocation.getArgs()[0];
       if (statement.getId().contains("selectByteArray")) {
         READ_IDS.add(String.valueOf(invocation.getArgs()[1]));
       }
@@ -177,12 +197,12 @@ public class AdHocSubProcessToolTest {
 
     @Override
     protected byte[] serializeToByteArray(Object deserializedObject) {
-      return String.valueOf(deserializedObject).getBytes(java.nio.charset.StandardCharsets.UTF_8);
+      return String.valueOf(deserializedObject).getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
     protected Object deserializeFromByteArray(byte[] bytes, String objectTypeName) {
-      return new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+      return new String(bytes, StandardCharsets.UTF_8);
     }
 
     @Override
@@ -959,14 +979,14 @@ public class AdHocSubProcessToolTest {
         return json;
       }
     };
-    SerializableValue spin = org.mockito.Mockito.mock(SerializableValue.class);
-    SerializableValueType jsonType = org.mockito.Mockito.mock(SerializableValueType.class);
-    org.mockito.Mockito.when(jsonType.getName()).thenReturn("json");
-    org.mockito.Mockito.when(spin.getType()).thenReturn(jsonType);
-    org.mockito.Mockito.when(spin.getSerializationDataFormat()).thenReturn("application/json");
-    org.mockito.Mockito.when(spin.isDeserialized()).thenReturn(true);
-    org.mockito.Mockito.when(spin.getValueSerialized()).thenReturn(null);
-    org.mockito.Mockito.when(spin.getValue()).thenReturn(node);
+    SerializableValue spin = mock(SerializableValue.class);
+    SerializableValueType jsonType = mock(SerializableValueType.class);
+    when(jsonType.getName()).thenReturn("json");
+    when(spin.getType()).thenReturn(jsonType);
+    when(spin.getSerializationDataFormat()).thenReturn("application/json");
+    when(spin.isDeserialized()).thenReturn(true);
+    when(spin.getValueSerialized()).thenReturn(null);
+    when(spin.getValue()).thenReturn(node);
 
     AdHocSubProcessTool.ProcessValue shownSpin = AdHocSubProcessTool.processValue(spin);
 
@@ -989,14 +1009,14 @@ public class AdHocSubProcessToolTest {
         return now;
       }
     };
-    SerializableValue spin = org.mockito.Mockito.mock(SerializableValue.class);
-    SerializableValueType jsonType = org.mockito.Mockito.mock(SerializableValueType.class);
-    org.mockito.Mockito.when(jsonType.getName()).thenReturn("json");
-    org.mockito.Mockito.when(spin.getType()).thenReturn(jsonType);
-    org.mockito.Mockito.when(spin.getSerializationDataFormat()).thenReturn("application/json");
-    org.mockito.Mockito.when(spin.isDeserialized()).thenReturn(true);
-    org.mockito.Mockito.when(spin.getValueSerialized()).thenReturn("{\"status\":\"offen\"}");
-    org.mockito.Mockito.when(spin.getValue()).thenReturn(node);
+    SerializableValue spin = mock(SerializableValue.class);
+    SerializableValueType jsonType = mock(SerializableValueType.class);
+    when(jsonType.getName()).thenReturn("json");
+    when(spin.getType()).thenReturn(jsonType);
+    when(spin.getSerializationDataFormat()).thenReturn("application/json");
+    when(spin.isDeserialized()).thenReturn(true);
+    when(spin.getValueSerialized()).thenReturn("{\"status\":\"offen\"}");
+    when(spin.getValue()).thenReturn(node);
 
     assertThat(AdHocSubProcessTool.processValue(spin).shown).isEqualTo(now);
   }
@@ -1186,14 +1206,14 @@ public class AdHocSubProcessToolTest {
         ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
     JsonMapSerializer json = new JsonMapSerializer();
     serializers.addSerializer(json, 0);
-    ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger)
-        org.slf4j.LoggerFactory.getLogger(AdHocSubProcessTool.class);
-    ch.qos.logback.classic.Level level = logger.getLevel();
-    ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> appender =
-        new ch.qos.logback.core.read.ListAppender<>();
+    Logger logger = (Logger)
+        LoggerFactory.getLogger(AdHocSubProcessTool.class);
+    Level level = logger.getLevel();
+    ListAppender<ILoggingEvent> appender =
+        new ListAppender<>();
     appender.start();
     logger.addAppender(appender);
-    logger.setLevel(ch.qos.logback.classic.Level.DEBUG);
+    logger.setLevel(Level.DEBUG);
     try {
       ProcessInstance instance = startWithoutTurn("processDataFailedWrite",
           processVariables("auftrag", "auftrag"), tool -> {
@@ -1280,7 +1300,7 @@ public class AdHocSubProcessToolTest {
         processVariables("faellig, uhrzeit", "uhrzeit"), tool -> {
           ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
           scope.setVariable("faellig", new java.sql.Date(0L));
-          scope.setVariable("uhrzeit", new java.sql.Time(60_000L));
+          scope.setVariable("uhrzeit", new Time(60_000L));
           return tool.turnReport();
         });
 
@@ -1327,7 +1347,7 @@ public class AdHocSubProcessToolTest {
       blob.failReads = true;
       List<String> theirBytes = new ArrayList<>();
       for (String name : Arrays.asList("scan", "roh")) {
-        theirBytes.add(((org.cibseven.bpm.engine.impl.persistence.entity.VariableInstanceEntity)
+        theirBytes.add(((VariableInstanceEntity)
             ENGINE.getRuntimeService().createVariableInstanceQuery()
                 .processInstanceIdIn(instance.getId()).variableName(name).singleResult())
             .getByteArrayValueId());
