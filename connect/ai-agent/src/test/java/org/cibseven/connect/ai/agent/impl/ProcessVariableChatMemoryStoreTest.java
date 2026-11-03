@@ -508,6 +508,38 @@ public class ProcessVariableChatMemoryStoreTest {
     assertThat(ProcessVariableChatMemoryStore.Batch.isOpen()).isFalse();
   }
 
+  /**
+   * A conversation the outer batch holds is written, when that batch closes, from the outer
+   * invocation's execution, even when a nested invocation on another execution staged its newest
+   * version: the nested one may have ended by then.
+   */
+  @Test
+  public void aNestedWriteIsWrittenFromTheExecutionThatFirstHeldIt() {
+    ExecutionEntity outer = statefulExecutionMock();
+    Context.setExecutionContext(outer);
+    pushedExecution = true;
+    ExecutionEntity inner = mock(ExecutionEntity.class);
+    when(inner.getParentVariableScope()).thenReturn(outer);
+
+    try (ProcessVariableChatMemoryStore.Batch batch = ProcessVariableChatMemoryStore.Batch.open()) {
+      store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("hi")));
+      Context.setExecutionContext(inner);
+      try (ProcessVariableChatMemoryStore.Batch nested =
+          ProcessVariableChatMemoryStore.Batch.open()) {
+        store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("hi"), AiMessage.from("ok")));
+      } finally {
+        Context.removeExecutionContext();
+      }
+      verify(inner, never()).setVariable(org.mockito.Matchers.eq(VARIABLE_NAME),
+          org.mockito.Matchers.any());
+    }
+
+    verify(inner, never()).setVariable(org.mockito.Matchers.eq(VARIABLE_NAME),
+        org.mockito.Matchers.any());
+    verify(outer).setVariable(org.mockito.Matchers.eq(VARIABLE_NAME), org.mockito.Matchers.any());
+    assertThat(outer.getVariable(VARIABLE_NAME).toString()).contains("\"ok\"");
+  }
+
   private static String repeat(char c, int times) {
     StringBuilder sb = new StringBuilder(times);
     for (int i = 0; i < times; i++) {

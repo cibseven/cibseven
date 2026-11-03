@@ -25,7 +25,9 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -264,15 +266,11 @@ class AgentChatListener implements ChatModelListener {
   private static final String CHUNK_SEPARATOR =
       AgentConnectorConstants.AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR;
 
-  /** The longest variable name the engine stores ({@code ACT_RU_VARIABLE.NAME_}). */
-  private static final int MAX_VARIABLE_NAME_LENGTH = 255;
-
   /**
    * The activity ids whose chunk names were too long already, so that each is warned about
    * once per JVM rather than on every invocation.
    */
-  private static final java.util.Set<String> TOO_LONG_WARNED =
-      java.util.concurrent.ConcurrentHashMap.newKeySet();
+  private static final Set<String> TOO_LONG_WARNED = ConcurrentHashMap.newKeySet();
 
   // ── last-response state (for Art. 50(2) AI-output marker) ────────────────
   private volatile String lastProvider;
@@ -368,13 +366,12 @@ class AgentChatListener implements ChatModelListener {
 
     // Per-activity override wins; otherwise fall through to the deployment-wide
     // resolver (which is the path that logs the one-time WARN/DEBUG).
-    boolean enabled = (perActivityChatLogEnabled != null)
+    this.chatLogVariableEnabled = (perActivityChatLogEnabled != null)
         ? perActivityChatLogEnabled
         : isChatLogVariableEnabled();
     this.variableName = (activityId != null && !activityId.isEmpty())
         ? AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + activityId
         : null;
-    this.chatLogVariableEnabled = enabled;
     if (this.variableName != null && this.chatLogVariableEnabled) {
       continueNumbering();
     }
@@ -634,14 +631,17 @@ class AgentChatListener implements ChatModelListener {
       return;
     }
     String name = chunkName(events.get(persisted).get("eventSeq"));
-    if (name.length() > MAX_VARIABLE_NAME_LENGTH) {
+    if (name.getBytes(StandardCharsets.UTF_8).length
+        > ProcessVariableChatMemoryStore.MAX_VARIABLE_NAME_LENGTH) {
       // Caught here rather than as a database error, which would fail the invocation. Checked
       // against the name actually written, so an id fits as long as its eventSeq leaves room.
+      // Counted in UTF-8 bytes, as a byte-length column (DB2) counts it; on a column counting
+      // characters that is the conservative bound, the same for an ASCII id.
       if (TOO_LONG_WARNED.add(variableName)) {
-        LOG.warn("AI Agent connector: the chat-log variable '{}' is longer than the {} characters"
+        LOG.warn("AI Agent connector: the chat-log variable '{}' is longer than the {} bytes"
             + " the engine stores; the chat log of activity '{}' is not persisted from here on."
             + " Shorten the activity id to keep its audit trail.", name,
-            MAX_VARIABLE_NAME_LENGTH, variableName.substring(
+            ProcessVariableChatMemoryStore.MAX_VARIABLE_NAME_LENGTH, variableName.substring(
                 AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX.length()));
       }
       persisted = events.size();

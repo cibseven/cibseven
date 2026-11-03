@@ -153,6 +153,16 @@ public final class AgentConnectorConstants {
    *       JSON array of events; concatenated they are the timeline.</li>
    * </ol>
    *
+   * <p>Concurrency: the numbering is one timeline only for invocations of an
+   * activity that follow each other. Two at the same time, such as parallel
+   * multi-instance or two branches reaching the same activity, each continue
+   * from what is committed and so name their chunk alike, as they wrote the one
+   * variable before. The second insert then fails on the engine's unique index
+   * {@code ACT_UNIQ_VARIABLE}, as the second update failed before, and its job
+   * fails and is retried. The engine reports that violation as an
+   * {@code OptimisticLockingException} on H2, MySQL, MariaDB, PostgreSQL,
+   * SQL Server and Oracle, and as a plain persistence error on DB2.
+   *
    * <p>Compatibility: a reader that does not know the separator, such as a
    * webclient from before this version, takes every chunk for a log of its own
    * activity and shows one timeline per model call. Readers have to be updated

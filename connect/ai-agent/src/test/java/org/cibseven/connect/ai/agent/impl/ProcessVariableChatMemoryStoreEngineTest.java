@@ -394,7 +394,7 @@ public class ProcessVariableChatMemoryStoreEngineTest {
 
   /**
    * The driving agent's conversation is written once when the batch closes, out of its tools'
-   * reach; one deleted within the batch is not written back.
+   * reach; one of the driving agent's deleted within the batch is not written back.
    */
   @Test
   public void aBatchWritesTheDrivingAgentsConversationOnceWhereItsToolsCannotReachIt() {
@@ -421,6 +421,12 @@ public class ProcessVariableChatMemoryStoreEngineTest {
         .isNotEqualTo(instance.getId());
     assertThat(ChatMessageDeserializer.messagesFromJson(stored.getValue().toString()))
         .as("the last version").hasSize(2);
+    // The driving agent's conversation deleted within the open batch is discarded from it under
+    // the driven key, so the close does not put it back on the agent state, nor anywhere else.
+    assertThat(ENGINE.getRuntimeService().createVariableInstanceQuery()
+        .processInstanceIdIn(instance.getId())
+        .variableName(AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX + GONE_MEMORY_ID)
+        .count()).as("the deleted conversation, on the agent state or elsewhere").isZero();
   }
 
   /**

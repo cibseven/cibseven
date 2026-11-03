@@ -91,9 +91,10 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
 
   /**
    * Engine limit for the {@code NAME_} column of {@code ACT_RU_VARIABLE} —
-   * {@code ACT_HI_VARINST} and {@code ACT_HI_DETAIL} share it.
+   * {@code ACT_HI_VARINST} and {@code ACT_HI_DETAIL} share it. Shared with the
+   * chat-log chunk names of {@link AgentChatListener}.
    */
-  private static final int MAX_VARIABLE_NAME_LENGTH = 255;
+  static final int MAX_VARIABLE_NAME_LENGTH = 255;
 
   /**
    * Ceiling for the serialized conversation, in bytes. Unlike the variable name,
@@ -252,7 +253,7 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
     if (Batch.isOpen()) {
       Batch.discard(processLevelKey(execution, name));
       if (drivenScope != null) {
-        Batch.discard(new Key(drivenScope, name, true));
+        Batch.discard(key(execution, name));
       }
     }
     if (drivenScope != null) {
@@ -541,7 +542,10 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
     }
   }
 
-  /** A write a {@link Batch} holds back: the execution it was made from, and the JSON. */
+  /**
+   * A write a {@link Batch} holds back: the execution that first staged the conversation in that
+   * batch, and the newest JSON.
+   */
   private static final class Held {
 
     private final ExecutionEntity execution;
@@ -608,7 +612,16 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
       return OPEN.get() != null;
     }
 
-    /** Holds the write in the batch that has the conversation, else the innermost. */
+    /**
+     * Holds the write in the batch that has the conversation, else the innermost.
+     *
+     * <p>Written at close from the execution that first staged it there, not from the latest: in
+     * a nested invocation that is the outer one's, which is still running when its batch closes,
+     * while the inner task's may have ended by then. Both reach the same variable, as their keys
+     * are equal. Not written through the key's anchor, which would make the anchor rather than an
+     * invoking execution the source that the history ({@code ACT_HI_DETAIL}) and variable
+     * listeners see.
+     */
     static void stage(Key key, ExecutionEntity execution, String json) {
       Deque<Batch> open = OPEN.get();
       Batch target = open.peek();
@@ -617,7 +630,8 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
           target = batch;
         }
       }
-      target.held.put(key, new Held(execution, json));
+      Held first = target.held.get(key);
+      target.held.put(key, new Held((first != null) ? first.execution : execution, json));
     }
 
     /** The JSON a batch holds for the conversation, or {@code null}. */
@@ -641,14 +655,24 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
     /**
      * Writes what this batch held and closes it. Closed even when a write fails, so the thread
      * does not carry it into the next invocation.
+     *
+     * <p>A write that fails is logged before it is rethrown: when the invocation fails as well,
+     * the failure is only a suppressed exception of the invocation's, and a {@code BpmnError}
+     * caught by a boundary event lets the transaction commit without the conversation.
      */
     @Override
     public void close() {
       try {
         for (Map.Entry<Key, Held> write : held.entrySet()) {
           Key key = write.getKey();
-          ProcessVariableChatMemoryStore.write(write.getValue().execution, key.driven, key.name,
-              write.getValue().json);
+          try {
+            ProcessVariableChatMemoryStore.write(write.getValue().execution, key.driven, key.name,
+                write.getValue().json);
+          } catch (RuntimeException e) {
+            LOG.warn("AI Agent connector: could not write the conversation '{}' at the end of the "
+                + "connector invocation.", key.name, e);
+            throw e;
+          }
         }
       } finally {
         held.clear();

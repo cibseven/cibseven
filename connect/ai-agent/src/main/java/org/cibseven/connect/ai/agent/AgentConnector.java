@@ -124,9 +124,11 @@ import org.cibseven.connect.spi.Connector;
  * them off where the audit trail goes to an external sink instead.
  *
  * <p>A chunk's name, {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "~" + eventSeq},
- * has to fit into the 255 characters the engine stores as a variable name. An activity
- * id of at most 218 characters always leaves room; a longer one stops its chat log at
- * the first chunk that does not fit, with a warning, rather than failing the invocation.
+ * has to fit into the 255 the engine stores as a variable name, counted in UTF-8 bytes so
+ * that it fits on a database counting the column in bytes (DB2) as well. An activity id of
+ * at most 218 ASCII characters always leaves room (fewer where it has other characters); a
+ * longer one stops its chat log at the first chunk that does not fit, with a warning,
+ * rather than failing the invocation.
  */
 public interface AgentConnector extends Connector<AgentRequest> {
 

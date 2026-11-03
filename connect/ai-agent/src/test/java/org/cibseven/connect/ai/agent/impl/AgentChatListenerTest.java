@@ -496,7 +496,20 @@ public class AgentChatListenerTest {
         org.mockito.Matchers.any());
   }
 
-  /** An id of up to 218 characters leaves room for every int eventSeq (CIB7-2156). */
+  /**
+   * The name is measured in UTF-8 bytes, so it also fits a column that counts bytes (DB2): an id
+   * of non-ASCII characters that fits in characters but not in bytes is not persisted.
+   */
+  @Test
+  public void shouldMeasureTheChunkNameInBytes() {
+    int longest = 255 - AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX.length() - 2;
+    ExecutionEntity execution = afterOneFailedCall(repeat('ä', longest));
+    verify(execution, org.mockito.Mockito.never()).setVariable(
+        org.mockito.Matchers.startsWith(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX),
+        org.mockito.Matchers.any());
+  }
+
+  /** An id of up to 218 ASCII characters leaves room for every int eventSeq (CIB7-2156). */
   @Test
   public void shouldPersistTheChatLogOfTheLongestIdThatFitsEveryEventSeq() {
     int longest = 255 - AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX.length() - 11;
