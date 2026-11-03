@@ -4,8 +4,8 @@
 
 publiccodeYmlVersion: '0.2'
 name: CIB seven
-url: 'https://cibseven.org'
-landingURL: 'https://github.com/cibseven/cibseven'
+url: 'https://github.com/cibseven/cibseven'
+landingURL: 'https://cibseven.org'
 softwareVersion: 2.1.0
 releaseDate: '2025-11-07'
 logo: publiccode_logo.svg
