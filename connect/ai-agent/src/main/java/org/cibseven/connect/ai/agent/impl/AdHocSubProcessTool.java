@@ -154,8 +154,9 @@ public class AdHocSubProcessTool {
 
     /**
      * Characters of one declared value the agent is sent, counted on the value itself
-     * (CIB7-2179): the most a string variable holds, so a string is never cut. A longer text is
-     * a JSON or XML object.
+     * (CIB7-2179): the most a string variable holds, so a string is never cut. Counted as the
+     * database counts them, by code point: an emoji is one character there and two Java chars.
+     * A longer text is a JSON or XML object.
      */
     static final int MAX_PROCESS_VALUE_CHARS = 4000;
 
@@ -1188,11 +1189,14 @@ public class AdHocSubProcessTool {
         }
 
         static ProcessValue text(String text) {
-            if (text == null || text.length() <= MAX_PROCESS_VALUE_CHARS) {
+            int characters = (text == null) ? 0 : text.codePointCount(0, text.length());
+            if (characters <= MAX_PROCESS_VALUE_CHARS) {
                 return whole(text);
             }
-            return new ProcessValue(truncate(text, MAX_PROCESS_VALUE_CHARS), text.length()
-                    + " characters, over the limit of " + MAX_PROCESS_VALUE_CHARS);
+            // Cut after a whole character: half of an emoji is no character at all.
+            String cut = text.substring(0, text.offsetByCodePoints(0, MAX_PROCESS_VALUE_CHARS));
+            return new ProcessValue(cut + "… (truncated, " + characters + " characters total)",
+                    characters + " characters, over the limit of " + MAX_PROCESS_VALUE_CHARS);
         }
 
         static ProcessValue hidden(String placeholder, String why) {

@@ -1379,6 +1379,32 @@ public class AdHocSubProcessToolTest {
     assertThat(cut.notWhole).isEqualTo("5000 characters, over the limit of 4000");
   }
 
+  /**
+   * The 4000 are characters as the database counts them, not Java chars: 3995 letters and five
+   * emoji are a string the database holds, and reach the agent whole; a longer value is cut after
+   * a whole character, never between the two halves of an emoji (the review of CIB7-1843).
+   */
+  @Test
+  public void theLimitCountsCharactersAndCutsAfterAWholeOne() {
+    String emoji = new String(Character.toChars(0x1F600));
+    StringBuilder fits = new StringBuilder(longText(3995));
+    for (int i = 0; i < 5; i++) {
+      fits.append(emoji);
+    }
+    String over = longText(3999) + emoji + "bbbbbbbbbb";
+
+    AdHocSubProcessTool.ProcessValue whole =
+        AdHocSubProcessTool.processValue(Variables.stringValue(fits.toString()));
+    AdHocSubProcessTool.ProcessValue cut =
+        AdHocSubProcessTool.processValue(Variables.stringValue(over));
+
+    assertThat(fits.length()).as("Java chars").isEqualTo(4005);
+    assertThat(whole.notWhole).isNull();
+    assertThat(whole.shown).isEqualTo(fits.toString());
+    assertThat(cut.shown).isEqualTo(longText(3999) + emoji + "… (truncated, 4010 characters total)");
+    assertThat(cut.notWhole).isEqualTo("4010 characters, over the limit of 4000");
+  }
+
   /** Values past the budget of their own are left out and named, in the order declared. */
   @Test
   public void theProcessDataStaysWithinItsOwnBudget() {
