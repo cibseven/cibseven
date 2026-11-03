@@ -113,6 +113,43 @@ public class AdHocSubProcessToolTest {
   }
 
   /**
+   * Counts the engine's reads of stored byte arrays, the statement a file's, bytes' or an object's
+   * value is loaded with: what a declared value shown by its type alone must not cost. Installed
+   * once into the engine's MyBatis configuration; a plugin cannot be removed, so it stays and counts.
+   */
+  @org.apache.ibatis.plugin.Intercepts({@org.apache.ibatis.plugin.Signature(
+      type = org.apache.ibatis.executor.Executor.class, method = "query",
+      args = {org.apache.ibatis.mapping.MappedStatement.class, Object.class,
+          org.apache.ibatis.session.RowBounds.class, org.apache.ibatis.session.ResultHandler.class})})
+  static final class ByteArrayReads implements org.apache.ibatis.plugin.Interceptor {
+    /**
+     * The ids of the byte arrays read since the last {@code clear()}; the engine reads every one of a
+     * process when it ends, to delete it, so a test looks at the set while the step still runs.
+     */
+    static final java.util.Set<String> READ_IDS =
+        Collections.synchronizedSet(new java.util.LinkedHashSet<>());
+    private static boolean installed;
+
+    static synchronized void install(ProcessEngine engine) {
+      if (!installed) {
+        ((ProcessEngineConfigurationImpl) engine.getProcessEngineConfiguration())
+            .getSqlSessionFactory().getConfiguration().addInterceptor(new ByteArrayReads());
+        installed = true;
+      }
+    }
+
+    @Override
+    public Object intercept(org.apache.ibatis.plugin.Invocation invocation) throws Throwable {
+      org.apache.ibatis.mapping.MappedStatement statement =
+          (org.apache.ibatis.mapping.MappedStatement) invocation.getArgs()[0];
+      if (statement.getId().contains("selectByteArray")) {
+        READ_IDS.add(String.valueOf(invocation.getArgs()[1]));
+      }
+      return invocation.proceed();
+    }
+  }
+
+  /**
    * An object serializer of a format the agent never sees, which refuses to read a value when
    * told to: a stand-in for the cost of reading a file's or an object's bytes on every step.
    */
@@ -1259,8 +1296,9 @@ public class AdHocSubProcessToolTest {
    * A declared file, bytes or object outside JSON and XML is shown by its type without its value
    * being read: the placeholder comes from what the variable instance holds besides the value, so
    * a declared file is not read from the database on every step (CIB7-2513, here for the declared
-   * variables). A serializer that refuses to read stands in for that cost; a file and bytes take
-   * the same path, their placeholders are asserted as before.
+   * variables). A serializer that refuses to read stands in for that cost on the object; for the
+   * file and the bytes, which come first, the byte arrays the engine read while the step built its
+   * report are looked at: none of theirs is among them.
    */
   @Test
   public void aHiddenValueIsAPlaceholderWithoutBeingRead() {
@@ -1268,9 +1306,16 @@ public class AdHocSubProcessToolTest {
         ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
     BlobSerializer blob = new BlobSerializer();
     serializers.addSerializer(blob, 0);
+    ByteArrayReads.install(ENGINE);
     try {
+      List<String> readByTheReport = new ArrayList<>();
       ProcessInstance instance = startWithoutTurn("processDataNotRead",
-          processVariables("auftrag, scan, roh", "auftrag, scan, roh"), tool -> tool.turnReport());
+          processVariables("scan, roh, auftrag", "scan, roh, auftrag"), tool -> {
+            Object report = tool.turnReport();
+            // Before the process ends: the engine reads every byte array of it then, to delete it.
+            readByTheReport.addAll(ByteArrayReads.READ_IDS);
+            return report;
+          });
       Map<String, Object> auftrag = new LinkedHashMap<>();
       auftrag.put("nummer", "A-1047");
       ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
@@ -1280,9 +1325,20 @@ public class AdHocSubProcessToolTest {
               .mimeType("application/pdf").create());
       ENGINE.getRuntimeService().setVariable(instance.getId(), "roh", new byte[] {1, 2, 3});
       blob.failReads = true;
+      List<String> theirBytes = new ArrayList<>();
+      for (String name : Arrays.asList("scan", "roh")) {
+        theirBytes.add(((org.cibseven.bpm.engine.impl.persistence.entity.VariableInstanceEntity)
+            ENGINE.getRuntimeService().createVariableInstanceQuery()
+                .processInstanceIdIn(instance.getId()).variableName(name).singleResult())
+            .getByteArrayValueId());
+      }
+      assertThat(theirBytes).doesNotContainNull();
+      ByteArrayReads.READ_IDS.clear();
 
       runPendingTurn(instance);
 
+      assertThat(readByTheReport).as("the file's and the bytes' byte arrays read for the report")
+          .doesNotContainAnyElementsOf(theirBytes);
       assertThat(Agent.FAILURES).isEmpty();
       assertThat(processData(result(0)))
           .containsEntry("auftrag",
