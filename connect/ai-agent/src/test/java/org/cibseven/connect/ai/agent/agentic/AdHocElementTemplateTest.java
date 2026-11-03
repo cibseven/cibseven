@@ -107,11 +107,13 @@ public class AdHocElementTemplateTest {
     Pattern pattern = Pattern.compile(field.get("constraints").get("pattern").get("value").asText(),
         Pattern.UNICODE_CHARACTER_CLASS);
     for (String accepted : java.util.Arrays.asList("", " ", "kunde", "kunde, prioritaet",
-        " kunde ,prioritaet ", "kunde name, prioritaet", "kunde, prioritaet")) {
+        " kunde ,prioritaet ", "kunde.name, prioritaet", "kunde, prioritaet")) {
       assertThat(pattern.matcher(accepted).find()).as("'" + accepted + "'").isTrue();
     }
+    // A space inside a name is a comma left out, and ${…} or braces an expression or a list: the
+    // panel says so before the deployment would (the review pass of 2026-11-02, findings 5 and 7).
     for (String refused : java.util.Arrays.asList("kunde,,prioritaet", "kunde,", ",kunde",
-        "kunde, , prioritaet", "kunde, ")) {
+        "kunde, , prioritaet", "kunde, ", "kunde name, prioritaet", "${kunde}", "kunde, {a}")) {
       assertThat(pattern.matcher(refused).find()).as("'" + refused + "'").isFalse();
     }
   }

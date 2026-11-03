@@ -638,8 +638,10 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
    * own state (CIB7-2179). An empty name is a stray comma, and a name declared twice a slip of the
    * pen; either would leave a modeller wondering what the agent sees. A name with {@code $},
    * braces, a semicolon or an asterisk, or one longer than a variable's name can be, is an
-   * expression, a list or a pattern written by habit and would never match. The agent's own state
-   * is kept from the model on every path, and a declaration would hand it out.
+   * expression, a list or a pattern written by habit and would never match. A name with a space
+   * inside is a comma left out far more often than a name, and {@code ${…}} could not read such a
+   * name anyway. The agent's own state is kept from the model on every path, and a declaration
+   * would hand it out.
    *
    * <p>{@code cibseven.agentic.optionalProcessVariables} is checked the same way, and names only
    * variables the agent sees: a name it adds would be a typo, and the variable meant would stay
@@ -693,6 +695,7 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     List<String> twice = new ArrayList<String>();
     List<String> agentState = new ArrayList<String>();
     List<String> noVariable = new ArrayList<String>();
+    List<String> spaced = new ArrayList<String>();
     for (String raw : declared.split(",", -1)) {
       String name = strip(raw);
       if (name.isEmpty()) {
@@ -708,6 +711,8 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
         }
         if (name.length() > MAX_VARIABLE_NAME || !looksLikeAName(name)) {
           noVariable.add(name);
+        } else if (hasASpaceInside(name)) {
+          spaced.add(name);
         }
       }
     }
@@ -728,6 +733,10 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
           + " pattern, not as the name of a variable; name each variable itself, without $,"
           + " braces, a semicolon, an asterisk or a line break, in at most " + MAX_VARIABLE_NAME
           + " characters");
+    }
+    if (!spaced.isEmpty()) {
+      problems.add(String.join(", ", spaced) + ", with a space inside the name: a missing comma?"
+          + " separate the names by commas");
     }
     return problems;
   }
@@ -782,6 +791,19 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
       }
     }
     return true;
+  }
+
+  /**
+   * Whether {@code name}, stripped already, has white space inside: a comma left out between two
+   * names, far more often than a name with a space in it, which {@code ${…}} could not read.
+   */
+  protected static boolean hasASpaceInside(String name) {
+    for (int i = 0; i < name.length(); i++) {
+      if (isBlank(name.charAt(i))) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /** Whether {@code name} is one of the variables the agent keeps its own state in. */

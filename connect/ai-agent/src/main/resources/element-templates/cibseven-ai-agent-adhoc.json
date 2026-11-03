@@ -53,8 +53,8 @@
       },
       "constraints": {
         "pattern": {
-          "value": "^\\s*$|^\\s*[^,\\s]+(\\s+[^,\\s]+)*\\s*(,\\s*[^,\\s]+(\\s+[^,\\s]+)*\\s*)*$",
-          "message": "Names separated by single commas, none of them empty."
+          "value": "^\\s*$|^\\s*[^,\\s${}]+\\s*(,\\s*[^,\\s${}]+\\s*)*$",
+          "message": "Names separated by single commas, none of them empty; no space inside a name, no $ or braces."
         }
       }
     },
@@ -69,8 +69,8 @@
       },
       "constraints": {
         "pattern": {
-          "value": "^\\s*$|^\\s*[^,\\s]+(\\s+[^,\\s]+)*\\s*(,\\s*[^,\\s]+(\\s+[^,\\s]+)*\\s*)*$",
-          "message": "Names separated by single commas, none of them empty."
+          "value": "^\\s*$|^\\s*[^,\\s${}]+\\s*(,\\s*[^,\\s${}]+\\s*)*$",
+          "message": "Names separated by single commas, none of them empty; no space inside a name, no $ or braces."
         }
       }
     },

@@ -2291,6 +2291,24 @@ public class AgenticAdHocParseListenerTest {
         .hasMessageContaining("declares *, which reads as an expression, a list or a pattern");
   }
 
+  /**
+   * A space inside a name is a comma left out far more often than a name, and such a name would
+   * fail every instance as not set; ${…} could not read it either, so nothing is lost by refusing
+   * it (the review pass of 2026-11-02, finding 5).
+   */
+  @Test
+  public void refusesASpaceInsideANameAsAMissingComma() {
+    String model = connectorScope("<userTask id='worker' />",
+        processVariables("kunde prioritaet, rabatt", "rabatt  notiz"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("cibseven.agentic.processVariables is 'kunde prioritaet, rabatt', and"
+            + " declares kunde prioritaet, with a space inside the name: a missing comma? separate"
+            + " the names by commas; cibseven.agentic.optionalProcessVariables is 'rabatt  notiz',"
+            + " and declares rabatt  notiz, with a space inside the name");
+  }
+
   @Test
   public void declaresWhichOfTheProcessVariablesAreOptional() {
     deploy(connectorScope("<userTask id='worker' />",
