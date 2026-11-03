@@ -713,7 +713,8 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   protected boolean isDbIdentityUsed = true;
   protected boolean isDbHistoryUsed = true;
-  protected boolean modelerEnabled = true;
+  /** Off by default: the webclient tables (MOD_, CHAT_, NOTIF_) belong to the webclient. */
+  protected boolean webclientExtensionsEnabled = false;
 
   protected DelegateInterceptor delegateInterceptor;
 
@@ -875,11 +876,11 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected Set<String> allowedFilterExpressions = new HashSet<>(ExpressionWhitelistValidator.DEFAULT_ALLOWED_EXPRESSIONS);
 
   /**
-   * If false (default), disables the {@link org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator}
-   * entirely, so any expression is allowed in task filter criteria and adhoc task queries. Set to
-   * true to restrict them to {@link #allowedFilterExpressions}.
+   * If true (default), the {@link org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator} restricts
+   * expressions in task filter criteria and adhoc task queries to {@link #allowedFilterExpressions}.
+   * Set to false to disable the validator entirely and allow any expression.
    */
-  protected boolean enableFilterExpressionWhitelist = false;
+  protected boolean enableFilterExpressionWhitelist = true;
 
   /**
    * If false, disables XML eXternal Entity (XXE) Processing. This provides protection against XXE Processing attacks.
@@ -1031,6 +1032,18 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   private int failedJobListenerMaxRetries = DEFAULT_FAILED_JOB_LISTENER_MAX_RETRIES;
 
   protected String failedJobRetryTimeCycle;
+
+  /**
+   * Default {@code failedJobRetryTimeCycle} applied to external tasks that do not declare
+   * their own <code>camunda:failedJobRetryTimeCycle</code> extension element.
+   * <p>
+   * This is a separate property from {@link #failedJobRetryTimeCycle} on purpose: that
+   * property only ever applied to jobs, and reusing it for external tasks would silently
+   * change the retry behavior of any deployment that already configures a global default
+   * for jobs. Left {@code null} (the default), external tasks keep their previous behavior
+   * of unlimited retries until a worker or operator sets a value explicitly.
+   */
+  protected String externalTaskFailedJobRetryTimeCycle;
 
   // login attempts ///////////////////////////////////////////////////////
   protected int loginMaxAttempts = 10;
@@ -2101,7 +2114,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     dbSqlSessionFactory.setDbHistoryUsed(isDbHistoryUsed);
     dbSqlSessionFactory.setCmmnEnabled(cmmnEnabled);
     dbSqlSessionFactory.setDmnEnabled(dmnEnabled);
-    dbSqlSessionFactory.setModelerEnabled(modelerEnabled);
+    dbSqlSessionFactory.setWebclientExtensionsEnabled(webclientExtensionsEnabled);
     dbSqlSessionFactory.setDatabaseTablePrefix(databaseTablePrefix);
 
     //hack for the case when schema is defined via databaseTablePrefix parameter and not via databaseSchema parameter
@@ -3821,12 +3834,30 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     this.isDbHistoryUsed = isDbHistoryUsed;
   }
 
-  public boolean isModelerEnabled() {
-    return modelerEnabled;
+  public boolean isWebclientExtensionsEnabled() {
+    return webclientExtensionsEnabled;
   }
 
+  public void setWebclientExtensionsEnabled(boolean webclientExtensionsEnabled) {
+    this.webclientExtensionsEnabled = webclientExtensionsEnabled;
+  }
+
+  /**
+   * @deprecated since 3.0.0, use {@link #isWebclientExtensionsEnabled()}. The component covers the chat and
+   *             notification tables as well, not only the modeler ones.
+   */
+  @Deprecated
+  public boolean isModelerEnabled() {
+    return webclientExtensionsEnabled;
+  }
+
+  /**
+   * @deprecated since 3.0.0, use {@link #setWebclientExtensionsEnabled(boolean)}. Kept so that an existing
+   *             bpm-platform.xml or spring configuration naming modelerEnabled keeps working.
+   */
+  @Deprecated
   public void setModelerEnabled(boolean modelerEnabled) {
-    this.modelerEnabled = modelerEnabled;
+    this.webclientExtensionsEnabled = modelerEnabled;
   }
 
   public List<ResolverFactory> getResolverFactories() {
@@ -5221,6 +5252,14 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public void setFailedJobRetryTimeCycle(String failedJobRetryTimeCycle) {
     this.failedJobRetryTimeCycle = failedJobRetryTimeCycle;
+  }
+
+  public String getExternalTaskFailedJobRetryTimeCycle() {
+    return externalTaskFailedJobRetryTimeCycle;
+  }
+
+  public void setExternalTaskFailedJobRetryTimeCycle(String externalTaskFailedJobRetryTimeCycle) {
+    this.externalTaskFailedJobRetryTimeCycle = externalTaskFailedJobRetryTimeCycle;
   }
 
   public int getLoginMaxAttempts() {

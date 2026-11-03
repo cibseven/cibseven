@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.web.servlet.JerseyApplicationPath;
+import org.springframework.boot.jersey.autoconfigure.JerseyApplicationPath;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -127,6 +127,7 @@ public class CamundaBpmRunRestConfiguration {
     camundaJerseyResourceConfig.setProperties(Collections.singletonMap("jersey.config.server.wadl.disableWadl", camundaBpmRunProperties.getRest().isDisableWadl()));
     return camundaJerseyResourceConfig;
   }
+
   
   private String addUrl(String base, String extend) {
 	  return (base + extend).replaceFirst("^(\\/+|([^/]))", "/$2");

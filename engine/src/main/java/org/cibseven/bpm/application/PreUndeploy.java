@@ -40,7 +40,7 @@ import org.cibseven.bpm.engine.ProcessEngine;
  * <h2>Basic Usage example:</h2>
  * <pre>
  * {@literal @}ProcessApplication("My Process Application")
- * public class MyProcessApplication extends ServletProcessApplication {
+ * public class MyProcessApplication extends JakartaServletProcessApplication {
  *  
  *  {@literal @}PreUndeploy
  *  public void cleanup(ProcessEngine processEngine) {

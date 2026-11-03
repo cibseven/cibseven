@@ -86,16 +86,6 @@ public class AuthenticationFilterPathMatchingTest extends AbstractRestServiceTes
    * Makes a request against the url SERVICE_PATH + 'servletPath' + 'requestUrl' and depending on the 'authenticationExpected' value,
    * asserts that authentication was carried out (or not) against the engine named 'engineName'
    */
-  public AuthenticationFilterPathMatchingTest(String servletPath, String requestUrl, String engineName, boolean authenticationExpected) {
-    this.servletPath = servletPath;
-    this.requestUrl = requestUrl;
-    this.engineName = engineName;
-    if (engineName == null) {
-      this.engineName = "default";
-    }
-    this.authenticationExpected = authenticationExpected;
-  }
-
   public static Stream<Arguments> getRequestUrls() {
     return Stream.of(
         Arguments.of("", "/engine/default/process-definition/and/a/longer/path", "default", true),
@@ -150,6 +140,13 @@ public class AuthenticationFilterPathMatchingTest extends AbstractRestServiceTes
   }
 
   protected List<String> setupTenantQueryMock(List<Tenant> tenantMocks) {
+    TenantQuery mockTenantQuery = mock(TenantQuery.class);
+
+    when(identityServiceMock.createTenantQuery()).thenReturn(mockTenantQuery);
+    when(mockTenantQuery.userMember(anyString())).thenReturn(mockTenantQuery);
+    when(mockTenantQuery.includingGroupsOfUser(anyBoolean())).thenReturn(mockTenantQuery);
+    when(mockTenantQuery.list()).thenReturn(tenantMocks);
+
     List<String> tenantIds = new ArrayList<>();
     for (Tenant tenant : tenantMocks) {
       tenantIds.add(tenant.getId());
@@ -198,12 +195,10 @@ public class AuthenticationFilterPathMatchingTest extends AbstractRestServiceTes
       when(identityServiceMock.checkPassword(MockProvider.EXAMPLE_USER_ID, MockProvider.EXAMPLE_USER_PASSWORD)).thenReturn(true);
     }
     // Use minimal jakarta.servlet.http.HttpServletRequest/HttpServletResponse mocks
-    jakarta.servlet.http.HttpServletRequest request = mock(jakarta.servlet.http.HttpServletRequest.class, invocation -> {
-      if ("getRequestURI".equals(invocation.getMethod().getName())) return SERVICE_PATH + servletPath + requestUrl;
-      if ("getContextPath".equals(invocation.getMethod().getName())) return SERVICE_PATH;
-      if ("getServletPath".equals(invocation.getMethod().getName())) return servletPath;
-      return invocation.callRealMethod();
-    });
+    jakarta.servlet.http.HttpServletRequest request = mock(jakarta.servlet.http.HttpServletRequest.class);
+    when(request.getRequestURI()).thenReturn(SERVICE_PATH + servletPath + requestUrl);
+    when(request.getContextPath()).thenReturn(SERVICE_PATH);
+    when(request.getServletPath()).thenReturn(servletPath);
     jakarta.servlet.http.HttpServletResponse response = mock(jakarta.servlet.http.HttpServletResponse.class);
     applyFilter(request, response, MockProvider.EXAMPLE_USER_ID, MockProvider.EXAMPLE_USER_PASSWORD);
     // You may need to verify response status via Mockito if needed

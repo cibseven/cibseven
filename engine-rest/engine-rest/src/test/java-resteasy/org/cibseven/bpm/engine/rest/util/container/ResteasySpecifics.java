@@ -16,9 +16,10 @@
  */
 package org.cibseven.bpm.engine.rest.util.container;
 
-import java.io.IOException;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,7 +32,10 @@ import org.cibseven.bpm.engine.rest.standalone.NoServletAuthenticationFilterTest
 import org.cibseven.bpm.engine.rest.standalone.NoServletEmptyBodyFilterTest;
 import org.cibseven.bpm.engine.rest.standalone.ServletAuthenticationFilterTest;
 import org.cibseven.bpm.engine.rest.standalone.ServletEmptyBodyFilterTest;
+import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.Extension;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * @author Thorben Lindhauer
@@ -54,14 +58,15 @@ public class ResteasySpecifics implements ContainerSpecifics {
     TEST_RULE_FACTORIES.put(CustomJacksonDateFormatTest.class, new ServletContainerRuleFactory("custom-date-format-web.xml"));
   }
 
-  public Extension getTestRule(Class<?> testClass) {
+  @Override
+  public Extension getTestExtension(Class<?> testClass) {
     TestRuleFactory ruleFactory = DEFAULT_RULE_FACTORY;
 
     if (TEST_RULE_FACTORIES.containsKey(testClass)) {
       ruleFactory = TEST_RULE_FACTORIES.get(testClass);
     }
 
-    return ruleFactory.createTestRule();
+    return ruleFactory.createExtension();
   }
 
   public static class EmbeddedServerRuleFactory implements TestRuleFactory {
@@ -72,14 +77,18 @@ public class ResteasySpecifics implements ContainerSpecifics {
       this.jaxRsApplication = jaxRsApplication;
     }
 
-    public Extension createTestRule() {
-      return new Extension() {
+    public Extension createExtension() {
+      return new BeforeAfterExtension() {
+
         ResteasyServerBootstrap bootstrap = new ResteasyServerBootstrap(jaxRsApplication);
-        // Use BeforeAllCallback/AfterAllCallback for server lifecycle
-        public void beforeAll(ExtensionContext context) throws Exception {
+
+        @Override
+        protected void before() throws Exception {
           bootstrap.start();
         }
-        public void afterAll(ExtensionContext context) throws Exception {
+
+        @Override
+        protected void after() throws Exception {
           bootstrap.stop();
         }
       };
@@ -94,27 +103,45 @@ public class ResteasySpecifics implements ContainerSpecifics {
       this.webXmlResource = webXmlResource;
     }
 
-    public Extension createTestRule() {
-      return new Extension() {
-        Path tempDir;
-        ResteasyTomcatServerBootstrap bootstrap;
-        // Use BeforeAllCallback/AfterAllCallback for server lifecycle
-        public void beforeAll(ExtensionContext context) throws Exception {
-          tempDir = Files.createTempDirectory("resteasy-tomcat-test");
-          bootstrap = new ResteasyTomcatServerBootstrap(webXmlResource);
-          bootstrap.setWorkingDir(tempDir.toFile().getAbsolutePath());
+    public Extension createExtension() {
+      return new BeforeAfterExtension() {
+
+        Path tempFolder;
+        TomcatServerBootstrap bootstrap = new ResteasyTomcatServerBootstrap(webXmlResource);
+
+        @Override
+        protected void before() throws Exception {
+          tempFolder = Files.createTempDirectory("junit-temp");
+          bootstrap.setWorkingDir(tempFolder.toAbsolutePath().toString());
           bootstrap.start();
         }
-        public void afterAll(ExtensionContext context) throws Exception {
-          if (bootstrap != null) {
-            bootstrap.stop();
-          }
-          if (tempDir != null) {
-            try { Files.walk(tempDir).sorted(java.util.Comparator.reverseOrder()).map(Path::toFile).forEach(java.io.File::delete); } catch (IOException ignored) {}
+
+        @Override
+        protected void after() throws Exception {
+          bootstrap.stop();
+          if (tempFolder != null) {
+            Files.walk(tempFolder)
+              .sorted(Comparator.reverseOrder())
+              .map(Path::toFile)
+              .forEach(File::delete);
           }
         }
       };
     }
+
   }
 
+  // Abstract helper for JUnit 5 before/after logic
+  abstract static class BeforeAfterExtension implements Extension, BeforeAllCallback, AfterAllCallback {
+    protected abstract void before() throws Exception;
+    protected abstract void after() throws Exception;
+    @Override
+    public void beforeAll(ExtensionContext context) throws Exception {
+      before();
+    }
+    @Override
+    public void afterAll(ExtensionContext context) throws Exception {
+      after();
+    }
+  }
 }

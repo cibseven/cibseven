@@ -22,13 +22,14 @@ import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
+import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -41,8 +42,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * @author Daniel Meyer
  *
  */
-//TODO restore: this test is failing after migrating to JUnit5
-@Disabled("Fails since the JUnit5 migration")
 @ExtendWith(ArquillianExtension.class)
 public class TestFoxPlatformClientAsLibInWebModule extends AbstractFoxPlatformIntegrationTest {
 
@@ -66,9 +65,15 @@ public class TestFoxPlatformClientAsLibInWebModule extends AbstractFoxPlatformIn
       .addAsResource("org/cibseven/bpm/integrationtest/testDeployProcessArchive.bpmn20.xml")
       .addClass(TestFoxPlatformClientAsLibInWebModule.class);
 
+    // WildFly rejects the CDI extension of an engine-cdi jar inside a WAR of an EAR
+    // (WFLYWELD0021), so it goes into the EAR's lib folder like in the other EAR tests
+    JavaArchive engineCdi = DeploymentHelper.getEngineCdi();
+    processArchive.delete("WEB-INF/lib/" + engineCdi.getName());
+
     // this packages the WAR file inside an EAR file
     return ShrinkWrap.create(EnterpriseArchive.class, "test-application.ear")
-      .addAsModule(processArchive);
+      .addAsModule(processArchive)
+      .addAsLibrary(engineCdi);
 
   }
 

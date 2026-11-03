@@ -33,7 +33,6 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.Disabled;
 
 /**
  * <p>Integration test that makes sure the shared container managed process engine is able to resolve
@@ -43,8 +42,6 @@ import org.junit.jupiter.api.Disabled;
  *
  */
 
-// TODO restore: this test is failing after migrating to JUnit5
-@Disabled("Fails since the JUnit5 migration")
 @ExtendWith(ArquillianExtension.class)
 public class SpringRetryConfigurationTest extends AbstractFoxPlatformIntegrationTest {
 

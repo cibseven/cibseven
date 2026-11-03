@@ -33,14 +33,11 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.cibseven.bpm.application.ProcessApplicationContext.withProcessApplicationContext;
 import static org.assertj.core.api.Assertions.assertThat;
 
-//TODO restore: this test is failing after migrating to JUnit5
-@Disabled("Fails since the JUnit5 migration")
 @ExtendWith(ArquillianExtension.class)
 public class PaContextSwitchCustomSerializerTest extends AbstractFoxPlatformIntegrationTest {
 
@@ -57,8 +54,9 @@ public class PaContextSwitchCustomSerializerTest extends AbstractFoxPlatformInte
         .addClass(CustomDataFormatConfigurator.class)
         .addAsServiceProvider(DataFormatConfigurator.class, CustomDataFormatConfigurator.class);
 
+    TestContainer.addContainerSpecificResourcesForNonPa(webArchive);
+    // must come after the container resources: on WildFly its jboss-deployment-structure.xml has to replace theirs
     TestContainer.addSpinJacksonJsonDataFormat(webArchive);
-    TestContainer.addContainerSpecificResources(webArchive);
     return webArchive;
   }
 
@@ -70,7 +68,7 @@ public class PaContextSwitchCustomSerializerTest extends AbstractFoxPlatformInte
         .addAsResource("META-INF/processes.xml")
         .addClass(AbstractFoxPlatformIntegrationTest.class)
         .addClass(ProcessApplication4.class);
-    TestContainer.addContainerSpecificResources(webArchive);
+    TestContainer.addContainerSpecificResourcesForNonPa(webArchive);
     return webArchive;
   }
 

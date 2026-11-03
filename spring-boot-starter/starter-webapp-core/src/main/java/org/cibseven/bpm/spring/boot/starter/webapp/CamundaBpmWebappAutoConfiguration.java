@@ -30,7 +30,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.boot.autoconfigure.web.servlet.WebMvcRegistrations;
+import org.springframework.boot.webmvc.autoconfigure.WebMvcRegistrations;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -79,7 +79,7 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer, WebM
   public FaviconResourceResolver faviconResourceResolver() {
     return new FaviconResourceResolver();
   }
-  
+
   @Override
   public RequestMappingHandlerMapping getRequestMappingHandlerMapping() {
     RequestMappingHandlerMapping mapping = new RequestMappingHandlerMapping();
@@ -105,9 +105,9 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer, WebM
     registry.addResourceHandler(legacyApplicationPath + "/favicon.ico")
         .addResourceLocations(legacyClasspath + "/") // add slash to get rid of the WARN log
         .resourceChain(true)
-        .addResolver(faviconResourceResolver());    
-      
-     registry.addResourceHandler(webapp.getApplicationPath() + "/**").addResourceLocations("classpath:" + webapp.getWebjarClasspath()+ "/");     
+        .addResolver(faviconResourceResolver());
+
+     registry.addResourceHandler(webapp.getApplicationPath() + "/**").addResourceLocations("classpath:" + webapp.getWebjarClasspath()+ "/");
 
   }
 
@@ -115,11 +115,12 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer, WebM
   public void addViewControllers(ViewControllerRegistry registry) {
 
     WebappProperty webapp = properties.getWebapp();
+    // only redirect from index ("/") if index redirect is enabled
     if (webapp.isIndexRedirectEnabled()) {
-		// using AppendTrailingSlashFilter
       registry.addRedirectViewController("/", webapp.getApplicationPath() + "/");
-	    registry.addViewController(webapp.getApplicationPath() + "/").setViewName("forward:" + webapp.getApplicationPath() + "/index.html");
     }
+    // always serve the webapp index; AppendTrailingSlashFilter redirects the application path to it
+    registry.addViewController(webapp.getApplicationPath() + "/").setViewName("forward:" + webapp.getApplicationPath() + "/index.html");
   }
 
 }
