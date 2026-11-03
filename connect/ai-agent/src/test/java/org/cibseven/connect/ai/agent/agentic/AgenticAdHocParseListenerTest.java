@@ -50,6 +50,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
@@ -2388,28 +2389,34 @@ public class AgenticAdHocParseListenerTest {
     assertThat(optionalProcessVariablesOf("adHoc")).isNull();
   }
 
-  /** A name the agent does not see is a typo, and the variable meant would stay required. */
+  /**
+   * The optional list only modifies the names contextVariables declares: a name the agent does not
+   * see changes nothing, and the model deploys. A typo would leave the variable meant required, so
+   * the name is in a warning at deployment, as on the AI agent task (CIB7-1843).
+   */
   @Test
-  public void refusesAnOptionalVariableTheAgentDoesNotSee() {
-    String model = connectorScope("<userTask id='worker' />",
-        processVariables("kunde, rabatt", "rabat"), "");
+  public void anOptionalVariableTheAgentDoesNotSeeIsIgnoredWithAWarning() {
+    List<String> warnings = warningsOfTheParseListener(() -> deploy(connectorScope(
+        "<userTask id='worker' />", processVariables("kunde, rabatt", "rabat, rabatt"), "")));
 
-    assertThatThrownBy(() -> deploy(model))
-        .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("optionalContextVariables is 'rabat', and declares"
-            + " rabat, which contextVariables does not declare; only a variable"
-            + " the agent sees can be optional, so name it there too, or leave it out.");
+    assertThat(declaredProcessVariablesOf("adHoc")).containsExactly("kunde", "rabatt");
+    assertThat(optionalProcessVariablesOf("adHoc")).containsExactly("rabatt");
+    assertThat(warnings).containsExactly("Ad hoc sub process 'adHoc': 'rabat' is listed in"
+        + " 'optionalContextVariables' but not in 'contextVariables', and is ignored. Only"
+        + " 'contextVariables' decides what the agent sees; check for a typo, otherwise the"
+        + " variable you meant stays required.");
   }
 
   @Test
-  public void refusesOptionalVariablesWithoutTheOnesTheAgentSees() {
-    String model = connectorScope("<userTask id='worker' />", processVariables(null, "rabatt"),
-        "");
+  public void optionalVariablesWithoutTheOnesTheAgentSeesAreIgnoredWithAWarning() {
+    List<String> warnings = warningsOfTheParseListener(() -> deploy(connectorScope(
+        "<userTask id='worker' />", processVariables(null, "rabatt"), "")));
 
-    assertThatThrownBy(() -> deploy(model))
-        .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("declares rabatt, which contextVariables does not"
-            + " declare");
+    assertThat(declaredProcessVariablesOf("adHoc")).isNull();
+    assertThat(optionalProcessVariablesOf("adHoc")).isNull();
+    assertThat(warnings).containsExactly("Ad hoc sub process 'adHoc': 'optionalContextVariables'"
+        + " is set but 'contextVariables' is empty, so the agent sees no process variables. The"
+        + " optional list only modifies the names 'contextVariables' declares.");
   }
 
   @Test
@@ -2422,9 +2429,28 @@ public class AgenticAdHocParseListenerTest {
         .hasMessageContaining("contextVariables is 'kunde, kunde', and declares"
             + " kunde more than once; optionalContextVariables is"
             + " 'kunde,, ${rabatt}', and declares an empty name")
-        .hasMessageContaining("${rabatt}, which reads as an expression")
-        .hasMessageContaining("${rabatt}, which contextVariables does not"
-            + " declare");
+        .hasMessageContaining("${rabatt}, which reads as an expression");
+  }
+
+  /** The warnings the parse listener logs while {@code deploying} runs. */
+  protected static List<String> warningsOfTheParseListener(Runnable deploying) {
+    Logger logger = (Logger) LoggerFactory.getLogger(AgenticAdHocParseListener.class);
+    ListAppender<ILoggingEvent> appender = new ListAppender<ILoggingEvent>();
+    appender.start();
+    logger.addAppender(appender);
+    try {
+      deploying.run();
+    } finally {
+      logger.detachAppender(appender);
+      appender.stop();
+    }
+    List<String> warnings = new ArrayList<String>();
+    for (ILoggingEvent event : appender.list) {
+      if (event.getLevel() == Level.WARN) {
+        warnings.add(event.getFormattedMessage());
+      }
+    }
+    return warnings;
   }
 
   protected static String processVariables(String names) {

@@ -264,11 +264,25 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     if (!processVariables.isEmpty()) {
       activity.getProperties().set(DECLARED_PROCESS_VARIABLES,
           Collections.unmodifiableList(processVariables));
-      List<String> optional = declaredNames(declaring.get(OPTIONAL_CONTEXT_VARIABLES));
+      List<String> optional = new ArrayList<String>();
+      for (String name : declaredNames(declaring.get(OPTIONAL_CONTEXT_VARIABLES))) {
+        if (processVariables.contains(name)) {
+          optional.add(name);
+        } else {
+          LOG.warn("Ad hoc sub process '{}': '{}' is listed in '{}' but not in '{}', and is"
+              + " ignored. Only '{}' decides what the agent sees; check for a typo, otherwise the"
+              + " variable you meant stays required.", activity.getId(), name,
+              OPTIONAL_CONTEXT_VARIABLES, CONTEXT_VARIABLES, CONTEXT_VARIABLES);
+        }
+      }
       if (!optional.isEmpty()) {
         activity.getProperties().set(OPTIONAL_DECLARED_PROCESS_VARIABLES,
             Collections.unmodifiableList(optional));
       }
+    } else if (!declaredNames(declaring.get(OPTIONAL_CONTEXT_VARIABLES)).isEmpty()) {
+      LOG.warn("Ad hoc sub process '{}': '{}' is set but '{}' is empty, so the agent sees no"
+          + " process variables. The optional list only modifies the names '{}' declares.",
+          activity.getId(), OPTIONAL_CONTEXT_VARIABLES, CONTEXT_VARIABLES, CONTEXT_VARIABLES);
     }
 
     // followUp pulled out before the mapping is stored: unlike every other input parameter, it
@@ -643,17 +657,18 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
 
   /**
    * {@code contextVariables} is plain text, and names each variable once, and none of the agent's
-   * own state (CIB7-2179). A list, a map or a script has no text to read once. An empty name is a stray comma, and a name declared twice a slip of the
-   * pen; either would leave a modeller wondering what the agent sees. A name with {@code $},
+   * own state (CIB7-2179). A list, a map or a script has no text to read once. An empty name is a
+   * stray comma, and a name declared twice a slip of the pen; either would leave a modeller
+   * wondering what the agent sees. A name with {@code $},
    * braces, a semicolon or an asterisk, or one longer than a variable's name can be, is an
    * expression, a list or a pattern written by habit and would never match. A name with a space
    * inside is a comma left out far more often than a name, and {@code ${…}} could not read such a
    * name anyway. The agent's own state is kept from the model on every path, and a declaration
    * would hand it out.
    *
-   * <p>{@code optionalContextVariables} is checked the same way, and names only
-   * variables the agent sees: a name it adds would be a typo, and the variable meant would stay
-   * required.
+   * <p>{@code optionalContextVariables} is checked the same way. A name in it that
+   * {@code contextVariables} does not declare is no refusal: it only modifies that list, so the
+   * name is ignored with a warning when the scope is parsed, as on the AI agent task (CIB7-1843).
    */
   protected void refuseABadDeclarationOfProcessVariables(Element scopeElement,
       ActivityImpl activity, Map<String, String> inputs) {
@@ -674,17 +689,6 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     String optional = inputs.get(OPTIONAL_CONTEXT_VARIABLES);
     List<String> optionalNames = new ArrayList<String>();
     List<String> optionalProblems = problemsOfADeclaration(optional, optionalNames);
-    List<String> unseen = new ArrayList<String>();
-    for (String name : optionalNames) {
-      if (!seen.contains(name)) {
-        unseen.add(name);
-      }
-    }
-    if (!unseen.isEmpty()) {
-      optionalProblems.add(String.join(", ", unseen) + ", which " + CONTEXT_VARIABLES
-          + " does not declare; only a variable the agent sees can be optional, so name it there"
-          + " too, or leave it out");
-    }
     if (!optionalProblems.isEmpty()) {
       refusals.add(OPTIONAL_CONTEXT_VARIABLES + " is '" + optional + "', and declares "
           + String.join(", and ", optionalProblems));

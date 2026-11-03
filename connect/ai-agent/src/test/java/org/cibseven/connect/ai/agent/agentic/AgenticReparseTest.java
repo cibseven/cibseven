@@ -826,13 +826,6 @@ public class AgenticReparseTest {
                 + input(AgenticAdHocParseListener.CONTEXT_VARIABLES, "kunde, kunde")),
                 "<userTask id='arbeit' />"),
             "declares kunde more than once", processVariablesLeftOut, withoutProcessVariables()),
-        Arguments.of("an optional process variable the agent does not see",
-            adHoc(connector(MESSAGE
-                + input(AgenticAdHocParseListener.CONTEXT_VARIABLES, "kunde, rabatt")
-                + input(AgenticAdHocParseListener.OPTIONAL_CONTEXT_VARIABLES, "rabat")),
-                "<userTask id='arbeit' />"),
-            "declares rabat, which contextVariables does not declare",
-            processVariablesLeftOut, withoutProcessVariables()),
         Arguments.of("a message that does not parse",
             adHoc(connector("<camunda:inputParameter name='message'>Handle ${order."
                 + "</camunda:inputParameter>"), "<userTask id='arbeit' />"),
