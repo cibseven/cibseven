@@ -144,8 +144,8 @@ public class AdHocElementTemplateTest {
     assertThat(text(optional, "description")).contains("Empty: every one is required.")
         .contains("a file, bytes or a Java object is shown by its type only");
     // What a process developer asked of the text (the review pass of 2026-11-02): a name, not a
-    // path; when to use it instead of ${name}; what fails, and what the operator then sees; that
-    // null is set; what the agent never sees; where the value is, since the chat log keeps a marker.
+    // path; when to use it instead of ${name}; what fails, and what the operator then sees, null
+    // among it; what the agent never sees; where the value is, since the chat log keeps a marker.
     assertThat(text(seen, "description"))
         .contains("the name of a variable, not a path into it")
         .contains("instead of ${name} in Message")
@@ -154,7 +154,7 @@ public class AdHocElementTemplateTest {
         .contains("Each one is required unless Optional context variables names it")
         .contains("a file, bytes or a Java object, which the agent never sees")
         .contains("after the job's retries, the sub process gets an incident naming it")
-        .contains("null counts as set")
+        .contains("if it is not set or null")
         .contains("the value is in the variable's history")
         .contains("Never list tokens or passwords: the values go to the model's and the"
             + " embedding's provider");

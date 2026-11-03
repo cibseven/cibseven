@@ -736,15 +736,16 @@ public class AdHocSubProcessTool {
      * scopes around it, and shown as {@link #processValue} shows it.
      *
      * <p>Each one is required unless the scope declares it optional. A required one must reach the
-     * agent whole: set, null counting as a value, not cut, not a placeholder, and within the
-     * budget, which the required ones take first. Otherwise the step fails before the model is
-     * called, naming each one and why, and the turn's job is retried and ends in an incident: an
-     * agent asked without what it needs answers anyway, confidently.
+     * agent whole: set, and not to null, not cut, not a placeholder, and within the budget, which
+     * the required ones take first. Otherwise the step fails before the model is called, naming
+     * each one and why, and the turn's job is retried and ends in an incident: an agent asked
+     * without what it needs answers anyway, confidently.
      *
      * <p>An optional one that is not set is named under {@code processDataNotSet}, so the agent
-     * tells it from one set to null; a long text is cut and says so, the variable keeping its
-     * whole value; one that does not fit what is left of the budget is left out and named, and a
-     * smaller one after it may fit. The values never take more than the budget.
+     * tells it from an optional one set to null, which it sees as null; a long text is cut and says
+     * so, the variable keeping its whole value; one that does not fit what is left of the budget is
+     * left out and named, and a smaller one after it may fit. The values never take more than the
+     * budget.
      *
      * <p>Read on every step, unlike the results, which are reported once: the agent acts on what
      * the process holds now. Nothing here moves the read position of the results.
@@ -780,6 +781,12 @@ public class AdHocSubProcessTool {
                 }
                 if (required && shown.notWhole != null) {
                     missing.add(name + " (" + shown.notWhole + ")");
+                    continue;
+                }
+                // A required one set to null fails as one not set does: the agent would answer
+                // over a value that is not there as confidently (as on the AI agent task).
+                if (required && shown.shown == null) {
+                    missing.add(name + " (null)");
                     continue;
                 }
                 // Admitted only whole and within the budget, counted as JSON writes it: a string
@@ -907,7 +914,8 @@ public class AdHocSubProcessTool {
      * its content would be noise to the model, or would have to be loaded and deserialized here.
      *
      * <p>Only a value that is itself null reads as null, a typed null of any type among them: a
-     * variable set to null is set, for a required one too. A value read already in this command
+     * variable set to null is set, and is null, not a placeholder of its type. A value read already
+     * in this command
      * comes from the variable's cache, deserialized: a Spin value is then shown by the text its node
      * writes now, which an expression of the step may have changed, and is never taken for null for
      * want of its text. Another object in JSON or XML shows the text it was stored with.

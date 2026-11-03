@@ -799,7 +799,7 @@ public class AdHocSubProcessToolTest {
   @Test
   public void theReportCarriesTheDeclaredProcessVariablesWithTheirCurrentValues() {
     ProcessInstance instance = startWithoutTurn("processData",
-        processVariables("kunde, prioritaet, eilig, offen"), tool -> tool.turnReport());
+        processVariables("kunde, prioritaet, eilig, offen", "offen"), tool -> tool.turnReport());
     Map<String, Object> variables = new LinkedHashMap<>();
     variables.put("kunde", "Müller GmbH");
     variables.put("prioritaet", 2);
@@ -810,7 +810,7 @@ public class AdHocSubProcessToolTest {
     runPendingTurn(instance);
 
     Map<String, Object> report = result(0);
-    assertThat(processData(report)).as("in the order declared, a variable set to null as null")
+    assertThat(processData(report)).as("in the order declared, an optional one set to null as null")
         .containsExactly(entry("kunde", (Object) "Müller GmbH"), entry("prioritaet", (Object) 2),
             entry("eilig", (Object) true), entry("offen", null));
     assertThat(report).doesNotContainKeys("processDataNotSet", "processDataNote");
@@ -870,15 +870,17 @@ public class AdHocSubProcessToolTest {
   }
 
   /**
-   * A required one must reach the agent: set, null counting as a value, and seen whole. Every one
-   * that does not is named with why, beside those that were read, and the agent gets no block.
+   * A required one must reach the agent: set, not to null, and seen whole. Every one that does not
+   * is named with why, beside those that were read, and the agent gets no block. A typed null is
+   * null too, not a placeholder of its type.
    */
   @Test
   public void aRequiredVariableThatDoesNotReachTheAgentFailsTheStep() {
     ProcessInstance instance = startWithoutTurn("processDataRequired",
-        processVariables("kunde, fehlt, leer, auftrag"), tool -> tool.turnReport());
+        processVariables("kunde, fehlt, leer, roh, auftrag"), tool -> tool.turnReport());
     ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
     ENGINE.getRuntimeService().setVariable(instance.getId(), "leer", null);
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "roh", Variables.byteArrayValue(null));
     ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
         Variables.objectValue(new ArrayList<>(Arrays.asList("a", "b"))).create());
 
@@ -888,11 +890,12 @@ public class AdHocSubProcessToolTest {
     assertThat(Agent.FAILURES).hasSize(1);
     assertThat(Agent.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class)
         .hasMessage("Ad hoc sub process 'adHoc': required process variables did not reach the"
-            + " agent: fehlt (not set), auftrag (an object in application/x-java-serialized-object,"
+            + " agent: fehlt (not set), leer (null), roh (null), auftrag (an object in"
+            + " application/x-java-serialized-object,"
             + " which the agent sees only by its type; store it as JSON); the model was not called."
             + " Set the variable on the process instance and retry the job, or change the model:"
             + " make it optional (optionalContextVariables) or leave it out of"
-            + " contextVariables. Reached the agent: kunde, leer.");
+            + " contextVariables. Reached the agent: kunde.");
   }
 
   /**
@@ -958,13 +961,13 @@ public class AdHocSubProcessToolTest {
   }
 
   /**
-   * A variable set to null is set, whatever its type: a required one set to null bytes reaches the
-   * agent as null, and does not fail the step for a placeholder it would never need.
+   * A variable set to null is set, whatever its type: an optional one set to null bytes reaches the
+   * agent as null, not as a placeholder of its type, and is not named as not set.
    */
   @Test
-  public void aRequiredVariableSetToATypedNullReachesTheAgentAsNull() {
+  public void anOptionalVariableSetToATypedNullReachesTheAgentAsNull() {
     ProcessInstance instance = startWithoutTurn("processDataTypedNull",
-        processVariables("kunde, roh"), tool -> tool.turnReport());
+        processVariables("kunde, roh", "roh"), tool -> tool.turnReport());
     ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
     ENGINE.getRuntimeService().setVariable(instance.getId(), "roh", Variables.byteArrayValue(null));
 
