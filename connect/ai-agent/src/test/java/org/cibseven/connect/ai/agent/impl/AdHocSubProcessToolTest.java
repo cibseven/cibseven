@@ -38,7 +38,10 @@ import org.cibseven.bpm.engine.delegate.JavaDelegate;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.cibseven.bpm.engine.impl.variable.serializer.AbstractObjectValueSerializer;
+import org.cibseven.bpm.engine.impl.variable.serializer.VariableSerializers;
 import org.cibseven.bpm.engine.history.HistoricDetail;
 import org.cibseven.bpm.engine.history.HistoricVariableUpdate;
 import org.cibseven.bpm.engine.runtime.Job;
@@ -105,6 +108,48 @@ public class AdHocSubProcessToolTest {
   /** What the agent does in one turn. */
   interface Turn {
     Object run(AdHocSubProcessTool tool);
+  }
+
+  /**
+   * A JSON serializer for the engine of these tests, which has no Spin: Jackson over a Map, so
+   * that an object stored as JSON can be read deserialized and changed in a step.
+   */
+  static final class JsonMapSerializer extends AbstractObjectValueSerializer {
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    JsonMapSerializer() {
+      super("application/json");
+    }
+
+    @Override
+    public String getName() {
+      return "json-map-test";
+    }
+
+    @Override
+    protected boolean isSerializationTextBased() {
+      return true;
+    }
+
+    @Override
+    protected String getTypeNameForDeserialized(Object deserializedObject) {
+      return deserializedObject.getClass().getName();
+    }
+
+    @Override
+    protected byte[] serializeToByteArray(Object deserializedObject) throws Exception {
+      return MAPPER.writeValueAsBytes(deserializedObject);
+    }
+
+    @Override
+    protected Object deserializeFromByteArray(byte[] bytes, String objectTypeName) throws Exception {
+      return MAPPER.readValue(bytes, LinkedHashMap.class);
+    }
+
+    @Override
+    protected boolean canSerializeValue(Object value) {
+      return value instanceof Map;
+    }
   }
 
   /** What the scripted turns returned and what they ran into. */
@@ -934,6 +979,44 @@ public class AdHocSubProcessToolTest {
             + " application/x-java-serialized-object), not shown>")
         .containsEntry("scan", "<file value, not shown>")
         .containsEntry("roh", "<bytes value, not shown>");
+  }
+
+  /**
+   * An object stored as JSON that an expression or a listener of the same step changes is shown
+   * as it is now, written again by its serializer, not by the text it was read with (Copilot's
+   * review of PR 532). Read deserialized and changed inside the turn, as such an expression would;
+   * the engine of these tests has no JSON serializer, so one over a Map stands in for the step.
+   */
+  @Test
+  public void aDeserializedJsonObjectChangedInTheStepIsShownAsItIsNow() {
+    VariableSerializers serializers = ((ProcessEngineConfigurationImpl)
+        ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
+    JsonMapSerializer json = new JsonMapSerializer();
+    serializers.addSerializer(json, 0);
+    try {
+      ProcessInstance instance = startWithoutTurn("processDataJsonChanged",
+          processVariables("auftrag"), tool -> {
+            ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> auftrag =
+                (Map<String, Object>) scope.getVariableTyped("auftrag").getValue();
+            auftrag.put("positionen", 4);
+            return tool.turnReport();
+          });
+      Map<String, Object> auftrag = new LinkedHashMap<>();
+      auftrag.put("nummer", "A-1047");
+      auftrag.put("positionen", 3);
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+          Variables.objectValue(auftrag).serializationDataFormat("application/json").create());
+
+      runPendingTurn(instance);
+
+      assertThat(Agent.FAILURES).isEmpty();
+      assertThat(processData(result(0)))
+          .containsEntry("auftrag", "{\"nummer\":\"A-1047\",\"positionen\":4}");
+    } finally {
+      serializers.removeSerializer(json);
+    }
   }
 
   /**

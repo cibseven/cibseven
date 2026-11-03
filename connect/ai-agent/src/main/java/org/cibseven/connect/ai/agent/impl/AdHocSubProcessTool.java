@@ -39,9 +39,13 @@ import org.cibseven.connect.ai.agent.agentic.AgenticToolCatalogParser;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.cibseven.bpm.engine.runtime.AdHocSubProcessActivationBuilder;
+import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
+import org.cibseven.bpm.engine.impl.util.StringUtil;
+import org.cibseven.bpm.engine.impl.variable.serializer.TypedValueSerializer;
+import org.cibseven.bpm.engine.impl.variable.serializer.ValueFields;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
@@ -910,6 +914,13 @@ public class AdHocSubProcessTool {
                 // The node as it is now: an expression of this step may have changed it after it
                 // was read, and the text it was read with would show the value before.
                 serialized = live.toString();
+            } else if (live != null && text && typed instanceof ObjectValue) {
+                // The same for an object in JSON or XML: written again by its own serializer, as
+                // the engine writes it when the command closes; the stored text when that fails.
+                String now = writtenNow((ObjectValue) typed);
+                if (now != null) {
+                    serialized = now;
+                }
             } else if (serialized == null && live == null) {
                 return ProcessValue.whole(null);
             }
@@ -941,6 +952,98 @@ public class AdHocSubProcessTool {
             return ProcessValue.whole(((Date) value).toInstant().toString());
         }
         return ProcessValue.whole(value);
+    }
+
+    /**
+     * The text of a deserialized object as it is now, written by the serializer the engine keeps
+     * for its format into fields that go nowhere; {@code null} outside a command, without a
+     * serializer, or when the write fails, and the text the object was stored with is shown then.
+     * Only an object deserialized already is written: nothing is deserialized for this. The engine
+     * writes a changed object back itself when the command closes; this is that write, one step
+     * earlier, so the model reads the object as the step left it.
+     */
+    @SuppressWarnings("unchecked")
+    private static String writtenNow(ObjectValue value) {
+        ProcessEngineConfigurationImpl configuration = Context.getProcessEngineConfiguration();
+        if (configuration == null) {
+            return null;
+        }
+        try {
+            TypedValueSerializer<TypedValue> serializer = (TypedValueSerializer<TypedValue>)
+                    configuration.getVariableSerializers().findSerializerForValue(value);
+            NowhereValueFields fields = new NowhereValueFields();
+            serializer.writeValue(value, fields);
+            byte[] bytes = fields.getByteArrayValue();
+            return (bytes == null) ? null : StringUtil.fromBytes(bytes);
+        } catch (RuntimeException e) {
+            LOG.debug("processData: an object in {} is shown by the text it was stored with: {}",
+                    value.getSerializationDataFormat(), e.getMessage());
+            return null;
+        }
+    }
+
+    /** Value fields a serializer writes into and nothing reads but {@link #writtenNow}. */
+    private static final class NowhereValueFields implements ValueFields {
+        private String textValue;
+        private String textValue2;
+        private Long longValue;
+        private Double doubleValue;
+        private byte[] bytes;
+
+        @Override
+        public String getName() {
+            return "processData";
+        }
+
+        @Override
+        public String getTextValue() {
+            return textValue;
+        }
+
+        @Override
+        public void setTextValue(String textValue) {
+            this.textValue = textValue;
+        }
+
+        @Override
+        public String getTextValue2() {
+            return textValue2;
+        }
+
+        @Override
+        public void setTextValue2(String textValue2) {
+            this.textValue2 = textValue2;
+        }
+
+        @Override
+        public Long getLongValue() {
+            return longValue;
+        }
+
+        @Override
+        public void setLongValue(Long longValue) {
+            this.longValue = longValue;
+        }
+
+        @Override
+        public Double getDoubleValue() {
+            return doubleValue;
+        }
+
+        @Override
+        public void setDoubleValue(Double doubleValue) {
+            this.doubleValue = doubleValue;
+        }
+
+        @Override
+        public byte[] getByteArrayValue() {
+            return bytes;
+        }
+
+        @Override
+        public void setByteArrayValue(byte[] bytes) {
+            this.bytes = bytes;
+        }
     }
 
     /** The types of a declared value that are shown as their value; JSON and XML come apart. */
