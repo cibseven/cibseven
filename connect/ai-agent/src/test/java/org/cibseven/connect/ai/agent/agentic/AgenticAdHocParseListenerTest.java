@@ -2266,9 +2266,23 @@ public class AgenticAdHocParseListenerTest {
   @Test
   public void aNameIsTakenWithoutTheUnicodeSpacesAroundIt() {
     deploy(connectorScope("<userTask id='worker' />",
-        processVariables("kunde, prioritaet　, rabatt"), ""));
+        processVariables("\uFEFFkunde, prioritaet　, rabatt"), ""));
 
     assertThat(declaredProcessVariablesOf("adHoc")).containsExactly("kunde", "prioritaet", "rabatt");
+  }
+
+  /**
+   * The Modeler's pattern takes U+FEFF, the byte order mark a document may paste, for white space,
+   * as ECMAScript's {@code \s} does, so a name with one inside is refused in the panel; the
+   * deployment refuses it the same way, and strips it around a name (second model, 2026-11-03).
+   */
+  @Test
+  public void refusesAByteOrderMarkInsideANameAsTheModelerDoes() {
+    String model = connectorScope("<userTask id='worker' />", processVariables("order\uFEFFid"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("declares order\uFEFFid, with a space inside the name: a missing comma?");
   }
 
   /** The list lives on the cached definition, which every instance shares. */

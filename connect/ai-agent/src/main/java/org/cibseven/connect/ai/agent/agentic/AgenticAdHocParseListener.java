@@ -773,8 +773,13 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     return text.substring(start, end);
   }
 
+  /**
+   * White space as the Modeler's pattern sees it: ECMAScript's {@code \s} takes U+FEFF, the byte
+   * order mark a document may paste, for white space, and Java does not; what the panel refuses or
+   * strips, the deployment does too.
+   */
   protected static boolean isBlank(char c) {
-    return Character.isWhitespace(c) || Character.isSpaceChar(c);
+    return Character.isWhitespace(c) || Character.isSpaceChar(c) || c == '﻿';
   }
 
   /**
