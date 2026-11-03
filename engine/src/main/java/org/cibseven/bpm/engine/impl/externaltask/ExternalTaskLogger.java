@@ -92,4 +92,15 @@ public class ExternalTaskLogger extends ProcessEngineLogger {
     logDebug("005", "Worker reported retries {} for external task {} with a retry time cycle. Using 0 instead.",
         retries, taskId);
   }
+
+  /**
+   * Logs that the 'fetched' history events could not be written after the external tasks were locked.
+   *
+   * @param workerId the worker that locked the tasks
+   * @param exception the exception that was caught
+   */
+  public void couldNotProduceFetchedEvents(String workerId, Exception exception) {
+    logWarn("006", "Could not write the 'fetched' history log of external tasks locked by worker '{}'. "
+        + "The tasks remain locked.", workerId, exception);
+  }
 }
