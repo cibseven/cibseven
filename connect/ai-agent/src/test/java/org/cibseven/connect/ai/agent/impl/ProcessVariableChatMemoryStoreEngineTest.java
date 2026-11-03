@@ -18,13 +18,10 @@ package org.cibseven.connect.ai.agent.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.cibseven.bpm.engine.ProcessEngine;
@@ -42,6 +39,7 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.cibseven.connect.ai.agent.agentic.AdHocConversation;
+import org.cibseven.connect.ai.agent.agentic.AdHocConversationTestAccess;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -374,15 +372,21 @@ public class ProcessVariableChatMemoryStoreEngineTest {
       ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
       ProcessVariableChatMemoryStore store = new ProcessVariableChatMemoryStore();
       try (ProcessVariableChatMemoryStore.Batch batch = ProcessVariableChatMemoryStore.Batch.open()) {
-        drive(scope, () -> {
+        AdHocConversationTestAccess.drive(scope, () -> {
           store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("My name is Alice.")));
           store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("My name is Alice."),
               AiMessage.from("Hello Alice.")));
           store.updateMessages(GONE_MEMORY_ID, Arrays.asList(UserMessage.from("Forget me.")));
           store.deleteMessages(GONE_MEMORY_ID);
+          // Nowhere yet: not on the agent state, if there is one already, nor on the scope or
+          // anywhere above it, so this holds whether or not the agent state exists before the
+          // batch writes the conversation.
           PvmExecutionImpl state = AdHocConversation.findMemoryExecution(scope);
-          writtenBeforeClose = state != null && state.hasVariableLocal(VARIABLE_NAME);
+          writtenBeforeClose = (state != null && state.hasVariableLocal(VARIABLE_NAME))
+              || scope.hasVariable(VARIABLE_NAME)
+              || scope.getProcessInstance().hasVariable(VARIABLE_NAME);
           readBack = store.getMessages(MEMORY_ID);
+          return null;
         });
       }
     }
@@ -417,22 +421,6 @@ public class ProcessVariableChatMemoryStoreEngineTest {
         .isNotEqualTo(instance.getId());
     assertThat(ChatMessageDeserializer.messagesFromJson(stored.getValue().toString()))
         .as("the last version").hasSize(2);
-  }
-
-  /** {@code AdHocConversation.drive}, which only the turn runner calls, from its own package. */
-  private static void drive(ExecutionEntity scope, Runnable call) throws Exception {
-    Method drive = AdHocConversation.class.getDeclaredMethod("drive", ExecutionEntity.class,
-        Supplier.class);
-    drive.setAccessible(true);
-    Supplier<Object> supplier = () -> {
-      call.run();
-      return null;
-    };
-    try {
-      drive.invoke(null, scope, supplier);
-    } catch (InvocationTargetException e) {
-      throw (Exception) e.getCause();
-    }
   }
 
   /**

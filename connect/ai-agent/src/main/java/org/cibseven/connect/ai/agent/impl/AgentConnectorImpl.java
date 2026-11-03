@@ -244,6 +244,8 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     // This invocation's audit listener, out here so the finally block can write what no model
     // call's end wrote (CIB7-2156).
     AgentChatListener auditListener = null;
+    // What this invocation failed with, if it did, so a failing flush does not hide it.
+    Throwable failure = null;
     // Everything after the ThreadLocal writes above must sit inside this try:
     // its finally is what clears them again, and a leaked caller Authentication
     // would be visible to the next, unrelated task on this pooled thread.
@@ -518,6 +520,9 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         return new AgentResponseImpl(null, memoryId, aiMeta, true);
       }
       return new AgentResponseImpl(output, memoryId, aiMeta);
+    } catch (RuntimeException | Error e) {
+      failure = e;
+      throw e;
     } finally {
       try {
         // The chat log is written with the response or the error that ends a model call. A
@@ -526,6 +531,13 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         if (auditListener != null) {
           auditListener.flush();
         }
+      } catch (RuntimeException e) {
+        // Where the invocation failed already, its own exception is the one to report; the
+        // flush's goes with it rather than in its place.
+        if (failure == null) {
+          throw e;
+        }
+        failure.addSuppressed(e);
       } finally {
         closeMcpClients(mcpClients);
         ProcessStarterToolContext.restore(previousContext);

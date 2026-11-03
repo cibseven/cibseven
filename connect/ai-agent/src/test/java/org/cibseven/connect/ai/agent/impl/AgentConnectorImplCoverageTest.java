@@ -815,6 +815,123 @@ public class AgentConnectorImplCoverageTest {
     assertThat(ragConnector.execute(request).getOutput()).isEqualTo("ok");
   }
 
+  // ── execute() — the chat log is flushed when the invocation ends (CIB7-2156) ─
+
+  /**
+   * A retrieval that no model call's end wrote is flushed by execute when the invocation fails,
+   * and the invocation's own exception is the one that leaves it.
+   */
+  @Test
+  public void executeShouldFlushTheChatLogWhenTheModelCallFails() {
+    FlushRecordingListener listener = new FlushRecordingListener(null);
+    AgentConnectorImpl failing = connectorWith(listener, new IllegalStateException("model down"));
+
+    Throwable thrown = org.assertj.core.api.Assertions.catchThrowable(
+        () -> failing.execute(ragRequest(failing)));
+
+    assertThat(innermost(thrown)).hasMessage("model down");
+
+    assertThat(listener.flushes).isEqualTo(1);
+    assertThat(listener.typesAtFlush).containsExactly("retrieval");
+  }
+
+  /** A flush that fails after the invocation failed goes with its exception, not in its place. */
+  @Test
+  public void executeShouldKeepItsOwnExceptionWhenTheFlushFailsToo() {
+    RuntimeException flushFailure = new IllegalStateException("flush failed");
+    FlushRecordingListener listener = new FlushRecordingListener(flushFailure);
+    AgentConnectorImpl failing = connectorWith(listener, new IllegalStateException("model down"));
+
+    Throwable thrown = org.assertj.core.api.Assertions.catchThrowable(
+        () -> failing.execute(ragRequest(failing)));
+
+    assertThat(innermost(thrown)).hasMessage("model down");
+    assertThat(thrown.getSuppressed()).containsExactly(flushFailure);
+  }
+
+  /** A flush that fails after the invocation succeeded is what the invocation fails with. */
+  @Test
+  public void executeShouldFailWithTheFlushWhenTheInvocationSucceeded() {
+    RuntimeException flushFailure = new IllegalStateException("flush failed");
+    FlushRecordingListener listener = new FlushRecordingListener(flushFailure);
+    AgentConnectorImpl succeeding = connectorWith(listener, null);
+
+    assertThatThrownBy(() -> succeeding.execute(ragRequest(succeeding))).isSameAs(flushFailure);
+    assertThat(listener.flushes).isEqualTo(1);
+  }
+
+  /**
+   * A connector whose model call goes through {@code listener}'s retrieval only: it installs the
+   * listener as {@code createChatModel} does, and its model throws {@code modelFailure} without
+   * telling the listener, as when the invocation fails between a retrieval and the model's
+   * answer. With {@code modelFailure} null the model answers "ok".
+   */
+  private static AgentConnectorImpl connectorWith(AgentChatListener listener,
+      RuntimeException modelFailure) {
+    RagStubConnector connector = new RagStubConnector() {
+      @Override
+      protected ChatModel createChatModel(AgentRequest request, String apiKey, String baseUrl,
+          Map<String, String> customHeaders) {
+        ProcessStarterToolContext.setActiveListener(listener);
+        return new dev.langchain4j.model.chat.ChatModel() {
+          @Override
+          public dev.langchain4j.model.chat.response.ChatResponse doChat(
+              dev.langchain4j.model.chat.request.ChatRequest req) {
+            if (modelFailure != null) {
+              throw modelFailure;
+            }
+            return dev.langchain4j.model.chat.response.ChatResponse.builder()
+                .aiMessage(dev.langchain4j.data.message.AiMessage.from("ok"))
+                .build();
+          }
+        };
+      }
+    };
+    connector.store.matches = List.of(match(0.95, "supporting context"));
+    return connector;
+  }
+
+  /** The innermost cause of {@code thrown}, or {@code thrown} itself when it has none. */
+  private static Throwable innermost(Throwable thrown) {
+    Throwable t = thrown;
+    while (t != null && t.getCause() != null && t.getCause() != t) {
+      t = t.getCause();
+    }
+    return t;
+  }
+
+  private static AgentRequest ragRequest(AgentConnectorImpl connector) {
+    return connector.createRequest()
+        .agentName("agent")
+        .message("question?")
+        .apiKey("test-key")
+        .pgHost("h").pgPort("5432").pgDatabase("d").pgUser("u").pgPassword("p")
+        .pgTable("t").embeddingDimension(8).maxRagResults(5).minRagScore(0.0);
+  }
+
+  /** Records each flush and the events it would write; throws {@code failure} when set. */
+  private static class FlushRecordingListener extends AgentChatListener {
+    private final RuntimeException failure;
+    int flushes;
+    List<Object> typesAtFlush = new ArrayList<>();
+
+    FlushRecordingListener(RuntimeException failure) {
+      this.failure = failure;
+    }
+
+    @Override
+    void flush() {
+      flushes++;
+      for (Map<String, Object> event : events()) {
+        typesAtFlush.add(event.get("type"));
+      }
+      if (failure != null) {
+        throw failure;
+      }
+      super.flush();
+    }
+  }
+
   // ── loadDefaultInstruction — re-prime cache-miss branch ─────────────────
 
   @Test

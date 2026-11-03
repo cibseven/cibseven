@@ -267,9 +267,12 @@ class AgentChatListener implements ChatModelListener {
   /** The longest variable name the engine stores ({@code ACT_RU_VARIABLE.NAME_}). */
   private static final int MAX_VARIABLE_NAME_LENGTH = 255;
 
-  /** The longest chunk suffix: the separator and an {@code int} eventSeq. */
-  private static final int MAX_CHUNK_SUFFIX_LENGTH =
-      CHUNK_SEPARATOR.length() + String.valueOf(Integer.MAX_VALUE).length();
+  /**
+   * The activity ids whose chunk names were too long already, so that each is warned about
+   * once per JVM rather than on every invocation.
+   */
+  private static final java.util.Set<String> TOO_LONG_WARNED =
+      java.util.concurrent.ConcurrentHashMap.newKeySet();
 
   // ── last-response state (for Art. 50(2) AI-output marker) ────────────────
   private volatile String lastProvider;
@@ -371,18 +374,6 @@ class AgentChatListener implements ChatModelListener {
     this.variableName = (activityId != null && !activityId.isEmpty())
         ? AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + activityId
         : null;
-    if (enabled && variableName != null
-        && variableName.length() + MAX_CHUNK_SUFFIX_LENGTH > MAX_VARIABLE_NAME_LENGTH) {
-      // Caught here rather than as a database error when the first chunk is written.
-      LOG.warn("AI Agent connector: activity id '{}' is too long for its chat-log variables"
-          + " ({} characters at most, so that '{}' + id + '{}' + eventSeq fits into {});"
-          + " the chat log of this activity is not persisted.", activityId,
-          MAX_VARIABLE_NAME_LENGTH - MAX_CHUNK_SUFFIX_LENGTH
-              - AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX.length(),
-          AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX, CHUNK_SEPARATOR,
-          MAX_VARIABLE_NAME_LENGTH);
-      enabled = false;
-    }
     this.chatLogVariableEnabled = enabled;
     if (this.variableName != null && this.chatLogVariableEnabled) {
       continueNumbering();
@@ -642,6 +633,20 @@ class AgentChatListener implements ChatModelListener {
           + "thread (connector invoked outside an engine command context).", variableName);
       return;
     }
+    String name = chunkName(events.get(persisted).get("eventSeq"));
+    if (name.length() > MAX_VARIABLE_NAME_LENGTH) {
+      // Caught here rather than as a database error, which would fail the invocation. Checked
+      // against the name actually written, so an id fits as long as its eventSeq leaves room.
+      if (TOO_LONG_WARNED.add(variableName)) {
+        LOG.warn("AI Agent connector: the chat-log variable '{}' is longer than the {} characters"
+            + " the engine stores; the chat log of activity '{}' is not persisted from here on."
+            + " Shorten the activity id to keep its audit trail.", name,
+            MAX_VARIABLE_NAME_LENGTH, variableName.substring(
+                AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX.length()));
+      }
+      persisted = events.size();
+      return;
+    }
     if (!flagWritten) {
       // Flag that indicates the execution of the agent connector in the process.
       execution.setVariable(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
@@ -659,7 +664,7 @@ class AgentChatListener implements ChatModelListener {
     // Default Java serialization is always registered (unlike Spin/Jackson) and stores
     // in ACT_GE_BYTEARRAY, so it bypasses the VARCHAR(4000) limit.
     Object value = Variables.objectValue(chatLog).create();
-    execution.setVariable(chunkName(chunk.get(0).get("eventSeq")), value);
+    execution.setVariable(name, value);
     persisted = events.size();
   }
 

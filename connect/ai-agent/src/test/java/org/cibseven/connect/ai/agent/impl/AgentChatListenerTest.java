@@ -474,20 +474,38 @@ public class AgentChatListenerTest {
   }
 
   /**
-   * A chunk name is the activity's chat-log name plus up to 11 characters. An activity id that
-   * leaves no room for them turns the chat log off with a warning, rather than failing in the
-   * database when the first chunk is written (CIB7-2156).
+   * A chunk name is the activity's chat-log name plus the separator and the eventSeq of its
+   * first event. Whether it fits into the 255 characters of a variable name is checked against
+   * the name actually written: a chunk that does not fit is skipped with a warning, rather than
+   * failing in the database, and an id that fits for the eventSeqs it reaches keeps its chat log
+   * (CIB7-2156).
    */
   @Test
-  public void shouldNotPersistTheChatLogOfAnActivityIdTooLongForItsChunkNames() {
-    int longest = 255 - AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX.length() - 11;
+  public void shouldNotPersistAChunkWhoseNameIsTooLongForAVariable() {
+    int longest = 255 - AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX.length() - 2;
     String fits = repeat('a', longest);
     verify(afterOneFailedCall(fits)).setVariable(
         org.mockito.Matchers.eq(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + fits + "~0"),
         org.mockito.Matchers.any());
-    verify(afterOneFailedCall(repeat('b', longest + 1)), org.mockito.Mockito.never()).setVariable(
+    ExecutionEntity tooLong = afterOneFailedCall(repeat('b', longest + 1));
+    verify(tooLong, org.mockito.Mockito.never()).setVariable(
         org.mockito.Matchers.startsWith(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX),
         org.mockito.Matchers.any());
+    verify(tooLong, org.mockito.Mockito.never()).setVariable(
+        org.mockito.Matchers.eq(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME),
+        org.mockito.Matchers.any());
+  }
+
+  /** An id of up to 218 characters leaves room for every int eventSeq (CIB7-2156). */
+  @Test
+  public void shouldPersistTheChatLogOfTheLongestIdThatFitsEveryEventSeq() {
+    int longest = 255 - AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX.length() - 11;
+    assertThat(longest).isEqualTo(218);
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn(repeat('c', longest));
+    pushExecution(execution);
+    AgentChatListener listener = new AgentChatListener(null, null, Boolean.TRUE);
+    assertThat(listener.chunkName(Integer.MAX_VALUE)).hasSize(255);
   }
 
   /** The execution of an activity {@code activityId}, after one model call of it failed. */
