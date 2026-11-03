@@ -927,10 +927,17 @@ public class AdHocSubProcessTool {
                 serialized = live.toString();
             } else if (live != null && text && typed instanceof ObjectValue) {
                 // The same for an object in JSON or XML: written again by its own serializer, as
-                // the engine writes it when the command closes; the stored text when that fails.
-                String now = writtenNow((ObjectValue) typed, own);
-                if (now != null) {
-                    serialized = now;
+                // the engine writes it when the command closes. When that write fails, the stored
+                // text would show the object before a change of this step as if it were current:
+                // not whole, then, which fails a required one before the model is called.
+                Written written = writtenNow((ObjectValue) typed, own);
+                if (written.failed) {
+                    return ProcessValue.hidden("<" + type + " value (" + described + "), not shown>",
+                            "an object in " + format + " that its serializer could not write again,"
+                                    + " so the agent cannot read it as it is now");
+                }
+                if (written.text != null) {
+                    serialized = written.text;
                 }
             } else if (serialized == null && live == null) {
                 return ProcessValue.whole(null);
@@ -985,17 +992,18 @@ public class AdHocSubProcessTool {
      * The text of a deserialized object as it is now, written again by the serializer that read it
      * into fields that go nowhere, so that a process application's serializer writes what it read;
      * without one, by the serializer the engine would pick for a new value of this kind, the
-     * application's included. {@code null} outside a command, without a serializer, or when the
-     * write fails, and the text the object was stored with is shown then. Only an object
-     * deserialized already is written: nothing is deserialized for this. The engine writes a changed
-     * object back itself when the command closes; this is that write, one step earlier, so the model
-     * reads the object as the step left it.
+     * application's included. No text outside a command, where the text the object was stored with
+     * stands; a failure without a serializer or when the write fails, which the caller shows as a
+     * value the agent cannot read whole. Only an object deserialized already is written: nothing is
+     * deserialized for this. The engine writes a changed object back itself when the command
+     * closes; this is that write, one step earlier, so the model reads the object as the step left
+     * it.
      */
     @SuppressWarnings("unchecked")
-    private static String writtenNow(ObjectValue value, TypedValueSerializer<?> own) {
+    private static Written writtenNow(ObjectValue value, TypedValueSerializer<?> own) {
         ProcessEngineConfigurationImpl configuration = Context.getProcessEngineConfiguration();
         if (configuration == null || Context.getCommandContext() == null) {
-            return null;
+            return Written.NONE;
         }
         try {
             TypedValueSerializer<TypedValue> serializer = (TypedValueSerializer<TypedValue>) own;
@@ -1006,12 +1014,25 @@ public class AdHocSubProcessTool {
             NowhereValueFields fields = new NowhereValueFields();
             serializer.writeValue(value, fields);
             byte[] bytes = fields.getByteArrayValue();
-            return (bytes == null) ? null : StringUtil.fromBytes(bytes);
+            return (bytes == null) ? Written.FAILED : new Written(StringUtil.fromBytes(bytes), false);
         } catch (RuntimeException e) {
             // The class alone: the engine's message names the value, which no log line holds.
-            LOG.debug("processData: an object in {} is shown by the text it was stored with ({})",
-                    value.getSerializationDataFormat(), e.getClass().getName());
-            return null;
+            LOG.debug("processData: an object in {} could not be written again, so it is not shown"
+                    + " ({})", value.getSerializationDataFormat(), e.getClass().getName());
+            return Written.FAILED;
+        }
+    }
+
+    /** What writing an object again gave: its text, none outside a command, or a failure. */
+    private static final class Written {
+        static final Written NONE = new Written(null, false);
+        static final Written FAILED = new Written(null, true);
+        final String text;
+        final boolean failed;
+
+        Written(String text, boolean failed) {
+            this.text = text;
+            this.failed = failed;
         }
     }
 

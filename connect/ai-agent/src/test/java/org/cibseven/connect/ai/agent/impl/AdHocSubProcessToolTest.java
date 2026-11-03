@@ -1085,11 +1085,13 @@ public class AdHocSubProcessToolTest {
   }
 
   /**
-   * A write that fails leaves the stored text, and the log says only that it did: a serializer's
-   * message may name the object, and the log holds no process data (second model, 2026-11-03).
+   * A write that fails leaves an optional object as a placeholder, never as the stored text, which
+   * would show the object before a change of this step as if it were current (Copilot's review of
+   * PR 532); and the log says only that the write failed: a serializer's message may name the
+   * object, and the log holds no process data (second model, 2026-11-03).
    */
   @Test
-  public void aFailedWriteShowsTheStoredTextAndLogsNoValue() {
+  public void aFailedWriteIsAPlaceholderForAnOptionalAndLogsNoValue() {
     VariableSerializers serializers = ((ProcessEngineConfigurationImpl)
         ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
     JsonMapSerializer json = new JsonMapSerializer();
@@ -1104,7 +1106,7 @@ public class AdHocSubProcessToolTest {
     logger.setLevel(ch.qos.logback.classic.Level.DEBUG);
     try {
       ProcessInstance instance = startWithoutTurn("processDataFailedWrite",
-          processVariables("auftrag"), tool -> {
+          processVariables("auftrag", "auftrag"), tool -> {
             ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
             @SuppressWarnings("unchecked")
             Map<String, Object> auftrag =
@@ -1123,16 +1125,56 @@ public class AdHocSubProcessToolTest {
       runPendingTurn(instance);
 
       assertThat(Agent.FAILURES).isEmpty();
-      assertThat(processData(result(0))).as("the stored text")
-          .containsEntry("auftrag", "{\"nummer\":\"A-1047-GEHEIM\",\"positionen\":3}");
+      assertThat(processData(result(0))).as("a placeholder, not the stored text")
+          .containsEntry("auftrag",
+              "<object value (java.util.LinkedHashMap, application/json), not shown>");
       assertThat(appender.list).extracting(e -> e.getFormattedMessage())
           .noneSatisfy(line -> assertThat(line).contains("A-1047-GEHEIM"))
-          .anySatisfy(line -> assertThat(line)
-              .contains("is shown by the text it was stored with"));
+          .anySatisfy(line -> assertThat(line).contains("could not be written again"));
     } finally {
       logger.detachAppender(appender);
       logger.setLevel(level);
       appender.stop();
+      serializers.removeSerializer(json);
+    }
+  }
+
+  /**
+   * A required object whose write fails stops the step before the model is called: the stored
+   * text could be the object before a change of this step, and a required value reaches the agent
+   * whole or not at all (Copilot's review of PR 532).
+   */
+  @Test
+  public void aRequiredObjectWhoseWriteFailsStopsTheStep() {
+    VariableSerializers serializers = ((ProcessEngineConfigurationImpl)
+        ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
+    JsonMapSerializer json = new JsonMapSerializer();
+    serializers.addSerializer(json, 0);
+    try {
+      ProcessInstance instance = startWithoutTurn("processDataRequiredFailedWrite",
+          processVariables("auftrag"), tool -> {
+            ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> auftrag =
+                (Map<String, Object>) scope.getVariableTyped("auftrag").getValue();
+            auftrag.put("positionen", 4);
+            return tool.turnReport();
+          });
+      Map<String, Object> auftrag = new LinkedHashMap<>();
+      auftrag.put("nummer", "A-1047");
+      auftrag.put("positionen", 3);
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+          Variables.objectValue(auftrag).serializationDataFormat("application/json").create());
+      json.failNextWrites = 1;
+
+      runPendingTurn(instance);
+
+      assertThat(Agent.RESULTS).as("no block for the agent").isEmpty();
+      assertThat(Agent.FAILURES).hasSize(1);
+      assertThat(Agent.FAILURES.get(0)).hasMessageContaining("did not reach the agent: auftrag (an"
+          + " object in application/json that its serializer could not write again, so the agent"
+          + " cannot read it as it is now); the model was not called.");
+    } finally {
       serializers.removeSerializer(json);
     }
   }
