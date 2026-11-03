@@ -41,7 +41,9 @@ import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguratio
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.variable.serializer.AbstractObjectValueSerializer;
+import org.cibseven.bpm.engine.impl.variable.serializer.ValueFields;
 import org.cibseven.bpm.engine.impl.variable.serializer.VariableSerializers;
+import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.engine.history.HistoricDetail;
 import org.cibseven.bpm.engine.history.HistoricVariableUpdate;
 import org.cibseven.bpm.engine.runtime.Job;
@@ -108,6 +110,57 @@ public class AdHocSubProcessToolTest {
   /** What the agent does in one turn. */
   interface Turn {
     Object run(AdHocSubProcessTool tool);
+  }
+
+  /**
+   * An object serializer of a format the agent never sees, which refuses to read a value when
+   * told to: a stand-in for the cost of reading a file's or an object's bytes on every step.
+   */
+  static final class BlobSerializer extends AbstractObjectValueSerializer {
+    volatile boolean failReads;
+
+    BlobSerializer() {
+      super("application/x-test-blob");
+    }
+
+    @Override
+    public String getName() {
+      return "blob-test";
+    }
+
+    @Override
+    protected boolean isSerializationTextBased() {
+      return false;
+    }
+
+    @Override
+    protected String getTypeNameForDeserialized(Object deserializedObject) {
+      return deserializedObject.getClass().getName();
+    }
+
+    @Override
+    protected byte[] serializeToByteArray(Object deserializedObject) {
+      return String.valueOf(deserializedObject).getBytes(java.nio.charset.StandardCharsets.UTF_8);
+    }
+
+    @Override
+    protected Object deserializeFromByteArray(byte[] bytes, String objectTypeName) {
+      return new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+    }
+
+    @Override
+    protected boolean canSerializeValue(Object value) {
+      return value instanceof Map;
+    }
+
+    @Override
+    public ObjectValue readValue(ValueFields valueFields, boolean deserializeValue,
+        boolean asTransientValue) {
+      if (failReads) {
+        throw new IllegalStateException("the value was read");
+      }
+      return super.readValue(valueFields, deserializeValue, asTransientValue);
+    }
   }
 
   /**
@@ -1200,6 +1253,45 @@ public class AdHocSubProcessToolTest {
     assertThat(processData(result(0)))
         .containsEntry("faellig", "1970-01-01T00:00:00Z")
         .containsEntry("uhrzeit", "1970-01-01T00:01:00Z");
+  }
+
+  /**
+   * A declared file, bytes or object outside JSON and XML is shown by its type without its value
+   * being read: the placeholder comes from what the variable instance holds besides the value, so
+   * a declared file is not read from the database on every step (CIB7-2513, here for the declared
+   * variables). A serializer that refuses to read stands in for that cost; a file and bytes take
+   * the same path, their placeholders are asserted as before.
+   */
+  @Test
+  public void aHiddenValueIsAPlaceholderWithoutBeingRead() {
+    VariableSerializers serializers = ((ProcessEngineConfigurationImpl)
+        ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
+    BlobSerializer blob = new BlobSerializer();
+    serializers.addSerializer(blob, 0);
+    try {
+      ProcessInstance instance = startWithoutTurn("processDataNotRead",
+          processVariables("auftrag, scan, roh", "auftrag, scan, roh"), tool -> tool.turnReport());
+      Map<String, Object> auftrag = new LinkedHashMap<>();
+      auftrag.put("nummer", "A-1047");
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+          Variables.objectValue(auftrag).serializationDataFormat("application/x-test-blob").create());
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "scan",
+          Variables.fileValue("auftrag.pdf").file(WritesDocument.BYTES)
+              .mimeType("application/pdf").create());
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "roh", new byte[] {1, 2, 3});
+      blob.failReads = true;
+
+      runPendingTurn(instance);
+
+      assertThat(Agent.FAILURES).isEmpty();
+      assertThat(processData(result(0)))
+          .containsEntry("auftrag",
+              "<object value (java.util.LinkedHashMap, application/x-test-blob), not shown>")
+          .containsEntry("scan", "<file value, not shown>")
+          .containsEntry("roh", "<bytes value, not shown>");
+    } finally {
+      serializers.removeSerializer(blob);
+    }
   }
 
   /**

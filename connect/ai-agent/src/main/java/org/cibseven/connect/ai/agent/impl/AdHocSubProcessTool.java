@@ -49,6 +49,7 @@ import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.util.TypedValueField;
 import org.cibseven.bpm.engine.impl.util.StringUtil;
+import org.cibseven.bpm.engine.impl.variable.serializer.AbstractSerializableValueSerializer;
 import org.cibseven.bpm.engine.impl.variable.serializer.TypedValueSerializer;
 import org.cibseven.bpm.engine.impl.variable.serializer.ValueFields;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
@@ -760,16 +761,22 @@ public class AdHocSubProcessTool {
                 if (optional.contains(name) == required) {
                     continue;
                 }
-                TypedValue value = scope.getVariableTyped(name, false);
-                if (value == null) {
-                    if (required) {
-                        missing.add(name + notSetReason(name));
-                    } else {
-                        notSet.add(name);
+                CoreVariableInstance instance = scope.getVariableInstance(name);
+                // A file, bytes or a Java object is shown by its type alone, decided from what the
+                // instance holds besides the value, so that its bytes are not read on every step.
+                ProcessValue shown = placeholderWithoutReading(instance);
+                if (shown == null) {
+                    TypedValue value = scope.getVariableTyped(name, false);
+                    if (value == null) {
+                        if (required) {
+                            missing.add(name + notSetReason(name));
+                        } else {
+                            notSet.add(name);
+                        }
+                        continue;
                     }
-                    continue;
+                    shown = processValue(value, ownSerializer(instance));
                 }
-                ProcessValue shown = processValue(value, ownSerializer(scope, name));
                 if (required && shown.notWhole != null) {
                     missing.add(name + " (" + shown.notWhole + ")");
                     continue;
@@ -947,12 +954,13 @@ public class AdHocSubProcessTool {
             if (text && serialized != null) {
                 return ProcessValue.text(serialized);
             }
+            if (!text) {
+                return hiddenObject(type, described, format);
+            }
             // Text without its text: an object set in this very step, written when the step ends.
             return ProcessValue.hidden("<" + type + " value (" + described + "), not shown>",
-                    text ? "an object in " + format + " set in this step, whose text is written"
-                            + " when the step ends; the next step shows it"
-                         : "an object in " + format + ", which the agent sees only by its type;"
-                            + " store it as JSON");
+                    "an object in " + format + " set in this step, whose text is written when the"
+                            + " step ends; the next step shows it");
         }
         // A typed null is null whatever its type; otherwise decided by the type, as for a result.
         Object value = typed.getValue();
@@ -960,10 +968,7 @@ public class AdHocSubProcessTool {
             return ProcessValue.whole(null);
         }
         if (!SHOWN_PROCESS_TYPES.contains(type)) {
-            return ProcessValue.hidden("<" + type + " value, not shown>",
-                    "a " + type + " value, whose content the agent never sees; leave it out of the"
-                            + " list, or store what the agent needs of it in a string or JSON"
-                            + " variable");
+            return hiddenType(type);
         }
         if (value instanceof String) {
             return ProcessValue.text((String) value);
@@ -977,11 +982,10 @@ public class AdHocSubProcessTool {
     }
 
     /**
-     * The serializer that read the variable {@code name} of {@code scope}, resolved as the engine
+     * The serializer that read the variable behind {@code instance}, resolved as the engine
      * resolves it, the process application's serializers included; {@code null} without one.
      */
-    private static TypedValueSerializer<?> ownSerializer(ExecutionEntity scope, String name) {
-        CoreVariableInstance instance = scope.getVariableInstance(name);
+    private static TypedValueSerializer<?> ownSerializer(CoreVariableInstance instance) {
         if (!(instance instanceof VariableInstanceEntity)) {
             return null;
         }
@@ -990,6 +994,61 @@ public class AdHocSubProcessTool {
         } catch (RuntimeException e) {
             return null;
         }
+    }
+
+    /**
+     * The placeholder of a value the agent never sees, a file, bytes or an object outside JSON and
+     * XML, decided from what the variable instance holds besides its value: its type, the serializer
+     * that wrote it, the object's class, and whether there are bytes at all. The bytes are not
+     * read: a declared file was read from the database on every step otherwise, only to show its
+     * type (CIB7-2513). {@code null} when the value is to be read: a type that is shown, an object
+     * in a text format, a value without bytes (a typed null, which reads as null), or an instance
+     * this cannot tell about.
+     */
+    private static ProcessValue placeholderWithoutReading(CoreVariableInstance instance) {
+        if (!(instance instanceof VariableInstanceEntity)) {
+            return null;
+        }
+        VariableInstanceEntity entity = (VariableInstanceEntity) instance;
+        try {
+            String type = entity.getTypeName();
+            if (type == null || entity.getByteArrayValueId() == null) {
+                return null;
+            }
+            if (!"object".equals(type)) {
+                return SHOWN_PROCESS_TYPES.contains(type) || SPIN_PROCESS_TYPES.contains(type)
+                        ? null : hiddenType(type);
+            }
+            TypedValueSerializer<?> serializer = entity.getSerializer();
+            if (!(serializer instanceof AbstractSerializableValueSerializer)) {
+                return null;
+            }
+            String format = ((AbstractSerializableValueSerializer<?>) serializer)
+                    .getSerializationDataformat();
+            if (format == null || format.contains("json") || format.contains("xml")) {
+                return null;
+            }
+            String objectType = entity.getTextValue2();
+            return hiddenObject(type, (objectType != null) ? objectType + ", " + format : format,
+                    format);
+        } catch (RuntimeException e) {
+            // Told nothing for sure: read the value, as before.
+            return null;
+        }
+    }
+
+    /** A value of a type the agent never sees, as a placeholder with what to do instead. */
+    private static ProcessValue hiddenType(String type) {
+        return ProcessValue.hidden("<" + type + " value, not shown>",
+                "a " + type + " value, whose content the agent never sees; leave it out of the"
+                        + " list, or store what the agent needs of it in a string or JSON variable");
+    }
+
+    /** An object outside JSON and XML, as a placeholder naming its class and format. */
+    private static ProcessValue hiddenObject(String type, String described, String format) {
+        return ProcessValue.hidden("<" + type + " value (" + described + "), not shown>",
+                "an object in " + format + ", which the agent sees only by its type; store it as"
+                        + " JSON");
     }
 
     /**
