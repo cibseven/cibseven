@@ -19,7 +19,6 @@ package org.cibseven.connect.ai.agent.agentic;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -254,7 +253,7 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     // contextVariables and optionalContextVariables: taken out of the mapping, so no step
     // evaluates them, and read here once. Left out, the agent sees none. Both lists go together:
     // the optional ones left alone would turn into required ones.
-    Map<String, String> declaring = declarationInputs(connector, io);
+    Map<String, String> declaring = declarationInputs(connector);
     final Map<String, String> checking = declaring;
     if (!parsing.check(() -> refuseABadDeclarationOfProcessVariables(scopeElement, activity,
         checking), withoutProcessVariables(activity))) {
@@ -446,7 +445,7 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     // leave the scope without its agent on this node, and its waiting turn would be lost.
     IoMapping io;
     try {
-      io = BpmnParseUtil.parseInputOutput(connector);
+      io = connectorInputOutput(connector);
     } catch (TreeBuilderException e) {
       throw new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': an expression"
           + " of the connector '" + AgenticTurnRunner.AGENT_CONNECTOR_ID + "' cannot be read: "
@@ -840,30 +839,53 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
   }
 
   /**
-   * The connector's inputs {@link #CONTEXT_VARIABLES} and {@link #OPTIONAL_CONTEXT_VARIABLES}, by
-   * name, as the text the model gives them, taken out of {@code io} so that no step evaluates
-   * them: they are read once, here. One given as a list, a map or a script has no text and maps
-   * to {@code null}. {@code io.getInputParameters()} is the live list, as in
-   * {@link #extractFollowUp}.
+   * The connector's input and output mapping as {@link BpmnParseUtil#parseInputOutput} builds it,
+   * without {@link #CONTEXT_VARIABLES} and {@link #OPTIONAL_CONTEXT_VARIABLES}: those two are
+   * names, read once as text ({@link #declarationInputs}), and never built as expressions, so no
+   * step evaluates them. Built, a {@code ${…}} written into them by habit would be an error of the
+   * connector: the whole agent refused for what only its declaration got wrong, or, for a
+   * function this node lacks, the definition not loaded at all (the second model's review of
+   * 14637f31c5). {@code null} without an {@code inputOutput}, as there.
    */
-  protected static Map<String, String> declarationInputs(Element connector, IoMapping io) {
+  protected static IoMapping connectorInputOutput(Element connector) {
+    Element inputOutput = connector.elementNS(BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS, "inputOutput");
+    if (inputOutput == null) {
+      return null;
+    }
+    IoMapping io = new IoMapping();
+    for (Element input : inputOutput.elementsNS(BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS,
+        "inputParameter")) {
+      if (!isADeclarationInput(input)) {
+        BpmnParseUtil.parseInputParameterElement(input, io);
+      }
+    }
+    BpmnParseUtil.parseCamundaOutputParameters(inputOutput, io);
+    return io;
+  }
+
+  /** Whether {@code input} is {@link #CONTEXT_VARIABLES} or {@link #OPTIONAL_CONTEXT_VARIABLES}. */
+  protected static boolean isADeclarationInput(Element input) {
+    String name = input.attribute("name");
+    return CONTEXT_VARIABLES.equals(name) || OPTIONAL_CONTEXT_VARIABLES.equals(name);
+  }
+
+  /**
+   * The connector's inputs {@link #CONTEXT_VARIABLES} and {@link #OPTIONAL_CONTEXT_VARIABLES}, by
+   * name, as the text the model gives them, read from the element: they are read once, here, and
+   * {@link #connectorInputOutput} leaves them out of the mapping every step evaluates. One given
+   * as a list, a map or a script has no text and maps to {@code null}.
+   */
+  protected static Map<String, String> declarationInputs(Element connector) {
     Map<String, String> declared = new LinkedHashMap<String, String>();
     Element inputOutput = (connector == null) ? null
         : connector.elementNS(BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS, "inputOutput");
-    if (inputOutput == null || io == null) {
+    if (inputOutput == null) {
       return declared;
     }
     for (Element input : inputOutput.elementsNS(BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS,
         "inputParameter")) {
-      String name = input.attribute("name");
-      if (CONTEXT_VARIABLES.equals(name) || OPTIONAL_CONTEXT_VARIABLES.equals(name)) {
-        declared.put(name, input.elements().isEmpty() ? input.getText() : null);
-      }
-    }
-    Iterator<InputParameter> inputs = io.getInputParameters().iterator();
-    while (inputs.hasNext()) {
-      if (declared.containsKey(inputs.next().getName())) {
-        inputs.remove();
+      if (isADeclarationInput(input)) {
+        declared.put(input.attribute("name"), input.elements().isEmpty() ? input.getText() : null);
       }
     }
     return declared;

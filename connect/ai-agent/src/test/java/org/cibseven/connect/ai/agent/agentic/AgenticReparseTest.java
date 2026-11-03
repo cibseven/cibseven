@@ -826,6 +826,21 @@ public class AgenticReparseTest {
                 + input(AgenticAdHocParseListener.CONTEXT_VARIABLES, "kunde, kunde")),
                 "<userTask id='arbeit' />"),
             "declares kunde more than once", processVariablesLeftOut, withoutProcessVariables()),
+        // Names, never built as expressions (the second model's review of 14637f31c5): one that
+        // does not parse, or names a function this node lacks, leaves out the declaration alone.
+        Arguments.of("a process variable written as an expression that does not parse",
+            adHoc(connector(MESSAGE
+                + input(AgenticAdHocParseListener.CONTEXT_VARIABLES, "${kunde.")),
+                "<userTask id='arbeit' />"),
+            "declares ${kunde., which reads as an expression", processVariablesLeftOut,
+            withoutProcessVariables()),
+        Arguments.of("a process variable written as a function this node does not have",
+            adHoc(connector(MESSAGE
+                + input(AgenticAdHocParseListener.CONTEXT_VARIABLES, "${unbekannt()}")
+                + input(AgenticAdHocParseListener.OPTIONAL_CONTEXT_VARIABLES, "${rabatt}")),
+                "<userTask id='arbeit' />"),
+            "declares ${unbekannt()}, which reads as an expression", processVariablesLeftOut,
+            withoutProcessVariables()),
         Arguments.of("a message that does not parse",
             adHoc(connector("<camunda:inputParameter name='message'>Handle ${order."
                 + "</camunda:inputParameter>"), "<userTask id='arbeit' />"),
