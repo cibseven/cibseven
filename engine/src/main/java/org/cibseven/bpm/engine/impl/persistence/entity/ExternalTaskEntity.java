@@ -33,6 +33,9 @@ import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnExceptionHandler;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
 import org.cibseven.bpm.engine.impl.bpmn.parser.CamundaErrorEventDefinition;
+import org.cibseven.bpm.engine.impl.bpmn.parser.FailedJobRetryConfiguration;
+import org.cibseven.bpm.engine.impl.bpmn.parser.DefaultFailedJobParseListener;
+import org.cibseven.bpm.engine.impl.calendar.DurationHelper;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.db.DbEntity;
 import org.cibseven.bpm.engine.impl.db.EnginePersistenceLogger;
@@ -42,9 +45,11 @@ import org.cibseven.bpm.engine.impl.incident.IncidentContext;
 import org.cibseven.bpm.engine.impl.incident.IncidentHandling;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;
+import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.impl.util.EnsureUtil;
 import org.cibseven.bpm.engine.impl.util.ExceptionUtil;
+import org.cibseven.bpm.engine.impl.util.ParseUtil;
 import org.cibseven.bpm.engine.repository.ResourceTypes;
 import org.cibseven.bpm.engine.runtime.Incident;
 
@@ -397,7 +402,11 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
    * @param errorMessage - short error message text
    * @param errorDetails - full error details
    * @param retries - updated value of retries left
-   * @param retryDuration - used for lockExpirationTime calculation
+   * @param retryDuration - used for lockExpirationTime calculation when this activity has no
+   *                         configured retry cycle (modeled or engine-wide default); when one
+   *                         applies, its own interval wins instead, same as for jobs - the cycle
+   *                         is what controls timing once it is configured, so the caller's value
+   *                         is only ever a fallback, not an override.
    */
   public void failed(String errorMessage, String errorDetails, int retries, long retryDuration, Map<String, Object> variables, Map<String, Object> localVariables) {
     ensureActive();
@@ -416,9 +425,16 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
       return;
     }
 
-    this.lockExpirationTime = new Date(ClockUtil.getCurrentTime().getTime() + retryDuration);
     produceHistoricExternalTaskFailedEvent();
+
+    // store the caller's reported retries BEFORE picking the next delay: the interval must be
+    // chosen from the value this failure leaves behind, not from the value that was current
+    // when this attempt was fetched - otherwise the same interval gets picked twice in a row
+    // (see CIB-562 review finding #6).
     setRetriesAndManageIncidents(retries);
+
+    Long configured = getConfiguredRetryDelay();
+    this.lockExpirationTime = new Date(ClockUtil.getCurrentTime().getTime() + (configured != null ? configured : retryDuration));
   }
 
   public void bpmnError(String errorCode, String errorMessage, Map<String, Object> variables) {
@@ -469,9 +485,32 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
     return context;
   }
 
+  /**
+   * Plain lock (re-)acquisition, used by the explicit {@code ExternalTaskService.lock(...)}
+   * API (see LockExternalTaskCmd): grants exactly the requested duration. This does not hand
+   * out a new attempt, so it must not be influenced by any configured retry cycle - unlike
+   * {@link #lockForFetchedAttempt(String, long)}, which is.
+   */
   public void lock(String workerId, long lockDuration) {
     this.workerId = workerId;
     this.lockExpirationTime = new Date(ClockUtil.getCurrentTime().getTime() + lockDuration);
+  }
+
+  /**
+   * Locks a task that was just fetched and handed out as a new attempt (see
+   * FetchExternalTasksCmd, which calls {@link #consumeAttempt()} right before this). The
+   * requested lockDuration is only the caller's own processing-time estimate; when a retry
+   * cycle is configured, its interval is ADDED on top of that, not just floored against it -
+   * otherwise a lockDuration that already happens to be as long as (or longer than) the
+   * configured interval would silently swallow the whole retry delay, which is not an edge
+   * case since the two are often the same order of magnitude. See CIB-562 review finding #7.
+   */
+  public void lockForFetchedAttempt(String workerId, long lockDuration) {
+    this.workerId = workerId;
+    long now = ClockUtil.getCurrentTime().getTime();
+    Long configured = getConfiguredRetryDelay();   // retries already decremented by consumeAttempt()
+    long hold = configured != null ? lockDuration + configured : lockDuration;
+    this.lockExpirationTime = new Date(now + hold);
   }
 
   public ExecutionEntity getExecution() {
@@ -578,6 +617,18 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
     externalTask.setPriority(priority);
     externalTask.setCreateTime(ClockUtil.getCurrentTime());
 
+    ActivityImpl activity = (ActivityImpl) execution.getActivity();
+    FailedJobRetryConfiguration retryConfiguration = resolveRetryConfiguration(
+        activity.getProperties().get(DefaultFailedJobParseListener.EXTERNAL_TASK_FAILED_JOB_CONFIGURATION),
+        execution);
+
+    if (retryConfiguration != null) {
+      // at least one attempt: a cycle like "R0/PT5M" would otherwise create a task with
+      // retries == 0 that is never fetched and has no incident either. With one attempt the
+      // incident is raised when that attempt is fetched, like for any other last attempt.
+      externalTask.setRetries(Math.max(1, retryConfiguration.getRetries()));
+    }
+
     ProcessDefinitionEntity processDefinition = execution.getProcessDefinition();
     externalTask.setProcessDefinitionKey(processDefinition.getKey());
 
@@ -641,4 +692,80 @@ public class ExternalTaskEntity implements ExternalTask, DbEntity,
     this.lastFailureLogId = lastFailureLogId;
   }
 
+  public void consumeAttempt() {
+    if (retries != null && hasRetryConfiguration()) {
+      setRetriesAndManageIncidents(retries - 1);
+    }
+  }
+
+  public boolean hasRetryConfiguration() {
+    ExecutionEntity execution = getExecution(false);
+    if (execution == null || execution.getActivity() == null) {
+      return false;
+    }
+    // resolved, not just present: an expression cycle that cannot be resolved counts as no
+    // configuration, so worker-reported retries are not decremented at fetch either
+    return getRetryConfiguration() != null;
+  }
+
+  protected FailedJobRetryConfiguration getRetryConfiguration() {
+    ExecutionEntity execution = getExecution();
+    if (execution == null || execution.getActivity() == null) {
+      return null;
+    }
+    ActivityImpl activity = execution.getActivity();
+    FailedJobRetryConfiguration config = activity.getProperties().get(DefaultFailedJobParseListener.EXTERNAL_TASK_FAILED_JOB_CONFIGURATION);
+    return resolveRetryConfiguration(config, execution);
+  }
+
+  /**
+   * Resolves an expression-based retry cycle (e.g. {@code ${retryCycle}}) against the given
+   * execution, same as {@link org.cibseven.bpm.engine.impl.cmd.DefaultJobRetryCmd#getFailedJobRetryConfiguration}
+   * does for jobs. A statically configured cycle (no expression) is returned unchanged.
+   * Must be called with an execution that has its variables already in scope, since the
+   * expression may reference process variables.
+   */
+  protected static FailedJobRetryConfiguration resolveRetryConfiguration(FailedJobRetryConfiguration config,
+                                                                          ExecutionEntity execution) {
+    // errors are logged and the task is handled as having no retry configuration, same as
+    // DefaultJobRetryCmd does for jobs: throwing here would break the creation of the task
+    // and roll back every fetchAndLock that selects it, for all workers of the topic
+    while (config != null && config.getExpression() != null) {
+      Object value;
+      try {
+        value = config.getExpression().getValue(execution);
+      } catch (Exception e) {
+        ProcessEngineLogger.EXTERNAL_TASK_LOGGER.exceptionWhileResolvingRetryTimeCycle(
+            execution.getActivityId(), config.getExpression().getExpressionText(), e);
+        return null;
+      }
+      config = ParseUtil.parseRetryIntervals(value == null ? null : value.toString());
+    }
+    if (!ParseUtil.hasValidRetryIntervals(config)) {
+      ProcessEngineLogger.EXTERNAL_TASK_LOGGER.invalidRetryTimeCycle(
+          execution.getActivityId(), String.join(",", config.getRetryIntervals()));
+      return null;
+    }
+    return config;
+  }
+
+  /** Wait time in ms before the next attempt, or null if not configured / no retries left. */
+  protected Long getConfiguredRetryDelay() {
+    FailedJobRetryConfiguration config = getRetryConfiguration();
+    if (config == null || retries == null || retries <= 0) {
+      return null;
+    }
+    List<String> intervals = config.getRetryIntervals();
+    int n = intervals.size();
+    // retries is already decremented at fetch: first wait -> intervals[0], second -> intervals[1], ...
+    int index = Math.max(0, Math.min(n - 1, n - retries));
+    try {
+      long now = ClockUtil.getCurrentTime().getTime();
+      return new DurationHelper(intervals.get(index)).getDateAfter().getTime() - now;
+    } catch (Exception e) {
+      // not expected, the intervals are validated in resolveRetryConfiguration()
+      ProcessEngineLogger.EXTERNAL_TASK_LOGGER.invalidRetryTimeCycle(activityId, String.join(",", intervals));
+      return null;
+    }
+  }
 }
