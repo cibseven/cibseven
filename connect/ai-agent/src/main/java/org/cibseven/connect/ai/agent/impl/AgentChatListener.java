@@ -80,7 +80,7 @@ import org.cibseven.connect.ai.agent.AgentConnectorConstants;
  *
  * <p>The chat-log name is derived automatically from the current activity:
  * {@code AGENT_CONNECTOR_LOG_PREFIX + activityId}. The log is stored in chunks,
- * one variable per model call named {@code <name>#<eventSeq of its first
+ * one variable per model call named {@code <name>~<eventSeq of its first
  * event>}, each written once (CIB7-2156). A reader puts the activity's log
  * together from its chunks in {@code eventSeq} order, after the single variable
  * {@code <name>} that versions before chunking rewrote whole. Numbering
@@ -264,6 +264,13 @@ class AgentChatListener implements ChatModelListener {
   private static final String CHUNK_SEPARATOR =
       AgentConnectorConstants.AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR;
 
+  /** The longest variable name the engine stores ({@code ACT_RU_VARIABLE.NAME_}). */
+  private static final int MAX_VARIABLE_NAME_LENGTH = 255;
+
+  /** The longest chunk suffix: the separator and an {@code int} eventSeq. */
+  private static final int MAX_CHUNK_SUFFIX_LENGTH =
+      CHUNK_SEPARATOR.length() + String.valueOf(Integer.MAX_VALUE).length();
+
   // ── last-response state (for Art. 50(2) AI-output marker) ────────────────
   private volatile String lastProvider;
   private volatile String lastModel;
@@ -358,12 +365,25 @@ class AgentChatListener implements ChatModelListener {
 
     // Per-activity override wins; otherwise fall through to the deployment-wide
     // resolver (which is the path that logs the one-time WARN/DEBUG).
-    this.chatLogVariableEnabled = (perActivityChatLogEnabled != null)
+    boolean enabled = (perActivityChatLogEnabled != null)
         ? perActivityChatLogEnabled
         : isChatLogVariableEnabled();
     this.variableName = (activityId != null && !activityId.isEmpty())
         ? AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + activityId
         : null;
+    if (enabled && variableName != null
+        && variableName.length() + MAX_CHUNK_SUFFIX_LENGTH > MAX_VARIABLE_NAME_LENGTH) {
+      // Caught here rather than as a database error when the first chunk is written.
+      LOG.warn("AI Agent connector: activity id '{}' is too long for its chat-log variables"
+          + " ({} characters at most, so that '{}' + id + '{}' + eventSeq fits into {});"
+          + " the chat log of this activity is not persisted.", activityId,
+          MAX_VARIABLE_NAME_LENGTH - MAX_CHUNK_SUFFIX_LENGTH
+              - AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX.length(),
+          AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX, CHUNK_SEPARATOR,
+          MAX_VARIABLE_NAME_LENGTH);
+      enabled = false;
+    }
+    this.chatLogVariableEnabled = enabled;
     if (this.variableName != null && this.chatLogVariableEnabled) {
       continueNumbering();
     }
@@ -636,11 +656,21 @@ class AgentChatListener implements ChatModelListener {
           variableName, e);
       return;
     }
-    persisted = events.size();
     // Default Java serialization is always registered (unlike Spin/Jackson) and stores
     // in ACT_GE_BYTEARRAY, so it bypasses the VARCHAR(4000) limit.
     Object value = Variables.objectValue(chatLog).create();
     execution.setVariable(chunkName(chunk.get(0).get("eventSeq")), value);
+    persisted = events.size();
+  }
+
+  /**
+   * Writes what no {@code response} or {@code error} wrote yet, such as a
+   * retrieval or a request whose model call never ended, as a chunk of its own.
+   * Called once when the connector invocation ends (CIB7-2156); where every model
+   * call ended, everything is written already and this writes nothing.
+   */
+  void flush() {
+    persistEvents();
   }
 
   /** The variable name of the chunk whose first event has {@code firstSeq}. */

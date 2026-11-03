@@ -19,6 +19,7 @@ package org.cibseven.connect.ai.agent.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -467,6 +468,44 @@ public class ProcessVariableChatMemoryStoreTest {
         .doesNotStartWith(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX);
     assertThat(AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX)
         .doesNotStartWith(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX);
+  }
+
+  // ── batch: the failure path (CIB7-2156) ─────────────────────────────────
+
+  /**
+   * An invocation that fails still writes what its batch held when the batch closes, and leaves
+   * no batch open on the thread.
+   */
+  @Test
+  public void aBatchWritesWhatItHeldWhenTheInvocationFails() {
+    ExecutionEntity execution = pushExecution();
+
+    assertThatThrownBy(() -> {
+      try (ProcessVariableChatMemoryStore.Batch batch = ProcessVariableChatMemoryStore.Batch.open()) {
+        store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("hi")));
+        verify(execution, never()).setVariable(org.mockito.Matchers.eq(VARIABLE_NAME),
+            org.mockito.Matchers.any());
+        throw new IllegalStateException("model call failed");
+      }
+    }).hasMessage("model call failed");
+
+    verify(execution).setVariable(org.mockito.Matchers.eq(VARIABLE_NAME),
+        org.mockito.Matchers.any());
+    assertThat(ProcessVariableChatMemoryStore.Batch.isOpen()).isFalse();
+  }
+
+  /** A write that fails when the batch closes does not leave it open for the next invocation. */
+  @Test
+  public void aBatchWhoseWriteFailsIsClosedAnyway() {
+    ExecutionEntity execution = pushExecution();
+    doThrow(new IllegalStateException("write failed")).when(execution)
+        .setVariable(org.mockito.Matchers.eq(VARIABLE_NAME), org.mockito.Matchers.any());
+
+    ProcessVariableChatMemoryStore.Batch batch = ProcessVariableChatMemoryStore.Batch.open();
+    store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("hi")));
+
+    assertThatThrownBy(batch::close).hasMessage("write failed");
+    assertThat(ProcessVariableChatMemoryStore.Batch.isOpen()).isFalse();
   }
 
   private static String repeat(char c, int times) {

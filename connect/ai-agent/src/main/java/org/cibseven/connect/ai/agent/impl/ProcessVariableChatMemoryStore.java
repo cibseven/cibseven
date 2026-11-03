@@ -17,7 +17,6 @@
 package org.cibseven.connect.ai.agent.impl;
 
 import java.nio.charset.StandardCharsets;
-import java.util.AbstractMap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -542,6 +541,18 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
     }
   }
 
+  /** A write a {@link Batch} holds back: the execution it was made from, and the JSON. */
+  private static final class Held {
+
+    private final ExecutionEntity execution;
+    private final String json;
+
+    Held(ExecutionEntity execution, String json) {
+      this.execution = execution;
+      this.json = json;
+    }
+  }
+
   /**
    * Holds back the conversation writes of one connector invocation and writes each conversation
    * once, when the invocation ends (CIB7-2156).
@@ -574,8 +585,8 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
     /** The batches open on this thread, innermost first; unset while none is. */
     private static final ThreadLocal<Deque<Batch>> OPEN = new ThreadLocal<>();
 
-    /** Per conversation, the execution it was last written from and its JSON; first write first. */
-    private final Map<Key, Map.Entry<ExecutionEntity, String>> held = new LinkedHashMap<>();
+    /** Per conversation, its last write; first write first. */
+    private final Map<Key, Held> held = new LinkedHashMap<>();
 
     private Batch() {
     }
@@ -606,15 +617,15 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
           target = batch;
         }
       }
-      target.held.put(key, new AbstractMap.SimpleImmutableEntry<>(execution, json));
+      target.held.put(key, new Held(execution, json));
     }
 
     /** The JSON a batch holds for the conversation, or {@code null}. */
     static String staged(Key key) {
       for (Batch batch : OPEN.get()) {
-        Map.Entry<ExecutionEntity, String> write = batch.held.get(key);
+        Held write = batch.held.get(key);
         if (write != null) {
-          return write.getValue();
+          return write.json;
         }
       }
       return null;
@@ -634,10 +645,10 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
     @Override
     public void close() {
       try {
-        for (Map.Entry<Key, Map.Entry<ExecutionEntity, String>> write : held.entrySet()) {
+        for (Map.Entry<Key, Held> write : held.entrySet()) {
           Key key = write.getKey();
-          ProcessVariableChatMemoryStore.write(write.getValue().getKey(), key.driven, key.name,
-              write.getValue().getValue());
+          ProcessVariableChatMemoryStore.write(write.getValue().execution, key.driven, key.name,
+              write.getValue().json);
         }
       } finally {
         held.clear();

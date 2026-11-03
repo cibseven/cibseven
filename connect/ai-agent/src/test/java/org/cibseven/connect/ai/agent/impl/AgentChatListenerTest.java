@@ -390,14 +390,14 @@ public class AgentChatListenerTest {
     listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
     // The request waits for the response that ends its model call (CIB7-2156).
     verify(execution, org.mockito.Mockito.never())
-        .setVariable(org.mockito.Matchers.startsWith(expectedVar + "#"), org.mockito.Matchers.any());
+        .setVariable(org.mockito.Matchers.startsWith(expectedVar + "~"), org.mockito.Matchers.any());
     listener.onResponse(new ChatModelResponseContext(
         ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
         request, null, new HashMap<>()));
 
     // The chat-log variable AND the connector-flag variable must both be written on
     // the first persistEvents() call.
-    verify(execution).setVariable(org.mockito.Matchers.startsWith(expectedVar + "#"), org.mockito.Matchers.any());
+    verify(execution).setVariable(org.mockito.Matchers.startsWith(expectedVar + "~"), org.mockito.Matchers.any());
     verify(execution).setVariable(
         AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
   }
@@ -419,14 +419,102 @@ public class AgentChatListenerTest {
     retrieval.put("resultCount", 2);
     listener.recordRetrievalEvent(retrieval);
     verify(execution, org.mockito.Mockito.never())
-        .setVariable(org.mockito.Matchers.startsWith(varName + "#"), org.mockito.Matchers.any());
+        .setVariable(org.mockito.Matchers.startsWith(varName + "~"), org.mockito.Matchers.any());
 
     Map<String, Object> failed = new HashMap<>();
     failed.put("errorClass", RuntimeException.class.getName());
     listener.recordRetrievalEvent(failed);
     verify(execution, org.mockito.Mockito.times(1))
-        .setVariable(org.mockito.Matchers.startsWith(varName + "#"), org.mockito.Matchers.any());
+        .setVariable(org.mockito.Matchers.startsWith(varName + "~"), org.mockito.Matchers.any());
     assertThat(listener.events()).hasSize(2);
+  }
+
+  /**
+   * What no response or error wrote, because the invocation failed before the model call, is
+   * written when the invocation ends; what was written already is not written again (CIB7-2156).
+   */
+  @Test
+  public void shouldFlushWhatNoModelCallsEndWrote() {
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "ragTask";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("ragTask");
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener();
+    Map<String, Object> retrieval = new HashMap<>();
+    retrieval.put("resultCount", 2);
+    listener.recordRetrievalEvent(retrieval);
+    listener.flush();
+    verify(execution).setVariable(org.mockito.Matchers.eq(varName + "~0"), org.mockito.Matchers.any());
+
+    listener.flush();
+    verify(execution, org.mockito.Mockito.times(1))
+        .setVariable(org.mockito.Matchers.startsWith(varName + "~"), org.mockito.Matchers.any());
+  }
+
+  /** After a model call that ended, everything is written, and a flush writes nothing more. */
+  @Test
+  public void shouldFlushNothingAfterAModelCallThatEnded() {
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("agentTask");
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener();
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    listener.onResponse(new ChatModelResponseContext(
+        ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
+        request, null, new HashMap<>()));
+    listener.flush();
+
+    verify(execution, org.mockito.Mockito.times(1))
+        .setVariable(org.mockito.Matchers.startsWith(varName + "~"), org.mockito.Matchers.any());
+  }
+
+  /**
+   * A chunk name is the activity's chat-log name plus up to 11 characters. An activity id that
+   * leaves no room for them turns the chat log off with a warning, rather than failing in the
+   * database when the first chunk is written (CIB7-2156).
+   */
+  @Test
+  public void shouldNotPersistTheChatLogOfAnActivityIdTooLongForItsChunkNames() {
+    int longest = 255 - AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX.length() - 11;
+    String fits = repeat('a', longest);
+    verify(afterOneFailedCall(fits)).setVariable(
+        org.mockito.Matchers.eq(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + fits + "~0"),
+        org.mockito.Matchers.any());
+    verify(afterOneFailedCall(repeat('b', longest + 1)), org.mockito.Mockito.never()).setVariable(
+        org.mockito.Matchers.startsWith(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX),
+        org.mockito.Matchers.any());
+  }
+
+  /** The execution of an activity {@code activityId}, after one model call of it failed. */
+  private ExecutionEntity afterOneFailedCall(String activityId) {
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn(activityId);
+    pushExecution(execution);
+    try {
+      AgentChatListener listener = new AgentChatListener(null, null, Boolean.TRUE);
+      ChatRequest request = ChatRequest.builder()
+          .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+      listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+      listener.onError(new ChatModelErrorContext(
+          new RuntimeException("failure"), request, null, new HashMap<>()));
+      return execution;
+    } finally {
+      Context.removeExecutionContext();
+      pushedExecution = false;
+    }
+  }
+
+  private static String repeat(char c, int times) {
+    StringBuilder sb = new StringBuilder(times);
+    for (int i = 0; i < times; i++) {
+      sb.append(c);
+    }
+    return sb.toString();
   }
 
   @Test
@@ -452,11 +540,11 @@ public class AgentChatListenerTest {
     // named after its first event (CIB7-2156); flag exactly once.
     verify(execution, org.mockito.Mockito.times(1))
         .setVariable(org.mockito.Matchers.eq(
-            AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask#0"),
+            AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask~0"),
             org.mockito.Matchers.any());
     verify(execution, org.mockito.Mockito.times(1))
         .setVariable(org.mockito.Matchers.eq(
-            AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask#2"),
+            AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask~2"),
             org.mockito.Matchers.any());
     verify(execution, org.mockito.Mockito.never())
         .setVariable(org.mockito.Matchers.eq(
@@ -496,14 +584,14 @@ public class AgentChatListenerTest {
     ExecutionEntity execution = mock(ExecutionEntity.class);
     when(execution.getActivityId()).thenReturn("resumable");
     when(execution.getVariableNames()).thenReturn(new java.util.HashSet<>(Arrays.asList(
-        varName, varName + "#2", varName + "#10", varName + "#4",
-        varName + "#x", varName + "Other#99", "unrelated")));
-    when(execution.getVariable(varName + "#10")).thenReturn(
+        varName, varName + "~2", varName + "~10", varName + "~4",
+        varName + "~x", varName + "Other~99", "unrelated")));
+    when(execution.getVariable(varName + "~10")).thenReturn(
         "[{\"type\":\"request\",\"eventSeq\":10},{\"type\":\"response\",\"eventSeq\":11}]");
 
     assertThat(firstSeq(execution)).as("numerically newest chunk, of this activity only")
         .isEqualTo(12);
-    verify(execution, org.mockito.Mockito.never()).getVariable(varName + "#2");
+    verify(execution, org.mockito.Mockito.never()).getVariable(varName + "~2");
   }
 
   @Test
@@ -512,8 +600,8 @@ public class AgentChatListenerTest {
     ExecutionEntity execution = mock(ExecutionEntity.class);
     when(execution.getActivityId()).thenReturn("resumable");
     when(execution.getVariableNames())
-        .thenReturn(new java.util.HashSet<>(Arrays.asList(varName + "#6")));
-    when(execution.getVariable(varName + "#6")).thenReturn("not-json {{{");
+        .thenReturn(new java.util.HashSet<>(Arrays.asList(varName + "~6")));
+    when(execution.getVariable(varName + "~6")).thenReturn("not-json {{{");
 
     assertThat(firstSeq(execution)).as("past the chunk, so no name collides with it")
         .isEqualTo(7);
@@ -561,7 +649,7 @@ public class AgentChatListenerTest {
 
     // Chat-log variable must NOT be written for any of the events.
     verify(execution, org.mockito.Mockito.never())
-        .setVariable(org.mockito.Matchers.startsWith(varName + "#"), org.mockito.Matchers.any());
+        .setVariable(org.mockito.Matchers.startsWith(varName + "~"), org.mockito.Matchers.any());
     // The connector flag variable is suppressed too — it points at the chat-log
     // timeline and would be misleading without it.
     verify(execution, org.mockito.Mockito.never())
@@ -608,7 +696,7 @@ public class AgentChatListenerTest {
         ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
         request, null, new HashMap<>()));
 
-    verify(execution).setVariable(org.mockito.Matchers.startsWith(varName + "#"), org.mockito.Matchers.any());
+    verify(execution).setVariable(org.mockito.Matchers.startsWith(varName + "~"), org.mockito.Matchers.any());
     verify(execution).setVariable(
         AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
   }
@@ -655,7 +743,7 @@ public class AgentChatListenerTest {
         request, null, new HashMap<>()));
 
     verify(execution, org.mockito.Mockito.never())
-        .setVariable(org.mockito.Matchers.startsWith(varName + "#"), org.mockito.Matchers.any());
+        .setVariable(org.mockito.Matchers.startsWith(varName + "~"), org.mockito.Matchers.any());
     verify(execution, org.mockito.Mockito.never())
         .setVariable(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
     assertThat(listener.events()).hasSize(2);
@@ -680,7 +768,7 @@ public class AgentChatListenerTest {
         ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
         request, null, new HashMap<>()));
 
-    verify(execution).setVariable(org.mockito.Matchers.startsWith(varName + "#"), org.mockito.Matchers.any());
+    verify(execution).setVariable(org.mockito.Matchers.startsWith(varName + "~"), org.mockito.Matchers.any());
   }
 
   @Test
@@ -703,7 +791,7 @@ public class AgentChatListenerTest {
         request, null, new HashMap<>()));
 
     verify(execution, org.mockito.Mockito.never())
-        .setVariable(org.mockito.Matchers.startsWith(varName + "#"), org.mockito.Matchers.any());
+        .setVariable(org.mockito.Matchers.startsWith(varName + "~"), org.mockito.Matchers.any());
   }
 
   // ── redactContent env-var fallback (normalised in the same pass) ────────

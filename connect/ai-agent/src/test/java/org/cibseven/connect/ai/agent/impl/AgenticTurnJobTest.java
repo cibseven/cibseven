@@ -1077,8 +1077,8 @@ public class AgenticTurnJobTest {
     List<HistoricVariableInstance> chunks =
         historicVariables(pi, AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX);
     assertThat(chunks).extracting(HistoricVariableInstance::getName).containsExactlyInAnyOrder(
-        AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "adHoc#0",
-        AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "adHoc#2");
+        AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "adHoc~0",
+        AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "adHoc~2");
     for (HistoricVariableInstance chunk : chunks) {
       String events = (String) chunk.getValue();
       assertThat(events.split("\"type\":\"request\"", -1)).as(chunk.getName()).hasSize(2);

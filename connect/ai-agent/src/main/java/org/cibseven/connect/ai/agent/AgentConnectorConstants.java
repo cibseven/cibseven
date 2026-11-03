@@ -123,22 +123,43 @@ public final class AgentConnectorConstants {
   public static final String AGENT_CONNECTOR_FLAG_VARIABLE_NAME = "cibseven-connect-ai-agent";
 
   /**
-   * Prefix for the per-activity chat log process variable. The full variable
-   * name is {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId>}, so each service
+   * Prefix for the per-activity chat log process variables, so each service
    * task running the connector writes its own chat log without further
-   * configuration from the BPMN designer.
+   * configuration from the BPMN designer. The chat log of an activity is stored
+   * under {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> +
+   * AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR + <eventSeq>}, see
+   * {@link #AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR}.
    */
   public static final String AGENT_CONNECTOR_LOG_PREFIX = "cibseven-connect-ai-agent_";
 
   /**
    * Separates the activity id from the chunk number in a chat-log variable:
-   * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "#" + <eventSeq>}, one
+   * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "~" + <eventSeq>}, one
    * variable per model call holding its events, written once (CIB7-2156). A
-   * BPMN id cannot contain {@code #}, so the activity id is everything before
-   * it. The variable without a suffix is a log from before chunking, rewritten
-   * whole; a reader shows it first, then the chunks in {@code eventSeq} order.
+   * BPMN id cannot contain {@code ~}, so the activity id is everything before
+   * it; and {@code ~} is unreserved in a URL, so the name goes into a REST path
+   * such as {@code /process-instance/{id}/variables/{varName}} as it is.
+   *
+   * <p>How a reader puts an activity's chat log together, from all variables
+   * whose name starts with {@link #AGENT_CONNECTOR_LOG_PREFIX}:
+   * <ol>
+   *   <li>the activity id is the part of the name after the prefix and before
+   *       the last {@code ~}; a name without {@code ~} is the activity id
+   *       itself;</li>
+   *   <li>the variable without a suffix comes first: a log written before
+   *       chunking, by a version that rewrote the whole log on every event;</li>
+   *   <li>then the chunks, in the numeric order of their suffix (not the
+   *       lexicographic one: {@code ~10} comes after {@code ~4}). Each holds a
+   *       JSON array of events; concatenated they are the timeline.</li>
+   * </ol>
+   *
+   * <p>Compatibility: a reader that does not know the separator, such as a
+   * webclient from before this version, takes every chunk for a log of its own
+   * activity and shows one timeline per model call. Readers have to be updated
+   * together with the connector; a process instance running across the upgrade
+   * keeps its old variable and continues in chunks after it.
    */
-  public static final String AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR = "#";
+  public static final String AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR = "~";
 
   // ── Chat memory defaults ──────────────────────────────────────────────────
 
