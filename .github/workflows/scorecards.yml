@@ -4,6 +4,7 @@ on:
     # Only the default branch is supported.
     branches:
     - main
+  pull_request:
   schedule:
     # Weekly on Saturdays.
     - cron:  '30 1 * * 6'
@@ -14,6 +15,7 @@ permissions: read-all
 jobs:
   analysis:
     name: Scorecard analysis
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       # Needed for Code scanning upload
