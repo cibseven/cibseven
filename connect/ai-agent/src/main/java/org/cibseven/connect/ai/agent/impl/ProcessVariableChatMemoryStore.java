@@ -91,8 +91,9 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
 
   /**
    * Engine limit for the {@code NAME_} column of {@code ACT_RU_VARIABLE} —
-   * {@code ACT_HI_VARINST} and {@code ACT_HI_DETAIL} share it. Shared with the
-   * chat-log chunk names of {@link AgentChatListener}.
+   * {@code ACT_HI_VARINST} and {@code ACT_HI_DETAIL} share it. Counted in UTF-8 bytes,
+   * since DB2 counts the column in bytes. Shared with the chat-log chunk names of
+   * {@link AgentChatListener}.
    */
   static final int MAX_VARIABLE_NAME_LENGTH = 255;
 
@@ -413,7 +414,8 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
    * The process-variable name carrying the conversation for {@code memoryId}.
    *
    * @throws AgentConnectorException when the id is missing or blank, or when it
-   *     is too long for the engine's variable-name column. A missing id would
+   *     is too long for the engine's variable-name column, counted in UTF-8 bytes
+   *     as for the chat-log chunk names. A missing id would
    *     otherwise produce one shared variable name for every such conversation
    *     in the instance — every agent task without an id reading and overwriting
    *     the same history — so it is rejected rather than mapped to a placeholder.
@@ -428,11 +430,12 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
           + "a BPMN input mapping that resolves to an empty value overrides that with nothing.");
     }
     String name = AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX + id;
-    if (name.length() > MAX_VARIABLE_NAME_LENGTH) {
+    int bytes = name.getBytes(StandardCharsets.UTF_8).length;
+    if (bytes > MAX_VARIABLE_NAME_LENGTH) {
       throw new AgentConnectorException(String.format(
-          "memoryId is too long: the chat-memory variable name would be %d characters, but the "
-          + "engine limits variable names to %d. Use a memoryId of at most %d characters.",
-          name.length(), MAX_VARIABLE_NAME_LENGTH,
+          "memoryId is too long: the chat-memory variable name would be %d bytes (UTF-8), but the "
+          + "engine limits variable names to %d. Use a memoryId of at most %d ASCII characters.",
+          bytes, MAX_VARIABLE_NAME_LENGTH,
           MAX_VARIABLE_NAME_LENGTH - AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX.length()));
     }
     return name;
@@ -658,7 +661,8 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
      *
      * <p>A write that fails is logged before it is rethrown: when the invocation fails as well,
      * the failure is only a suppressed exception of the invocation's, and a {@code BpmnError}
-     * caught by a boundary event lets the transaction commit without the conversation.
+     * caught by a boundary event lets the transaction commit without the conversation. The log
+     * leaves out the stack trace, which the engine or the suppressed exception carries.
      */
     @Override
     public void close() {
@@ -670,7 +674,7 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
                 write.getValue().json);
           } catch (RuntimeException e) {
             LOG.warn("AI Agent connector: could not write the conversation '{}' at the end of the "
-                + "connector invocation.", key.name, e);
+                + "connector invocation: {}", key.name, e.toString());
             throw e;
           }
         }

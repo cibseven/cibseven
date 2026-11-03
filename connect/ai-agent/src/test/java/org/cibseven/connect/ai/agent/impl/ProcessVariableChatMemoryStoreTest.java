@@ -448,6 +448,17 @@ public class ProcessVariableChatMemoryStoreTest {
         .hasMessageContaining("memoryId is too long");
   }
 
+  /** Counted in UTF-8 bytes, as the chat-log chunk names are (CIB7-2156). */
+  @Test
+  public void shouldMeasureTheMemoryVariableNameInBytes() {
+    int maxIdLength = 255 - AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX.length();
+    String twoBytesEach = repeat('ä', maxIdLength);
+
+    assertThatThrownBy(() -> ProcessVariableChatMemoryStore.variableName(twoBytesEach))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("bytes");
+  }
+
   @Test
   public void shouldAcceptMemoryIdAtMaximumLength() {
     int maxIdLength = 255 - AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX.length();

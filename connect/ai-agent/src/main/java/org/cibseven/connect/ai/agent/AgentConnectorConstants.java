@@ -158,10 +158,11 @@ public final class AgentConnectorConstants {
    * multi-instance or two branches reaching the same activity, each continue
    * from what is committed and so name their chunk alike, as they wrote the one
    * variable before. The second insert then fails on the engine's unique index
-   * {@code ACT_UNIQ_VARIABLE}, as the second update failed before, and its job
-   * fails and is retried. The engine reports that violation as an
-   * {@code OptimisticLockingException} on H2, MySQL, MariaDB, PostgreSQL,
-   * SQL Server and Oracle, and as a plain persistence error on DB2.
+   * {@code ACT_UNIQ_VARIABLE}, as the second update failed before, and the
+   * transaction of the second fails; run in a job, the job is retried. The
+   * engine reports that violation as an {@code OptimisticLockingException}
+   * on H2, MySQL, MariaDB, PostgreSQL, SQL Server and Oracle, and as a plain
+   * persistence error on DB2.
    *
    * <p>Compatibility: a reader that does not know the separator, such as a
    * webclient from before this version, takes every chunk for a log of its own
