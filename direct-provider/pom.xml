@@ -19,6 +19,7 @@
   <properties>
     <!-- Runs only inside the webclient, which needs Java 17 -->
     <version.java>17</version.java>
+    <cibseven-webapp-interface.version>${cibseven-webapp.version}</cibseven-webapp-interface.version>
   </properties>
 
   <dependencyManagement>
@@ -56,7 +57,7 @@
     <dependency>
       <groupId>org.cibseven.webapp</groupId>
       <artifactId>cibseven-interfaces</artifactId>
-      <version>${cibseven-webapp.version}</version>
+      <version>${cibseven-webapp-interface.version}</version>
     </dependency>
     <dependency>
       <groupId>org.cibseven.bpm</groupId>

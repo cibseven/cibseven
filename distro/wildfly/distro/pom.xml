@@ -68,6 +68,21 @@
       <type>war</type>
     </dependency>
 
+    <!-- The webclient war no longer contains the direct provider, it is built in this repo now.
+         webclient-war.xml repacks the war with it. -->
+    <dependency>
+      <groupId>org.cibseven.webapp</groupId>
+      <artifactId>cibseven-direct-provider</artifactId>
+      <version>${project.version}</version>
+      <exclusions>
+        <!-- the webclient war has it -->
+        <exclusion>
+          <groupId>org.cibseven.webapp</groupId>
+          <artifactId>cibseven-interfaces</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -77,6 +92,24 @@
         <artifactId>maven-assembly-plugin</artifactId>
         <version>3.1.0</version>
         <executions>
+          <!-- must stay ahead of the distro execution, which picks up the war it builds -->
+          <execution>
+            <id>webclient-war</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>webclient-war.xml</descriptor>
+              </descriptors>
+              <finalName>cibseven-webclient-web-${cibseven-webapp.version}</finalName>
+              <attach>false</attach>
+              <appendAssemblyId>true</appendAssemblyId>
+              <outputDirectory>target/webclient</outputDirectory>
+              <workDirectory>target/assembly/work-webclient</workDirectory>
+            </configuration>
+          </execution>
           <execution>
             <id>distro</id>
             <phase>package</phase>
