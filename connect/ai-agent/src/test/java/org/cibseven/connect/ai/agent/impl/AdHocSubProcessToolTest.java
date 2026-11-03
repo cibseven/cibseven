@@ -1180,6 +1180,29 @@ public class AdHocSubProcessToolTest {
   }
 
   /**
+   * A date set in the same step as a {@code java.sql.Date}, by a listener or a script, is cached as
+   * it was given and refuses {@code toInstant()}: it is shown in ISO 8601 all the same, by its
+   * milliseconds, as a date read from the database is (Copilot's review of PR 532).
+   */
+  @Test
+  public void aDateSetInTheStepAsASqlDateIsShownInIso() {
+    ProcessInstance instance = startWithoutTurn("processDataSqlDate",
+        processVariables("faellig, uhrzeit", "uhrzeit"), tool -> {
+          ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
+          scope.setVariable("faellig", new java.sql.Date(0L));
+          scope.setVariable("uhrzeit", new java.sql.Time(60_000L));
+          return tool.turnReport();
+        });
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(processData(result(0)))
+        .containsEntry("faellig", "1970-01-01T00:00:00Z")
+        .containsEntry("uhrzeit", "1970-01-01T00:01:00Z");
+  }
+
+  /**
    * An object serialized as JSON or XML, as a Spin value is, is shown as its text, read without
    * deserializing it, and cut past the limit of one value. Shown on the value itself: this engine
    * has no serializer for JSON.

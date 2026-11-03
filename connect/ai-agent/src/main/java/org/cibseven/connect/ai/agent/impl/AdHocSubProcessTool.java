@@ -39,6 +39,8 @@ import org.cibseven.connect.ai.agent.agentic.AgenticToolCatalogParser;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.cibseven.bpm.engine.runtime.AdHocSubProcessActivationBuilder;
+import java.time.Instant;
+
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
 import org.cibseven.bpm.engine.impl.context.Context;
@@ -967,7 +969,9 @@ public class AdHocSubProcessTool {
             return ProcessValue.text((String) value);
         }
         if (value instanceof Date) {
-            return ProcessValue.whole(((Date) value).toInstant().toString());
+            // By the milliseconds, which every Date has: a java.sql.Date or Time set in this step
+            // is cached as it was given, and refuses toInstant() (Copilot's review of PR 532).
+            return ProcessValue.whole(Instant.ofEpochMilli(((Date) value).getTime()).toString());
         }
         return ProcessValue.whole(value);
     }
