@@ -30,3 +30,5 @@ distro/run/resources
 .vscode/settings.json
 .vscode/launch.json
 .vscode/tasks.json
+
+cibseven-run*
