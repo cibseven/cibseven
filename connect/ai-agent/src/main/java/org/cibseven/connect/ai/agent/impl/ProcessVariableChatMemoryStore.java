@@ -206,6 +206,12 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
     }
     if (Batch.isOpen()) {
       Batch.stage(key(execution, name), execution, json);
+      if (driven) {
+        // The copy an earlier build left at the process level is in the reach of the tools this
+        // invocation runs, so it goes now, as the first write removed it before, not when the
+        // batch closes. The batch holds the conversation until then.
+        removeLegacyCopy(execution, name);
+      }
     } else {
       write(execution, driven, name, json);
     }
