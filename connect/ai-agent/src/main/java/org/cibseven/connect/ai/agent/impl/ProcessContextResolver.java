@@ -277,9 +277,10 @@ public final class ProcessContextResolver {
    * Renders the block that gets appended to the system prompt, or {@code null}
    * when {@code variables} is empty.
    *
-   * <p>Sets {@link ContextVariable#omitted} on the tail entries that no longer
-   * fit into {@code maxBlockChars}, so {@link #describe(List, String)} can report
-   * them. The omission is also stated inside the block — a silently shortened
+   * <p>Sets {@link ContextVariable#omitted} on the entries that no longer fit
+   * into {@code maxBlockChars}, so {@link #describe(List, String)} can report
+   * them. Room for the required entries is held back first: an optional value
+   * is dropped before it can push out a required one. The omission is also stated inside the block — a silently shortened
    * context would read to the model like a complete one.
    */
   static String render(List<ContextVariable> variables, int maxBlockChars) {
@@ -293,21 +294,38 @@ public final class ProcessContextResolver {
     // documented limit and the blockChars we report are both understated.
     int budget = maxBlockChars - prefix.length() - suffix.length() - OMISSION_RESERVE_CHARS;
 
+    // Declaration order is kept, but an optional variable never takes room a
+    // later required one needs: otherwise a few large optional values declared
+    // first would push a small required value out of the block and fail the
+    // activity over data the modeler said it could do without. Optional lines
+    // therefore have to fit together with every required line still to come,
+    // and once one optional line is dropped, the optional ones after it are too
+    // — the block keeps a prefix of the optional values, not a lucky selection.
+    int size = variables.size();
+    String[] lines = new String[size];
+    int[] requiredAfter = new int[size + 1];
+    for (int i = size - 1; i >= 0; i--) {
+      ContextVariable variable = variables.get(i);
+      lines[i] = variable.toLine();
+      requiredAfter[i] = requiredAfter[i + 1] + (variable.optional ? 0 : lines[i].length() + 1);
+    }
+
     StringBuilder body = new StringBuilder();
     int omitted = 0;
-    for (ContextVariable variable : variables) {
-      if (omitted > 0) {
+    boolean optionalCut = false;
+    for (int i = 0; i < size; i++) {
+      ContextVariable variable = variables.get(i);
+      int needed = body.length() + lines[i].length() + 1;
+      boolean fits = variable.optional
+          ? !optionalCut && needed + requiredAfter[i + 1] <= budget
+          : needed <= budget;
+      if (!fits) {
         variable.omitted = true;
         omitted++;
+        optionalCut |= variable.optional;
         continue;
       }
-      String line = variable.toLine();
-      if (body.length() + line.length() + 1 > budget) {
-        variable.omitted = true;
-        omitted = 1;
-        continue;
-      }
-      body.append(line).append('\n');
+      body.append(lines[i]).append('\n');
     }
     if (omitted > 0) {
       body.append("... (").append(omitted).append(" of ").append(variables.size())
@@ -669,7 +687,23 @@ public final class ProcessContextResolver {
     // quadratically — hours for a 5 MiB text document, on the engine thread.
     // Nothing is lost: whitespace never matches "/" or the tag's first letter,
     // so a possessive run never has to give anything back for a real match.
-    return value.replaceAll("(?i)<(\\s*+/?\\s*+" + tag + ")\\b", ESCAPED_ANGLE + "$1");
+    // Java's \s is ASCII only, so the run also covers Unicode separators (no-break
+    // and em space, ...) and the zero-width characters: "<", U+00A0, "/document>"
+    // reads like the tag to a model just as much as "< /document>" does.
+    return TAG_PATTERNS.computeIfAbsent(tag, ProcessContextResolver::tagPattern)
+        .matcher(value).replaceAll(ESCAPED_ANGLE + "$1");
+  }
+
+  /** Whitespace a model may read past inside a delimiter; see {@link #neuterTag}. */
+  private static final String TAG_SPACE = "[\\s\\p{Z}\\u200B-\\u200D\\u2060\\uFEFF]*+";
+
+  private static final java.util.concurrent.ConcurrentMap<String, java.util.regex.Pattern>
+      TAG_PATTERNS = new java.util.concurrent.ConcurrentHashMap<>();
+
+  private static java.util.regex.Pattern tagPattern(String tag) {
+    return java.util.regex.Pattern.compile(
+        "<(" + TAG_SPACE + "/?" + TAG_SPACE + java.util.regex.Pattern.quote(tag) + ")\\b",
+        java.util.regex.Pattern.CASE_INSENSITIVE);
   }
 
   // ── descriptor ─────────────────────────────────────────────────────────────

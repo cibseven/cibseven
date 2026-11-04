@@ -323,6 +323,28 @@ public class ProcessContextEngineTest {
     assertThat(capturedSystemMessage).isEqualTo("be brief");
   }
 
+  /**
+   * AC5, BMAD review of PR #447: only the declared variables reach the model.
+   * The instance holds more than the allowlist names; nothing else may leak in.
+   */
+  @Test
+  public void shouldSendOnlyTheDeclaredVariablesOfTheInstance() {
+    start(Variables.createVariables()
+        .putValue("_declared", "orderId")
+        .putValue("orderId", "4711")
+        .putValue("customerIban", "DE00-undeclared-canary")
+        .putValue("internalNote", "undeclared-note-canary"));
+
+    String block = capturedSystemMessage.substring(
+        capturedSystemMessage.indexOf(AgentConnectorConstants.CONTEXT_BLOCK_OPEN));
+    assertThat(block).contains("orderId (string) = \"4711\"");
+    assertThat(capturedSystemMessage)
+        .doesNotContain("customerIban")
+        .doesNotContain("undeclared-canary")
+        .doesNotContain("internalNote")
+        .doesNotContain("undeclared-note-canary");
+  }
+
   // ── required variables abort the activity ──────────────────────────────────
 
   @Test

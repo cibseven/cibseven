@@ -271,6 +271,41 @@ public class ProcessContextResolverTest {
     ProcessContextResolver.failOnMissingRequired(resolved);
   }
 
+  /**
+   * BMAD review of PR #447: a large optional value declared before a small
+   * required one used to take the room and fail the activity over the required
+   * one. The optional one is dropped instead; declaration order is kept.
+   */
+  @Test
+  public void shouldDropAnOptionalVariableBeforeItPushesOutARequiredOne() {
+    variables.put("note", Variables.stringValue("n".repeat(80)));
+    variables.put("orderId", Variables.stringValue("4711"));
+    variables.put("remark", Variables.stringValue("r"));
+
+    List<ContextVariable> resolved = resolve("note,orderId,remark", "note,remark");
+    // Room for the note or the order id, not for both.
+    String block = ProcessContextResolver.render(resolved,
+        ProcessContextResolver.envelopeOverhead() + 100);
+
+    assertThat(resolved).extracting(v -> v.omitted).containsExactly(true, false, true);
+    assertThat(block).contains("orderId (string) = \"4711\"").doesNotContain("nnnn")
+        .contains("2 of 3 variables omitted");
+    ProcessContextResolver.failOnMissingRequired(resolved);
+  }
+
+  @Test
+  public void shouldKeepAnOptionalVariableThatFitsNextToTheRequiredOnes() {
+    variables.put("note", Variables.stringValue("short"));
+    variables.put("orderId", Variables.stringValue("4711"));
+
+    List<ContextVariable> resolved = resolve("note,orderId", "note");
+    String block = ProcessContextResolver.render(resolved,
+        ProcessContextResolver.envelopeOverhead() + 100);
+
+    assertThat(resolved).extracting(v -> v.omitted).containsExactly(false, false);
+    assertThat(block.indexOf("note (string)")).isLessThan(block.indexOf("orderId (string)"));
+  }
+
   // ── the optional list is a modifier, not a second source of names ─────────
 
   @Test
@@ -642,6 +677,35 @@ public class ProcessContextResolverTest {
         .startsWith("<" + spaces)
         .endsWith("y &lt; /document>")
         .hasSize(value.length() + "&lt;".length() - 1);
+  }
+
+  /**
+   * BMAD review of PR #447: Java's {@code \s} is ASCII only. A no-break space,
+   * an em space or a zero-width character around the slash reads like the tag
+   * to a model and must be neutered as well.
+   */
+  @Test
+  public void shouldNeuterDelimitersWrittenWithUnicodeWhitespace() {
+    String nbsp = " ";
+    String emSpace = " ";
+    String zeroWidth = "​";
+    String value = "a <" + nbsp + "/document> b <" + emSpace + "process-context> c </"
+        + zeroWidth + "PROCESS-CONTEXT> d <﻿/ document x=\"1\">";
+
+    String neutered = ProcessContextResolver.neuterDelimiters(value);
+
+    assertThat(neutered)
+        .contains("&lt;" + nbsp + "/document>")
+        .contains("&lt;" + emSpace + "process-context>")
+        .contains("&lt;/" + zeroWidth + "PROCESS-CONTEXT>")
+        .contains("&lt;﻿/ document x=")
+        .doesNotContain("<" + nbsp)
+        .doesNotContain("<" + emSpace)
+        .doesNotContain("</" + zeroWidth)
+        .doesNotContain("<﻿");
+    // A word that merely starts with the tag is still left alone.
+    assertThat(ProcessContextResolver.neuterDelimiters("<" + nbsp + "documentation>"))
+        .isEqualTo("<" + nbsp + "documentation>");
   }
 
   /** The remaining C0 controls and DEL, which some parsers treat as line breaks. */

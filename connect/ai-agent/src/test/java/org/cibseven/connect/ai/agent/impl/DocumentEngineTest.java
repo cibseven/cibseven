@@ -500,6 +500,40 @@ public class DocumentEngineTest {
         .doesNotContain(Base64.getEncoder().encodeToString(PDF_BYTES));
   }
 
+  /**
+   * AC5, BMAD review of PR #447: the same documents reach the model whether the
+   * task runs synchronously or as a job. In a job the file variable has been
+   * written to and read back from the database first, so filename, mime type
+   * and bytes must survive that round trip.
+   */
+  @Test
+  public void shouldAttachTheSameDocumentsWhenTheTaskRunsAsAJob() {
+    engineRule.getRuntimeService().startProcessInstanceByKey("documentEngineTestAsync",
+        Variables.createVariables()
+            .putValue("_documents", "invoice,scan")
+            .putValueTyped("invoice", Variables.fileValue("invoice.pdf")
+                .file(PDF_BYTES).mimeType("application/pdf").create())
+            .putValueTyped("scan", Variables.fileValue("scan.png")
+                .file(PNG_BYTES).mimeType("image/png").create()));
+    assertThat(capturedUserMessage).as("not yet run, it is a job").isNull();
+
+    org.cibseven.bpm.engine.runtime.Job job =
+        engineRule.getManagementService().createJobQuery().singleResult();
+    engineRule.getManagementService().executeJob(job.getId());
+
+    List<Content> contents = capturedUserMessage.contents();
+    assertThat(contents).hasSize(3);
+    assertThat(contents.get(1)).isInstanceOf(PdfFileContent.class);
+    assertThat(contents.get(2)).isInstanceOf(ImageContent.class);
+    assertThat(((PdfFileContent) contents.get(1)).pdfFile().base64Data())
+        .isEqualTo(Base64.getEncoder().encodeToString(PDF_BYTES));
+    assertThat(((ImageContent) contents.get(2)).image().base64Data())
+        .isEqualTo(Base64.getEncoder().encodeToString(PNG_BYTES));
+    assertThat(chatLog())
+        .contains("invoice.pdf").contains("scan.png")
+        .doesNotContain(Base64.getEncoder().encodeToString(PDF_BYTES));
+  }
+
   // ── audit ──────────────────────────────────────────────────────────────────
 
   @Test
@@ -612,16 +646,25 @@ public class DocumentEngineTest {
   }
 
   private void deployProcess() {
-    String bpmn = ""
+    engineRule.getRepositoryService()
+        .createDeployment()
+        .addString("documentEngineTest.bpmn20.xml", bpmn("documentEngineTest", false))
+        .addString("documentEngineTestAsync.bpmn20.xml", bpmn("documentEngineTestAsync", true))
+        .deploy();
+  }
+
+  /** The agent task, optionally behind an async continuation so it runs as a job. */
+  private static String bpmn(String key, boolean async) {
+    return ""
         + "<?xml version='1.0' encoding='UTF-8'?>"
         + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
         + "             xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
         + "             targetNamespace='http://cibseven.org/test'>"
-        + "  <process id='documentEngineTest' isExecutable='true'"
+        + "  <process id='" + key + "' isExecutable='true'"
         + "           camunda:historyTimeToLive='1'>"
         + "    <startEvent id='start'/>"
         + "    <sequenceFlow id='f1' sourceRef='start' targetRef='agent'/>"
-        + "    <serviceTask id='agent'"
+        + "    <serviceTask id='agent'" + (async ? " camunda:asyncBefore='true'" : "")
         + "                 camunda:class='" + AgentDelegate.class.getName() + "'/>"
         + "    <sequenceFlow id='f2' sourceRef='agent' targetRef='wait'/>"
         + "    <userTask id='wait'/>"
@@ -629,10 +672,5 @@ public class DocumentEngineTest {
         + "    <endEvent id='end'/>"
         + "  </process>"
         + "</definitions>";
-
-    engineRule.getRepositoryService()
-        .createDeployment()
-        .addString("documentEngineTest.bpmn20.xml", bpmn)
-        .deploy();
   }
 }

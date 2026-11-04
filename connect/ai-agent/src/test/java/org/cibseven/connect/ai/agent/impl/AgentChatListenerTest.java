@@ -1068,6 +1068,38 @@ public class AgentChatListenerTest {
     assertThat(content).doesNotContain(base64);
   }
 
+  /**
+   * BMAD review of PR #447: the descriptor map is identity-keyed. A text
+   * document whose {@code TextContent} was rebuilt on the way (guardrail,
+   * augmentor, message copy) misses the lookup and must still not reach the
+   * chat log as text.
+   */
+  @Test
+  public void shouldNotLogATextDocumentBodyWhoseContentMissesTheDescriptorLookup() {
+    AgentChatListener listener = new AgentChatListener();
+    String body = "secret-terms-canary";
+    String wrapped = DocumentContentResolver.wrapTextDocument(
+        "terms", "terms.txt", "text/plain", body.length(), body);
+
+    // Descriptor registered for one instance, an equal copy is what arrives.
+    Map<dev.langchain4j.data.message.Content, Map<String, Object>> descriptors =
+        new java.util.IdentityHashMap<>();
+    descriptors.put(dev.langchain4j.data.message.TextContent.from(wrapped),
+        Collections.singletonMap("variable", "terms"));
+    listener.setDocumentDescriptors(descriptors);
+
+    listener.onRequest(requestContext(dev.langchain4j.data.message.UserMessage.from(
+        dev.langchain4j.data.message.TextContent.from("Summarise."),
+        dev.langchain4j.data.message.TextContent.from(wrapped))));
+
+    String content = firstUserContent(listener);
+    assertThat(content)
+        .contains("Summarise.")
+        .contains("\"document\":true")
+        .contains(AgentChatListener.sha256(wrapped))
+        .doesNotContain(body);
+  }
+
   @Test
   public void shouldEmitDocumentsEventWithEnvelopeAndPayload() {
     AgentChatListener listener = new AgentChatListener();

@@ -1065,9 +1065,23 @@ class AgentChatListener implements ChatModelListener {
         continue;
       }
       if (content instanceof dev.langchain4j.data.message.TextContent) {
+        String text = ((dev.langchain4j.data.message.TextContent) content).text();
         Map<String, Object> part = new LinkedHashMap<>();
         part.put("type", "TEXT");
-        part.put("text", ((dev.langchain4j.data.message.TextContent) content).text());
+        if (isWrappedTextDocument(text)) {
+          // Second line of defence. The descriptor map is identity-keyed, so a
+          // LangChain4j step that rebuilds the TextContent — a guardrail, an
+          // augmentor, a message copy — makes the lookup above miss, and the
+          // document body would land in the chat log. The block header the
+          // connector writes is recognisable on its own: log length and hash,
+          // never the text.
+          part.put("document", true);
+          part.put("descriptor", "unavailable");
+          part.put("length", text.length());
+          part.put("sha256", sha256(text));
+        } else {
+          part.put("text", text);
+        }
         parts.add(part);
         continue;
       }
@@ -1083,6 +1097,17 @@ class AgentChatListener implements ChatModelListener {
           + "rather than the raw message, which would contain base64 payloads.", e);
       return "[" + parts.size() + " content part(s); serialisation failed]";
     }
+  }
+
+  /**
+   * Whether {@code text} starts with the header
+   * {@link DocumentContentResolver#wrapTextDocument} writes. A document body
+   * cannot forge it — the delimiters inside the body are neutered — so a match
+   * is the connector's own wrapping.
+   */
+  private static boolean isWrappedTextDocument(String text) {
+    return text != null
+        && text.startsWith(AgentConnectorConstants.DOCUMENT_BLOCK_OPEN + " variable=\"");
   }
 
   /**
