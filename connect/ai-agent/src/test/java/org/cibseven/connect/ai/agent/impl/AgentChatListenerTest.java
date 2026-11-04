@@ -17,10 +17,21 @@
 package org.cibseven.connect.ai.agent.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.startsWith;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,10 +41,14 @@ import java.util.Map;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.identity.Authentication;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
@@ -346,7 +361,7 @@ public class AgentChatListenerTest {
         (List<Map<String, Object>>) listener.events().get(0).get("messages");
     String json = (String) messages.get(0).get("content");
     @SuppressWarnings("unchecked")
-    Map<String, Object> decoded = new com.fasterxml.jackson.databind.ObjectMapper()
+    Map<String, Object> decoded = new ObjectMapper()
         .readValue(json, Map.class);
     assertThat(decoded)
         .containsEntry("text", "final answer")
@@ -389,15 +404,15 @@ public class AgentChatListenerTest {
         .messages(Collections.singletonList(UserMessage.from("hi"))).build();
     listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
     // The request waits for the response that ends its model call (CIB7-2156).
-    verify(execution, org.mockito.Mockito.never())
-        .setVariable(org.mockito.Matchers.startsWith(expectedVar + "~"), org.mockito.Matchers.any());
+    verify(execution, never())
+        .setVariable(startsWith(expectedVar + "~"), any());
     listener.onResponse(new ChatModelResponseContext(
         ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
         request, null, new HashMap<>()));
 
     // The chat-log variable AND the connector-flag variable must both be written on
     // the first persistEvents() call.
-    verify(execution).setVariable(org.mockito.Matchers.startsWith(expectedVar + "~"), org.mockito.Matchers.any());
+    verify(execution).setVariable(startsWith(expectedVar + "~"), any());
     verify(execution).setVariable(
         AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
   }
@@ -418,14 +433,14 @@ public class AgentChatListenerTest {
     Map<String, Object> retrieval = new HashMap<>();
     retrieval.put("resultCount", 2);
     listener.recordRetrievalEvent(retrieval);
-    verify(execution, org.mockito.Mockito.never())
-        .setVariable(org.mockito.Matchers.startsWith(varName + "~"), org.mockito.Matchers.any());
+    verify(execution, never())
+        .setVariable(startsWith(varName + "~"), any());
 
     Map<String, Object> failed = new HashMap<>();
     failed.put("errorClass", RuntimeException.class.getName());
     listener.recordRetrievalEvent(failed);
-    verify(execution, org.mockito.Mockito.times(1))
-        .setVariable(org.mockito.Matchers.startsWith(varName + "~"), org.mockito.Matchers.any());
+    verify(execution, times(1))
+        .setVariable(startsWith(varName + "~"), any());
     assertThat(listener.events()).hasSize(2);
   }
 
@@ -445,11 +460,11 @@ public class AgentChatListenerTest {
     retrieval.put("resultCount", 2);
     listener.recordRetrievalEvent(retrieval);
     listener.flush();
-    verify(execution).setVariable(org.mockito.Matchers.eq(varName + "~0"), org.mockito.Matchers.any());
+    verify(execution).setVariable(eq(varName + "~0"), any());
 
     listener.flush();
-    verify(execution, org.mockito.Mockito.times(1))
-        .setVariable(org.mockito.Matchers.startsWith(varName + "~"), org.mockito.Matchers.any());
+    verify(execution, times(1))
+        .setVariable(startsWith(varName + "~"), any());
   }
 
   /** After a model call that ended, everything is written, and a flush writes nothing more. */
@@ -469,8 +484,8 @@ public class AgentChatListenerTest {
         request, null, new HashMap<>()));
     listener.flush();
 
-    verify(execution, org.mockito.Mockito.times(1))
-        .setVariable(org.mockito.Matchers.startsWith(varName + "~"), org.mockito.Matchers.any());
+    verify(execution, times(1))
+        .setVariable(startsWith(varName + "~"), any());
   }
 
   /**
@@ -485,15 +500,15 @@ public class AgentChatListenerTest {
     int longest = 255 - AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX.length() - 2;
     String fits = repeat('a', longest);
     verify(afterOneFailedCall(fits)).setVariable(
-        org.mockito.Matchers.eq(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + fits + "~0"),
-        org.mockito.Matchers.any());
+        eq(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + fits + "~0"),
+        any());
     ExecutionEntity tooLong = afterOneFailedCall(repeat('b', longest + 1));
-    verify(tooLong, org.mockito.Mockito.never()).setVariable(
-        org.mockito.Matchers.startsWith(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX),
-        org.mockito.Matchers.any());
-    verify(tooLong, org.mockito.Mockito.never()).setVariable(
-        org.mockito.Matchers.eq(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME),
-        org.mockito.Matchers.any());
+    verify(tooLong, never()).setVariable(
+        startsWith(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX),
+        any());
+    verify(tooLong, never()).setVariable(
+        eq(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME),
+        any());
   }
 
   /**
@@ -504,9 +519,9 @@ public class AgentChatListenerTest {
   public void shouldMeasureTheChunkNameInBytes() {
     int longest = 255 - AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX.length() - 2;
     ExecutionEntity execution = afterOneFailedCall(repeat('ä', longest));
-    verify(execution, org.mockito.Mockito.never()).setVariable(
-        org.mockito.Matchers.startsWith(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX),
-        org.mockito.Matchers.any());
+    verify(execution, never()).setVariable(
+        startsWith(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX),
+        any());
   }
 
   /** An id of up to 218 ASCII characters leaves room for every int eventSeq (CIB7-2156). */
@@ -555,15 +570,15 @@ public class AgentChatListenerTest {
     when(execution.getActivityId()).thenReturn("agentTask");
     pushExecution(execution);
 
-    org.mockito.Mockito.doThrow(new IllegalStateException("write failed")).doNothing()
+    doThrow(new IllegalStateException("write failed")).doNothing()
         .when(execution).setVariable(
-            org.mockito.Matchers.startsWith(varName + AgentConnectorConstants.AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR), org.mockito.Matchers.any());
+            startsWith(varName + AgentConnectorConstants.AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR), any());
 
     AgentChatListener listener = new AgentChatListener();
     ChatRequest request = ChatRequest.builder()
         .messages(Collections.singletonList(UserMessage.from("hi"))).build();
     listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
-    org.assertj.core.api.Assertions.assertThatThrownBy(() -> listener.onResponse(
+    assertThatThrownBy(() -> listener.onResponse(
         new ChatModelResponseContext(
             ChatResponse.builder().aiMessage(AiMessage.from("first")).build(),
             request, null, new HashMap<>())))
@@ -575,17 +590,17 @@ public class AgentChatListenerTest {
         ChatResponse.builder().aiMessage(AiMessage.from("second")).build(),
         request, null, new HashMap<>()));
 
-    org.mockito.ArgumentCaptor<Object> value = org.mockito.ArgumentCaptor.forClass(Object.class);
-    verify(execution, org.mockito.Mockito.times(2)).setVariable(
-        org.mockito.Matchers.startsWith(varName + AgentConnectorConstants.AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR), value.capture());
-    String json = (String) ((org.cibseven.bpm.engine.variable.value.ObjectValue)
+    ArgumentCaptor<Object> value = ArgumentCaptor.forClass(Object.class);
+    verify(execution, times(2)).setVariable(
+        startsWith(varName + AgentConnectorConstants.AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR), value.capture());
+    String json = (String) ((ObjectValue)
         value.getValue()).getValue();
     try {
       List<Map<String, Object>> events =
-          new com.fasterxml.jackson.databind.ObjectMapper().readValue(json, List.class);
+          new ObjectMapper().readValue(json, List.class);
       assertThat(events).extracting(event -> event.get("type"))
           .containsExactly("request", "response", "request", "response");
-    } catch (java.io.IOException e) {
+    } catch (IOException e) {
       throw new IllegalStateException(e);
     }
   }
@@ -619,11 +634,11 @@ public class AgentChatListenerTest {
         .containsExactly("request", "error");
     assertThat(chunk(execution, "agentTask~2")).extracting(event -> event.get("eventSeq"))
         .containsExactly(2, 3);
-    verify(execution, org.mockito.Mockito.never())
-        .setVariable(org.mockito.Matchers.eq(
+    verify(execution, never())
+        .setVariable(eq(
             AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask"),
-            org.mockito.Matchers.any());
-    verify(execution, org.mockito.Mockito.times(1))
+            any());
+    verify(execution, times(1))
         .setVariable(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
   }
 
@@ -652,15 +667,15 @@ public class AgentChatListenerTest {
   /** The events of the chunk {@code name} (after the prefix), as written exactly once. */
   @SuppressWarnings("unchecked")
   private static List<Map<String, Object>> chunk(ExecutionEntity execution, String name) {
-    org.mockito.ArgumentCaptor<Object> value = org.mockito.ArgumentCaptor.forClass(Object.class);
-    verify(execution, org.mockito.Mockito.times(1)).setVariable(
-        org.mockito.Matchers.eq(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + name),
+    ArgumentCaptor<Object> value = ArgumentCaptor.forClass(Object.class);
+    verify(execution, times(1)).setVariable(
+        eq(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + name),
         value.capture());
-    String json = (String) ((org.cibseven.bpm.engine.variable.value.ObjectValue) value.getValue())
+    String json = (String) ((ObjectValue) value.getValue())
         .getValue();
     try {
-      return new com.fasterxml.jackson.databind.ObjectMapper().readValue(json, List.class);
-    } catch (java.io.IOException e) {
+      return new ObjectMapper().readValue(json, List.class);
+    } catch (IOException e) {
       throw new IllegalStateException(e);
     }
   }
@@ -702,7 +717,7 @@ public class AgentChatListenerTest {
 
     assertThat(firstSeq(execution)).as("numerically newest chunk, of this activity only")
         .isEqualTo(12);
-    verify(execution, org.mockito.Mockito.never()).getVariable(varName + "~2");
+    verify(execution, never()).getVariable(varName + "~2");
   }
 
   @Test
@@ -759,11 +774,11 @@ public class AgentChatListenerTest {
         request, null, new HashMap<>()));
 
     // Chat-log variable must NOT be written for any of the events.
-    verify(execution, org.mockito.Mockito.never())
-        .setVariable(org.mockito.Matchers.startsWith(varName + "~"), org.mockito.Matchers.any());
+    verify(execution, never())
+        .setVariable(startsWith(varName + "~"), any());
     // The connector flag variable is suppressed too — it points at the chat-log
     // timeline and would be misleading without it.
-    verify(execution, org.mockito.Mockito.never())
+    verify(execution, never())
         .setVariable(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
     // The in-memory event timeline must still be built so an external sink
     // (Kafka/JMS/SAP) can consume it.
@@ -785,7 +800,7 @@ public class AgentChatListenerTest {
     // The opt-out short-circuits loadExistingEvents() — prior events are not
     // restored from the engine variable.
     assertThat(listener.events()).isEmpty();
-    verify(execution, org.mockito.Mockito.never()).getVariable(varName);
+    verify(execution, never()).getVariable(varName);
   }
 
   @Test
@@ -807,7 +822,7 @@ public class AgentChatListenerTest {
         ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
         request, null, new HashMap<>()));
 
-    verify(execution).setVariable(org.mockito.Matchers.startsWith(varName + "~"), org.mockito.Matchers.any());
+    verify(execution).setVariable(startsWith(varName + "~"), any());
     verify(execution).setVariable(
         AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
   }
@@ -853,9 +868,9 @@ public class AgentChatListenerTest {
         ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
         request, null, new HashMap<>()));
 
-    verify(execution, org.mockito.Mockito.never())
-        .setVariable(org.mockito.Matchers.startsWith(varName + "~"), org.mockito.Matchers.any());
-    verify(execution, org.mockito.Mockito.never())
+    verify(execution, never())
+        .setVariable(startsWith(varName + "~"), any());
+    verify(execution, never())
         .setVariable(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
     assertThat(listener.events()).hasSize(2);
   }
@@ -879,7 +894,7 @@ public class AgentChatListenerTest {
         ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
         request, null, new HashMap<>()));
 
-    verify(execution).setVariable(org.mockito.Matchers.startsWith(varName + "~"), org.mockito.Matchers.any());
+    verify(execution).setVariable(startsWith(varName + "~"), any());
   }
 
   @Test
@@ -901,8 +916,8 @@ public class AgentChatListenerTest {
         ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
         request, null, new HashMap<>()));
 
-    verify(execution, org.mockito.Mockito.never())
-        .setVariable(org.mockito.Matchers.startsWith(varName + "~"), org.mockito.Matchers.any());
+    verify(execution, never())
+        .setVariable(startsWith(varName + "~"), any());
   }
 
   // ── redactContent env-var fallback (normalised in the same pass) ────────
@@ -948,10 +963,10 @@ public class AgentChatListenerTest {
     ChatRequest request = ChatRequest.builder()
         .messages(Collections.singletonList(UserMessage.from("hi"))).build();
     listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
-    verify(execution, org.mockito.Mockito.never())
-        .setVariable(org.mockito.Matchers.anyString(), org.mockito.Matchers.any());
-    verify(execution, org.mockito.Mockito.never())
-        .setVariable(org.mockito.Matchers.anyString(), org.mockito.Matchers.anyBoolean());
+    verify(execution, never())
+        .setVariable(anyString(), any());
+    verify(execution, never())
+        .setVariable(anyString(), anyBoolean());
   }
 
   // ── Audit envelope (EU AI Act Art. 12 record-keeping) ────────────────────
@@ -1175,7 +1190,7 @@ public class AgentChatListenerTest {
         (List<Map<String, Object>>) listener.events().get(0).get("messages");
     String content = (String) messages.get(0).get("content");
     @SuppressWarnings("unchecked")
-    Map<String, Object> decoded = new com.fasterxml.jackson.databind.ObjectMapper()
+    Map<String, Object> decoded = new ObjectMapper()
         .readValue(content, Map.class);
     assertThat(decoded).containsEntry("redacted", true)
         .containsEntry("length", "sensitive PII".length());

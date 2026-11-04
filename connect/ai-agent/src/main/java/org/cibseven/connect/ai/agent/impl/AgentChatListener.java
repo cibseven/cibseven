@@ -1012,7 +1012,9 @@ class AgentChatListener implements ChatModelListener {
    * that ends it, rather than once per event (CIB7-2156): the request and any
    * retrieval before it wait in memory until then. That is also the moment the
    * last of them was written before, so the events reach the database at the
-   * same point.
+   * same point. Only events that no response or error follows stay unwritten: a
+   * request whose call ends without either, or a successful retrieval after
+   * which no model is asked. Before, each of them was written at once.
    */
   private void appendEvent(Map<String, Object> event, boolean persist) {
     if (!pendingToolSideEffects.isEmpty()) {

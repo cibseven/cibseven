@@ -483,6 +483,45 @@ public class ProcessVariableChatMemoryStoreEngineTest {
         .contains("\"eventSeq\":6").contains("\"eventSeq\":7");
   }
 
+  /** Whether a batch was still open on the thread after the failed invocation. */
+  static volatile Boolean openAfterFailure;
+
+  /** Fails within a batch, as an invocation whose model call throws does. */
+  public static class FailingBatchDelegate implements JavaDelegate {
+    @Override
+    public void execute(DelegateExecution execution) {
+      ProcessVariableChatMemoryStore store = new ProcessVariableChatMemoryStore();
+      try (ProcessVariableChatMemoryStore.Batch batch = ProcessVariableChatMemoryStore.Batch.open()) {
+        store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("My name is Alice.")));
+        throw new IllegalStateException("the model call failed");
+      } catch (IllegalStateException expected) {
+        openAfterFailure = ProcessVariableChatMemoryStore.Batch.isOpen();
+      }
+    }
+  }
+
+  /**
+   * A batch that an exception closes still writes what it held, and leaves no batch open on the
+   * thread for the next invocation it runs (CIB7-2156).
+   */
+  @Test
+  public void aBatchClosedByAnExceptionWritesWhatItHeldAndLeavesTheThreadClean() {
+    openAfterFailure = null;
+    deploy("chatMemoryFailedBatchTest", "write", ""
+        + "    <serviceTask id='write'"
+        + "                 camunda:class='" + FailingBatchDelegate.class.getName() + "'/>"
+        + "    <sequenceFlow id='f2' sourceRef='write' targetRef='wait'/>"
+        + "    <userTask id='wait'/>");
+    ProcessInstance instance =
+        ENGINE.getRuntimeService().startProcessInstanceByKey("chatMemoryFailedBatchTest");
+
+    assertThat(openAfterFailure).as("no batch left open on the thread").isFalse();
+    Object stored = ENGINE.getRuntimeService().getVariable(instance.getId(), VARIABLE_NAME);
+    assertThat(stored).as("what the batch held is written").isNotNull();
+    assertThat(ChatMessageDeserializer.messagesFromJson(stored.toString())).hasSize(1);
+    assertThat(memoryWrites(instance)).as("written once, at the close").containsExactly(VARIABLE_NAME);
+  }
+
   /** The names of the chat-memory variables written in {@code instance}, one per write. */
   private static List<String> memoryWrites(ProcessInstance instance) {
     return ENGINE.getHistoryService().createHistoricDetailQuery()
