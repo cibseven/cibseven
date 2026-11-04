@@ -31,6 +31,11 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.variable.serializer.TypedValueSerializer;
+import org.cibseven.bpm.engine.impl.variable.serializer.ValueFieldsImpl;
+import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.BytesValue;
 import org.cibseven.bpm.engine.variable.value.FileValue;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
@@ -517,7 +522,14 @@ public final class ProcessContextResolver {
     String serialized = null;
     RuntimeException readFailure = null;
     try {
-      serialized = object.getValueSerialized();
+      // A value someone already deserialized may have been changed in place —
+      // e.g. a preceding delegate sets order.amount without calling setVariable.
+      // Its cached serialized form is then stale; the engine re-serializes the
+      // object only on command close. Serialize it now the way the engine will,
+      // so the model and the hash see the object as it is. A failure here would
+      // fail the flush too, so it is reported as (unreadable), not hidden.
+      String current = object.isDeserialized() ? currentSerializedForm(object) : null;
+      serialized = (current != null) ? current : object.getValueSerialized();
     } catch (RuntimeException e) {
       LOG.debug("Could not read serialized form of object value: {}", e.toString());
       readFailure = e;
@@ -541,6 +553,32 @@ public final class ProcessContextResolver {
     return new Rendered("(object " + quote(nullToUnknown(object.getObjectTypeName())) + ", "
         + quote(nullToUnknown(format)) + ", " + serialized.length() + " chars serialized)",
         false);
+  }
+
+  /**
+   * Serializes a deserialized object value with the serializer the engine
+   * configured for its data format — the same {@code writeValue} the engine runs
+   * on command close to detect an implicit update. Works on a copy, so the
+   * variable's cached value and the engine's own update detection are left
+   * alone. Returns {@code null} when there is nothing to serialize or no engine
+   * on this thread (unit tests, a connector run outside a command); the caller
+   * then falls back to the cached serialized form.
+   */
+  @SuppressWarnings("unchecked")
+  private static String currentSerializedForm(ObjectValue object) {
+    Object value = object.getValue();
+    ProcessEngineConfigurationImpl configuration = Context.getProcessEngineConfiguration();
+    if (value == null || configuration == null || configuration.getVariableSerializers() == null) {
+      return null;
+    }
+    ObjectValue copy = Variables.objectValue(value)
+        .serializationDataFormat(object.getSerializationDataFormat())
+        .create();
+    TypedValueSerializer<TypedValue> serializer = (TypedValueSerializer<TypedValue>)
+        configuration.getVariableSerializers()
+            .findSerializerForValue(copy, configuration.getFallbackSerializerFactory());
+    serializer.writeValue(copy, new ValueFieldsImpl());
+    return copy.getValueSerialized();
   }
 
   private static boolean isTextualFormat(String format) {

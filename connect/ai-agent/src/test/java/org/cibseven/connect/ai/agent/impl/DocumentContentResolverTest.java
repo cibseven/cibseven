@@ -786,6 +786,35 @@ public class DocumentContentResolverTest {
     assertThat(document.charset).isEqualTo("ISO-8859-1");
   }
 
+  /**
+   * Review round 4 (Copilot): a ";" inside a quoted parameter value used to
+   * split the value, so the "charset" inside the filename counted as a second,
+   * conflicting charset and failed a valid mime type.
+   */
+  @Test
+  public void shouldIgnoreACharsetInsideAQuotedParameterValue() {
+    variables.put("note", Variables.byteArrayValue(
+        "Größe: 100 €".getBytes(WINDOWS_1252)));
+
+    ResolvedDocument document = resolve("note", "{\"note\": \"text/plain;"
+        + " name=\\\"invoice; charset=ISO-8859-1\\\"; charset=windows-1252\"}").get(0);
+
+    assertThat(((TextContent) document.content).text()).contains("Größe: 100 €");
+    assertThat(document.mimeType).isEqualTo("text/plain");
+    assertThat(document.charset).isEqualTo("windows-1252");
+  }
+
+  @Test
+  public void shouldSplitMimeParametersOnlyOutsideQuotesAndHonourEscapes() {
+    assertThat(DocumentContentResolver.splitMimeParameters(
+        "text/plain; name=\"a\\\"; charset=x\"; charset=\"UTF-8\""))
+        .containsExactly("text/plain", " name=\"a\\\"; charset=x\"", " charset=\"UTF-8\"");
+    assertThat(DocumentContentResolver.splitMimeParameters(";")).containsExactly("", "");
+    assertThat(DocumentContentResolver.unquoteMimeValue("\"UTF-8\"")).isEqualTo("UTF-8");
+    assertThat(DocumentContentResolver.unquoteMimeValue("\"a\\\"b\"")).isEqualTo("a\"b");
+    assertThat(DocumentContentResolver.unquoteMimeValue("UTF-8")).isEqualTo("UTF-8");
+  }
+
   /** A charset on the variable's own mime type is honoured too. */
   @Test
   public void shouldTakeTheCharsetFromTheVariableMimeType() {

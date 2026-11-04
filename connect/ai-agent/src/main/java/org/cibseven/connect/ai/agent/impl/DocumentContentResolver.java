@@ -426,9 +426,12 @@ public final class DocumentContentResolver {
    * failing as an unsupported type, which comparing the whole string would do.
    */
   private static MimeTypeSpec parseMimeType(String variable, String raw) {
-    String[] parts = raw.split(";");
-    // ";" alone splits into nothing at all, "; charset=x" into an empty base.
-    String baseType = (parts.length == 0) ? "" : parts[0].trim();
+    // Split outside quoted strings only: in
+    // text/plain; name="invoice; charset=ISO-8859-1"; charset=UTF-8 the first
+    // "charset" is part of a filename, not a parameter.
+    List<String> parts = splitMimeParameters(raw);
+    // ";" alone and "; charset=x" both leave an empty base.
+    String baseType = parts.get(0).trim();
     if (baseType.isEmpty()) {
       throw new AgentConnectorException("Document variable '" + variable + "' has the mime type '"
           + raw + "', which names no type. Supply one via 'documentMimeTypes', e.g. {\""
@@ -437,13 +440,13 @@ public final class DocumentContentResolver {
     boolean textual = isTextual(baseType.toLowerCase(Locale.ROOT));
     Charset charset = null;
     String charsetValue = null;
-    for (int i = 1; i < parts.length; i++) {
-      String parameter = parts[i].trim();
+    for (int i = 1; i < parts.size(); i++) {
+      String parameter = parts.get(i).trim();
       int eq = parameter.indexOf('=');
       if (eq < 0 || !"charset".equalsIgnoreCase(parameter.substring(0, eq).trim())) {
         continue;
       }
-      String value = parameter.substring(eq + 1).trim().replace("\"", "");
+      String value = unquoteMimeValue(parameter.substring(eq + 1).trim());
       if (!textual) {
         // A binary document is sent as Base64 and never decoded, so its charset
         // is meaningless — not worth failing over even when it is malformed or
@@ -467,6 +470,55 @@ public final class DocumentContentResolver {
       }
     }
     return new MimeTypeSpec(baseType, charset);
+  }
+
+  /**
+   * Splits a mime type at the {@code ;} that separate its parameters, skipping
+   * any inside a quoted string (RFC 2045 / RFC 9110), where a backslash escapes
+   * the next character. Always returns at least one element, the base type. An
+   * unterminated quote runs to the end, so the rest is one parameter — lenient,
+   * like the rest of this parser, and never splits inside what looks quoted.
+   */
+  static List<String> splitMimeParameters(String raw) {
+    List<String> parts = new ArrayList<>();
+    StringBuilder current = new StringBuilder();
+    boolean quoted = false;
+    for (int i = 0; i < raw.length(); i++) {
+      char c = raw.charAt(i);
+      if (quoted && c == '\\' && i + 1 < raw.length()) {
+        current.append(c).append(raw.charAt(++i));
+        continue;
+      }
+      if (c == '"') {
+        quoted = !quoted;
+      } else if (c == ';' && !quoted) {
+        parts.add(current.toString());
+        current.setLength(0);
+        continue;
+      }
+      current.append(c);
+    }
+    parts.add(current.toString());
+    return parts;
+  }
+
+  /**
+   * Removes the quotes around a parameter value and resolves its backslash
+   * escapes; an unquoted value is returned as is.
+   */
+  static String unquoteMimeValue(String value) {
+    if (value.length() < 2 || value.charAt(0) != '"' || value.charAt(value.length() - 1) != '"') {
+      return value;
+    }
+    StringBuilder unquoted = new StringBuilder(value.length() - 2);
+    for (int i = 1; i < value.length() - 1; i++) {
+      char c = value.charAt(i);
+      if (c == '\\' && i + 1 < value.length() - 1) {
+        c = value.charAt(++i);
+      }
+      unquoted.append(c);
+    }
+    return unquoted.toString();
   }
 
   /**

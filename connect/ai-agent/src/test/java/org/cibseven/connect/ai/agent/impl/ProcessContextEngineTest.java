@@ -29,6 +29,8 @@ import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.engine.impl.variable.serializer.AbstractObjectValueSerializer;
+import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
@@ -92,6 +94,9 @@ public class ProcessContextEngineTest {
     configuration.setJobExecutorActivate(false);
     // FULL, as the distros run it: the chat-memory test checks the historic details.
     configuration.setHistory(ProcessEngineConfiguration.HISTORY_FULL);
+    // Stands in for Spin's JSON object serializer, which is not on this
+    // module's test classpath.
+    configuration.setCustomPreVariableSerializers(List.of(new JacksonOrderSerializer()));
     return configuration.buildProcessEngine();
   }
 
@@ -179,6 +184,60 @@ public class ProcessContextEngineTest {
         request.useChatMemory(true).memoryId(memoryId);
       }
       connector.execute(request);
+    }
+  }
+
+  /** A customer POJO, serialized as JSON like Spin would. */
+  public static class Order {
+    public int amount;
+  }
+
+  /** Minimal JSON object serializer for {@link Order}, registered on the test engine. */
+  static final class JacksonOrderSerializer extends AbstractObjectValueSerializer {
+    JacksonOrderSerializer() {
+      super("application/json");
+    }
+
+    @Override
+    public String getName() {
+      return "test-jackson-order";
+    }
+
+    @Override
+    protected String getTypeNameForDeserialized(Object deserializedObject) {
+      return deserializedObject.getClass().getName();
+    }
+
+    @Override
+    protected byte[] serializeToByteArray(Object deserializedObject) throws Exception {
+      return MAPPER.writeValueAsBytes(deserializedObject);
+    }
+
+    @Override
+    protected Object deserializeFromByteArray(byte[] object, String objectTypeName)
+        throws Exception {
+      return MAPPER.readValue(object, Order.class);
+    }
+
+    @Override
+    protected boolean isSerializationTextBased() {
+      return true;
+    }
+
+    @Override
+    protected boolean canSerializeValue(Object value) {
+      return value instanceof Order;
+    }
+  }
+
+  /**
+   * Changes the order in place, without setVariable — the engine only writes
+   * the change back when the command closes.
+   */
+  public static class MutateOrderDelegate implements JavaDelegate {
+    @Override
+    public void execute(DelegateExecution execution) {
+      ((Order) execution.getVariable("order")).amount = 20;
     }
   }
 
@@ -354,6 +413,56 @@ public class ProcessContextEngineTest {
         .doesNotContain("undeclared-note-canary");
   }
 
+  /**
+   * Review round 4 (Copilot): an object deserialized and changed in place by a
+   * preceding delegate in the same command used to be sent — and hashed — with
+   * its stale serialized form, amount 10, although the engine persists 20 on
+   * command close.
+   */
+  @Test
+  public void shouldSendAnObjectChangedInPlaceEarlierInTheSameCommand() throws Exception {
+    deploy("mutateThenAgent", ""
+        + "    <startEvent id='start'/>"
+        + "    <sequenceFlow id='f1' sourceRef='start' targetRef='before'/>"
+        // Wait state: the next command loads "order" from the database, so its
+        // cached value carries a serialized form that the delegate then outdates.
+        + "    <userTask id='before'/>"
+        + "    <sequenceFlow id='f2' sourceRef='before' targetRef='mutate'/>"
+        + "    <serviceTask id='mutate'"
+        + "                 camunda:class='" + MutateOrderDelegate.class.getName() + "'/>"
+        + "    <sequenceFlow id='f3' sourceRef='mutate' targetRef='agent'/>"
+        + "    <serviceTask id='agent'"
+        + "                 camunda:class='" + AgentDelegate.class.getName() + "'/>"
+        + "    <sequenceFlow id='f4' sourceRef='agent' targetRef='wait'/>"
+        + "    <userTask id='wait'/>"
+        + "    <sequenceFlow id='f5' sourceRef='wait' targetRef='end'/>"
+        + "    <endEvent id='end'/>");
+    Order order = new Order();
+    order.amount = 10;
+    String instanceId = engineRule.getRuntimeService().startProcessInstanceByKey("mutateThenAgent",
+        Variables.createVariables()
+            .putValue("_declared", "order")
+            .putValueTyped("order", Variables.objectValue(order)
+                .serializationDataFormat("application/json").create()))
+        .getId();
+
+    engineRule.getTaskService().complete(engineRule.getTaskService().createTaskQuery()
+        .processInstanceId(instanceId).taskDefinitionKey("before").singleResult().getId());
+
+    assertThat(capturedSystemMessage)
+        .contains("{\"amount\":20}")
+        .doesNotContain("{\"amount\":10}");
+    // The hash in the audit covers what was sent, not the stale form.
+    @SuppressWarnings("unchecked")
+    Map<String, Object> entry = ((List<Map<String, Object>>)
+        singleEventOfType("context").get("variables")).get(0);
+    assertThat(entry).containsEntry("valueLength", "{\"amount\":20}".length());
+    // And the engine did persist the change, so model and database agree.
+    ObjectValue persisted = engineRule.getRuntimeService()
+        .getVariableTyped(instanceId, "order", false);
+    assertThat(persisted.getValueSerialized()).isEqualTo("{\"amount\":20}");
+  }
+
   // ── required variables abort the activity ──────────────────────────────────
 
   @Test
@@ -526,6 +635,20 @@ public class ProcessContextEngineTest {
         .collect(java.util.stream.Collectors.toList());
     assertThat(matching).as("events of type " + type).hasSize(1);
     return matching.get(0);
+  }
+
+  private void deploy(String key, String body) {
+    String bpmn = ""
+        + "<?xml version='1.0' encoding='UTF-8'?>"
+        + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
+        + "             xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
+        + "             targetNamespace='http://cibseven.org/test'>"
+        + "  <process id='" + key + "' isExecutable='true' camunda:historyTimeToLive='1'>"
+        + body
+        + "  </process>"
+        + "</definitions>";
+    engineRule.getRepositoryService().createDeployment()
+        .addString(key + ".bpmn20.xml", bpmn).deploy();
   }
 
   private void deployProcess() {
