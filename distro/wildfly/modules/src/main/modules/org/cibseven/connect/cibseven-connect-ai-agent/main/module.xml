@@ -28,6 +28,13 @@
     <module name="org.cibseven.connect.cibseven-connect-core" />
     <!-- engine variable API (provided scope in the connector) -->
     <module name="org.cibseven.bpm.cibseven-engine" />
+    <!-- the agentic ad hoc layer catches or tests for exceptions of these, which the engine
+         module imports without export: juel's TreeBuilderException (parsing a model),
+         jakarta.el's ELException (a turn's retry cycle), javax.script's ScriptException
+         (an error a boundary event catches). Without them the engine does not start (CIB7-2536). -->
+    <module name="org.cibseven.bpm.juel.cibseven-juel" />
+    <module name="jakarta.el.api" />
+    <module name="java.scripting" />
 
     <!-- JSON (provided scope in the connector) -->
     <module name="com.fasterxml.jackson.core.jackson-databind" slot="cibseven" />
