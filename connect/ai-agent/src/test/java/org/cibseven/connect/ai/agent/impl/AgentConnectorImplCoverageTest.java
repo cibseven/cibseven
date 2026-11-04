@@ -757,7 +757,8 @@ public class AgentConnectorImplCoverageTest {
   // ── Reflection helper for buildSystemPrompt ─────────────────────────────
 
   private String invokeBuildSystemPrompt(AgentRequest request) throws Exception {
-    Method m = AgentConnectorImpl.class.getDeclaredMethod("buildSystemPrompt", AgentRequest.class);
+    Method m = AgentConnectorImpl.class.getDeclaredMethod("buildSystemPrompt",
+        AgentRequest.class);
     m.setAccessible(true);
     return (String) m.invoke(connector, request);
   }

@@ -137,8 +137,13 @@ class AgentChatListener implements ChatModelListener {
    * Event schema version stamped on every emitted event. Increment when adding
    * or removing top-level fields so downstream consumers (Vue webclient, future
    * Kafka sink, SAP integration) can detect and adapt to changes.
+   *
+   * <p>2: {@code context} and {@code documents} events, the system message of
+   * a {@code request} event referencing the {@code context} event instead of
+   * carrying the process-context block, and {@code userIdSource = "startUser"}
+   * for a user derived from the process instance's start user.
    */
-  static final int SCHEMA_VERSION = 1;
+  static final int SCHEMA_VERSION = 2;
 
   /**
    * Per-request attribute key used to stash {@code System.nanoTime()} on
@@ -235,6 +240,15 @@ class AgentChatListener implements ChatModelListener {
 
   // ── caller (captured at construction time) ───────────────────────────────
   private final String userId;
+  /**
+   * {@code "context"} for a user authenticated on the thread, {@code "startUser"}
+   * when the connector derived the process instance's start user because the
+   * thread carried no authentication at all — for a job without a tenant run by
+   * the job executor, or a synchronous run without authentication. A job of a
+   * tenant carries the job executor's user-less authentication and is recorded
+   * as {@code "missing"}.
+   */
+  private final String userIdSource;
   private final List<String> groupIds;
 
   // ── persistence ──────────────────────────────────────────────────────────
@@ -268,6 +282,23 @@ class AgentChatListener implements ChatModelListener {
    * did before this feature landed.
    */
   private volatile Map<String, Map<String, Object>> toolProvenance;
+
+  /**
+   * Descriptor per attached document, keyed by the exact {@code Content}
+   * instance handed to the model. Lets {@code renderMultiContent} name the
+   * source variable and file instead of dumping Base64. {@code null} when no
+   * documents are attached, which is the normal case.
+   */
+  private volatile Map<dev.langchain4j.data.message.Content, Map<String, Object>>
+      documentDescriptors;
+
+  /**
+   * The process-context block appended to the system prompt, and the text that
+   * replaces it in the {@code request} events. {@code null} when this run
+   * declares no context. Set by {@link #recordContextEvent(Map, String)}.
+   */
+  private volatile String contextBlock;
+  private volatile String contextBlockReference;
 
   AgentChatListener() {
     this(null, null, null);
@@ -308,6 +339,7 @@ class AgentChatListener implements ChatModelListener {
     }
 
     Authentication auth = ProcessStarterToolContext.getAuthentication();
+    this.userIdSource = (auth instanceof StartUserAuthentication) ? "startUser" : "context";
     if (auth != null) {
       this.userId = auth.getUserId();
       List<String> g = auth.getGroupIds();
@@ -419,7 +451,75 @@ class AgentChatListener implements ChatModelListener {
     if (payload == null) {
       return;
     }
-    Map<String, Object> event = newRetrievalEvent();
+    Map<String, Object> event = newCorrelatedEvent("retrieval");
+    event.putAll(payload);
+    appendEvent(event);
+  }
+
+  /**
+   * Emits one {@code context} audit event describing the declared process
+   * variables that were resolved into the system prompt — name, type, presence,
+   * null-ness, value length and SHA-256 per variable, never the value itself.
+   *
+   * <p>Without it the chat log records the rendered prompt only, so "which
+   * process data reached the model" cannot be reconstructed after the fact.
+   * That is an EU AI Act Art. 12 (record-keeping) and Art. 14 (human oversight)
+   * evidence gap, and it is the reason
+   * {@link ProcessContextResolver#describe(java.util.List, String)} exists
+   * alongside the rendered block.
+   *
+   * <p>Emitted before the first model turn. It is <em>not</em> a record of
+   * aborted runs: when a missing required variable fails the activity, the
+   * transaction rolls back and this event goes with it, like every other write
+   * to the chat-log variable.
+   *
+   * <p>{@code renderedBlock} is the block as appended to the system prompt. The
+   * {@code request} events of this run name this event in its place, as they
+   * describe documents instead of carrying them: the chat log is rewritten on
+   * every event and, at history level FULL, kept as a full copy each time, so a
+   * block repeated per model call would multiply the values in the history — and
+   * keep them there after the variable itself is deleted or anonymised.
+   */
+  void recordContextEvent(Map<String, Object> payload, String renderedBlock) {
+    if (payload == null) {
+      return;
+    }
+    Map<String, Object> event = newCorrelatedEvent("context");
+    event.putAll(payload);
+    if (renderedBlock != null && !renderedBlock.isEmpty()) {
+      this.contextBlockReference = "[process context: see the context event, runId " + runId
+          + ", eventSeq " + event.get("eventSeq") + "]";
+      this.contextBlock = renderedBlock;
+    }
+    appendEvent(event);
+  }
+
+  /**
+   * Publishes the per-{@code Content} descriptor map for the documents attached
+   * to this invocation. Must be set before the first model turn, because it is
+   * what {@code renderMultiContent} uses to describe an attachment instead of
+   * serialising it. Pass {@code null} to clear.
+   */
+  void setDocumentDescriptors(
+      Map<dev.langchain4j.data.message.Content, Map<String, Object>> descriptors) {
+    this.documentDescriptors = (descriptors == null || descriptors.isEmpty()) ? null : descriptors;
+  }
+
+  /**
+   * Emits one {@code documents} audit event listing the attachments sent to the
+   * model — variable, filename, mime type, content kind, byte size and SHA-256
+   * per document, plus the count and combined size.
+   *
+   * <p>Never the payload. The hash covers the raw bytes of the variable, so an
+   * auditor holding the original file can prove it is the one that reached the
+   * model without the chat-log variable carrying a second copy of it — which for
+   * documents would mean megabytes per run in the engine database.
+   */
+  void recordDocumentsEvent(Map<String, Object> payload) {
+    if (payload == null) {
+      return;
+    }
+    Map<String, Object> event = newCorrelatedEvent("documents");
     event.putAll(payload);
     appendEvent(event);
   }
@@ -670,13 +770,20 @@ class AgentChatListener implements ChatModelListener {
   }
 
   /**
-   * Envelope for {@code retrieval} events. Same shape as {@link #newEvent}
-   * minus the chat-model identity block (retrievals carry their own
-   * {@code embeddingModel} + {@code store} sub-blocks).
+   * Envelope for events that are not a chat turn — currently {@code retrieval},
+   * {@code context} and {@code documents}. Same shape as {@link #newEvent} minus
+   * the chat-model identity block: a retrieval carries its own
+   * {@code embeddingModel} and {@code store} sub-blocks, while context and
+   * documents record what was assembled <em>before</em> any model call, so
+   * stamping the chat model's identity onto them would claim the model saw
+   * something at a point where it had not been invoked yet.
+   *
+   * <p>Keep new event types out of {@link #newEvent} unless they really are a
+   * call to the chat model.
    */
-  private Map<String, Object> newRetrievalEvent() {
+  private Map<String, Object> newCorrelatedEvent(String type) {
     Map<String, Object> event = new LinkedHashMap<>();
-    putEnvelopeStart(event, "retrieval");
+    putEnvelopeStart(event, type);
     putCorrelationAndCaller(event);
     return event;
   }
@@ -700,7 +807,7 @@ class AgentChatListener implements ChatModelListener {
 
     if (userId != null && !userId.isEmpty()) {
       event.put("userId", userId);
-      event.put("userIdSource", "context");
+      event.put("userIdSource", userIdSource);
     } else if (executionId != null) {
       // Inside a BPMN execution context but identity could not be resolved.
       // Make the absence explicit rather than implicit by field omission so
@@ -852,7 +959,7 @@ class AgentChatListener implements ChatModelListener {
 
   // ── message content extraction ───────────────────────────────────────────
 
-  private static String extractContent(ChatMessage msg) {
+  private String extractContent(ChatMessage msg) {
     return maybeRedact(extractPlainContent(msg));
   }
 
@@ -871,13 +978,27 @@ class AgentChatListener implements ChatModelListener {
     return plain;
   }
 
-  private static String extractPlainContent(ChatMessage msg) {
+  /**
+   * Replaces the process-context block in a system prompt with the reference to
+   * the {@code context} event. The block is the exact string the connector
+   * appended, so an exact match is enough; a prompt without it is returned
+   * unchanged.
+   */
+  private String withoutContextBlock(String text) {
+    String block = this.contextBlock;
+    if (text == null || block == null || !text.contains(block)) {
+      return text;
+    }
+    return text.replace(block, contextBlockReference);
+  }
+
+  private String extractPlainContent(ChatMessage msg) {
     if (msg instanceof UserMessage) {
       UserMessage user = (UserMessage) msg;
-      return user.hasSingleText() ? user.singleText() : user.toString();
+      return user.hasSingleText() ? user.singleText() : renderMultiContent(user);
     }
     if (msg instanceof SystemMessage) {
-      return ((SystemMessage) msg).text();
+      return withoutContextBlock(((SystemMessage) msg).text());
     }
     if (msg instanceof AiMessage) {
       String text = ((AiMessage) msg).text();
@@ -902,6 +1023,100 @@ class AgentChatListener implements ChatModelListener {
   }
 
   /**
+   * Renders a multi-content user message — the shape produced when documents are
+   * attached — as text plus one descriptor per attachment.
+   *
+   * <p>This method is the reason document support is safe to persist at all.
+   * The obvious fallback, {@code UserMessage.toString()}, prints the
+   * whole Base64 payload of every attachment; with the chat log being a process
+   * variable, one invoice PDF would put megabytes of Base64 into the engine
+   * database on every run. A descriptor — variable, filename, mime type, size,
+   * SHA-256 — carries the evidence without the payload.
+   *
+   * <p>Descriptors come from {@link #setDocumentDescriptors(Map)}, published by
+   * the connector while resolving, and are looked up <b>before</b> the content
+   * type is inspected. That order is the whole correctness of this method: a
+   * text document is a {@code TextContent}, so branching on the type first sends
+   * it down the "this is prompt text, print it" path and puts the entire
+   * document into the chat log. Only content the connector did not build has no
+   * descriptor.
+   *
+   * <p>For such content — the agent's own prompt text, or a content object from
+   * somewhere else — a {@code TextContent} is printed and anything else emits
+   * the content type plus {@code descriptor: "unavailable"}. No size, because
+   * reading one would mean reaching into each LangChain4j content type for its
+   * payload, which is the very assumption that branch exists to avoid. The
+   * guarantee that matters holds either way: never the data.
+   */
+  private String renderMultiContent(UserMessage user) {
+    Map<dev.langchain4j.data.message.Content, Map<String, Object>> descriptors =
+        this.documentDescriptors;
+    List<Object> parts = new ArrayList<>();
+    List<dev.langchain4j.data.message.Content> contents = user.contents();
+    for (int index = 0; index < contents.size(); index++) {
+      dev.langchain4j.data.message.Content content = contents.get(index);
+      // The descriptor lookup has to come first. A text document is a
+      // TextContent like any other, so testing the type before consulting the
+      // map would write the whole document body into the chat log — up to 5 MB per
+      // turn, in a process variable, for exactly the content this map exists to
+      // keep out of it. Only content with no descriptor is the agent's own
+      // prompt text, and that is what the TEXT branch below is for.
+      Map<String, Object> descriptor = (descriptors == null) ? null : descriptors.get(content);
+      if (descriptor != null) {
+        parts.add(new LinkedHashMap<>(descriptor));
+        continue;
+      }
+      if (content instanceof dev.langchain4j.data.message.TextContent) {
+        String text = ((dev.langchain4j.data.message.TextContent) content).text();
+        Map<String, Object> part = new LinkedHashMap<>();
+        part.put("type", "TEXT");
+        // Never for the first part: that is the agent's own prompt text
+        // (request.getMessage(), which documents require to be non-empty), and
+        // it is not neutered — a message that merely starts with the header
+        // would otherwise reach the model while the chat log kept only a hash.
+        if (index > 0 && isWrappedTextDocument(text)) {
+          // Second line of defence. The descriptor map is identity-keyed, so a
+          // LangChain4j step that rebuilds the TextContent — a guardrail, an
+          // augmentor, a message copy — makes the lookup above miss, and the
+          // document body would land in the chat log. The block header the
+          // connector writes is recognisable on its own: log length and hash,
+          // never the text.
+          part.put("document", true);
+          part.put("descriptor", "unavailable");
+          part.put("length", text.length());
+          part.put("sha256", sha256(text));
+        } else {
+          part.put("text", text);
+        }
+        parts.add(part);
+        continue;
+      }
+      Map<String, Object> part = new LinkedHashMap<>();
+      part.put("type", content.type() == null ? "UNKNOWN" : content.type().name());
+      part.put("descriptor", "unavailable");
+      parts.add(part);
+    }
+    try {
+      return MAPPER.writeValueAsString(parts);
+    } catch (JsonProcessingException e) {
+      LOG.error("Failed to serialise multi-content user message; emitting a placeholder "
+          + "rather than the raw message, which would contain base64 payloads.", e);
+      return "[" + parts.size() + " content part(s); serialisation failed]";
+    }
+  }
+
+  /**
+   * Whether {@code text} starts with the header
+   * {@link DocumentContentResolver#wrapTextDocument} writes. A document body
+   * cannot forge it — the delimiters inside the body are neutered — so a match
+   * is the connector's own wrapping.
+   */
+  private static boolean isWrappedTextDocument(String text) {
+    return text != null
+        && text.startsWith(AgentConnectorConstants.DOCUMENT_BLOCK_OPEN + " variable=\"");
+  }
+
+  /**
    * Replaces {@code plain} with a JSON-encoded redaction marker carrying a
    * SHA-256 hash and the original character length. The marker is stable for
    * the same input so deployers can correlate redacted entries against
@@ -923,10 +1138,33 @@ class AgentChatListener implements ChatModelListener {
     }
   }
 
-  private static String sha256(String s) {
+  /**
+   * SHA-256 of {@code s} encoded as UTF-8, prefixed with {@code sha256:}.
+   * Package-private so non-listener audit sites can hash a payload they must not
+   * emit in the clear — {@link ProcessContextResolver} uses it to record which
+   * process-variable values reached the model without writing the values a
+   * second time.
+   *
+   * <p>Use {@link #sha256(byte[])} for anything that originated as bytes: going
+   * through a {@code String} re-encodes it as UTF-8, so the digest would no
+   * longer match the stored bytes for any other charset.
+   */
+  static String sha256(String s) {
+    return sha256(s.getBytes(StandardCharsets.UTF_8));
+  }
+
+  /**
+   * SHA-256 of {@code bytes}, prefixed with {@code sha256:}.
+   *
+   * <p>{@link DocumentContentResolver} hashes the raw variable bytes with this,
+   * so a document descriptor in the audit log carries the fingerprint of the
+   * file as stored — reproducible with {@code sha256sum} or {@code Get-FileHash}
+   * against the original, whatever the mime type or charset.
+   */
+  static String sha256(byte[] bytes) {
     try {
       MessageDigest md = MessageDigest.getInstance("SHA-256");
-      byte[] digest = md.digest(s.getBytes(StandardCharsets.UTF_8));
+      byte[] digest = md.digest(bytes);
       StringBuilder hex = new StringBuilder(digest.length * 2 + 7);
       hex.append("sha256:");
       for (byte b : digest) {
