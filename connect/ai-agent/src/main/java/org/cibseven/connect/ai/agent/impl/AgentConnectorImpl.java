@@ -327,7 +327,17 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         builder.toolProvider(mcpToolProvider);
       }
       if (memoryId != null) {
-        builder.chatMemoryProvider(createChatMemoryProvider(request));
+        ChatMemoryProvider memoryProvider = createChatMemoryProvider(request);
+        if (contextBlock != null && !contextBlock.isEmpty()) {
+          // The transformed system message, context block included, would
+          // otherwise be stored by the memory and copied by the default
+          // ProcessVariableChatMemoryStore into another process variable and,
+          // at history level FULL, into the history. The block is rendered
+          // anew on every invocation, so the memory does not need it.
+          ChatMemoryProvider storing = memoryProvider;
+          memoryProvider = id -> new ContextExcludingChatMemory(storing.get(id), contextBlock);
+        }
+        builder.chatMemoryProvider(memoryProvider);
       }
       ContentRetriever contentRetriever = createContentRetriever(request);
       LOG.debug("contentRetriever: " + contentRetriever);

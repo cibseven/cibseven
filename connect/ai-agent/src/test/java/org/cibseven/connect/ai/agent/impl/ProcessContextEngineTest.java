@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.cibseven.bpm.engine.ProcessEngine;
+import org.cibseven.bpm.engine.ProcessEngineConfiguration;
+import org.cibseven.bpm.engine.history.HistoricVariableUpdate;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
@@ -47,6 +49,7 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.listener.ChatModelListener;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 
 /**
  * Engine-backed counterpart to {@link ProcessContextResolverTest}, which drives
@@ -87,6 +90,8 @@ public class ProcessContextEngineTest {
         new StandaloneInMemProcessEngineConfiguration();
     configuration.setJdbcUrl("jdbc:h2:mem:process-context-test;DB_CLOSE_DELAY=-1");
     configuration.setJobExecutorActivate(false);
+    // FULL, as the distros run it: the chat-memory test checks the historic details.
+    configuration.setHistory(ProcessEngineConfiguration.HISTORY_FULL);
     return configuration.buildProcessEngine();
   }
 
@@ -169,6 +174,10 @@ public class ProcessContextEngineTest {
           .instruction("be brief")
           .contextVariables((String) execution.getVariable("_declared"))
           .optionalContextVariables((String) execution.getVariable("_optional"));
+      String memoryId = (String) execution.getVariable("_memoryId");
+      if (memoryId != null) {
+        request.useChatMemory(true).memoryId(memoryId);
+      }
       connector.execute(request);
     }
   }
@@ -419,6 +428,52 @@ public class ProcessContextEngineTest {
         .doesNotContain(AgentConnectorConstants.CONTEXT_BLOCK_OPEN)
         .endsWith("[process context: see the context event, runId " + contextEvent.get("runId")
             + ", eventSeq " + contextEvent.get("eventSeq") + "]");
+  }
+
+  /**
+   * Review round 3 (Copilot): with chat memory on, MessageWindowChatMemory used
+   * to store the transformed system message, and the default
+   * ProcessVariableChatMemoryStore copied the block and its raw values into the
+   * memory variable — and, at history level FULL, into the history. The model
+   * still gets the block; the memory keeps only the instruction.
+   */
+  @Test
+  public void shouldSendTheContextBlockButKeepItOutOfThePersistedChatMemory() {
+    ChatMemoryStore originalStore = AgentChatMemoryStore.getStore();
+    AgentChatMemoryStore.setStore(new ProcessVariableChatMemoryStore());
+    try {
+      start(Variables.createVariables()
+          .putValue("_declared", "note")
+          .putValue("_memoryId", "context-memory")
+          .putValue("note", "confidential-memory-canary"));
+    } finally {
+      AgentChatMemoryStore.setStore(originalStore);
+    }
+
+    assertThat(capturedSystemMessage)
+        .startsWith("be brief")
+        .contains("confidential-memory-canary");
+
+    VariableInstance memory = engineRule.getRuntimeService().createVariableInstanceQuery()
+        .variableName(ProcessVariableChatMemoryStore.variableName("context-memory"))
+        .singleResult();
+    assertThat(memory).as("chat-memory variable").isNotNull();
+    String stored = String.valueOf(memory.getValue());
+    assertThat(stored)
+        .contains("be brief")
+        .contains("What is the order about?")
+        .doesNotContain("confidential-memory-canary")
+        .doesNotContain(AgentConnectorConstants.CONTEXT_BLOCK_OPEN);
+
+    // Every variable update is a historic detail at FULL; none may carry the value.
+    assertThat(engineRule.getHistoryService().createHistoricDetailQuery()
+        .variableUpdates().list())
+        .filteredOn(detail -> String.valueOf(
+            ((HistoricVariableUpdate) detail).getValue())
+            .contains("confidential-memory-canary"))
+        .extracting(detail -> ((HistoricVariableUpdate) detail)
+            .getVariableName())
+        .containsOnly("note");
   }
 
   /**
