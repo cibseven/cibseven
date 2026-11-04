@@ -53,6 +53,7 @@ import org.cibseven.bpm.engine.impl.pvm.process.ProcessDefinitionImpl;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.cibseven.bpm.engine.impl.util.xml.Element;
 import org.cibseven.bpm.impl.juel.TreeBuilderException;
+import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,11 +64,11 @@ import org.slf4j.LoggerFactory;
  *
  * <p>A scope is agentic when it carries the AI agent's connector, {@code camunda:connector} with
  * the id {@code cibseven-ai-agent} -- the same element and the same input parameters as an AI
- * agent service task, evaluated on every turn instead of once. Only the agent's limits stay
- * properties of the scope.
+ * agent service task, evaluated on every turn instead of once. Only the agent's limits and
+ * settings stay properties of the scope.
  *
- * <p>Every other trace of an agent on a sub process -- the agent's element template, its limits,
- * its connector on the wrong element -- without a scope the agent can run refuses the deployment,
+ * <p>Every other trace of an agent on a sub process -- the agent's element template, its limits
+ * and settings, its connector on the wrong element -- without a scope the agent can run refuses the deployment,
  * saying why and what to do. A modeler drops a connector it does not expect on a sub process when
  * the element is copied or its type is changed; without this check such a scope would deploy as a
  * plain ad hoc scope and wait for ever.
@@ -105,8 +106,44 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
   /** What a limit does to the scope: end it as any turn would, or with a BPMN error (CIB7-2151). */
   public static final String ON_LIMIT = AgenticOutcome.ON_LIMIT_PROPERTY;
 
+  /**
+   * The connector's input naming the process variables the agent sees, separated by commas:
+   * before every model call, every step of a turn, their current values go to the model as data,
+   * with the state of the scope (CIB7-2179). Each is required unless
+   * {@link #OPTIONAL_CONTEXT_VARIABLES} names it. The input of the same name on the AI agent task
+   * (CIB7-1843), so an agent moved from a task into a scope keeps it; here it is read once, at
+   * deployment, as plain text, and no step evaluates it.
+   */
+  public static final String CONTEXT_VARIABLES = "contextVariables";
+
+  /** The names {@link #CONTEXT_VARIABLES} declares, in their order; absent when it declares none. */
+  public static final PropertyKey<List<String>> DECLARED_PROCESS_VARIABLES =
+      new PropertyKey<List<String>>("agentProcessVariables");
+
+  /**
+   * The connector's input naming those of {@link #CONTEXT_VARIABLES} that may be missing: the
+   * agent is asked without them. Every other one must reach it, or the step fails before the model
+   * is called (CIB7-2179).
+   */
+  public static final String OPTIONAL_CONTEXT_VARIABLES = "optionalContextVariables";
+
+  /** The names {@link #OPTIONAL_CONTEXT_VARIABLES} declares; absent when it declares none. */
+  public static final PropertyKey<List<String>> OPTIONAL_DECLARED_PROCESS_VARIABLES =
+      new PropertyKey<List<String>>("agentOptionalProcessVariables");
+
+  /** The most characters a variable's name has: the engine's column for it. */
+  protected static final int MAX_VARIABLE_NAME = 255;
+
+  /**
+   * How the variables the agent keeps its own state in begin: its state, its results, its
+   * conversation, its chat log and its memory. None of them goes to the model as process data.
+   */
+  protected static final List<String> AGENT_STATE_PREFIXES = Arrays.asList("adHocAgent",
+      AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME);
+
   /** Settings of the agent that are not limits, and mark a scope as an agent just as much. */
-  protected static final List<String> SETTINGS = Arrays.asList(CONVERSATION, ON_LIMIT);
+  protected static final List<String> SETTINGS =
+      Arrays.asList(CONVERSATION, ON_LIMIT);
 
   /** What the element template for an agentic scope writes into {@code camunda:modelerTemplate}. */
   public static final String AD_HOC_TEMPLATE_ID = "org.cibseven.connect.ai.agent.AdHocSubProcess";
@@ -158,7 +195,7 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
       // Reported, not refused (CIB7-2180). Another plugin may drive an ad hoc scope with a
       // connector of its own, found the way this module's plugin is found; refusing every
       // other id would block that. A typo in this agent's id lands here as well -- unless the
-      // scope also carries the template link or the limits, which is refused below.
+      // scope also carries the template link, a limit or a setting, which is refused below.
       LOG.warn("Ad hoc sub process '{}' carries the connector '{}', not the AI agent's"
           + " connector '{}', so it is not an agentic scope.", activity.getId(), connectorId,
           AgenticTurnRunner.AGENT_CONNECTOR_ID);
@@ -211,6 +248,40 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     if (!parsing.check(() -> refuseAnUnknownOnLimit(scopeElement, activity, declared),
         withoutOnLimit(activity))) {
       properties = without(properties, ON_LIMIT);
+    }
+    // The same for the process variables the agent sees (CIB7-2179), the connector's inputs
+    // contextVariables and optionalContextVariables: taken out of the mapping, so no step
+    // evaluates them, and read here once. Left out, the agent sees none. Both lists go together:
+    // the optional ones left alone would turn into required ones.
+    Map<String, String> declaring = declarationInputs(connector);
+    final Map<String, String> checking = declaring;
+    if (!parsing.check(() -> refuseABadDeclarationOfProcessVariables(scopeElement, activity,
+        checking), withoutProcessVariables(activity))) {
+      declaring = Collections.emptyMap();
+    }
+    List<String> processVariables = declaredNames(declaring.get(CONTEXT_VARIABLES));
+    if (!processVariables.isEmpty()) {
+      activity.getProperties().set(DECLARED_PROCESS_VARIABLES,
+          Collections.unmodifiableList(processVariables));
+      List<String> optional = new ArrayList<String>();
+      for (String name : declaredNames(declaring.get(OPTIONAL_CONTEXT_VARIABLES))) {
+        if (processVariables.contains(name)) {
+          optional.add(name);
+        } else {
+          LOG.warn("Ad hoc sub process '{}': '{}' is listed in '{}' but not in '{}', and is"
+              + " ignored. Only '{}' decides what the agent sees; check for a typo, otherwise the"
+              + " variable you meant stays required.", activity.getId(), name,
+              OPTIONAL_CONTEXT_VARIABLES, CONTEXT_VARIABLES, CONTEXT_VARIABLES);
+        }
+      }
+      if (!optional.isEmpty()) {
+        activity.getProperties().set(OPTIONAL_DECLARED_PROCESS_VARIABLES,
+            Collections.unmodifiableList(optional));
+      }
+    } else if (!declaredNames(declaring.get(OPTIONAL_CONTEXT_VARIABLES)).isEmpty()) {
+      LOG.warn("Ad hoc sub process '{}': '{}' is set but '{}' is empty, so the agent sees no"
+          + " process variables. The optional list only modifies the names '{}' declares.",
+          activity.getId(), OPTIONAL_CONTEXT_VARIABLES, CONTEXT_VARIABLES, CONTEXT_VARIABLES);
     }
 
     // followUp pulled out before the mapping is stored: unlike every other input parameter, it
@@ -333,7 +404,8 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
           + " an adHocSubProcess, and '" + activity.getId() + "' is a " + scopeElement.getTagName()
           + ". Make it an ad hoc sub process, or remove the agent from it: the connector '"
           + AgenticTurnRunner.AGENT_CONNECTOR_ID + "', the template '" + AD_HOC_TEMPLATE_NAME
-          + "' and the limits " + MAX_TURNS + " and " + MAX_MODEL_CALLS + ".", scopeElement);
+          + "' and every " + PROPERTY_PREFIX + "* property, the limits and the settings.",
+          scopeElement);
     }
 
     if (!agentConnector) {
@@ -342,8 +414,8 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
           + AgenticTurnRunner.AGENT_CONNECTOR_ID + "', so no agent would ever run it and the scope"
           + " would wait for ever. A modeler drops that connector when the element is copied and"
           + " pasted, or when its type is changed. Apply the template '" + AD_HOC_TEMPLATE_NAME
-          + "' to the element again; or, if it is meant to be a plain ad hoc sub process, remove"
-          + " the template and the limits.", scopeElement);
+          + "' to the element again; or, if it is meant to be a plain ad hoc sub process, remove "
+          + marks(template, limits, settings) + ".", scopeElement);
     }
 
     refuseTheTaskOnTheScope(scopeElement, activity);
@@ -373,7 +445,7 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     // leave the scope without its agent on this node, and its waiting turn would be lost.
     IoMapping io;
     try {
-      io = BpmnParseUtil.parseInputOutput(connector);
+      io = connectorInputOutput(connector);
     } catch (TreeBuilderException e) {
       throw new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': an expression"
           + " of the connector '" + AgenticTurnRunner.AGENT_CONNECTOR_ID + "' cannot be read: "
@@ -525,8 +597,15 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     InputParameter memoryWindow = null;
     Element memoryWindowElement = null;
     Element inputOutput = connector.elementNS(BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS, "inputOutput");
-    List<Element> inputElements = inputOutput.elementsNS(
-        BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS, "inputParameter");
+    // The elements io was built from, in its order: without the declaration, which
+    // connectorInputOutput leaves out, an index names the same input in both.
+    List<Element> inputElements = new ArrayList<Element>();
+    for (Element input : inputOutput.elementsNS(BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS,
+        "inputParameter")) {
+      if (!isADeclarationInput(input)) {
+        inputElements.add(input);
+      }
+    }
     for (int i = 0; i < io.getInputParameters().size(); i++) {
       InputParameter input = io.getInputParameters().get(i);
       if ("chatMemoryMaxMessages".equals(input.getName())) {
@@ -580,6 +659,249 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
         + "', where a limit ends the scope as any turn would and the outcome names it, or '"
         + AgenticOutcome.ON_LIMIT_ERROR + "', where a limit ends the scope with a BPMN error"
         + " whose code is the outcome.", scopeElement);
+  }
+
+  /**
+   * {@code contextVariables} is plain text, and names each variable once, and none of the agent's
+   * own state (CIB7-2179). A list, a map or a script has no text to read once. An empty name is a
+   * stray comma, and a name declared twice a slip of the pen; either would leave a modeller
+   * wondering what the agent sees. A name with {@code $},
+   * braces, a semicolon or an asterisk, or one longer than a variable's name can be, is an
+   * expression, a list or a pattern written by habit and would never match. A name with a space
+   * inside is a comma left out far more often than a name, and {@code ${…}} could not read such a
+   * name anyway. The agent's own state is kept from the model on every path, and a declaration
+   * would hand it out.
+   *
+   * <p>{@code optionalContextVariables} is checked the same way. A name in it that
+   * {@code contextVariables} does not declare is no refusal: it only modifies that list, so the
+   * name is ignored with a warning when the scope is parsed, as on the AI agent task (CIB7-1843).
+   */
+  protected void refuseABadDeclarationOfProcessVariables(Element scopeElement,
+      ActivityImpl activity, Map<String, String> inputs) {
+    List<String> seen = new ArrayList<String>();
+    List<String> refusals = new ArrayList<String>();
+    for (String input : Arrays.asList(CONTEXT_VARIABLES, OPTIONAL_CONTEXT_VARIABLES)) {
+      if (inputs.containsKey(input) && inputs.get(input) == null) {
+        refusals.add(input + " is not text: give the names of the variables, separated by"
+            + " commas, as the text of the input, not as a list, a map or a script");
+      }
+    }
+    String declared = inputs.get(CONTEXT_VARIABLES);
+    List<String> problems = problemsOfADeclaration(declared, seen);
+    if (!problems.isEmpty()) {
+      refusals.add(CONTEXT_VARIABLES + " is '" + declared + "', and declares "
+          + String.join(", and ", problems));
+    }
+    String optional = inputs.get(OPTIONAL_CONTEXT_VARIABLES);
+    List<String> optionalNames = new ArrayList<String>();
+    List<String> optionalProblems = problemsOfADeclaration(optional, optionalNames);
+    if (!optionalProblems.isEmpty()) {
+      refusals.add(OPTIONAL_CONTEXT_VARIABLES + " is '" + optional + "', and declares "
+          + String.join(", and ", optionalProblems));
+    }
+    // One refusal names every problem, so a model is not deployed again only to learn of the next.
+    if (!refusals.isEmpty()) {
+      throw new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': "
+          + String.join("; ", refusals) + ".", scopeElement);
+    }
+  }
+
+  /**
+   * What is wrong with one list of names, in words for a refusal; the names it declares, each
+   * once, are added to {@code names}. Nothing is wrong with a list that is not there.
+   */
+  protected static List<String> problemsOfADeclaration(String declared, List<String> names) {
+    List<String> problems = new ArrayList<String>();
+    if (declared == null || strip(declared).isEmpty()) {
+      return problems;
+    }
+    boolean empty = false;
+    List<String> twice = new ArrayList<String>();
+    List<String> agentState = new ArrayList<String>();
+    List<String> noVariable = new ArrayList<String>();
+    List<String> spaced = new ArrayList<String>();
+    for (String raw : declared.split(",", -1)) {
+      String name = strip(raw);
+      if (name.isEmpty()) {
+        empty = true;
+      } else if (names.contains(name)) {
+        if (!twice.contains(name)) {
+          twice.add(name);
+        }
+      } else {
+        names.add(name);
+        if (isAgentState(name)) {
+          agentState.add(name);
+        }
+        if (name.length() > MAX_VARIABLE_NAME || !looksLikeAName(name)) {
+          noVariable.add(name);
+        } else if (hasASpaceInside(name)) {
+          spaced.add(name);
+        }
+      }
+    }
+    if (empty) {
+      problems.add("an empty name; separate the names by single commas");
+    }
+    if (!twice.isEmpty()) {
+      problems.add(String.join(", ", twice) + " more than once");
+    }
+    if (!agentState.isEmpty()) {
+      problems.add(String.join(", ", agentState) + ", where the agent keeps its own state,"
+          + " which never goes to the model; a name that begins with "
+          + String.join(" or ", AGENT_STATE_PREFIXES) + " is the agent's; give such a variable of"
+          + " the process another name, or leave it out");
+    }
+    if (!noVariable.isEmpty()) {
+      problems.add(String.join(", ", noVariable) + ", which reads as an expression, a list or a"
+          + " pattern, not as the name of a variable; name each variable itself, without $,"
+          + " braces, a semicolon, an asterisk or a line break, in at most " + MAX_VARIABLE_NAME
+          + " characters");
+    }
+    if (!spaced.isEmpty()) {
+      problems.add(String.join(", ", spaced) + ", with a space inside the name: a missing comma?"
+          + " separate the names by commas");
+    }
+    return problems;
+  }
+
+  /** The names a list declares, in order, each once. */
+  protected static List<String> declaredNames(String declared) {
+    List<String> names = new ArrayList<String>();
+    if (declared == null) {
+      return names;
+    }
+    for (String raw : declared.split(",")) {
+      String name = strip(raw);
+      if (!name.isEmpty() && !names.contains(name)) {
+        names.add(name);
+      }
+    }
+    return names;
+  }
+
+  /**
+   * {@code text} without the white space around it, Unicode's included: a non-breaking space pasted
+   * from a document or the ideographic space an input method types after a comma, which
+   * {@link String#trim()} keeps, would otherwise be part of a name that then never matches.
+   */
+  protected static String strip(String text) {
+    int start = 0;
+    int end = text.length();
+    while (start < end && isBlank(text.charAt(start))) {
+      start++;
+    }
+    while (end > start && isBlank(text.charAt(end - 1))) {
+      end--;
+    }
+    return text.substring(start, end);
+  }
+
+  /**
+   * White space as the Modeler's pattern sees it: ECMAScript's {@code \s} takes U+FEFF, the byte
+   * order mark a document may paste, for white space, and Java does not; what the panel refuses or
+   * strips, the deployment does too.
+   */
+  protected static boolean isBlank(char c) {
+    return Character.isWhitespace(c) || Character.isSpaceChar(c) || c == '﻿';
+  }
+
+  /**
+   * Whether {@code name} reads as the name of a variable rather than an expression, a list or a
+   * pattern: no {@code $}, brace, semicolon or asterisk, and no line break or other control
+   * character, which an XML attribute keeps when it is written as a character reference. Every
+   * variable at once is not something a declaration can say.
+   */
+  protected static boolean looksLikeAName(String name) {
+    for (int i = 0; i < name.length(); i++) {
+      char c = name.charAt(i);
+      if (c == '$' || c == '{' || c == '}' || c == ';' || c == '*' || Character.isISOControl(c)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Whether {@code name}, stripped already, has white space inside: a comma left out between two
+   * names, far more often than a name with a space in it, which {@code ${…}} could not read.
+   */
+  protected static boolean hasASpaceInside(String name) {
+    for (int i = 0; i < name.length(); i++) {
+      if (isBlank(name.charAt(i))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Whether {@code name} is one of the variables the agent keeps its own state in. */
+  protected static boolean isAgentState(String name) {
+    for (String prefix : AGENT_STATE_PREFIXES) {
+      if (name.startsWith(prefix)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * The connector's input and output mapping as {@link BpmnParseUtil#parseInputOutput} builds it,
+   * without {@link #CONTEXT_VARIABLES} and {@link #OPTIONAL_CONTEXT_VARIABLES}: those two are
+   * names, read once as text ({@link #declarationInputs}), and never built as expressions, so no
+   * step evaluates them. Built, a {@code ${…}} written into them by habit would be an error of the
+   * connector: the whole agent refused for what only its declaration got wrong, or, for a
+   * function this node lacks, the definition not loaded at all (the second model's review of
+   * 14637f31c5). {@code null} without an {@code inputOutput}, as there.
+   */
+  protected static IoMapping connectorInputOutput(Element connector) {
+    Element inputOutput = connector.elementNS(BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS, "inputOutput");
+    if (inputOutput == null) {
+      return null;
+    }
+    IoMapping io = new IoMapping();
+    for (Element input : inputOutput.elementsNS(BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS,
+        "inputParameter")) {
+      if (!isADeclarationInput(input)) {
+        BpmnParseUtil.parseInputParameterElement(input, io);
+      }
+    }
+    BpmnParseUtil.parseCamundaOutputParameters(inputOutput, io);
+    return io;
+  }
+
+  /** Whether {@code input} is {@link #CONTEXT_VARIABLES} or {@link #OPTIONAL_CONTEXT_VARIABLES}. */
+  protected static boolean isADeclarationInput(Element input) {
+    String name = input.attribute("name");
+    return CONTEXT_VARIABLES.equals(name) || OPTIONAL_CONTEXT_VARIABLES.equals(name);
+  }
+
+  /**
+   * The connector's inputs {@link #CONTEXT_VARIABLES} and {@link #OPTIONAL_CONTEXT_VARIABLES}, by
+   * name, as the text the model gives them, read from the element: they are read once, here, and
+   * {@link #connectorInputOutput} leaves them out of the mapping every step evaluates. One given
+   * as a list, a map or a script has no text and maps to {@code null}.
+   */
+  protected static Map<String, String> declarationInputs(Element connector) {
+    Map<String, String> declared = new LinkedHashMap<String, String>();
+    Element inputOutput = (connector == null) ? null
+        : connector.elementNS(BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS, "inputOutput");
+    if (inputOutput == null) {
+      return declared;
+    }
+    for (Element input : inputOutput.elementsNS(BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS,
+        "inputParameter")) {
+      if (isADeclarationInput(input)) {
+        declared.put(input.attribute("name"), input.elements().isEmpty() ? input.getText() : null);
+      }
+    }
+    return declared;
+  }
+
+  /** What a scope loads with on a parse again when its {@link #CONTEXT_VARIABLES} is left out. */
+  protected static String withoutProcessVariables(ActivityImpl activity) {
+    return CONTEXT_VARIABLES + " and " + OPTIONAL_CONTEXT_VARIABLES + " are left out of '"
+        + activity.getId() + "', and its agent sees no process variables";
   }
 
   /**
@@ -831,7 +1153,7 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
 
     // Reserve the engine's full 64-character execution id without changing normal memory ids.
     int maxActivityIdLength = 255
-        - org.cibseven.connect.ai.agent.AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX.length()
+        - AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX.length()
         - "adhoc-".length() - 64 - 1;
     if (perActivity && activity.getId().length() > maxActivityIdLength) {
       throw new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': perActivity"

@@ -17,7 +17,12 @@
 package org.cibseven.connect.ai.agent.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.nio.charset.StandardCharsets;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -25,11 +30,23 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.apache.ibatis.executor.Executor;
+import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.plugin.Interceptor;
+import org.apache.ibatis.plugin.Intercepts;
+import org.apache.ibatis.plugin.Invocation;
+import org.apache.ibatis.plugin.Signature;
+import org.apache.ibatis.session.ResultHandler;
+import org.apache.ibatis.session.RowBounds;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
@@ -37,7 +54,13 @@ import org.cibseven.bpm.engine.delegate.JavaDelegate;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.cibseven.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
+import org.cibseven.bpm.engine.impl.variable.serializer.AbstractObjectValueSerializer;
+import org.cibseven.bpm.engine.impl.variable.serializer.ValueFields;
+import org.cibseven.bpm.engine.impl.variable.serializer.VariableSerializers;
+import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.engine.history.HistoricDetail;
 import org.cibseven.bpm.engine.history.HistoricVariableUpdate;
 import org.cibseven.bpm.engine.runtime.Job;
@@ -45,6 +68,9 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.variable.Variables;
+import org.cibseven.bpm.engine.variable.impl.value.ObjectValueImpl;
+import org.cibseven.bpm.engine.variable.value.SerializableValue;
+import org.cibseven.bpm.engine.variable.type.SerializableValueType;
 import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.cibseven.connect.ScriptedAgent;
@@ -54,6 +80,12 @@ import org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 
 /**
  * {@link AdHocSubProcessTool} — the three tools the model calls to see, start and
@@ -102,6 +134,159 @@ public class AdHocSubProcessToolTest {
   /** What the agent does in one turn. */
   interface Turn {
     Object run(AdHocSubProcessTool tool);
+  }
+
+  /**
+   * Counts the engine's reads of stored byte arrays, the statement a file's, bytes' or an object's
+   * value is loaded with: what a declared value shown by its type alone must not cost. Installed
+   * once into the engine's MyBatis configuration; a plugin cannot be removed, so it stays and counts.
+   */
+  @Intercepts({@Signature(
+      type = Executor.class, method = "query",
+      args = {MappedStatement.class, Object.class,
+          RowBounds.class, ResultHandler.class})})
+  static final class ByteArrayReads implements Interceptor {
+    /**
+     * The ids of the byte arrays read since the last {@code clear()}; the engine reads every one of a
+     * process when it ends, to delete it, so a test looks at the set while the step still runs.
+     */
+    static final Set<String> READ_IDS =
+        Collections.synchronizedSet(new LinkedHashSet<>());
+    private static boolean installed;
+
+    static synchronized void install(ProcessEngine engine) {
+      if (!installed) {
+        ((ProcessEngineConfigurationImpl) engine.getProcessEngineConfiguration())
+            .getSqlSessionFactory().getConfiguration().addInterceptor(new ByteArrayReads());
+        installed = true;
+      }
+    }
+
+    @Override
+    public Object intercept(Invocation invocation) throws Throwable {
+      MappedStatement statement = (MappedStatement) invocation.getArgs()[0];
+      if (statement.getId().contains("selectByteArray")) {
+        READ_IDS.add(String.valueOf(invocation.getArgs()[1]));
+      }
+      return invocation.proceed();
+    }
+  }
+
+  /**
+   * An object serializer of a format the agent never sees, which refuses to read a value when
+   * told to: a stand-in for the cost of reading a file's or an object's bytes on every step.
+   */
+  static final class BlobSerializer extends AbstractObjectValueSerializer {
+    volatile boolean failReads;
+
+    BlobSerializer() {
+      super("application/x-test-blob");
+    }
+
+    @Override
+    public String getName() {
+      return "blob-test";
+    }
+
+    @Override
+    protected boolean isSerializationTextBased() {
+      return false;
+    }
+
+    @Override
+    protected String getTypeNameForDeserialized(Object deserializedObject) {
+      return deserializedObject.getClass().getName();
+    }
+
+    @Override
+    protected byte[] serializeToByteArray(Object deserializedObject) {
+      return String.valueOf(deserializedObject).getBytes(StandardCharsets.UTF_8);
+    }
+
+    @Override
+    protected Object deserializeFromByteArray(byte[] bytes, String objectTypeName) {
+      return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    @Override
+    protected boolean canSerializeValue(Object value) {
+      return value instanceof Map;
+    }
+
+    @Override
+    public ObjectValue readValue(ValueFields valueFields, boolean deserializeValue,
+        boolean asTransientValue) {
+      if (failReads) {
+        throw new IllegalStateException("the value was read");
+      }
+      return super.readValue(valueFields, deserializeValue, asTransientValue);
+    }
+  }
+
+  /**
+   * A JSON serializer for the engine of these tests, which has no Spin: Jackson over a Map, so
+   * that an object stored as JSON can be read deserialized and changed in a step.
+   */
+  static final class JsonMapSerializer extends AbstractObjectValueSerializer {
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private final String name;
+    /** Writes the keys in upper case: another serializer of the same format writes otherwise. */
+    private final boolean upperCaseKeys;
+    /** How many of the next writes fail, as a serializer that cannot write an object would. */
+    volatile int failNextWrites;
+
+    JsonMapSerializer() {
+      this("json-map-test", false);
+    }
+
+    JsonMapSerializer(String name, boolean upperCaseKeys) {
+      super("application/json");
+      this.name = name;
+      this.upperCaseKeys = upperCaseKeys;
+    }
+
+    @Override
+    public String getName() {
+      return name;
+    }
+
+    @Override
+    protected boolean isSerializationTextBased() {
+      return true;
+    }
+
+    @Override
+    protected String getTypeNameForDeserialized(Object deserializedObject) {
+      return deserializedObject.getClass().getName();
+    }
+
+    @Override
+    protected byte[] serializeToByteArray(Object deserializedObject) throws Exception {
+      if (failNextWrites > 0) {
+        failNextWrites--;
+        // As a serializer may: the message names the object, as the engine's own messages do.
+        throw new IllegalStateException("cannot write " + deserializedObject);
+      }
+      Object written = deserializedObject;
+      if (upperCaseKeys) {
+        Map<String, Object> upper = new LinkedHashMap<>();
+        for (Map.Entry<?, ?> entry : ((Map<?, ?>) deserializedObject).entrySet()) {
+          upper.put(String.valueOf(entry.getKey()).toUpperCase(), entry.getValue());
+        }
+        written = upper;
+      }
+      return MAPPER.writeValueAsBytes(written);
+    }
+
+    @Override
+    protected Object deserializeFromByteArray(byte[] bytes, String objectTypeName) throws Exception {
+      return MAPPER.readValue(bytes, LinkedHashMap.class);
+    }
+
+    @Override
+    protected boolean canSerializeValue(Object value) {
+      return value instanceof Map;
+    }
   }
 
   /** What the scripted turns returned and what they ran into. */
@@ -302,6 +487,14 @@ public class AdHocSubProcessToolTest {
    * attribute to derive from.
    */
   private static String model(String processId, String extraScopeProperties) {
+    // The connector's inputs among them go to the connector, the rest stays a property.
+    StringBuilder inputs = new StringBuilder();
+    Matcher input = Pattern.compile("<camunda:inputParameter .*?</camunda:inputParameter>")
+        .matcher(extraScopeProperties);
+    while (input.find()) {
+      inputs.append(input.group());
+    }
+    extraScopeProperties = input.replaceAll("");
     return "<?xml version='1.0' encoding='UTF-8'?>"
         + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
         + " xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
@@ -317,6 +510,7 @@ public class AdHocSubProcessToolTest {
         + "      <camunda:connectorId>cibseven-ai-agent</camunda:connectorId>"
         + "      <camunda:inputOutput>"
         + "        <camunda:inputParameter name='message'>Do the work.</camunda:inputParameter>"
+        + inputs
         + "      </camunda:inputOutput>"
         + "    </camunda:connector></extensionElements>"
         + "    <userTask id='waits' name='Waits for a person'>"
@@ -599,6 +793,861 @@ public class AdHocSubProcessToolTest {
     // is the idle warning.
     assertThat(String.valueOf(listing.get("note")))
         .doesNotContain("nothing will wake it");
+  }
+
+  // --- the process variables the agent sees (CIB7-2179) ----------------------
+
+  private static final String NOT_SENT = AdHocSubProcessTool.CONTENT_NOT_SENT;
+
+  @Test
+  public void theReportCarriesTheDeclaredProcessVariablesWithTheirCurrentValues() {
+    ProcessInstance instance = startWithoutTurn("processData",
+        processVariables("kunde, prioritaet, eilig, offen", "offen"), tool -> tool.turnReport());
+    Map<String, Object> variables = new LinkedHashMap<>();
+    variables.put("kunde", "Müller GmbH");
+    variables.put("prioritaet", 2);
+    variables.put("eilig", true);
+    variables.put("offen", null);
+    ENGINE.getRuntimeService().setVariables(instance.getId(), variables);
+
+    runPendingTurn(instance);
+
+    Map<String, Object> report = result(0);
+    assertThat(processData(report)).as("in the order declared, an optional one set to null as null")
+        .containsExactly(entry("kunde", (Object) "Müller GmbH"), entry("prioritaet", (Object) 2),
+            entry("eilig", (Object) true), entry("offen", null));
+    assertThat(report).doesNotContainKeys("processDataNotSet", "processDataNote");
+    assertThat(String.valueOf(report.get("note")))
+        .contains("The values in processData are the current values of process variables");
+  }
+
+  /** The variables the model does not declare, and the agent's own state, stay out. */
+  @Test
+  public void anUndeclaredVariableNeverReachesTheReport() {
+    ProcessInstance instance = startWithoutTurn("processDataUndeclared",
+        processVariables("kunde"), tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "geheim", "Kennwort-4711");
+
+    runPendingTurn(instance);
+
+    String report = AdHocToolProvider.toJson(result(0));
+    assertThat(processData(result(0))).containsOnlyKeys("kunde");
+    assertThat(report).doesNotContain("geheim").doesNotContain("Kennwort-4711")
+        .doesNotContain(AdHocAgentState.STATE_MARKER);
+  }
+
+  @Test
+  public void aScopeThatDeclaresNoProcessVariablesReportsNone() {
+    ProcessInstance instance = startWithoutTurn("processDataNone", tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
+
+    runPendingTurn(instance);
+
+    assertThat(result(0)).doesNotContainKeys("processData", "processDataNotSet",
+        "processDataNote");
+    assertThat(String.valueOf(result(0).get("note"))).doesNotContain("processData");
+  }
+
+  /** For an optional one, not set is not an error: the agent is told which ones it lacks. */
+  @Test
+  public void anOptionalVariableThatIsNotSetIsNamedAndFailsNothing() {
+    ProcessInstance instance = startWithoutTurn("processDataNotSet",
+        processVariables("kunde, fehlt", "fehlt"), tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(processData(result(0))).containsOnlyKeys("kunde");
+    assertThat(list(result(0).get("processDataNotSet"))).containsExactly("fehlt");
+    // The model is told what the key means, and that a null in processData is not this.
+    assertThat(String.valueOf(result(0).get("note")))
+        .contains("processDataNotSet names the declared variables the process has not set"
+            + " (a null in processData is set to null); processDataNote says which were left out"
+            + " for size.");
+    assertThat(ENGINE.getRuntimeService().createIncidentQuery()
+        .processInstanceId(instance.getId()).count()).isZero();
+    assertThat(ENGINE.getHistoryService().createHistoricIncidentQuery()
+        .processInstanceId(instance.getId()).count()).isZero();
+  }
+
+  /**
+   * A required one must reach the agent: set, not to null, and seen whole. Every one that does not
+   * is named with why, beside those that were read, and the agent gets no block. A typed null is
+   * null too, not a placeholder of its type.
+   */
+  @Test
+  public void aRequiredVariableThatDoesNotReachTheAgentFailsTheStep() {
+    ProcessInstance instance = startWithoutTurn("processDataRequired",
+        processVariables("kunde, fehlt, leer, roh, auftrag"), tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "leer", null);
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "roh", Variables.byteArrayValue(null));
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+        Variables.objectValue(new ArrayList<>(Arrays.asList("a", "b"))).create());
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.RESULTS).as("no block for the agent").isEmpty();
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class)
+        .hasMessage("Ad hoc sub process 'adHoc': required process variables did not reach the"
+            + " agent: fehlt (not set), leer (null), roh (null); the model was not called."
+            + " Set the variable on the process instance and retry the job, or change the model:"
+            + " make it optional (optionalContextVariables) or leave it out of"
+            + " contextVariables. Reached the agent: kunde, auftrag.");
+  }
+
+  /**
+   * A developer used to {@code ${order.customer}} lists a path into a JSON value; a dot is legal in
+   * a name, so the deployment cannot refuse it, and the refusal says what was meant instead.
+   */
+  @Test
+  public void aNotSetNameWithADotHintsAtTheVariableItself() {
+    ProcessInstance instance = startWithoutTurn("processDataPath",
+        processVariables("auftrag.kunde"), tool -> tool.turnReport());
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0)).hasMessageContaining("did not reach the agent: auftrag.kunde"
+        + " (not set; a path into a variable? declare the variable itself, 'auftrag', and the agent"
+        + " sees all of it); the model was not called.");
+  }
+
+  /**
+   * A required file, bytes or Java object reaches the agent described, by its name and type, never
+   * its content: the description is all the agent is given of it, so it reaches the agent whole,
+   * as on the AI agent task (CIB7-1843).
+   */
+  @Test
+  public void aRequiredFileReachesTheAgentDescribed() {
+    ProcessInstance instance = startWithoutTurn("processDataRequiredFile",
+        processVariables("scan, roh"), tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "scan",
+        Variables.fileValue("auftrag.pdf").file(WritesDocument.BYTES)
+            .mimeType("application/pdf").create());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "roh", new byte[] {1, 2, 3});
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(processData(result(0)))
+        .containsEntry("scan", "(file \"auftrag.pdf\", \"application/pdf\", " + NOT_SENT + ")")
+        .containsEntry("roh", "(bytes, " + NOT_SENT + ")");
+  }
+
+  /**
+   * What the incident keeps, 666 characters, says what to do whatever the ids: a scope id of 200
+   * characters and a first variable whose name and reason alone pass the room are cut there; the
+   * whole of both follows at the end, which the job's exception details keep.
+   */
+  @Test
+  public void theIncidentPartOfTheRefusalFitsWhateverTheIdsAndReasons() {
+    String scope = new String(new char[200]).replace('\0', 's');
+    String first = new String(new char[255]).replace('\0', 'a') + " (an object in"
+        + " application/json that its serializer could not write again, so the agent cannot read it"
+        + " as it is now)";
+    String second = new String(new char[255]).replace('\0', 'b') + " (not set)";
+
+    String message = AdHocSubProcessTool.notReachedMessage(scope, Arrays.asList(first, second),
+        Collections.<String>emptyList());
+
+    String incident = message.substring(0, AdHocSubProcessTool.INCIDENT_MESSAGE_CHARS);
+    assertThat(incident).contains("the model was not called")
+        .contains(", and 1 more, named at the end of this message")
+        .contains("make it optional (optionalContextVariables) or leave it out"
+            + " of contextVariables.");
+    assertThat(message).endsWith("In ad hoc sub process '" + scope + "', all that did not reach"
+        + " the agent: " + first + ", " + second + ".");
+  }
+
+  /**
+   * A variable set to null is set, whatever its type: an optional one set to null bytes reaches the
+   * agent as null, not as a placeholder of its type, and is not named as not set.
+   */
+  @Test
+  public void anOptionalVariableSetToATypedNullReachesTheAgentAsNull() {
+    ProcessInstance instance = startWithoutTurn("processDataTypedNull",
+        processVariables("kunde, roh", "roh"), tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "roh", Variables.byteArrayValue(null));
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(processData(result(0))).containsEntry("roh", null);
+  }
+
+  /**
+   * An object deserialized in the command to null, from the JSON literal null, keeps that text
+   * beside it: it is null all the same, so a required one fails as a null does and is never sent
+   * as the word "null" (the second model's review of 14637f31c5). One never deserialized shows
+   * the text it was stored with, as the AI agent task does.
+   */
+  @Test
+  public void anObjectDeserializedToNullIsNullWhateverTextItKept() {
+    AdHocSubProcessTool.ProcessValue deserialized = AdHocSubProcessTool.processValue(
+        new ObjectValueImpl(null, "null", "application/json", "java.util.LinkedHashMap", true));
+    assertThat(deserialized.shown).isNull();
+    assertThat(deserialized.notWhole).isNull();
+    assertThat(AdHocSubProcessTool.processValue(Variables.serializedObjectValue("null")
+        .serializationDataFormat("application/json").objectTypeName("java.util.LinkedHashMap")
+        .create()).shown).as("never deserialized: its text").isEqualTo("null");
+  }
+
+  /**
+   * A value read already in the same command comes from the variable's cache, deserialized. An
+   * object whose value is null there is null; a Spin value deserialized there gave up its text,
+   * and is shown by the text its node writes, never as null.
+   */
+  @Test
+  public void aValueDeserializedInTheCommandIsNeverTakenForNullForWantOfItsText() {
+    AdHocSubProcessTool.ProcessValue cachedNull =
+        AdHocSubProcessTool.processValue(Variables.objectValue(null).create());
+    String json = "{\"auftrag\":\"A-1047\"}";
+    Object node = new Object() {
+      @Override
+      public String toString() {
+        return json;
+      }
+    };
+    SerializableValue spin = mock(SerializableValue.class);
+    SerializableValueType jsonType = mock(SerializableValueType.class);
+    when(jsonType.getName()).thenReturn("json");
+    when(spin.getType()).thenReturn(jsonType);
+    when(spin.getSerializationDataFormat()).thenReturn("application/json");
+    when(spin.isDeserialized()).thenReturn(true);
+    when(spin.getValueSerialized()).thenReturn(null);
+    when(spin.getValue()).thenReturn(node);
+
+    AdHocSubProcessTool.ProcessValue shownSpin = AdHocSubProcessTool.processValue(spin);
+
+    assertThat(cachedNull.shown).isNull();
+    assertThat(cachedNull.notWhole).isNull();
+    assertThat(shownSpin.shown).isEqualTo(json);
+    assertThat(shownSpin.notWhole).isNull();
+  }
+
+  /**
+   * A Spin value deserialized in the command keeps the text it was read with; an expression of the
+   * step may have changed its node since. The agent is shown the node as it is now.
+   */
+  @Test
+  public void aDeserializedSpinValueIsShownAsItsNodeIsNow() {
+    String now = "{\"status\":\"freigegeben\"}";
+    Object node = new Object() {
+      @Override
+      public String toString() {
+        return now;
+      }
+    };
+    SerializableValue spin = mock(SerializableValue.class);
+    SerializableValueType jsonType = mock(SerializableValueType.class);
+    when(jsonType.getName()).thenReturn("json");
+    when(spin.getType()).thenReturn(jsonType);
+    when(spin.getSerializationDataFormat()).thenReturn("application/json");
+    when(spin.isDeserialized()).thenReturn(true);
+    when(spin.getValueSerialized()).thenReturn("{\"status\":\"offen\"}");
+    when(spin.getValue()).thenReturn(node);
+
+    assertThat(AdHocSubProcessTool.processValue(spin).shown).isEqualTo(now);
+  }
+
+  /**
+   * The required ones take the budget first: six optional values of 3000 declared before a
+   * required one would fill it, and the required one would fail the step for want of room.
+   */
+  @Test
+  public void theRequiredOnesTakeTheBudgetFirst() {
+    List<String> optional = new ArrayList<>();
+    for (int i = 0; i < 6; i++) {
+      optional.add("wert" + i);
+    }
+    ProcessInstance instance = startWithoutTurn("processDataRequiredFirst",
+        processVariables(String.join(",", optional) + ", pflicht", String.join(",", optional)),
+        tool -> tool.turnReport());
+    for (String name : optional) {
+      ENGINE.getRuntimeService().setVariable(instance.getId(), name, longText(3000));
+    }
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "pflicht", longText(3000));
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(new ArrayList<>(processData(result(0)).keySet())).as("in the order declared")
+        .containsExactly("wert0", "wert1", "wert2", "wert3", "wert4", "pflicht");
+    assertThat(String.valueOf(result(0).get("processDataNote"))).endsWith(": wert5.");
+  }
+
+  /** A required value the budget has no room for left fails the step, never a silent gap. */
+  @Test
+  public void aRequiredValueThatDoesNotFitTheBudgetFailsTheStep() {
+    List<String> names = new ArrayList<>();
+    for (int i = 0; i < 7; i++) {
+      names.add("wert" + i);
+    }
+    ProcessInstance instance = startWithoutTurn("processDataRequiredBudget",
+        processVariables(String.join(",", names)), tool -> tool.turnReport());
+    for (String name : names) {
+      ENGINE.getRuntimeService().setVariable(instance.getId(), name, longText(3000));
+    }
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0)).hasMessageContaining("did not reach the agent: wert6"
+        + " (3002 characters as written, more than is left of the 20000 for all process"
+        + " variables); the model was not called. Set")
+        .hasMessageEndingWith(" Reached the agent: wert0, wert1, wert2, wert3, wert4, wert5.");
+  }
+
+  /**
+   * 4000 characters are the most a string variable holds: the engine refuses a longer one. Such
+   * a value reaches the agent whole.
+   */
+  @Test
+  public void aValueAsLongAsAStringVariableHoldsGoesWhole() {
+    String text = longText(4000);
+    ProcessInstance instance = startWithoutTurn("processDataLong", processVariables("bericht"),
+        tool -> {
+          tool.startActivity("waits", Collections.<String, Object>emptyMap());
+          return tool.turnReport();
+        });
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "bericht", text);
+
+    runPendingTurn(instance);
+
+    assertThat(processData(result(0))).containsEntry("bericht", text);
+  }
+
+  /**
+   * A date in ISO 8601, in UTC. An object in Java serialization, a file and bytes are described:
+   * the agent cannot read them, and nothing is deserialized.
+   */
+  @Test
+  public void aDateIsShownInIsoAndAJavaObjectAFileOrBytesAreDescribed() {
+    ProcessInstance instance = startWithoutTurn("processDataPlaceholders",
+        processVariables("faellig, auftrag, scan, roh", "auftrag, scan, roh"),
+        tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "faellig", new Date(0L));
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+        Variables.objectValue(new ArrayList<>(Arrays.asList("a", "b"))).create());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "scan",
+        Variables.fileValue("auftrag.pdf").file(WritesDocument.BYTES)
+            .mimeType("application/pdf").create());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "roh", new byte[] {1, 2, 3});
+
+    runPendingTurn(instance);
+
+    assertThat(processData(result(0)))
+        .containsEntry("faellig", "1970-01-01T00:00:00Z")
+        .containsEntry("auftrag", "(object \"java.util.ArrayList\","
+            + " \"application/x-java-serialized-object\", " + NOT_SENT + ")")
+        .containsEntry("scan", "(file \"auftrag.pdf\", \"application/pdf\", " + NOT_SENT + ")")
+        .containsEntry("roh", "(bytes, " + NOT_SENT + ")");
+  }
+
+  /**
+   * A value set in the step itself is described from the value, as it was given: a file without a
+   * media type has an unknown one, and a quote in a file's name cannot close the quote around it
+   * and go on to describe a file that is not there.
+   */
+  @Test
+  public void aValueGivenInTheStepIsDescribedFromItself() {
+    assertThat(AdHocSubProcessTool.processValue(Variables.fileValue("a\", sent \"b.pdf")
+        .file(WritesDocument.BYTES).create()).shown)
+        .isEqualTo("(file \"a\\\", sent \\\"b.pdf\", \"unknown\", " + NOT_SENT + ")");
+    assertThat(AdHocSubProcessTool.processValue(Variables.byteArrayValue(new byte[] {1})).shown)
+        .isEqualTo("(bytes, " + NOT_SENT + ")");
+    AdHocSubProcessTool.ProcessValue order = AdHocSubProcessTool.processValue(
+        Variables.serializedObjectValue("rO0AB")
+            .serializationDataFormat("application/x-java-serialized-object")
+            .objectTypeName("com.acme.Order").create());
+    assertThat(order.shown).isEqualTo("(object \"com.acme.Order\","
+        + " \"application/x-java-serialized-object\", " + NOT_SENT + ")");
+    assertThat(order.notWhole).as("all the agent is given of it").isNull();
+  }
+
+  /**
+   * An object stored as JSON that an expression or a listener of the same step changes is shown
+   * as it is now, written again by its serializer, not by the text it was read with (Copilot's
+   * review of PR 532). Read deserialized and changed inside the turn, as such an expression would;
+   * the engine of these tests has no JSON serializer, so one over a Map stands in for the step.
+   */
+  @Test
+  public void aDeserializedJsonObjectChangedInTheStepIsShownAsItIsNow() {
+    VariableSerializers serializers = ((ProcessEngineConfigurationImpl)
+        ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
+    JsonMapSerializer json = new JsonMapSerializer();
+    serializers.addSerializer(json, 0);
+    try {
+      ProcessInstance instance = startWithoutTurn("processDataJsonChanged",
+          processVariables("auftrag"), tool -> {
+            ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> auftrag =
+                (Map<String, Object>) scope.getVariableTyped("auftrag").getValue();
+            auftrag.put("positionen", 4);
+            return tool.turnReport();
+          });
+      Map<String, Object> auftrag = new LinkedHashMap<>();
+      auftrag.put("nummer", "A-1047");
+      auftrag.put("positionen", 3);
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+          Variables.objectValue(auftrag).serializationDataFormat("application/json").create());
+
+      runPendingTurn(instance);
+
+      assertThat(Agent.FAILURES).isEmpty();
+      assertThat(processData(result(0)))
+          .containsEntry("auftrag", "{\"nummer\":\"A-1047\",\"positionen\":4}");
+    } finally {
+      serializers.removeSerializer(json);
+    }
+  }
+
+  /**
+   * The serializer that read the variable writes it again, not the first the engine finds for its
+   * format: another serializer of the same format, a process application's for instance, would
+   * write the object otherwise (second model, 2026-11-03).
+   */
+  @Test
+  public void anObjectIsWrittenAgainByTheSerializerThatReadIt() {
+    VariableSerializers serializers = ((ProcessEngineConfigurationImpl)
+        ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
+    JsonMapSerializer own = new JsonMapSerializer();
+    JsonMapSerializer other = new JsonMapSerializer("json-map-other", true);
+    serializers.addSerializer(own, 0);
+    try {
+      ProcessInstance instance = startWithoutTurn("processDataOwnSerializer",
+          processVariables("auftrag"), tool -> {
+            ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> auftrag =
+                (Map<String, Object>) scope.getVariableTyped("auftrag").getValue();
+            auftrag.put("positionen", 4);
+            return tool.turnReport();
+          });
+      Map<String, Object> auftrag = new LinkedHashMap<>();
+      auftrag.put("nummer", "A-1047");
+      auftrag.put("positionen", 3);
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+          Variables.objectValue(auftrag).serializationDataFormat("application/json").create());
+      // From now on the engine would pick the other one for a new value of this format.
+      serializers.addSerializer(other, 0);
+
+      runPendingTurn(instance);
+
+      assertThat(Agent.FAILURES).isEmpty();
+      assertThat(processData(result(0))).as("written by the serializer that read it")
+          .containsEntry("auftrag", "{\"nummer\":\"A-1047\",\"positionen\":4}");
+    } finally {
+      serializers.removeSerializer(other);
+      serializers.removeSerializer(own);
+    }
+  }
+
+  /**
+   * A write that fails leaves an optional object as a placeholder, never as the stored text, which
+   * would show the object before a change of this step as if it were current (Copilot's review of
+   * PR 532); and the log says only that the write failed: a serializer's message may name the
+   * object, and the log holds no process data (second model, 2026-11-03).
+   */
+  @Test
+  public void aFailedWriteIsAPlaceholderForAnOptionalAndLogsNoValue() {
+    VariableSerializers serializers = ((ProcessEngineConfigurationImpl)
+        ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
+    JsonMapSerializer json = new JsonMapSerializer();
+    serializers.addSerializer(json, 0);
+    Logger logger = (Logger)
+        LoggerFactory.getLogger(AdHocSubProcessTool.class);
+    Level level = logger.getLevel();
+    ListAppender<ILoggingEvent> appender =
+        new ListAppender<>();
+    appender.start();
+    logger.addAppender(appender);
+    logger.setLevel(Level.DEBUG);
+    try {
+      ProcessInstance instance = startWithoutTurn("processDataFailedWrite",
+          processVariables("auftrag", "auftrag"), tool -> {
+            ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> auftrag =
+                (Map<String, Object>) scope.getVariableTyped("auftrag").getValue();
+            auftrag.put("positionen", 4);
+            return tool.turnReport();
+          });
+      Map<String, Object> auftrag = new LinkedHashMap<>();
+      auftrag.put("nummer", "A-1047-GEHEIM");
+      auftrag.put("positionen", 3);
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+          Variables.objectValue(auftrag).serializationDataFormat("application/json").create());
+      // The step's write fails; the engine's own write when the command closes goes through.
+      json.failNextWrites = 1;
+
+      runPendingTurn(instance);
+
+      assertThat(Agent.FAILURES).isEmpty();
+      assertThat(processData(result(0))).as("a placeholder, not the stored text")
+          .containsEntry("auftrag",
+              "<object value (java.util.LinkedHashMap, application/json), not shown>");
+      assertThat(appender.list).extracting(e -> e.getFormattedMessage())
+          .noneSatisfy(line -> assertThat(line).contains("A-1047-GEHEIM"))
+          .anySatisfy(line -> assertThat(line).contains("could not be written again"));
+    } finally {
+      logger.detachAppender(appender);
+      logger.setLevel(level);
+      appender.stop();
+      serializers.removeSerializer(json);
+    }
+  }
+
+  /**
+   * A required object whose write fails stops the step before the model is called: the stored
+   * text could be the object before a change of this step, and a required value reaches the agent
+   * whole or not at all (Copilot's review of PR 532).
+   */
+  @Test
+  public void aRequiredObjectWhoseWriteFailsStopsTheStep() {
+    VariableSerializers serializers = ((ProcessEngineConfigurationImpl)
+        ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
+    JsonMapSerializer json = new JsonMapSerializer();
+    serializers.addSerializer(json, 0);
+    try {
+      ProcessInstance instance = startWithoutTurn("processDataRequiredFailedWrite",
+          processVariables("auftrag"), tool -> {
+            ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> auftrag =
+                (Map<String, Object>) scope.getVariableTyped("auftrag").getValue();
+            auftrag.put("positionen", 4);
+            return tool.turnReport();
+          });
+      Map<String, Object> auftrag = new LinkedHashMap<>();
+      auftrag.put("nummer", "A-1047");
+      auftrag.put("positionen", 3);
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+          Variables.objectValue(auftrag).serializationDataFormat("application/json").create());
+      json.failNextWrites = 1;
+
+      runPendingTurn(instance);
+
+      assertThat(Agent.RESULTS).as("no block for the agent").isEmpty();
+      assertThat(Agent.FAILURES).hasSize(1);
+      assertThat(Agent.FAILURES.get(0)).hasMessageContaining("did not reach the agent: auftrag (an"
+          + " object in application/json that its serializer could not write again, so the agent"
+          + " cannot read it as it is now); the model was not called.");
+    } finally {
+      serializers.removeSerializer(json);
+    }
+  }
+
+  /**
+   * A date set in the same step as a {@code java.sql.Date}, by a listener or a script, is cached as
+   * it was given and refuses {@code toInstant()}: it is shown in ISO 8601 all the same, by its
+   * milliseconds, as a date read from the database is (Copilot's review of PR 532).
+   */
+  @Test
+  public void aDateSetInTheStepAsASqlDateIsShownInIso() {
+    ProcessInstance instance = startWithoutTurn("processDataSqlDate",
+        processVariables("faellig, uhrzeit", "uhrzeit"), tool -> {
+          ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
+          scope.setVariable("faellig", new java.sql.Date(0L));
+          scope.setVariable("uhrzeit", new Time(60_000L));
+          return tool.turnReport();
+        });
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(processData(result(0)))
+        .containsEntry("faellig", "1970-01-01T00:00:00Z")
+        .containsEntry("uhrzeit", "1970-01-01T00:01:00Z");
+  }
+
+  /**
+   * A declared file, bytes or object outside JSON and XML is described without its value being
+   * read: the description comes from what the variable instance holds besides the value, so
+   * a declared file is not read from the database on every step (CIB7-2513, here for the declared
+   * variables). A serializer that refuses to read stands in for that cost on the object; for the
+   * file and the bytes, which come first, the byte arrays the engine read while the step built its
+   * report are looked at: none of theirs is among them.
+   */
+  @Test
+  public void aHiddenValueIsDescribedWithoutBeingRead() {
+    VariableSerializers serializers = ((ProcessEngineConfigurationImpl)
+        ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
+    BlobSerializer blob = new BlobSerializer();
+    serializers.addSerializer(blob, 0);
+    ByteArrayReads.install(ENGINE);
+    try {
+      List<String> readByTheReport = new ArrayList<>();
+      ProcessInstance instance = startWithoutTurn("processDataNotRead",
+          processVariables("scan, roh, auftrag", "scan, roh, auftrag"), tool -> {
+            Object report = tool.turnReport();
+            // Before the process ends: the engine reads every byte array of it then, to delete it.
+            readByTheReport.addAll(ByteArrayReads.READ_IDS);
+            return report;
+          });
+      Map<String, Object> auftrag = new LinkedHashMap<>();
+      auftrag.put("nummer", "A-1047");
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+          Variables.objectValue(auftrag).serializationDataFormat("application/x-test-blob").create());
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "scan",
+          Variables.fileValue("auftrag.pdf").file(WritesDocument.BYTES)
+              .mimeType("application/pdf").create());
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "roh", new byte[] {1, 2, 3});
+      blob.failReads = true;
+      List<String> theirBytes = new ArrayList<>();
+      for (String name : Arrays.asList("scan", "roh")) {
+        theirBytes.add(((VariableInstanceEntity)
+            ENGINE.getRuntimeService().createVariableInstanceQuery()
+                .processInstanceIdIn(instance.getId()).variableName(name).singleResult())
+            .getByteArrayValueId());
+      }
+      assertThat(theirBytes).doesNotContainNull();
+      ByteArrayReads.READ_IDS.clear();
+
+      runPendingTurn(instance);
+
+      assertThat(readByTheReport).as("the file's and the bytes' byte arrays read for the report")
+          .doesNotContainAnyElementsOf(theirBytes);
+      assertThat(Agent.FAILURES).isEmpty();
+      assertThat(processData(result(0)))
+          .containsEntry("auftrag", "(object \"java.util.LinkedHashMap\","
+              + " \"application/x-test-blob\", " + NOT_SENT + ")")
+          .containsEntry("scan", "(file \"auftrag.pdf\", \"application/pdf\", " + NOT_SENT + ")")
+          .containsEntry("roh", "(bytes, " + NOT_SENT + ")");
+    } finally {
+      serializers.removeSerializer(blob);
+    }
+  }
+
+  /**
+   * An object serialized as JSON or XML, as a Spin value is, is shown as its text, read without
+   * deserializing it, and cut past the limit of one value. Shown on the value itself: this engine
+   * has no serializer for JSON.
+   */
+  @Test
+  public void aJsonOrXmlObjectIsShownAsItsTextAndCutPastTheLimit() {
+    String json = "{\"auftrag\":\"A-1047\",\"positionen\":3}";
+    String xml = "<auftrag nummer=\"A-1047\"/>";
+    String longJson = "[\"" + longText(4996) + "\"]";
+
+    AdHocSubProcessTool.ProcessValue shownJson = AdHocSubProcessTool.processValue(
+        Variables.serializedObjectValue(json).serializationDataFormat("application/json")
+            .objectTypeName("java.util.HashMap").create());
+    AdHocSubProcessTool.ProcessValue shownXml = AdHocSubProcessTool.processValue(
+        Variables.serializedObjectValue(xml).serializationDataFormat("application/xml")
+            .objectTypeName("org.example.Auftrag").create());
+    AdHocSubProcessTool.ProcessValue cut = AdHocSubProcessTool.processValue(
+        Variables.serializedObjectValue(longJson).serializationDataFormat("application/json")
+            .create());
+
+    assertThat(shownJson.shown).isEqualTo(json);
+    assertThat(shownJson.notWhole).isNull();
+    assertThat(shownXml.shown).isEqualTo(xml);
+    assertThat(cut.shown).isEqualTo(longJson.substring(0,
+        AdHocSubProcessTool.MAX_PROCESS_VALUE_CHARS) + "… (truncated, 5000 characters total)");
+    assertThat(cut.notWhole).isEqualTo("5000 characters, over the limit of 4000");
+  }
+
+  /**
+   * The 4000 are characters as the database counts them, not Java chars: 3995 letters and five
+   * emoji are a string the database holds, and reach the agent whole; a longer value is cut after
+   * a whole character, never between the two halves of an emoji (the review of CIB7-1843).
+   */
+  @Test
+  public void theLimitCountsCharactersAndCutsAfterAWholeOne() {
+    String emoji = new String(Character.toChars(0x1F600));
+    StringBuilder fits = new StringBuilder(longText(3995));
+    for (int i = 0; i < 5; i++) {
+      fits.append(emoji);
+    }
+    String over = longText(3999) + emoji + "bbbbbbbbbb";
+
+    AdHocSubProcessTool.ProcessValue whole =
+        AdHocSubProcessTool.processValue(Variables.stringValue(fits.toString()));
+    AdHocSubProcessTool.ProcessValue cut =
+        AdHocSubProcessTool.processValue(Variables.stringValue(over));
+
+    assertThat(fits.length()).as("Java chars").isEqualTo(4005);
+    assertThat(whole.notWhole).isNull();
+    assertThat(whole.shown).isEqualTo(fits.toString());
+    assertThat(cut.shown).isEqualTo(longText(3999) + emoji + "… (truncated, 4010 characters total)");
+    assertThat(cut.notWhole).isEqualTo("4010 characters, over the limit of 4000");
+  }
+
+  /** Values past the budget of their own are left out and named, in the order declared. */
+  @Test
+  public void theProcessDataStaysWithinItsOwnBudget() {
+    List<String> names = new ArrayList<>();
+    for (int i = 0; i < 12; i++) {
+      names.add("wert" + i);
+    }
+    ProcessInstance instance = startWithoutTurn("processDataBudget",
+        processVariables(String.join(",", names), String.join(",", names)),
+        tool -> tool.turnReport());
+    for (String name : names) {
+      ENGINE.getRuntimeService().setVariable(instance.getId(), name, longText(3000));
+    }
+
+    runPendingTurn(instance);
+
+    Map<String, Object> shown = processData(result(0));
+    List<String> leftOut = names.subList(shown.size(), names.size());
+    assertThat(shown).as("as many as fit, each taking what it takes as written").hasSize(
+        AdHocSubProcessTool.MAX_PROCESS_DATA_CHARS / AdHocToolProvider.writtenLength(shown.get("wert0")));
+    assertThat(new ArrayList<>(shown.keySet())).as("the first ones, in their order")
+        .containsExactlyElementsOf(names.subList(0, shown.size()));
+    assertThat(leftOut).isNotEmpty();
+    assertThat(String.valueOf(result(0).get("processDataNote")))
+        .isEqualTo("Left out because the size limit of "
+            + AdHocSubProcessTool.MAX_PROCESS_DATA_CHARS
+            + " characters for processData was reached: " + String.join(", ", leftOut) + ".");
+    assertThat(writtenLength(shown)).as("never over the budget")
+        .isLessThanOrEqualTo(AdHocSubProcessTool.MAX_PROCESS_DATA_CHARS);
+  }
+
+  /**
+   * The budget counts a value as JSON writes it, and admits it only whole: 2000 control
+   * characters take 12002 as written, so a second such value does not fit, and a short one
+   * after it still does.
+   */
+  @Test
+  public void aValueThatDoesNotFitIsLeftOutAndASmallerOneAfterItStillFits() {
+    ProcessInstance instance = startWithoutTurn("processDataEscaped",
+        processVariables("erste, zweite, kurz", "erste, zweite, kurz"),
+        tool -> tool.turnReport());
+    StringBuilder controls = new StringBuilder();
+    for (int i = 0; i < AdHocSubProcessTool.MAX_RESULT_VALUE_CHARS; i++) {
+      controls.append('\u0001');
+    }
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "erste", controls.toString());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "zweite", controls.toString());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kurz", "ok");
+
+    runPendingTurn(instance);
+
+    Map<String, Object> shown = processData(result(0));
+    assertThat(new ArrayList<>(shown.keySet())).containsExactly("erste", "kurz");
+    assertThat(String.valueOf(result(0).get("processDataNote"))).endsWith(": zweite.");
+    assertThat(writtenLength(shown))
+        .isLessThanOrEqualTo(AdHocSubProcessTool.MAX_PROCESS_DATA_CHARS);
+  }
+
+  /**
+   * The process data has a budget of its own: the results reported in the same block do not take
+   * from it. A tool that waits reports three values of 2000 quotes, about 12000 characters as
+   * written, in the next turn's block, beside nine values of process data that fill their own 20000.
+   */
+  @Test
+  public void theProcessDataHasABudgetOfItsOwnBesideTheResults() {
+    List<String> names = new ArrayList<>();
+    for (int i = 0; i < 9; i++) {
+      names.add("wert" + i);
+    }
+    ProcessInstance instance = start("processDataOwnBudget",
+        processVariables(String.join(",", names)),
+        tool -> tool.startActivity("quotedLater", Collections.<String, Object>emptyMap()),
+        tool -> tool.turnReport());
+    for (String name : names) {
+      ENGINE.getRuntimeService().setVariable(instance.getId(), name, longText(2000));
+    }
+
+    // The tool's own job, then the turn its end scheduled.
+    runPendingTurn(instance);
+    runPendingTurn(instance);
+
+    Map<String, Object> report = result(1);
+    assertThat(writtenLength(results(finished(report).get(0))))
+        .as("the results in the same block").isGreaterThan(12000);
+    assertThat(processData(report)).as("all nine fit their own budget").hasSize(9);
+    assertThat(report).doesNotContainKey("processDataNote");
+  }
+
+  /**
+   * Within a turn too: a tool the agent calls changes a declared variable, and the next step's
+   * block has the new value, read again rather than kept from the step before.
+   */
+  @Test
+  public void aValueATurnChangesIsReadAgainInItsNextStep() {
+    ProcessInstance instance = startWithoutTurn("processDataWithinATurn",
+        processVariables("amount"),
+        tool -> {
+          Map<String, Object> before = tool.turnReport();
+          Agent.RESULTS.add(before);
+          tool.startActivity("quick", Collections.<String, Object>emptyMap());
+          return tool.turnReport();
+        });
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "amount", 100);
+
+    runPendingTurn(instance);
+
+    assertThat(processData(result(0))).containsEntry("amount", 100);
+    assertThat(processData(result(1))).as("after the tool set it")
+        .containsEntry("amount", Long.valueOf(200));
+  }
+
+  private static int writtenLength(Map<String, Object> values) {
+    int written = 0;
+    for (Object value : values.values()) {
+      written += AdHocToolProvider.writtenLength(value);
+    }
+    return written;
+  }
+
+  /**
+   * Read on every step with what the process holds then; a result is reported once. A person
+   * changes the variable between two turns, and the next turn sees the new value.
+   */
+  @Test
+  public void theProcessDataComesWithEveryStepAndTheResultsOnce() {
+    ProcessInstance instance = startWithoutTurn("processDataEveryStep",
+        processVariables("kunde"),
+        tool -> {
+          tool.startActivity("waits", Collections.<String, Object>emptyMap());
+          return tool.turnReport();
+        },
+        tool -> {
+          Map<String, Object> first = tool.turnReport();
+          Agent.RESULTS.add(first);
+          return tool.turnReport();
+        });
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
+    runPendingTurn(instance);
+    assertThat(processData(result(0))).containsEntry("kunde", "Müller GmbH");
+
+    Map<String, Object> answer = new LinkedHashMap<>();
+    answer.put("kunde", "Schmidt AG");
+    ENGINE.getTaskService().complete(task(instance, "waits").getId(), answer);
+    runPendingTurn(instance);
+
+    Map<String, Object> firstStep = result(1);
+    Map<String, Object> furtherStep = result(2);
+    assertThat(processData(firstStep)).containsEntry("kunde", "Schmidt AG");
+    assertThat(finished(firstStep)).hasSize(1);
+    assertThat(processData(furtherStep)).as("again, in a further step")
+        .containsEntry("kunde", "Schmidt AG");
+    assertThat(finished(furtherStep)).as("the result only once").isEmpty();
+  }
+
+  /** The connector's input contextVariables (CIB7-2179); {@link #model} puts it on the connector. */
+  private static String processVariables(String names) {
+    return "<camunda:inputParameter name='contextVariables'>" + names + "</camunda:inputParameter>";
+  }
+
+  private static String processVariables(String names, String optional) {
+    return processVariables(names) + "<camunda:inputParameter name='optionalContextVariables'>"
+        + optional + "</camunda:inputParameter>";
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Map<String, Object> processData(Map<String, Object> report) {
+    assertThat(report).containsKey("processData");
+    return (Map<String, Object>) report.get("processData");
   }
 
   // --- startActivity ---------------------------------------------------------

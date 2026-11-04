@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,6 +32,8 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessActivityBehavior;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.AdHocSubProcessObserver;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.engine.impl.core.model.PropertyKey;
+import org.cibseven.bpm.engine.impl.core.variable.mapping.InputParameter;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.deploy.cache.DeploymentCache;
@@ -47,6 +50,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
@@ -2161,6 +2165,331 @@ public class AgenticAdHocParseListenerTest {
         .hasMessageContaining("carries no connector 'cibseven-ai-agent'");
   }
 
+  // --- the process variables the agent sees (CIB7-2179)
+
+  @Test
+  public void declaresTheProcessVariablesTheAgentSeesInTheirOrder() {
+    deploy(connectorScope("<userTask id='worker' />", processVariables(" kunde, prioritaet "),
+        ""));
+
+    assertThat(declaredProcessVariablesOf("adHoc")).containsExactly("kunde", "prioritaet");
+  }
+
+  @Test
+  public void aBlankDeclarationDeclaresNoProcessVariables() {
+    deploy(connectorScope("<userTask id='worker' />", processVariables(" "), ""));
+
+    assertThat(declaredProcessVariablesOf("adHoc")).isNull();
+  }
+
+  @Test
+  public void refusesAnEmptyNameAmongTheProcessVariables() {
+    String model = connectorScope("<userTask id='worker' />", processVariables("kunde,,prioritaet"),
+        "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("contextVariables is 'kunde,,prioritaet', and"
+            + " declares an empty name; separate the names by single commas.");
+  }
+
+  @Test
+  public void refusesAProcessVariableDeclaredTwice() {
+    String model = connectorScope("<userTask id='worker' />",
+        processVariables("kunde, prioritaet, kunde, kunde"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .as("named once, however often it repeats")
+        .hasMessageContaining("and declares kunde more than once.");
+  }
+
+  /** A comma at the end, left when a name was deleted, is an empty name too. */
+  @Test
+  public void refusesATrailingCommaAmongTheProcessVariables() {
+    String model = connectorScope("<userTask id='worker' />", processVariables("kunde,"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("declares an empty name; separate the names by single commas.");
+  }
+
+  /** The agent's own state never reaches the model, and a declaration must not hand it out. */
+  @Test
+  public void refusesTheAgentsOwnStateAsAProcessVariable() {
+    String model = connectorScope("<userTask id='worker' />",
+        processVariables("kunde, adHocAgentResults, cibseven-connect-ai-agent-memory_adHoc"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("declares adHocAgentResults, cibseven-connect-ai-agent-memory_adHoc,"
+            + " where the agent keeps its own state, which never goes to the model; a name that"
+            + " begins with adHocAgent or cibseven-connect-ai-agent is the agent's; give such a"
+            + " variable of the process another name, or leave it out.");
+  }
+
+  @Test
+  public void refusesEveryProblemOfADeclarationAtOnce() {
+    String model = connectorScope("<userTask id='worker' />",
+        processVariables("kunde,, kunde, adHocAgentState"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("an empty name")
+        .hasMessageContaining("kunde more than once")
+        .hasMessageContaining("adHocAgentState, where the agent keeps its own state");
+  }
+
+  /** An expression or a list written by habit would never match, and only the model would know. */
+  @Test
+  public void refusesANameNoVariableIsCalled() {
+    String longName = new String(new char[256]).replace('\0', 'a');
+    String model = connectorScope("<userTask id='worker' />",
+        processVariables("${kunde}, kunde; prioritaet, " + longName + ", rabatt"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("declares ${kunde}, kunde; prioritaet, " + longName
+            + ", which reads as an expression, a list or a pattern, not as the name of a variable;"
+            + " name each variable itself, without $, braces, a semicolon, an asterisk or a line"
+            + " break, in at most 255 characters.");
+  }
+
+  /** A line break written as a character reference stays in the attribute, and in the name. */
+  @Test
+  public void refusesANameWithALineBreakInIt() {
+    String model = connectorScope("<userTask id='worker' />",
+        processVariables("kunde;&#10;prioritaet, rabatt&#10;kunde"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("declares kunde;\nprioritaet, rabatt\nkunde, which reads as");
+  }
+
+  /** A non-breaking or ideographic space after a comma belongs to no name. */
+  @Test
+  public void aNameIsTakenWithoutTheUnicodeSpacesAroundIt() {
+    deploy(connectorScope("<userTask id='worker' />",
+        processVariables("\uFEFFkunde, prioritaet　, rabatt"), ""));
+
+    assertThat(declaredProcessVariablesOf("adHoc")).containsExactly("kunde", "prioritaet", "rabatt");
+  }
+
+  /**
+   * The Modeler's pattern takes U+FEFF, the byte order mark a document may paste, for white space,
+   * as ECMAScript's {@code \s} does, so a name with one inside is refused in the panel; the
+   * deployment refuses it the same way, and strips it around a name (second model, 2026-11-03).
+   */
+  @Test
+  public void refusesAByteOrderMarkInsideANameAsTheModelerDoes() {
+    String model = connectorScope("<userTask id='worker' />", processVariables("order\uFEFFid"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("declares order\uFEFFid, with a space inside the name: a missing comma?");
+  }
+
+  /** The list lives on the cached definition, which every instance shares. */
+  @Test
+  public void theDeclaredNamesCannotBeChangedThroughTheDefinition() {
+    deploy(connectorScope("<userTask id='worker' />", processVariables("kunde"), ""));
+
+    List<String> declared = declaredProcessVariablesOf("adHoc");
+    assertThatThrownBy(() -> declared.add("geheim"))
+        .isInstanceOf(UnsupportedOperationException.class);
+  }
+
+  /** Every variable at once is not something a declaration can say: it would match none. */
+  @Test
+  public void refusesAnAsteriskForEveryVariable() {
+    String model = connectorScope("<userTask id='worker' />", processVariables("kunde, *"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("declares *, which reads as an expression, a list or a pattern");
+  }
+
+  /**
+   * A space inside a name is a comma left out far more often than a name, and such a name would
+   * fail every instance as not set; ${…} could not read it either, so nothing is lost by refusing
+   * it (the review pass of 2026-11-02, finding 5).
+   */
+  @Test
+  public void refusesASpaceInsideANameAsAMissingComma() {
+    String model = connectorScope("<userTask id='worker' />",
+        processVariables("kunde prioritaet, rabatt", "rabatt  notiz"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("contextVariables is 'kunde prioritaet, rabatt', and"
+            + " declares kunde prioritaet, with a space inside the name: a missing comma? separate"
+            + " the names by commas; optionalContextVariables is 'rabatt  notiz',"
+            + " and declares rabatt  notiz, with a space inside the name");
+  }
+
+  /**
+   * The declaration is the text of the connector's input, read once at deployment: a list, a map
+   * or a script has none (CIB7-2179).
+   */
+  @Test
+  public void refusesADeclarationThatIsNotText() {
+    String model = connectorScope("<userTask id='worker' />",
+        "<camunda:inputParameter name='contextVariables'><camunda:list>"
+            + "<camunda:value>kunde</camunda:value></camunda:list></camunda:inputParameter>", "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("contextVariables is not text: give the names of the variables,"
+            + " separated by commas, as the text of the input");
+  }
+
+  /**
+   * Read once, the two inputs are taken out of the mapping every step evaluates: no step reads
+   * them again, and the connector's request never carries them (CIB7-2179).
+   */
+  @Test
+  public void theDeclarationIsTakenOutOfTheInputsOfAStep() {
+    deploy(connectorScope("<userTask id='worker' />", processVariables("kunde, rabatt", "rabatt"),
+        ""));
+
+    assertThat(declaredProcessVariablesOf("adHoc")).containsExactly("kunde", "rabatt");
+    final String definitionId = engine.getRepositoryService()
+        .createProcessDefinitionQuery().latestVersion().singleResult().getId();
+    List<String> stepInputs = config.getCommandExecutorTxRequired().execute(
+        new Command<List<String>>() {
+          @Override
+          public List<String> execute(CommandContext ctx) {
+            ProcessDefinitionEntity entity = ctx.getProcessEngineConfiguration()
+                .getDeploymentCache().findDeployedProcessDefinitionById(definitionId);
+            List<String> inputs = new ArrayList<>();
+            for (InputParameter input : entity.findActivity("adHoc").getProperties()
+                .get(AgenticAdHocParseListener.AGENT_CONNECTOR_IO).getInputParameters()) {
+              inputs.add(input.getName());
+            }
+            return inputs;
+          }
+        });
+    assertThat(stepInputs).contains("message")
+        .doesNotContain("contextVariables", "optionalContextVariables");
+  }
+
+  @Test
+  public void declaresWhichOfTheProcessVariablesAreOptional() {
+    deploy(connectorScope("<userTask id='worker' />",
+        processVariables("kunde, rabatt, notiz", " notiz, rabatt "), ""));
+
+    assertThat(declaredProcessVariablesOf("adHoc")).containsExactly("kunde", "rabatt", "notiz");
+    assertThat(optionalProcessVariablesOf("adHoc")).containsExactly("notiz", "rabatt");
+  }
+
+  @Test
+  public void withoutOptionalOnesEveryProcessVariableIsRequired() {
+    deploy(connectorScope("<userTask id='worker' />", processVariables("kunde", " "), ""));
+
+    assertThat(optionalProcessVariablesOf("adHoc")).isNull();
+  }
+
+  /**
+   * The optional list only modifies the names contextVariables declares: a name the agent does not
+   * see changes nothing, and the model deploys. A typo would leave the variable meant required, so
+   * the name is in a warning at deployment, as on the AI agent task (CIB7-1843).
+   */
+  @Test
+  public void anOptionalVariableTheAgentDoesNotSeeIsIgnoredWithAWarning() {
+    List<String> warnings = warningsOfTheParseListener(() -> deploy(connectorScope(
+        "<userTask id='worker' />", processVariables("kunde, rabatt", "rabat, rabatt"), "")));
+
+    assertThat(declaredProcessVariablesOf("adHoc")).containsExactly("kunde", "rabatt");
+    assertThat(optionalProcessVariablesOf("adHoc")).containsExactly("rabatt");
+    assertThat(warnings).containsExactly("Ad hoc sub process 'adHoc': 'rabat' is listed in"
+        + " 'optionalContextVariables' but not in 'contextVariables', and is ignored. Only"
+        + " 'contextVariables' decides what the agent sees; check for a typo, otherwise the"
+        + " variable you meant stays required.");
+  }
+
+  @Test
+  public void optionalVariablesWithoutTheOnesTheAgentSeesAreIgnoredWithAWarning() {
+    List<String> warnings = warningsOfTheParseListener(() -> deploy(connectorScope(
+        "<userTask id='worker' />", processVariables(null, "rabatt"), "")));
+
+    assertThat(declaredProcessVariablesOf("adHoc")).isNull();
+    assertThat(optionalProcessVariablesOf("adHoc")).isNull();
+    assertThat(warnings).containsExactly("Ad hoc sub process 'adHoc': 'optionalContextVariables'"
+        + " is set but 'contextVariables' is empty, so the agent sees no process variables. The"
+        + " optional list only modifies the names 'contextVariables' declares.");
+  }
+
+  @Test
+  public void refusesEveryProblemOfBothListsAtOnce() {
+    String model = connectorScope("<userTask id='worker' />",
+        processVariables("kunde, kunde", "kunde,, ${rabatt}"), "");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("contextVariables is 'kunde, kunde', and declares"
+            + " kunde more than once; optionalContextVariables is"
+            + " 'kunde,, ${rabatt}', and declares an empty name")
+        .hasMessageContaining("${rabatt}, which reads as an expression");
+  }
+
+  /** The warnings the parse listener logs while {@code deploying} runs. */
+  protected static List<String> warningsOfTheParseListener(Runnable deploying) {
+    Logger logger = (Logger) LoggerFactory.getLogger(AgenticAdHocParseListener.class);
+    ListAppender<ILoggingEvent> appender = new ListAppender<ILoggingEvent>();
+    appender.start();
+    logger.addAppender(appender);
+    try {
+      deploying.run();
+    } finally {
+      logger.detachAppender(appender);
+      appender.stop();
+    }
+    List<String> warnings = new ArrayList<String>();
+    for (ILoggingEvent event : appender.list) {
+      if (event.getLevel() == Level.WARN) {
+        warnings.add(event.getFormattedMessage());
+      }
+    }
+    return warnings;
+  }
+
+  protected static String processVariables(String names) {
+    return "<camunda:inputParameter name='contextVariables'>" + names + "</camunda:inputParameter>";
+  }
+
+  /** Both lists; a list that is null is not written. */
+  protected static String processVariables(String names, String optional) {
+    return (names == null ? "" : processVariables(names))
+        + "<camunda:inputParameter name='optionalContextVariables'>" + optional
+        + "</camunda:inputParameter>";
+  }
+
+  /** What the latest deployed definition's scope declares. Needs a command context. */
+  protected List<String> declaredProcessVariablesOf(final String activityId) {
+    return processVariablesOf(activityId, AgenticAdHocParseListener.DECLARED_PROCESS_VARIABLES);
+  }
+
+  /** Which of them the latest deployed definition's scope declares optional. */
+  protected List<String> optionalProcessVariablesOf(final String activityId) {
+    return processVariablesOf(activityId,
+        AgenticAdHocParseListener.OPTIONAL_DECLARED_PROCESS_VARIABLES);
+  }
+
+  protected List<String> processVariablesOf(final String activityId,
+      final PropertyKey<List<String>> key) {
+    final String definitionId = engine.getRepositoryService()
+        .createProcessDefinitionQuery().latestVersion().singleResult().getId();
+    return config.getCommandExecutorTxRequired().execute(
+        new Command<List<String>>() {
+          @Override
+          public List<String> execute(CommandContext ctx) {
+            ProcessDefinitionEntity entity = ctx.getProcessEngineConfiguration()
+                .getDeploymentCache().findDeployedProcessDefinitionById(definitionId);
+            return entity.findActivity(activityId).getProperties().get(key);
+          }
+        });
+  }
+
   protected static String onLimit(String value) {
     return "<camunda:properties><camunda:property name='cibseven.agentic.onLimit' value='"
         + value + "' /></camunda:properties>";
@@ -2203,6 +2532,19 @@ public class AgenticAdHocParseListenerTest {
     assertThatThrownBy(() -> deploy(memoryWindowModel(2, "6")))
         .isInstanceOf(ProcessEngineException.class)
         .hasMessageContaining("Ad hoc sub process 'adHoc'")
+        .hasMessageContaining("chatMemoryMaxMessages must be at least 7 messages")
+        .hasMessageContaining("but is 6");
+  }
+
+  /**
+   * The declaration is no input of a step: left out of the connector's mapping, it must not shift
+   * which input the check of the memory window reads (the second model's review of cfe15a536a).
+   */
+  @Test
+  public void aDeclarationBeforeTheMemoryWindowLeavesItsCheckAsItWas() {
+    deploy(memoryWindowModel(2, "7", processVariables("kunde", "kunde")));
+    assertThatThrownBy(() -> deploy(memoryWindowModel(2, "6", processVariables("kunde"))))
+        .isInstanceOf(ProcessEngineException.class)
         .hasMessageContaining("chatMemoryMaxMessages must be at least 7 messages")
         .hasMessageContaining("but is 6");
   }
@@ -2446,18 +2788,27 @@ public class AgenticAdHocParseListenerTest {
 
   /** An ad hoc scope with the agent's connector, plus further extension elements of the scope. */
   protected static String connectorScope(String children, String properties, String scopeIo) {
-    return process("<adHocSubProcess id='adHoc'><extensionElements>" + properties + scopeIo
-        + connectorElement(message()) + "</extensionElements>" + children + "</adHocSubProcess>");
+    // The variables the agent sees are declared as the connector's inputs (CIB7-2179).
+    String inputs = properties.startsWith("<camunda:inputParameter") ? properties : "";
+    String extensions = inputs.isEmpty() ? properties : "";
+    return process("<adHocSubProcess id='adHoc'><extensionElements>" + extensions + scopeIo
+        + connectorElement(message() + inputs) + "</extensionElements>" + children
+        + "</adHocSubProcess>");
   }
 
   private static String memoryWindowModel(int maxModelCalls, String window) {
+    return memoryWindowModel(maxModelCalls, window, "");
+  }
+
+  /** As above, with {@code before}, further inputs of the connector, ahead of the window. */
+  private static String memoryWindowModel(int maxModelCalls, String window, String before) {
     String properties = "<camunda:properties>"
         + "<camunda:property name='cibseven.agentic.conversation' value='perActivity' />"
         + "<camunda:property name='cibseven.agentic.maxModelCalls' value='"
         + maxModelCalls + "' /></camunda:properties>";
-    String additionalInput = (window == null) ? ""
+    String additionalInput = before + ((window == null) ? ""
         : "<camunda:inputParameter name='chatMemoryMaxMessages'>" + window
-            + "</camunda:inputParameter>";
+            + "</camunda:inputParameter>");
     String model = connectorScope("<userTask id='worker' />", properties, "");
     return model.replace("</camunda:inputParameter></camunda:inputOutput>",
         "</camunda:inputParameter>" + additionalInput + "</camunda:inputOutput>");

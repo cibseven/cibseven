@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -51,8 +52,11 @@ public class AdHocElementTemplateTest {
    * task on the first turn of a re-entry, which only a looping scope ever has, and the turn's
    * outcome (CIB7-2151) says how a turn ended, which a single run does not have.
    */
-  protected static final List<String> AD_HOC_ONLY = java.util.Arrays.asList(
-      "camunda:inputParameter:followUp", "camunda:outputParameter:${outcome}");
+  protected static final List<String> AD_HOC_ONLY = Arrays.asList(
+      "camunda:inputParameter:followUp", "camunda:outputParameter:${outcome}",
+      // the AI agent task gets the same two inputs with CIB7-1843; until then only this template has them
+      "camunda:inputParameter:" + AgenticAdHocParseListener.CONTEXT_VARIABLES,
+      "camunda:inputParameter:" + AgenticAdHocParseListener.OPTIONAL_CONTEXT_VARIABLES);
 
   @Test
   public void itIsTheTemplateTheParseListenerLooksFor() throws IOException {
@@ -73,15 +77,92 @@ public class AdHocElementTemplateTest {
     assertThat(fields(scope.get("properties")).get("property:connectorId").get("value").asText())
         .isEqualTo(AgenticTurnRunner.AGENT_CONNECTOR_ID);
 
-    // The agent's limits (CIB7-2148), plus where its conversation lives and what bounds it
-    // across entries (CIB7-2137) -- none of these may be a child's to rewrite, so none is an
-    // input parameter of the connector.
+    // The agent's limits (CIB7-2148), where its conversation lives and what bounds it across
+    // entries (CIB7-2137) and what a limit does (CIB7-2151) -- none of these may be a child's to
+    // rewrite, so none is an input parameter of the connector. The process variables it sees are
+    // the connector's inputs, as on the AI agent task, read once at deployment (CIB7-2179).
     assertThat(fields(template.get("properties")).keySet()).containsExactlyInAnyOrder(
         "camunda:property:" + AgenticAdHocParseListener.MAX_TURNS,
         "camunda:property:" + AgenticAdHocParseListener.MAX_MODEL_CALLS,
         "camunda:property:" + AgenticAdHocParseListener.MAX_TURNS_TOTAL,
         "camunda:property:" + AgenticAdHocParseListener.CONVERSATION,
         "camunda:property:" + AgenticAdHocParseListener.ON_LIMIT);
+  }
+
+  /**
+   * The process variables the agent sees (CIB7-2179): the connector's input, as on the AI agent
+   * task, in the group with the agent's task; read once at deployment, so no child can widen what
+   * its agent is sent. The modeler refuses an empty
+   * name before the deployment would.
+   */
+  @Test
+  public void theProcessVariablesAreAnInputThatRefusesAnEmptyName() throws IOException {
+    JsonNode field = fields(read(AD_HOC).get("scopes").get(0).get("properties"))
+        .get("camunda:inputParameter:" + AgenticAdHocParseListener.CONTEXT_VARIABLES);
+
+    assertThat(text(field, "group")).isEqualTo("input");
+    assertThat(text(field, "type")).isEqualTo("String");
+    assertThat(field.has("value")).as("none by default").isFalse();
+    // As the modeler applies it: JavaScript's RegExp.test, which finds a match anywhere and whose \s
+    // is Unicode. Each name can be matched one way only, so a value refused while it is typed, after a
+    // comma, costs linear time there; an ambiguous form such as [^,]*X[^,]* is exponential in the
+    // number of names and freezes the field.
+    Pattern pattern = Pattern.compile(field.get("constraints").get("pattern").get("value").asText(),
+        Pattern.UNICODE_CHARACTER_CLASS);
+    for (String accepted : Arrays.asList("", " ", "kunde", "kunde, prioritaet",
+        " kunde ,prioritaet ", "kunde.name, prioritaet", "kunde, prioritaet")) {
+      assertThat(pattern.matcher(accepted).find()).as("'" + accepted + "'").isTrue();
+    }
+    // A space inside a name is a comma left out, and ${…} or braces an expression or a list: the
+    // panel says so before the deployment would (the review pass of 2026-11-02, findings 5 and 7).
+    for (String refused : Arrays.asList("kunde,,prioritaet", "kunde,", ",kunde",
+        "kunde, , prioritaet", "kunde, ", "kunde name, prioritaet", "${kunde}", "kunde, {a}")) {
+      assertThat(pattern.matcher(refused).find()).as("'" + refused + "'").isFalse();
+    }
+  }
+
+  /**
+   * Every process variable the agent sees is required unless the field beside it names it
+   * (CIB7-2179); the field says so, with its limits, and that a secret has no place there.
+   */
+  @Test
+  public void theOptionalProcessVariablesAreAnInputBesideThem() throws IOException {
+    Map<String, JsonNode> fields = fields(read(AD_HOC).get("scopes").get(0).get("properties"));
+    JsonNode seen =
+        fields.get("camunda:inputParameter:" + AgenticAdHocParseListener.CONTEXT_VARIABLES);
+    JsonNode optional =
+        fields.get("camunda:inputParameter:" + AgenticAdHocParseListener.OPTIONAL_CONTEXT_VARIABLES);
+
+    assertThat(optional).as("a field of its own").isNotNull();
+    assertThat(text(seen, "label")).isEqualTo("Context variables");
+    assertThat(text(optional, "label")).isEqualTo("Optional context variables");
+    assertThat(text(optional, "group")).isEqualTo("input");
+    assertThat(text(optional, "type")).isEqualTo("String");
+    assertThat(optional.has("value")).as("none by default").isFalse();
+    assertThat(optional.get("constraints")).as("names as the field it narrows takes them")
+        .isEqualTo(seen.get("constraints"));
+    assertThat(text(optional, "description")).contains("Empty: every one is required.")
+        .contains("one past the limit of all is left out and named");
+    // What a process developer asked of the text (the review pass of 2026-11-02): a name, not a
+    // path; when to use it instead of ${name}; what fails, and what the operator then sees, null
+    // among it; what the agent never sees; where the value is, since the chat log keeps a marker.
+    assertThat(text(seen, "description"))
+        .contains("the name of a variable, not a path into it")
+        .contains("instead of ${name} in Message")
+        .contains("with the state of this sub process")
+        .contains("up to 4000 characters each and about 20000 in all")
+        .contains("Each one is required unless Optional context variables names it")
+        .contains("A file, bytes or a Java object reaches the agent by its name and type only,"
+            + " never its content")
+        .contains("after the job's retries, the sub process gets an incident naming it")
+        .contains("if it is not set or null")
+        .contains("the value is in the variable's history")
+        .contains("Never list tokens or passwords: the values go to the model's and the"
+            + " embedding's provider");
+    JsonNode message = fields(read(AD_HOC).get("scopes").get(0).get("properties"))
+        .get("camunda:inputParameter:message");
+    assertThat(text(message, "description")).as("the task points at the field for data")
+        .contains("list the variable under Context variables");
   }
 
   @Test

@@ -213,6 +213,19 @@ public class AgentConnectorImplCoverageTest {
     assertThat(first).isSameAs(second);
   }
 
+  /**
+   * The parts of the state block are named to the model, the process data among them (CIB7-2179):
+   * what processData holds, and what its two companions say.
+   */
+  @Test
+  public void theAdHocInstructionNamesTheProcessDataOfTheStateBlock() {
+    String content = AgentConnectorImpl.loadAdHocDefaultInstruction();
+    assertThat(content).contains("AD HOC SCOPE STATE")
+        .contains("processData: the current values of the process")
+        .contains("processDataNotSet names those the process has not set")
+        .contains("processDataNote those left out for size");
+  }
+
   // ── createContentRetriever — early-return null paths ────────────────────
 
   @Test
@@ -463,6 +476,32 @@ public class AgentConnectorImplCoverageTest {
         .containsEntry("score", 0.91)
         .containsEntry("content", "BPMN models business processes.")
         .containsEntry("length", "BPMN models business processes.".length());
+  }
+
+  /**
+   * The query of an agentic step is its message, the state block with it: the retrieval event
+   * keeps each value of processData as a marker, as the request event does (CIB7-2179).
+   */
+  @Test
+  public void retrieverLambdaShouldKeepTheProcessDataOfAStateBlockAsMarkers() {
+    RagStubConnector ragConnector = new RagStubConnector();
+    ragConnector.store.matches = List.of();
+    AgentRequest request = ragConnector.createRequest()
+        .pgHost("h").pgPort("5432").pgDatabase("d").pgUser("u").pgPassword("p")
+        .pgTable("t").embeddingDimension(8).maxRagResults(5).minRagScore(0.0);
+    AgentChatListener listener = new AgentChatListener("gpt-5.4-nano", "https://chat/v1");
+    ProcessStarterToolContext.setActiveListener(listener);
+    String message = AgentConnectorImpl.STATE_BLOCK_OPEN + "\n"
+        + "{\"processData\":{\"kunde\":\"Müller GmbH\"}}\n"
+        + AgentConnectorImpl.STATE_BLOCK_CLOSE + "\n\nBearbeite den Auftrag.";
+
+    ragConnector.createContentRetriever(request).retrieve(Query.from(message));
+
+    Map<String, Object> event = listener.events().get(0);
+    assertThat(event).containsEntry("type", "retrieval")
+        .containsEntry("query", AgentChatListener.withProcessDataAsMarkers(message));
+    assertThat(String.valueOf(event.get("query"))).doesNotContain("Müller GmbH")
+        .contains("Bearbeite den Auftrag.");
   }
 
   @Test

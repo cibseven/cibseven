@@ -42,6 +42,7 @@ import org.cibseven.bpm.engine.impl.cfg.AbstractProcessEnginePlugin;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.engine.impl.core.variable.mapping.InputParameter;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.cibseven.bpm.engine.impl.pvm.process.ProcessDefinitionImpl;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
@@ -693,6 +694,9 @@ public class AgenticReparseTest {
     Consumer<ActivityImpl> withoutTheAgent = withoutTheAgent();
     String leftOutOfOnLimit = AgenticAdHocParseListener.ON_LIMIT + " is left out of 'adHoc', and"
         + " a limit ends it as any turn would";
+    String processVariablesLeftOut = AgenticAdHocParseListener.CONTEXT_VARIABLES + " and "
+        + AgenticAdHocParseListener.OPTIONAL_CONTEXT_VARIABLES + " are left out of 'adHoc', and"
+        + " its agent sees no process variables";
     return Stream.of(
         Arguments.of("the agent on a sub process",
             "<subProcess id='adHoc'><extensionElements>" + connector(MESSAGE)
@@ -817,6 +821,26 @@ public class AgenticReparseTest {
                 + "</boundaryEvent><sequenceFlow id='g1' sourceRef='grenze' targetRef='end' />",
             "the event sub process 'fehler' inside it catches", leftOutOfOnLimit,
             withoutOnLimit()),
+        Arguments.of("a process variable declared twice",
+            adHoc(connector(MESSAGE
+                + input(AgenticAdHocParseListener.CONTEXT_VARIABLES, "kunde, kunde")),
+                "<userTask id='arbeit' />"),
+            "declares kunde more than once", processVariablesLeftOut, withoutProcessVariables()),
+        // Names, never built as expressions (the second model's review of 14637f31c5): one that
+        // does not parse, or names a function this node lacks, leaves out the declaration alone.
+        Arguments.of("a process variable written as an expression that does not parse",
+            adHoc(connector(MESSAGE
+                + input(AgenticAdHocParseListener.CONTEXT_VARIABLES, "${kunde.")),
+                "<userTask id='arbeit' />"),
+            "declares ${kunde., which reads as an expression", processVariablesLeftOut,
+            withoutProcessVariables()),
+        Arguments.of("a process variable written as a function this node does not have",
+            adHoc(connector(MESSAGE
+                + input(AgenticAdHocParseListener.CONTEXT_VARIABLES, "${unbekannt()}")
+                + input(AgenticAdHocParseListener.OPTIONAL_CONTEXT_VARIABLES, "${rabatt}")),
+                "<userTask id='arbeit' />"),
+            "declares ${unbekannt()}, which reads as an expression", processVariablesLeftOut,
+            withoutProcessVariables()),
         Arguments.of("a message that does not parse",
             adHoc(connector("<camunda:inputParameter name='message'>Handle ${order."
                 + "</camunda:inputParameter>"), "<userTask id='arbeit' />"),
@@ -878,6 +902,25 @@ public class AgenticReparseTest {
     };
   }
 
+  /** The scope stays agentic, and declares no process variables for its agent (CIB7-2179). */
+  protected static Consumer<ActivityImpl> withoutProcessVariables() {
+    return scope -> {
+      assertThat(scope.getProperties().get(AdHocToolDescriptor.CATALOG)).isNotNull();
+      assertThat(scope.getProperties()
+          .get(AgenticAdHocParseListener.DECLARED_PROCESS_VARIABLES)).isNull();
+      assertThat(scope.getProperties()
+          .get(AgenticAdHocParseListener.OPTIONAL_DECLARED_PROCESS_VARIABLES))
+          .as("the optional ones alone would turn into required ones").isNull();
+      List<String> stepInputs = new ArrayList<String>();
+      for (InputParameter input : scope.getProperties()
+          .get(AgenticAdHocParseListener.AGENT_CONNECTOR_IO).getInputParameters()) {
+        stepInputs.add(input.getName());
+      }
+      assertThat(stepInputs).doesNotContain(AgenticAdHocParseListener.CONTEXT_VARIABLES,
+          AgenticAdHocParseListener.OPTIONAL_CONTEXT_VARIABLES);
+    };
+  }
+
   protected static String adHoc(String extensions, String children) {
     return adHoc("adHoc", extensions, children);
   }
@@ -890,6 +933,11 @@ public class AgenticReparseTest {
   protected static String connector(String inputs) {
     return "<camunda:connector><camunda:connectorId>cibseven-ai-agent</camunda:connectorId>"
         + "<camunda:inputOutput>" + inputs + "</camunda:inputOutput></camunda:connector>";
+  }
+
+  /** One input parameter of the connector, its value as text. */
+  protected static String input(String name, String value) {
+    return "<camunda:inputParameter name='" + name + "'>" + value + "</camunda:inputParameter>";
   }
 
   /** {@code camunda:properties} of the names and values, in pairs. */

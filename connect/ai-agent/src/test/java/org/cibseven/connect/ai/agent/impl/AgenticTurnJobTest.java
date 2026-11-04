@@ -67,6 +67,7 @@ import org.cibseven.bpm.engine.repository.DeploymentBuilder;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.impl.variable.serializer.AbstractObjectValueSerializer;
 import org.cibseven.bpm.engine.impl.variable.serializer.TypedValueSerializer;
+import org.cibseven.bpm.engine.runtime.Incident;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
@@ -1920,6 +1921,182 @@ public class AgenticTurnJobTest {
         .contains("\"calledThisTurn\":[\"rechnen\",\"worker\"]");
     assertThat(lastUserMessage(requestBodies.get(3)))
         .as("the next turn has called nothing yet").doesNotContain("calledThisTurn");
+  }
+
+  /**
+   * The process variables the scope declares reach the model inside the state block, on every
+   * step, with the values they hold when the request is made: a person changes one between two
+   * turns, and the next request carries the new value. A variable the scope does not declare
+   * never reaches the model (CIB7-2179).
+   */
+  @Test
+  public void theDeclaredProcessVariablesReachTheModelInsideTheStateBlock() throws IOException {
+    script.add(toolCall("worker", "{}"));
+    script.add(answer("Gestartet."));
+    script.add(answer("Erledigt."));
+    Map<String, Object> variables = new HashMap<>();
+    variables.put("kunde", "Müller GmbH");
+    variables.put("geheim", "Kennwort-4711");
+    ProcessInstance pi = start(connectorModel("",
+        "<camunda:inputParameter name='contextVariables'>kunde</camunda:inputParameter>"
+        + "<camunda:inputParameter name='message'>Bearbeite den Auftrag.</camunda:inputParameter>",
+        "", "stub-key"), variables);
+
+    runWaitingTurn();
+    Task task = engine.getTaskService().createTaskQuery().singleResult();
+    engine.getTaskService().complete(task.getId(),
+        Collections.<String, Object>singletonMap("kunde", "Schmidt AG"));
+    runWaitingTurn();
+
+    assertThat(requestBodies).hasSize(3);
+    assertThat(stateBlock(lastUserMessage(requestBodies.get(0))))
+        .contains("\"processData\":{\"kunde\":\"Müller GmbH\"}");
+    assertThat(stateBlock(lastUserMessage(requestBodies.get(1)))).as("a further step")
+        .contains("\"processData\":{\"kunde\":\"Müller GmbH\"}");
+    assertThat(stateBlock(lastUserMessage(requestBodies.get(2)))).as("after the change")
+        .contains("\"processData\":{\"kunde\":\"Schmidt AG\"}");
+    assertThat(requestBodies).noneSatisfy(body -> assertThat(body).contains("Kennwort-4711"));
+    // The instance has ended; its history keeps the chat log's last state.
+    String chatLog = String.valueOf(engine.getHistoryService()
+        .createHistoricVariableInstanceQuery().processInstanceId(pi.getId())
+        .variableName("cibseven-connect-ai-agent_adHoc").singleResult().getValue());
+    assertThat(chatLog).as("the chat log keeps a marker, the variables keep the values")
+        .doesNotContain("Müller GmbH").doesNotContain("Schmidt AG")
+        .as("in the log's JSON, the message is a JSON string")
+        .contains("\\\"kunde\\\":{\\\"redacted\\\":true,\\\"length\\\":11,"
+            + "\\\"hash\\\":\\\"sha256:");
+  }
+
+  /**
+   * A required process variable that is not set fails the step before the model is called: the
+   * turn's job is retried and ends in an incident that names it. Set, and the job retried, the
+   * agent is asked, without the optional one that is still missing (CIB7-2179).
+   */
+  @Test
+  public void aRequiredVariableThatIsNotSetEndsInAnIncidentAndTheModelIsNotCalled()
+      throws IOException {
+    fixTheClock();
+    script.add(answer("Erledigt."));
+    ProcessInstance pi = start(connectorModel("",
+        "<camunda:inputParameter name='contextVariables'>kunde, rabatt</camunda:inputParameter>"
+        + "<camunda:inputParameter name='optionalContextVariables'>rabatt</camunda:inputParameter>"
+        + "<camunda:inputParameter name='message'>Bearbeite den Auftrag.</camunda:inputParameter>",
+        "", "stub-key"), new HashMap<String, Object>());
+
+    failTheWaitingStep();
+    failTheWaitingStep();
+    Job failed = failTheWaitingStep();
+
+    assertThat(requestBodies).as("the model is not called").isEmpty();
+    assertThat(failed.getRetries()).isZero();
+    Incident incident = engine.getRuntimeService().createIncidentQuery()
+        .processInstanceId(pi.getId()).singleResult();
+    assertThat(incident.getIncidentMessage())
+        .contains("required process variables did not reach the agent: kunde (not set)")
+        .contains("the model was not called");
+
+    engine.getRuntimeService().setVariable(pi.getId(), "kunde", "Müller GmbH");
+    engine.getManagementService().setJobRetries(failed.getId(), 1);
+    runWaitingTurn();
+
+    assertThat(requestBodies).as("now the agent is asked").hasSize(1);
+    assertThat(stateBlock(lastUserMessage(requestBodies.get(0))))
+        .contains("\"processData\":{\"kunde\":\"Müller GmbH\"}")
+        .contains("\"processDataNotSet\":[\"rabatt\"]");
+  }
+
+  /**
+   * The state block, the required variables with it, is built before the model and the MCP
+   * clients: a step that fails for a variable opens no connection, and the failure the developer
+   * sees is the variable's, not that of an MCP server the step would never have used (CIB7-2179).
+   */
+  @Test
+  public void aRequiredVariableThatIsNotSetFailsBeforeAnyMcpClientIsMade() throws IOException {
+    fixTheClock();
+    ProcessInstance pi = start(connectorModel("",
+        "<camunda:inputParameter name='contextVariables'>kunde</camunda:inputParameter>"
+        + "<camunda:inputParameter name='message'>Bearbeite den Auftrag.</camunda:inputParameter>"
+        + "<camunda:inputParameter name='mcpServers'>[{\"url\":\"http://127.0.0.1:1/mcp\"}]"
+        + "</camunda:inputParameter>",
+        "", "stub-key"), new HashMap<String, Object>());
+
+    Job failed = failTheWaitingStep();
+
+    assertThat(requestBodies).as("the model is not called").isEmpty();
+    assertThat(engine.getManagementService().getJobExceptionStacktrace(failed.getId()))
+        .contains("required process variables did not reach the agent: kunde (not set)")
+        .doesNotContain("127.0.0.1:1");
+    assertThat(alive(pi)).isTrue();
+  }
+
+  /**
+   * The incident keeps 666 characters of the step's message: it names the first variables that did
+   * not reach the agent, how many more there are, and what to do; the job's exception details name
+   * every one (CIB7-2179).
+   */
+  @Test
+  public void theIncidentOfManyMissingVariablesStaysWithinWhatItKeeps() {
+    fixTheClock();
+    List<String> names = new ArrayList<>();
+    for (int i = 0; i < 5; i++) {
+      names.add(new String(new char[254]).replace('\0', 'n') + i);
+    }
+    ProcessInstance pi = start(connectorModel("",
+        "<camunda:inputParameter name='contextVariables'>" + String.join(", ", names)
+        + "</camunda:inputParameter>"
+        + "<camunda:inputParameter name='message'>Bearbeite den Auftrag.</camunda:inputParameter>",
+        "", "stub-key"), new HashMap<String, Object>());
+
+    failTheWaitingStep();
+    failTheWaitingStep();
+    Job failed = failTheWaitingStep();
+
+    String incident = engine.getRuntimeService().createIncidentQuery()
+        .processInstanceId(pi.getId()).singleResult().getIncidentMessage();
+    assertThat(incident).hasSizeLessThanOrEqualTo(666)
+        .contains("the model was not called")
+        .contains(names.get(0) + " (not set), and 4 more, named at the end of this message")
+        .contains("make it optional (optionalContextVariables) or leave it out"
+            + " of contextVariables.");
+    String details = engine.getManagementService().getJobExceptionStacktrace(failed.getId());
+    for (String name : names) {
+      assertThat(details).contains(name + " (not set)");
+    }
+  }
+
+  /**
+   * A step is sent as text, not as a prompt template: a value with "{{…}}", here a declared process
+   * variable and the task, reaches the model as it is. Read as a template it failed the step before
+   * the model was asked, on a variable nobody declared, or was replaced silently (CIB7-2179).
+   */
+  @Test
+  public void anAgentsStepIsSentAsTextNotAsATemplate() throws IOException {
+    script.add(answer("Erledigt."));
+    Map<String, Object> variables = new HashMap<>();
+    variables.put("kommentar", "Bitte {{name}} pruefen, Stand {{current_date}}, {{it}}");
+    ProcessInstance pi = start(connectorModel("",
+        "<camunda:inputParameter name='contextVariables'>kommentar</camunda:inputParameter>"
+        + "<camunda:inputParameter name='message'>Bearbeite {{auftrag}}.</camunda:inputParameter>",
+        "", "stub-key"), variables);
+
+    runWaitingTurn();
+
+    assertThat(requestBodies).as("the model is asked").hasSize(1);
+    String message = lastUserMessage(requestBodies.get(0));
+    assertThat(stateBlock(message))
+        .contains("\"kommentar\":\"Bitte {{name}} pruefen, Stand {{current_date}}, {{it}}\"");
+    assertThat(message).endsWith("Bearbeite {{auftrag}}.");
+    assertThat(engine.getRuntimeService().createIncidentQuery()
+        .processInstanceId(pi.getId()).count()).isZero();
+  }
+
+  /** The state block of a user message, between its two markers. */
+  private static String stateBlock(String userMessage) {
+    int start = userMessage.indexOf("[AD HOC SCOPE STATE");
+    int end = userMessage.indexOf("[END OF AD HOC SCOPE STATE]");
+    assertThat(start).as("a state block").isNotNegative();
+    assertThat(end).as("its end").isGreaterThan(start);
+    return userMessage.substring(start, end);
   }
 
   // --- results on the agent state (CIB7-2147)
