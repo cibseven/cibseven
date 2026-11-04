@@ -2,12 +2,12 @@
 # metadata file that makes public software easily discoverable.
 # More info at https://github.com/publiccodeyml/publiccode.yml
 
-publiccodeYmlVersion: '0.2'
+publiccodeYmlVersion: '0.8'
 name: CIB seven
 url: 'https://github.com/cibseven/cibseven'
 landingURL: 'https://cibseven.org'
-softwareVersion: 2.1.0
-releaseDate: '2025-11-07'
+softwareVersion: 2.2.0
+releaseDate: '2026-06-01'
 logo: publiccode_logo.svg
 platforms:
   - web
@@ -26,25 +26,22 @@ categories:
 developmentStatus: stable
 softwareType: standalone/web
 roadmap: 'https://cibseven.org/enterprise-features-release'
-isBasedOn: 'https://github.com/camunda/camunda-bpm-platform'
+isBasedOn:
+  - 'https://github.com/camunda/camunda-bpm-platform'
 maintenance:
   type: internal
   contacts:
     - name: Oleg Skrypnyuk
       email: oleg.skrypnyuk@cib.de
-  contractors:
-    - name: CIB software GmbH
-      email: info@cib.de
-      website: 'https://cibseven.org'
-      until: '2050-07-11'
+organisation:
+  uri: 'https://www.cib.de'
+  name: CIB software GmbH
 legal:
   license: Apache-2.0
-  repoOwner: CIB software GmbH
 intendedAudience:
   countries:
-    - de
+    - DE
   scope:
-    - central-government
     - local-authorities
 localisation:
   localisationReady: true
@@ -52,11 +49,10 @@ localisation:
     - de
     - en
     - es
-    - ua
+    - uk
     - ru
 description:
   de:
-    genericName: BPM Plattform
     shortDescription: >-
       Open-Source-Plattform für Workflow- und Prozessautomatisierung. Als
       Camunda 7 Fork sichert CIB seven langfristigen Betrieb und digitale
@@ -162,10 +158,7 @@ description:
       - https://gitlab.opencode.de/regierung-von-oberbayern/cibseven-software-directory/-/raw/main/publiccode_images/cockpit-process-definitions-view.png
     documentation: 'https://docs.cibseven.org'
     apiDocumentation: 'https://docs.cibseven.org/manual/latest/reference/rest/specification'
-    videos:
-      - 'https://youtu.be/4-R4qB9rH1U'
   en:
-    genericName: BPM Platform
     shortDescription: >-
       Open-source platform for workflow and process automation. As a Camunda 7
       fork, CIB seven ensures long-term operation and digital sovereignty.
@@ -269,5 +262,3 @@ description:
       - https://gitlab.opencode.de/regierung-von-oberbayern/cibseven-software-directory/-/raw/main/publiccode_images/cockpit-process-definitions-view.png
     documentation: 'https://docs.cibseven.org'
     apiDocumentation: 'https://docs.cibseven.org/manual/latest/reference/rest/specification'
-    videos:
-      - 'https://youtu.be/4-R4qB9rH1U'
