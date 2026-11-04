@@ -22,9 +22,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.calendar.CycleBusinessCalendar;
@@ -305,6 +312,142 @@ public class CycleBusinessCalendarTest {
           .isInstanceOf(ProcessEngineException.class)
           .hasMessageContaining("Exception while parsing cycle expression");
     }
+  }
+
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testCronSkipsRepeatedHourWhenClocksGoBack(String cronType, boolean supportLegacyQuartzSyntax) throws Exception {
+    TimeZone defaultTimeZone = TimeZone.getDefault();
+    try {
+      TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"));
+      CycleBusinessCalendar cbc = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm z", Locale.ENGLISH);
+
+      // 25.10.2026: clocks go back from 03:00 CEST to 02:00 CET
+      assertThat(sdf.format(cbc.resolveDuedate("0 0/15 * * * ?", sdf.parse("2026 10 25 02:30 CEST")))).isEqualTo("2026 10 25 02:45 CEST");
+      assertThat(sdf.format(cbc.resolveDuedate("0 0/15 * * * ?", sdf.parse("2026 10 25 02:45 CEST")))).isEqualTo("2026 10 25 03:00 CET");
+      assertThat(sdf.format(cbc.resolveDuedate("0 0/5 * * * ?", sdf.parse("2026 10 25 02:55 CEST")))).isEqualTo("2026 10 25 03:00 CET");
+      assertThat(sdf.format(cbc.resolveDuedate("0 0/6 * * * ?", sdf.parse("2026 10 25 02:54 CEST")))).isEqualTo("2026 10 25 03:00 CET");
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 * * * ?", sdf.parse("2026 10 25 02:00 CEST")))).isEqualTo("2026 10 25 03:00 CET");
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 1-3 * * ?", sdf.parse("2026 10 25 02:00 CEST")))).isEqualTo("2026 10 25 03:00 CET");
+      // a timer created within the repeated hour fires after it
+      assertThat(sdf.format(cbc.resolveDuedate("0 0/15 * * * ?", sdf.parse("2026 10 25 02:10 CET")))).isEqualTo("2026 10 25 03:00 CET");
+      // a daily timer within the repeated hour fires once
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 2 * * ?", sdf.parse("2026 10 25 01:00 CEST")))).isEqualTo("2026 10 25 02:00 CEST");
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 2 * * ?", sdf.parse("2026 10 25 02:00 CEST")))).isEqualTo("2026 10 26 02:00 CET");
+      // a daily timer outside the repeated hour is not affected
+      assertThat(sdf.format(cbc.resolveDuedate("0 0 3 * * ?", sdf.parse("2026 10 25 02:00 CEST")))).isEqualTo("2026 10 25 03:00 CET");
+      // spring forward is not affected
+      assertThat(sdf.format(cbc.resolveDuedate("0 0/15 * * * ?", sdf.parse("2026 03 29 01:45 CET")))).isEqualTo("2026 03 29 03:00 CEST");
+    } finally {
+      TimeZone.setDefault(defaultTimeZone);
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testIsoCycleSkipsRepeatedHourWhenClocksGoBack(String cronType, boolean supportLegacyQuartzSyntax) throws Exception {
+    TimeZone defaultTimeZone = TimeZone.getDefault();
+    try {
+      TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"));
+      CycleBusinessCalendar cbc = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm z", Locale.ENGLISH);
+
+      // 25.10.2026: clocks go back from 03:00 CEST to 02:00 CET
+      assertThat(sdf.format(cbc.resolveDuedate("R/PT15M", sdf.parse("2026 10 25 02:30 CEST")))).isEqualTo("2026 10 25 02:45 CEST");
+      assertThat(sdf.format(cbc.resolveDuedate("R/PT15M", sdf.parse("2026 10 25 02:45 CEST")))).isEqualTo("2026 10 25 03:00 CET");
+      assertThat(sdf.format(cbc.resolveDuedate("R/PT1H", sdf.parse("2026 10 25 02:00 CEST")))).isEqualTo("2026 10 25 03:00 CET");
+      // the interval grid is kept: 02:55 CEST + n * 10 minutes
+      assertThat(sdf.format(cbc.resolveDuedate("R/PT10M", sdf.parse("2026 10 25 02:55 CEST")))).isEqualTo("2026 10 25 03:05 CET");
+      // skipped repetitions of a limited cycle are not counted: 03:00 CET is the first of the 3 repetitions
+      assertThat(sdf.format(cbc.resolveDuedate("R3/PT15M", sdf.parse("2026 10 25 02:45 CEST")))).isEqualTo("2026 10 25 03:00 CET");
+      // a daily cycle adds a calendar day and stays in the first pass
+      assertThat(sdf.format(cbc.resolveDuedate("R/P1D", sdf.parse("2026 10 24 02:30 CEST")))).isEqualTo("2026 10 25 02:30 CEST");
+      // a cycle with an end date and no start date is calculated backwards from the end date
+      assertThat(sdf.format(cbc.resolveDuedate("R/PT15M/2026-12-31T00:00:00+01:00", sdf.parse("2026 10 25 02:30 CEST")))).isEqualTo("2026 10 25 02:45 CEST");
+      assertThat(sdf.format(cbc.resolveDuedate("R/PT15M/2026-12-31T00:00:00+01:00", sdf.parse("2026 10 25 02:45 CEST")))).isEqualTo("2026 10 25 03:00 CET");
+      assertThat(sdf.format(cbc.resolveDuedate("R/PT1H/2026-12-31T00:00:00+01:00", sdf.parse("2026 10 25 02:00 CEST")))).isEqualTo("2026 10 25 03:00 CET");
+      // the 3 repetitions before the end date 03:15 CET are 02:30 CEST, 02:45 CEST and 03:00 CET, the skipped ones are not counted
+      assertThat(sdf.format(cbc.resolveDuedate("R3/PT15M/2026-10-25T03:15:00+01:00", sdf.parse("2026 10 25 02:20 CEST")))).isEqualTo("2026 10 25 02:30 CEST");
+      // spring forward is not affected
+      assertThat(sdf.format(cbc.resolveDuedate("R/PT15M", sdf.parse("2026 03 29 01:45 CET")))).isEqualTo("2026 03 29 03:00 CEST");
+      assertThat(sdf.format(cbc.resolveDuedate("R/PT15M/2026-12-31T00:00:00+01:00", sdf.parse("2026 03 29 01:45 CET")))).isEqualTo("2026 03 29 03:00 CEST");
+    } finally {
+      TimeZone.setDefault(defaultTimeZone);
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testCycleDoesNotLoopWhenDueDateIsComparedAsLocalTime(String cronType, boolean supportLegacyQuartzSyntax) throws Exception {
+    TimeZone defaultTimeZone = TimeZone.getDefault();
+    try {
+      ZoneId zone = ZoneId.of("Europe/Berlin");
+      TimeZone.setDefault(TimeZone.getTimeZone(zone));
+      CycleBusinessCalendar cbc = new CycleBusinessCalendar(cronType, supportLegacyQuartzSyntax);
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm z", Locale.ENGLISH);
+
+      // the repeated hour 02:00-02:59 CET is skipped
+      // cron and ISO 8601 cycles; the ISO cycles carry their start date like a created timer (see TimerEntity#replaceRepeatCycleAndDate)
+      // or an end date, which is kept as it is and the due dates are calculated backwards from it
+      for (String cycle : Arrays.asList("0 0/15 * * * ?", "R/2026-10-25T02:00:00+02:00/PT15M", "R/PT15M/2026-12-31T00:00:00+01:00")) {
+        assertThat(simulateJobExecutor(cbc, cycle, zone, sdf)).as(cycle).containsExactly(
+            "2026 10 25 02:15 CEST",
+            "2026 10 25 02:30 CEST",
+            "2026 10 25 02:45 CEST",
+            "2026 10 25 03:00 CET",
+            "2026 10 25 03:15 CET");
+      }
+
+      // a limited cycle fires at its start and then 3 times, the skipped repetitions are not counted
+      String limitedCycle = "R3/2026-10-25T02:30:00+02:00/PT15M";
+      assertThat(simulateJobExecutor(cbc, limitedCycle, zone, sdf)).as(limitedCycle).containsExactly(
+          "2026 10 25 02:30 CEST",
+          "2026 10 25 02:45 CEST",
+          "2026 10 25 03:00 CET",
+          "2026 10 25 03:15 CET");
+
+      // a limited cycle with an end date fires 3 times before the end date and at the end date
+      String limitedCycleWithEndDate = "R3/PT15M/2026-10-25T03:15:00+01:00";
+      assertThat(simulateJobExecutor(cbc, limitedCycleWithEndDate, zone, sdf)).as(limitedCycleWithEndDate).containsExactly(
+          "2026 10 25 02:30 CEST",
+          "2026 10 25 02:45 CEST",
+          "2026 10 25 03:00 CET",
+          "2026 10 25 03:15 CET");
+    } finally {
+      TimeZone.setDefault(defaultTimeZone);
+    }
+  }
+
+  /**
+   * Simulates the job executor from 02:00 CEST to 03:20 CET: the due date is persisted as local time without
+   * offset, a job is acquired when "due date <= now" holds for the local times and the next due date is
+   * calculated from the current time (see TimerEntity#calculateNewDueDate).
+   *
+   * @return the times at which the timer fired
+   */
+  protected List<String> simulateJobExecutor(CycleBusinessCalendar cbc, String cycle, ZoneId zone, SimpleDateFormat sdf) {
+    Instant start = Instant.parse("2026-10-25T00:00:00Z"); // 02:00 CEST, clocks go back at 01:00Z
+    Instant end = Instant.parse("2026-10-25T02:20:00Z");   // 03:20 CET
+
+    ClockUtil.setCurrentTime(Date.from(start));
+    Date dueDate = cbc.resolveDuedate(cycle);
+
+    List<String> executions = new ArrayList<>();
+    for (Instant now = start; dueDate != null && now.isBefore(end); now = now.plusSeconds(1)) {
+      if (!toLocalDateTime(dueDate, zone).isAfter(LocalDateTime.ofInstant(now, zone))) {
+        executions.add(sdf.format(Date.from(now)));
+        // the job is executed shortly after it has been acquired
+        ClockUtil.setCurrentTime(Date.from(now.plusMillis(1)));
+        // null when a limited cycle has no repetitions left
+        dueDate = cbc.resolveDuedate(cycle);
+      }
+    }
+    return executions;
+  }
+
+  protected LocalDateTime toLocalDateTime(Date date, ZoneId zone) {
+    return LocalDateTime.ofInstant(date.toInstant(), zone);
   }
 
 }
