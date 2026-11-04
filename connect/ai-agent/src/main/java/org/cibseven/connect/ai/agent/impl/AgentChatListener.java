@@ -1052,7 +1052,9 @@ class AgentChatListener implements ChatModelListener {
     Map<dev.langchain4j.data.message.Content, Map<String, Object>> descriptors =
         this.documentDescriptors;
     List<Object> parts = new ArrayList<>();
-    for (dev.langchain4j.data.message.Content content : user.contents()) {
+    List<dev.langchain4j.data.message.Content> contents = user.contents();
+    for (int index = 0; index < contents.size(); index++) {
+      dev.langchain4j.data.message.Content content = contents.get(index);
       // The descriptor lookup has to come first. A text document is a
       // TextContent like any other, so testing the type before consulting the
       // map would write the whole document body into the chat log — up to 5 MB per
@@ -1068,7 +1070,11 @@ class AgentChatListener implements ChatModelListener {
         String text = ((dev.langchain4j.data.message.TextContent) content).text();
         Map<String, Object> part = new LinkedHashMap<>();
         part.put("type", "TEXT");
-        if (isWrappedTextDocument(text)) {
+        // Never for the first part: that is the agent's own prompt text
+        // (request.getMessage(), which documents require to be non-empty), and
+        // it is not neutered — a message that merely starts with the header
+        // would otherwise reach the model while the chat log kept only a hash.
+        if (index > 0 && isWrappedTextDocument(text)) {
           // Second line of defence. The descriptor map is identity-keyed, so a
           // LangChain4j step that rebuilds the TextContent — a guardrail, an
           // augmentor, a message copy — makes the lookup above miss, and the
