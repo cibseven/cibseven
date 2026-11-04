@@ -19,7 +19,9 @@ package org.cibseven.connect.ai.agent.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -319,6 +321,29 @@ public class ProcessContextResolverTest {
   }
 
   /**
+   * PR #447 review: a file variable created without content has a filename but
+   * no value. It must count as null — failing a required check, as the
+   * documents path already does — rather than pass as a populated descriptor.
+   */
+  @Test
+  public void shouldTreatAFileValueWithoutContentAsNull() {
+    variables.put("invoice", Variables.fileValue("invoice.pdf").create());
+    variables.put("scan", Variables.fileValue("scan.png").create());
+
+    List<ContextVariable> resolved = resolve("invoice,scan", "scan");
+
+    assertThatThrownBy(() -> ProcessContextResolver.failOnMissingRequired(resolved))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("invoice")
+        .hasMessageContaining("(null)");
+    assertThat(ProcessContextResolver.render(resolved,
+            AgentConnectorConstants.DEFAULT_MAX_CONTEXT_BLOCK_CHARS))
+        .contains("invoice (file) = null")
+        .contains("scan (file) = null")
+        .doesNotContain("invoice.pdf");
+  }
+
+  /**
    * The filename went into the descriptor's own quotes without
    * escaping. Whoever uploads a file chooses its name, so a name containing a
    * double quote could close that quote and continue with text that reads like
@@ -596,6 +621,27 @@ public class ProcessContextResolverTest {
         .contains("&lt; /document>")
         .contains("&lt;  process-context>");
     assertThat(countOccurrences(block, AgentConnectorConstants.CONTEXT_BLOCK_CLOSE)).isEqualTo(1);
+  }
+
+  /**
+   * PR #447 review: the overlapping {@code \s*} runs around the optional slash
+   * backtracked quadratically on a {@code <} followed by a long run of
+   * whitespace and no tag — 0.3 s for 16,000 spaces, hours for a 5 MiB text
+   * document. With possessive quantifiers the same input is linear; the
+   * spaced-out delimiter at the end must still be neutered.
+   */
+  @Test
+  public void shouldNeuterInLinearTimeAfterALongRunOfWhitespace() {
+    String spaces = " ".repeat(1_000_000);
+    String value = "<" + spaces + "x " + "<" + " \t".repeat(100_000) + "y < /document>";
+
+    String neutered = assertTimeoutPreemptively(Duration.ofSeconds(5),
+        () -> ProcessContextResolver.neuterDelimiters(value));
+
+    assertThat(neutered)
+        .startsWith("<" + spaces)
+        .endsWith("y &lt; /document>")
+        .hasSize(value.length() + "&lt;".length() - 1);
   }
 
   /** The remaining C0 controls and DEL, which some parsers treat as line breaks. */

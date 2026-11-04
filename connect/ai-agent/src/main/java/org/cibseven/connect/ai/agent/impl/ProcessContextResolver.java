@@ -438,6 +438,13 @@ public final class ProcessContextResolver {
       // FileValue contract exposes the payload as an InputStream, and the only
       // way to size it is to drain it.
       FileValue file = (FileValue) typed;
+      // A file variable created without content (Variables.fileValue("x").create())
+      // holds no value, just like a null string: it fails a required check and
+      // renders as null. getValue() is only compared, never read or closed —
+      // FileValueImpl hands out a fresh ByteArrayInputStream over its bytes.
+      if (file.getValue() == null) {
+        return null;
+      }
       return new Rendered("(file " + quote(nullToUnknown(file.getFilename())) + ", "
           + quote(nullToUnknown(file.getMimeType())) + ", " + sent + ")", false);
     }
@@ -657,7 +664,12 @@ public final class ProcessContextResolver {
   static String neuterTag(String value, String tag) {
     // Whitespace around the slash too: "< /document>" and "</ process-context>"
     // are not well-formed, but a model may well read them as the tag.
-    return value.replaceAll("(?i)<(\\s*/?\\s*" + tag + ")\\b", ESCAPED_ANGLE + "$1");
+    // Possessive quantifiers: with plain "\s*/?\s*" the two whitespace runs
+    // overlap, so a "<" followed by a long run of spaces and no tag backtracks
+    // quadratically — hours for a 5 MiB text document, on the engine thread.
+    // Nothing is lost: whitespace never matches "/" or the tag's first letter,
+    // so a possessive run never has to give anything back for a real match.
+    return value.replaceAll("(?i)<(\\s*+/?\\s*+" + tag + ")\\b", ESCAPED_ANGLE + "$1");
   }
 
   // ── descriptor ─────────────────────────────────────────────────────────────
