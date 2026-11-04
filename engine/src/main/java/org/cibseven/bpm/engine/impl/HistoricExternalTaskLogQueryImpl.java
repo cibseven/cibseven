@@ -181,6 +181,12 @@ public class HistoricExternalTaskLogQueryImpl extends AbstractQuery<HistoricExte
   }
 
   @Override
+  public HistoricExternalTaskLogQuery fetchedLog() {
+    setState(ExternalTaskState.FETCHED);
+    return this;
+  }
+
+  @Override
   public HistoricExternalTaskLogQuery successLog() {
     setState(ExternalTaskState.SUCCESSFUL);
     return this;

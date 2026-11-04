@@ -2006,6 +2006,33 @@ public class AgenticTurnJobTest {
   }
 
   /**
+   * Documents are refused on the agent that runs the scope: its message goes to the model as one
+   * text, with no place for attachments. The step fails before the model is called, and the
+   * incident says where documents go instead (CIB7-2432, documents of CIB7-1843).
+   */
+  @Test
+  public void documentsOnTheAgentOfTheScopeEndInAnIncidentAndTheModelIsNotCalled()
+      throws IOException {
+    fixTheClock();
+    ProcessInstance pi = start(connectorModel("",
+        "<camunda:inputParameter name='documents'>vertrag</camunda:inputParameter>"
+        + "<camunda:inputParameter name='message'>Prüfe den Vertrag.</camunda:inputParameter>",
+        "", "stub-key"), new HashMap<String, Object>());
+
+    failTheWaitingStep();
+    failTheWaitingStep();
+    Job failed = failTheWaitingStep();
+
+    assertThat(requestBodies).as("the model is not called").isEmpty();
+    assertThat(failed.getRetries()).isZero();
+    Incident incident = engine.getRuntimeService().createIncidentQuery()
+        .processInstanceId(pi.getId()).singleResult();
+    assertThat(incident.getIncidentMessage())
+        .contains("'documents' is not supported on the agent that runs an ad hoc sub process")
+        .contains("Give the documents to an AI agent task inside it");
+  }
+
+  /**
    * The state block, the required variables with it, is built before the model and the MCP
    * clients: a step that fails for a variable opens no connection, and the failure the developer
    * sees is the variable's, not that of an MCP server the step would never have used (CIB7-2179).

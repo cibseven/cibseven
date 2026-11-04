@@ -80,6 +80,14 @@ UPDATE MOD_FORMS SET FOLDER_ID = '00000000-0000-0000-0000-0000000000d1' WHERE FO
 ALTER TABLE MOD_PROCESSES_DIAGRAMS ADD CONSTRAINT MOD_FK_DIAGRAMS_FOLDER FOREIGN KEY (FOLDER_ID) REFERENCES MOD_FOLDERS(ID);
 ALTER TABLE MOD_FORMS ADD CONSTRAINT MOD_FK_FORMS_FOLDER FOREIGN KEY (FOLDER_ID) REFERENCES MOD_FOLDERS(ID);
 
+-- Modeler (CIB7-2277): a process key and a form id are unique within their folder only. 2.2
+-- declared them unique inline, so the database chose the names of those constraints.
+-- MariaDB names the index of an inline unique constraint after its column.
+ALTER TABLE MOD_PROCESSES_DIAGRAMS DROP INDEX PROCESSKEY;
+ALTER TABLE MOD_FORMS DROP INDEX FORMID;
+ALTER TABLE MOD_PROCESSES_DIAGRAMS ADD CONSTRAINT MOD_UK_DIAGRAMS_KEY_FOLDER UNIQUE (PROCESSKEY, FOLDER_ID);
+ALTER TABLE MOD_FORMS ADD CONSTRAINT MOD_UK_FORMS_FORMID_FOLDER UNIQUE (FORMID, FOLDER_ID);
+
 -- Modeler project members (CIB7-1288): who may work on a project, i.e. a top-level folder.
 -- No rows are written here: a project without members stays open to every modeler user.
 CREATE TABLE MOD_PROJECT_MEMBERS (

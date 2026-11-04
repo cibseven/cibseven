@@ -105,6 +105,37 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   }
 
   @Override
+  public AgentRequest contextVariables(String contextVariables) {
+    setRequestParameter(AgentConnector.PARAM_NAME_CONTEXT_VARIABLES, contextVariables);
+    return this;
+  }
+
+  @Override
+  public AgentRequest optionalContextVariables(String optionalContextVariables) {
+    setRequestParameter(AgentConnector.PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES,
+        optionalContextVariables);
+    return this;
+  }
+
+  @Override
+  public AgentRequest documents(String documents) {
+    setRequestParameter(AgentConnector.PARAM_NAME_DOCUMENTS, documents);
+    return this;
+  }
+
+  @Override
+  public AgentRequest documentMimeTypes(String documentMimeTypes) {
+    setRequestParameter(AgentConnector.PARAM_NAME_DOCUMENT_MIME_TYPES, documentMimeTypes);
+    return this;
+  }
+
+  @Override
+  public AgentRequest documentDetailLevel(String documentDetailLevel) {
+    setRequestParameter(AgentConnector.PARAM_NAME_DOCUMENT_DETAIL_LEVEL, documentDetailLevel);
+    return this;
+  }
+
+  @Override
   public AgentRequest reasoningEffort(String reasoningEffort) {
     setRequestParameter(AgentConnector.PARAM_NAME_REASONING_EFFORT, reasoningEffort);
     return this;
@@ -263,6 +294,65 @@ public class AgentRequestImpl extends AbstractConnectorRequest<AgentResponse> im
   @Override
   public String getMcpServers() {
     return getRequestParameter(AgentConnector.PARAM_NAME_MCP_SERVERS);
+  }
+
+  @Override
+  public String getContextVariables() {
+    return getNameList(AgentConnector.PARAM_NAME_CONTEXT_VARIABLES);
+  }
+
+  @Override
+  public String getOptionalContextVariables() {
+    return getNameList(AgentConnector.PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES);
+  }
+
+  @Override
+  public String getDocuments() {
+    return getNameList(AgentConnector.PARAM_NAME_DOCUMENTS);
+  }
+
+  /**
+   * Reads a parameter that holds variable <em>names</em>. The natural mistake is
+   * to write an expression such as {@code ${invoice}} instead of {@code invoice}:
+   * the engine then hands over the variable's value — an {@code InputStream}
+   * for a file — and the plain unchecked cast fails with a
+   * {@code ClassCastException} that names neither the parameter nor the cause.
+   */
+  private String getNameList(String parameterName) {
+    return getText(parameterName, "must list variable names, e.g. \"invoice, contract\"",
+        "Write the names themselves, not an expression such as ${invoice} that evaluates to"
+        + " the variable.");
+  }
+
+  @Override
+  public String getDocumentMimeTypes() {
+    return getText(AgentConnector.PARAM_NAME_DOCUMENT_MIME_TYPES,
+        "must be a JSON object as text, e.g. {\"scan\": \"image/png\"}",
+        "Write the JSON itself, not an expression that evaluates to a map or another value.");
+  }
+
+  @Override
+  public String getDocumentDetailLevel() {
+    return getText(AgentConnector.PARAM_NAME_DOCUMENT_DETAIL_LEVEL,
+        "must be one of AUTO, LOW, HIGH", "Pass the level as text, e.g. \"HIGH\".");
+  }
+
+  /**
+   * Reads a parameter that must arrive as text, failing with a message that names
+   * the parameter instead of the {@code ClassCastException} the plain unchecked
+   * cast in {@code getRequestParameter} would produce.
+   */
+  private String getText(String parameterName, String expected, String hint) {
+    Object value = getRequestParameter(parameterName);
+    if (value == null || value instanceof String) {
+      return (String) value;
+    }
+    // Text that is not a String, e.g. a Groovy GString from a script input.
+    if (value instanceof CharSequence) {
+      return value.toString();
+    }
+    throw new AgentConnectorException("'" + parameterName + "' " + expected
+        + ", but received a value of type " + value.getClass().getName() + ". " + hint);
   }
 
   @Override

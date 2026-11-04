@@ -1,0 +1,778 @@
+/*
+ * Copyright CIB software GmbH and/or licensed to CIB software GmbH
+ * under one or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information regarding copyright
+ * ownership. CIB software licenses this file to you under the Apache License,
+ * Version 2.0; you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+package org.cibseven.connect.ai.agent.impl;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+
+import org.cibseven.bpm.engine.ProcessEngine;
+import org.cibseven.bpm.engine.ProcessEngineConfiguration;
+import org.cibseven.bpm.engine.history.HistoricVariableUpdate;
+import org.cibseven.bpm.engine.runtime.VariableInstance;
+import org.cibseven.bpm.engine.delegate.DelegateExecution;
+import org.cibseven.bpm.engine.delegate.JavaDelegate;
+import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.application.impl.EmbeddedProcessApplication;
+import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.variable.serializer.AbstractObjectValueSerializer;
+import org.cibseven.bpm.engine.impl.variable.serializer.DefaultVariableSerializers;
+import org.cibseven.bpm.engine.variable.value.ObjectValue;
+import org.cibseven.bpm.engine.test.ProcessEngineRule;
+import org.cibseven.bpm.engine.variable.VariableMap;
+import org.cibseven.bpm.engine.variable.Variables;
+import org.cibseven.connect.ai.agent.AgentConnectorConstants;
+import org.cibseven.connect.ai.agent.AgentRequest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.listener.ChatModelListener;
+import dev.langchain4j.model.chat.request.ChatRequest;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.store.memory.chat.ChatMemoryStore;
+
+/**
+ * Engine-backed counterpart to {@link ProcessContextResolverTest}, which drives
+ * the resolver through a lambda and therefore proves nothing about the two
+ * mechanisms the feature actually depends on: that the connector finds the
+ * running {@code ExecutionEntity} on its own thread, and that
+ * {@code getVariableTyped(name, false)} returns real engine types for variables
+ * that went through the database.
+ *
+ * <p>The connector is invoked from a {@link JavaDelegate} rather than through a
+ * {@code camunda:connector} element. That is deliberate and matches the design:
+ * the whole point of CIB7-1843's variable half is that the connector reads the
+ * execution directly instead of going through Connect's variable scope, which
+ * unwraps every {@code TypedValue}. A delegate gives the same real command
+ * context and the same real variables without pulling the connect-plugin into
+ * this module's test classpath.
+ */
+public class ProcessContextEngineTest {
+
+  private static final ObjectMapper MAPPER = new ObjectMapper();
+
+  /** What the delegate saw, so the assertions can inspect it. */
+  static volatile String capturedSystemMessage;
+  static volatile RuntimeException capturedFailure;
+
+  /**
+   * Built once for the whole class. JUnit instantiates the test class per test
+   * method, so a per-instance engine would try to create the schema again on the
+   * same in-memory database and fail on the second test.
+   */
+  private static final ProcessEngine ENGINE = buildInMemoryEngine();
+
+  @RegisterExtension
+  public ProcessEngineRule engineRule = new ProcessEngineRule(ENGINE);
+
+  private static ProcessEngine buildInMemoryEngine() {
+    StandaloneInMemProcessEngineConfiguration configuration =
+        new StandaloneInMemProcessEngineConfiguration();
+    configuration.setJdbcUrl("jdbc:h2:mem:process-context-test;DB_CLOSE_DELAY=-1");
+    configuration.setJobExecutorActivate(false);
+    // FULL, as the distros run it: the chat-memory test checks the historic details.
+    configuration.setHistory(ProcessEngineConfiguration.HISTORY_FULL);
+    // Stands in for Spin's JSON object serializer, which is not on this
+    // module's test classpath.
+    configuration.setCustomPreVariableSerializers(List.of(new JacksonOrderSerializer()));
+    return configuration.buildProcessEngine();
+  }
+
+  @BeforeEach
+  public void setUp() {
+    capturedSystemMessage = null;
+    capturedFailure = null;
+    deployProcess();
+  }
+
+  @AfterEach
+  public void tearDown() {
+    capturedSystemMessage = null;
+    capturedFailure = null;
+    engineRule.getRepositoryService().createDeploymentQuery().list()
+        .forEach(deployment ->
+            engineRule.getRepositoryService().deleteDeployment(deployment.getId(), true));
+  }
+
+  // ── the delegate under test ────────────────────────────────────────────────
+
+  /**
+   * Captures the outgoing request instead of talking to a provider, while still
+   * carrying the real {@link AgentChatListener} so the audit path runs exactly
+   * as it does in production — {@code ChatModel.chat} fires the listeners
+   * returned by {@link #listeners()}.
+   */
+  static final class CapturingChatModel implements ChatModel {
+    private final List<ChatModelListener> listeners;
+
+    CapturingChatModel(ChatModelListener listener) {
+      this.listeners = List.of(listener);
+    }
+
+    @Override
+    public List<ChatModelListener> listeners() {
+      return listeners;
+    }
+
+    @Override
+    public ChatResponse doChat(ChatRequest request) {
+      for (ChatMessage message : request.messages()) {
+        if (message instanceof SystemMessage) {
+          capturedSystemMessage = ((SystemMessage) message).text();
+        }
+      }
+      return ChatResponse.builder().aiMessage(AiMessage.from("ok")).build();
+    }
+  }
+
+  /**
+   * Replaces only the provider call. The listener is created and published
+   * exactly as {@code AgentConnectorImpl.createChatModel} does, because the
+   * chat-log assertions below depend on that wiring being real rather than
+   * stubbed away.
+   */
+  static final class CapturingConnector extends AgentConnectorImpl {
+    @Override
+    protected ChatModel createChatModel(AgentRequest request, String apiKey, String baseUrl,
+        Map<String, String> customHeaders) {
+      AgentChatListener listener =
+          new AgentChatListener(request.getModel(), baseUrl, request.getPersistChatLog());
+      ProcessStarterToolContext.setActiveListener(listener);
+      return new CapturingChatModel(listener);
+    }
+  }
+
+  /**
+   * Runs the connector inside a real engine command. The declared allowlist is
+   * read from process variables so each test can vary it without a separate
+   * delegate class.
+   */
+  public static class AgentDelegate implements JavaDelegate {
+    @Override
+    public void execute(DelegateExecution execution) {
+      CapturingConnector connector = new CapturingConnector();
+      AgentRequest request = connector.createRequest()
+          .agentName("context-agent")
+          .message("What is the order about?")
+          .instruction("be brief")
+          .contextVariables((String) execution.getVariable("_declared"))
+          .optionalContextVariables((String) execution.getVariable("_optional"));
+      String memoryId = (String) execution.getVariable("_memoryId");
+      if (memoryId != null) {
+        request.useChatMemory(true).memoryId(memoryId);
+      }
+      if (Boolean.TRUE.equals(execution.getVariable("_inProcessApplication"))) {
+        // As in a deployed process application: the engine joins the
+        // application's serializers onto its own for anything run inside it.
+        EmbeddedProcessApplication application = new EmbeddedProcessApplication();
+        application.setVariableSerializers(new DefaultVariableSerializers()
+            .addSerializer(new JacksonOrderSerializer(true)));
+        Context.executeWithinProcessApplication(() -> connector.execute(request),
+            application.getReference());
+      } else {
+        connector.execute(request);
+      }
+    }
+  }
+
+  /** A customer POJO, serialized as JSON like Spin would. */
+  public static class Order {
+    public int amount;
+  }
+
+  /**
+   * Minimal JSON object serializer for {@link Order}, registered on the test
+   * engine. A negative amount cannot be serialized, to drive the failure path.
+   * The process-application flavor has the same name, so it overrides the
+   * engine's within the application, and marks its output.
+   */
+  static final class JacksonOrderSerializer extends AbstractObjectValueSerializer {
+    private final boolean processApplicationFlavor;
+
+    JacksonOrderSerializer() {
+      this(false);
+    }
+
+    JacksonOrderSerializer(boolean processApplicationFlavor) {
+      super("application/json");
+      this.processApplicationFlavor = processApplicationFlavor;
+    }
+
+    @Override
+    public String getName() {
+      return "test-jackson-order";
+    }
+
+    @Override
+    protected String getTypeNameForDeserialized(Object deserializedObject) {
+      return deserializedObject.getClass().getName();
+    }
+
+    @Override
+    protected byte[] serializeToByteArray(Object deserializedObject) throws Exception {
+      int amount = ((Order) deserializedObject).amount;
+      if (amount < 0) {
+        throw new IllegalStateException("negative amount cannot be serialized");
+      }
+      return processApplicationFlavor
+          ? ("{\"amount\":" + amount + ",\"by\":\"application\"}").getBytes(StandardCharsets.UTF_8)
+          : MAPPER.writeValueAsBytes(deserializedObject);
+    }
+
+    @Override
+    protected Object deserializeFromByteArray(byte[] object, String objectTypeName)
+        throws Exception {
+      return MAPPER.readValue(object, Order.class);
+    }
+
+    @Override
+    protected boolean isSerializationTextBased() {
+      return true;
+    }
+
+    @Override
+    protected boolean canSerializeValue(Object value) {
+      return value instanceof Order;
+    }
+  }
+
+  /**
+   * Changes the order in place, without setVariable — the engine only writes
+   * the change back when the command closes.
+   */
+  public static class MutateOrderDelegate implements JavaDelegate {
+    @Override
+    public void execute(DelegateExecution execution) {
+      Object newAmount = execution.getVariable("_newAmount");
+      ((Order) execution.getVariable("order")).amount =
+          (newAmount == null) ? 20 : (Integer) newAmount;
+    }
+  }
+
+  // ── the block reaches the model ────────────────────────────────────────────
+
+  @Test
+  public void shouldRenderDeclaredVariablesIntoTheSystemPromptWithTheirEngineTypes() {
+    start(Variables.createVariables()
+        .putValue("_declared", "orderId,totalAmount,approved,comment,notSet")
+        .putValue("_optional", "notSet")
+        .putValue("orderId", "4711")
+        .putValue("totalAmount", 199.99d)
+        .putValue("approved", Boolean.FALSE)
+        .putValue("comment", ""));
+
+    assertThat(capturedSystemMessage)
+        .startsWith("be brief")
+        .contains(AgentConnectorConstants.CONTEXT_BLOCK_OPEN)
+        .contains(AgentConnectorConstants.CONTEXT_BLOCK_CLOSE)
+        .contains("orderId (string) = \"4711\"")
+        .contains("totalAmount (double) = 199.99")
+        .contains("approved (boolean) = false")
+        // Empty is a value and stays visibly different from both null and absent.
+        .contains("comment (string) = \"\"")
+        .contains("notSet = (absent)");
+  }
+
+  /**
+   * The block cap, end to end. Twelve values at the per-value limit exceed
+   * the block limit, so the trailing ones are dropped — which fails the run when
+   * they are required, and is tolerated when they are optional.
+   */
+  @Test
+  public void shouldFailWhenTheBlockCapDropsARequiredVariable() {
+    Throwable thrown = catchThrowable(() -> start(oversizedContext(null)));
+
+    assertThat(thrown).isNotNull();
+    Throwable root = thrown;
+    while (root.getCause() != null && root.getCause() != root) {
+      root = root.getCause();
+    }
+    assertThat(root)
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("omitted: context block size limit reached");
+    assertThat(capturedSystemMessage).isNull();
+  }
+
+  @Test
+  public void shouldStayWithinTheBlockCapWhenTheDroppedVariablesAreOptional() {
+    start(oversizedContext("v01,v02,v03,v04,v05,v06,v07,v08,v09,v10,v11,v12"));
+
+    String block = capturedSystemMessage.substring(
+        capturedSystemMessage.indexOf(AgentConnectorConstants.CONTEXT_BLOCK_OPEN));
+    assertThat(block.length())
+        .isLessThanOrEqualTo(AgentConnectorConstants.DEFAULT_MAX_CONTEXT_BLOCK_CHARS);
+    assertThat(block).contains("v01 (string)").doesNotContain("v12 (string)");
+  }
+
+  private static VariableMap oversizedContext(String optional) {
+    VariableMap variables = Variables.createVariables()
+        .putValue("_declared", "v01,v02,v03,v04,v05,v06,v07,v08,v09,v10,v11,v12")
+        .putValue("_optional", optional);
+    String value = "x".repeat(AgentConnectorConstants.DEFAULT_MAX_CONTEXT_VALUE_CHARS);
+    for (int i = 1; i <= 12; i++) {
+      variables.putValue(String.format("v%02d", i), value);
+    }
+    return variables;
+  }
+
+  /**
+   * The context block used to be returned from
+   * the {@code systemMessageProvider}, and LangChain4j runs that output through
+   * {@link dev.langchain4j.model.input.PromptTemplate}
+   * (`DefaultAiServices.prepareSystemMessage`). A process variable holding a
+   * mail-merge template therefore failed the activity with
+   * "Value for the variable 'name' is missing" — a message naming nothing the
+   * modeler put anywhere.
+   *
+   * <p>Only reproducible through the engine: the resolver builds the right
+   * string either way, the damage happens one layer up in AiServices.
+   */
+  @Test
+  public void shouldNotEvaluateDoubleBracesInAValueAsATemplateVariable() {
+    start(Variables.createVariables()
+        .putValue("_declared", "note")
+        .putValue("note", "Dear {{name}}, your order is late"));
+
+    assertThat(capturedSystemMessage)
+        .contains("note (string) = \"Dear {{name}}, your order is late\"");
+  }
+
+  /**
+   * The quieter half of the same finding. {@code current_date}, {@code current_time}
+   * and {@code current_date_time} are built-ins of {@code PromptTemplate}, so
+   * they were substituted rather than rejected — the model was shown a value the
+   * process never held, and nothing failed.
+   */
+  @Test
+  public void shouldNotSubstituteTemplateBuiltInsInAValue() {
+    start(Variables.createVariables()
+        .putValue("_declared", "placeholder")
+        .putValue("placeholder", "{{current_date}}"));
+
+    assertThat(capturedSystemMessage).contains("placeholder (string) = \"{{current_date}}\"");
+  }
+
+  /** The instruction itself is still templated — that is pre-existing and unchanged. */
+  @Test
+  public void shouldStillPlaceTheContextBlockAfterTheInstruction() {
+    start(Variables.createVariables()
+        .putValue("_declared", "orderId")
+        .putValue("orderId", "4711"));
+
+    assertThat(capturedSystemMessage)
+        .startsWith("be brief")
+        .contains(AgentConnectorConstants.CONTEXT_BLOCK_OPEN)
+        .contains("orderId (string) = \"4711\"");
+  }
+
+  @Test
+  public void shouldDistinguishAnExplicitNullFromAnAbsentVariable() {
+    start(Variables.createVariables()
+        .putValue("_declared", "nulled,neverSet")
+        .putValue("_optional", "nulled,neverSet")
+        .putValueTyped("nulled", Variables.stringValue(null)));
+
+    assertThat(capturedSystemMessage)
+        .contains("nulled (string) = null")
+        .contains("neverSet = (absent)");
+  }
+
+  @Test
+  public void shouldRenderAFileVariableAsADescriptorInsteadOfItsBytes() {
+    start(Variables.createVariables()
+        .putValue("_declared", "invoice")
+        .putValueTyped("invoice", Variables.fileValue("invoice.pdf")
+            .file("%PDF-1.7 pretend binary".getBytes())
+            .mimeType("application/pdf")
+            .create()));
+
+    assertThat(capturedSystemMessage)
+        .contains("invoice (file) = (file \"invoice.pdf\", \"application/pdf\", "
+            + "content not sent to the model)")
+        .doesNotContain("%PDF-1.7");
+  }
+
+  @Test
+  public void shouldLeaveThePromptUnchangedWhenNothingIsDeclared() {
+    start(Variables.createVariables().putValue("orderId", "4711"));
+
+    assertThat(capturedSystemMessage).isEqualTo("be brief");
+  }
+
+  /**
+   * AC5, BMAD review of PR #447: only the declared variables reach the model.
+   * The instance holds more than the allowlist names; nothing else may leak in.
+   */
+  @Test
+  public void shouldSendOnlyTheDeclaredVariablesOfTheInstance() {
+    start(Variables.createVariables()
+        .putValue("_declared", "orderId")
+        .putValue("orderId", "4711")
+        .putValue("customerIban", "DE00-undeclared-canary")
+        .putValue("internalNote", "undeclared-note-canary"));
+
+    String block = capturedSystemMessage.substring(
+        capturedSystemMessage.indexOf(AgentConnectorConstants.CONTEXT_BLOCK_OPEN));
+    assertThat(block).contains("orderId (string) = \"4711\"");
+    assertThat(capturedSystemMessage)
+        .doesNotContain("customerIban")
+        .doesNotContain("undeclared-canary")
+        .doesNotContain("internalNote")
+        .doesNotContain("undeclared-note-canary");
+  }
+
+  /**
+   * Review round 4 (Copilot): an object deserialized and changed in place by a
+   * preceding delegate in the same command used to be sent — and hashed — with
+   * its stale serialized form, amount 10, although the engine persists 20 on
+   * command close.
+   */
+  @Test
+  public void shouldSendAnObjectChangedInPlaceEarlierInTheSameCommand() throws Exception {
+    String instanceId = startMutateThenAgent(Variables.createVariables());
+
+    completeBefore(instanceId);
+
+    assertThat(capturedSystemMessage)
+        .contains("{\"amount\":20}")
+        .doesNotContain("{\"amount\":10}");
+    // The hash in the audit covers what was sent, not the stale form.
+    @SuppressWarnings("unchecked")
+    Map<String, Object> entry = ((List<Map<String, Object>>)
+        singleEventOfType("context").get("variables")).get(0);
+    assertThat(entry).containsEntry("valueLength", "{\"amount\":20}".length());
+    // And the engine did persist the change, so model and database agree.
+    ObjectValue persisted = engineRule.getRuntimeService()
+        .getVariableTyped(instanceId, "order", false);
+    assertThat(persisted.getValueSerialized()).isEqualTo("{\"amount\":20}");
+  }
+
+  /**
+   * Review round 5 (Copilot): when serializing the changed object fails, the
+   * variable used to fall back to toString() and count as resolved, so a
+   * required one reached the model as a substitute string. It is unreadable
+   * now, and the required-variable check stops the run.
+   */
+  @Test
+  public void shouldFailWhenARequiredObjectChangedInPlaceCannotBeSerialized() {
+    String instanceId = startMutateThenAgent(Variables.createVariables()
+        .putValue("_newAmount", -1));
+
+    Throwable thrown = catchThrowable(() -> completeBefore(instanceId));
+
+    assertThat(rootCause(thrown))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("order (unreadable)")
+        .hasMessageContaining("the agent was not invoked");
+    assertThat(capturedSystemMessage).isNull();
+  }
+
+  /** The same case for an optional variable: sent as (unreadable), never as toString(). */
+  @Test
+  public void shouldSendAnOptionalObjectThatCannotBeSerializedAsUnreadable() {
+    String instanceId = startMutateThenAgent(Variables.createVariables()
+        .putValue("_optional", "order")
+        .putValue("_newAmount", -1));
+
+    // The agent runs; the engine's own flush then fails on the same object.
+    catchThrowable(() -> completeBefore(instanceId));
+
+    assertThat(capturedSystemMessage)
+        .contains("order = (unreadable)")
+        .doesNotContain(Order.class.getName() + "@");
+  }
+
+  /**
+   * Review round 5 (Copilot): the serializer has to come from the engine's
+   * effective registry, process-application serializers included, as the
+   * engine itself resolves it — not from the engine configuration alone.
+   */
+  @Test
+  public void shouldSerializeWithTheProcessApplicationSerializerInsideTheApplication() {
+    String instanceId = startMutateThenAgent(Variables.createVariables()
+        .putValue("_inProcessApplication", true));
+
+    completeBefore(instanceId);
+
+    assertThat(capturedSystemMessage).contains("{\"amount\":20,\"by\":\"application\"}");
+  }
+  // ── required variables abort the activity ──────────────────────────────────
+
+  @Test
+  public void shouldFailTheActivityWhenARequiredVariableIsMissing() {
+    Throwable thrown = catchThrowable(() -> start(Variables.createVariables()
+        .putValue("_declared", "orderId")));
+
+    assertThat(rootCause(thrown))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("orderId")
+        .hasMessageContaining("the agent was not invoked");
+
+    // Not "the model answered over missing data" — the model was never asked.
+    assertThat(capturedSystemMessage).isNull();
+  }
+
+  // ── audit ──────────────────────────────────────────────────────────────────
+
+  @Test
+  public void shouldRecordAContextAuditEventCarryingHashesButNoValues() throws Exception {
+    start(Variables.createVariables()
+        .putValue("_declared", "orderId,missing")
+        .putValue("_optional", "missing")
+        .putValue("orderId", "4711"));
+
+    Map<String, Object> contextEvent = singleEventOfType("context");
+
+    assertThat(contextEvent)
+        .containsEntry("declared", 2)
+        .containsEntry("sent", 1)
+        .containsEntry("omitted", 0);
+    // Same envelope as every other audit event — Art. 12 correlation.
+    assertThat(contextEvent).containsKeys("runId", "eventSeq", "timestamp",
+        "processInstanceId", "activityId");
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> entries =
+        (List<Map<String, Object>>) contextEvent.get("variables");
+    assertThat(entries).hasSize(2);
+    assertThat(entries.get(0))
+        .containsEntry("name", "orderId")
+        .containsEntry("present", true)
+        .containsEntry("type", "string")
+        .containsEntry("valueLength", 4);
+    assertThat((String) entries.get(0).get("valueSha256")).startsWith("sha256:");
+    // The value itself is a process variable already; the audit does not copy it.
+    assertThat(entries.get(0).values()).doesNotContain("4711");
+    assertThat(entries.get(1)).containsEntry("name", "missing").containsEntry("present", false);
+    assertThat((String) contextEvent.get("blockSha256")).startsWith("sha256:");
+  }
+
+  /**
+   * Review round 2, point 1: the request event used to carry the whole system
+   * prompt, block and values included, so every model call copied them into the
+   * chat log and, at history level FULL, into the history.
+   */
+  @Test
+  @SuppressWarnings("unchecked")
+  public void shouldReferenceTheContextEventInTheRequestInsteadOfCopyingTheValues()
+      throws Exception {
+    start(Variables.createVariables()
+        .putValue("_declared", "note")
+        .putValue("note", "confidential-note-value"));
+
+    assertThat(capturedSystemMessage).contains("confidential-note-value");
+    Map<String, Object> contextEvent = singleEventOfType("context");
+    Map<String, Object> request = singleEventOfType("request");
+    String system = (String) ((List<Map<String, Object>>) request.get("messages")).get(0)
+        .get("content");
+    assertThat(system)
+        .doesNotContain("confidential-note-value")
+        .doesNotContain(AgentConnectorConstants.CONTEXT_BLOCK_OPEN)
+        .endsWith("[process context: see the context event, runId " + contextEvent.get("runId")
+            + ", eventSeq " + contextEvent.get("eventSeq") + "]");
+  }
+
+  /**
+   * Review round 3 (Copilot): with chat memory on, MessageWindowChatMemory used
+   * to store the transformed system message, and the default
+   * ProcessVariableChatMemoryStore copied the block and its raw values into the
+   * memory variable — and, at history level FULL, into the history. The model
+   * still gets the block; the memory keeps only the instruction.
+   */
+  @Test
+  public void shouldSendTheContextBlockButKeepItOutOfThePersistedChatMemory() {
+    ChatMemoryStore originalStore = AgentChatMemoryStore.getStore();
+    AgentChatMemoryStore.setStore(new ProcessVariableChatMemoryStore());
+    try {
+      start(Variables.createVariables()
+          .putValue("_declared", "note")
+          .putValue("_memoryId", "context-memory")
+          .putValue("note", "confidential-memory-canary"));
+    } finally {
+      AgentChatMemoryStore.setStore(originalStore);
+    }
+
+    assertThat(capturedSystemMessage)
+        .startsWith("be brief")
+        .contains("confidential-memory-canary");
+
+    VariableInstance memory = engineRule.getRuntimeService().createVariableInstanceQuery()
+        .variableName(ProcessVariableChatMemoryStore.variableName("context-memory"))
+        .singleResult();
+    assertThat(memory).as("chat-memory variable").isNotNull();
+    String stored = String.valueOf(memory.getValue());
+    assertThat(stored)
+        .contains("be brief")
+        .contains("What is the order about?")
+        .doesNotContain("confidential-memory-canary")
+        .doesNotContain(AgentConnectorConstants.CONTEXT_BLOCK_OPEN);
+
+    // Every variable update is a historic detail at FULL; none may carry the value.
+    assertThat(engineRule.getHistoryService().createHistoricDetailQuery()
+        .variableUpdates().list())
+        .filteredOn(detail -> String.valueOf(
+            ((HistoricVariableUpdate) detail).getValue())
+            .contains("confidential-memory-canary"))
+        .extracting(detail -> ((HistoricVariableUpdate) detail)
+            .getVariableName())
+        .containsOnly("note");
+  }
+
+  /**
+   * Documents a real limitation rather than a feature: the context event is
+   * emitted before the required-variable check, but a failing activity rolls its
+   * transaction back, and the chat-log variable goes with it. The record of the
+   * aborted run is therefore the incident and the exception message, not the
+   * audit variable. Anyone who needs the aborted attempt in the audit trail has
+   * to route events to an external sink — the same caveat the chat-log opt-out
+   * already carries.
+   */
+  @Test
+  public void shouldRollBackTheContextEventWhenARequiredVariableAbortsTheRun() {
+    catchThrowable(() -> start(Variables.createVariables()
+        .putValue("_declared", "orderId")));
+
+    assertThat(engineRule.getRuntimeService().createVariableInstanceQuery()
+        .variableNameLike(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "%")
+        .count()).isZero();
+  }
+
+  // ── helpers ────────────────────────────────────────────────────────────────
+
+  private static Throwable rootCause(Throwable thrown) {
+    assertThat(thrown).as("expected the activity to fail").isNotNull();
+    Throwable current = thrown;
+    while (current.getCause() != null && current.getCause() != current) {
+      current = current.getCause();
+    }
+    return current;
+  }
+
+  private void start(VariableMap variables) {
+    engineRule.getRuntimeService().startProcessInstanceByKey("processContextEngineTest", variables);
+  }
+
+  private Map<String, Object> singleEventOfType(String type) throws Exception {
+    List<VariableInstance> variables = engineRule.getRuntimeService()
+        .createVariableInstanceQuery()
+        .variableNameLike(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "%")
+        .list();
+    assertThat(variables).as("chat-log variable").hasSize(1);
+
+    List<Map<String, Object>> events = MAPPER.readValue(
+        (String) variables.get(0).getValue(),
+        new TypeReference<List<Map<String, Object>>>() {});
+
+    List<Map<String, Object>> matching = events.stream()
+        .filter(event -> type.equals(event.get("type")))
+        .collect(java.util.stream.Collectors.toList());
+    assertThat(matching).as("events of type " + type).hasSize(1);
+    return matching.get(0);
+  }
+
+  /**
+   * Starts a process that holds "order" (amount 10) at a user task. Completing
+   * that task runs, in one command, a delegate that changes the order in place
+   * and then the agent — the next command loads "order" from the database, so
+   * its cached value carries a serialized form the delegate then outdates.
+   */
+  private String startMutateThenAgent(VariableMap extra) {
+    deploy("mutateThenAgent", ""
+        + "    <startEvent id='start'/>"
+        + "    <sequenceFlow id='f1' sourceRef='start' targetRef='before'/>"
+        + "    <userTask id='before'/>"
+        + "    <sequenceFlow id='f2' sourceRef='before' targetRef='mutate'/>"
+        + "    <serviceTask id='mutate'"
+        + "                 camunda:class='" + MutateOrderDelegate.class.getName() + "'/>"
+        + "    <sequenceFlow id='f3' sourceRef='mutate' targetRef='agent'/>"
+        + "    <serviceTask id='agent'"
+        + "                 camunda:class='" + AgentDelegate.class.getName() + "'/>"
+        + "    <sequenceFlow id='f4' sourceRef='agent' targetRef='wait'/>"
+        + "    <userTask id='wait'/>"
+        + "    <sequenceFlow id='f5' sourceRef='wait' targetRef='end'/>"
+        + "    <endEvent id='end'/>");
+    Order order = new Order();
+    order.amount = 10;
+    VariableMap variables = Variables.createVariables()
+        .putValue("_declared", "order")
+        .putValueTyped("order", Variables.objectValue(order)
+            .serializationDataFormat("application/json").create());
+    variables.putAll(extra);
+    return engineRule.getRuntimeService()
+        .startProcessInstanceByKey("mutateThenAgent", variables).getId();
+  }
+
+  private void completeBefore(String instanceId) {
+    engineRule.getTaskService().complete(engineRule.getTaskService().createTaskQuery()
+        .processInstanceId(instanceId).taskDefinitionKey("before").singleResult().getId());
+  }
+
+  private void deploy(String key, String body) {
+    String bpmn = ""
+        + "<?xml version='1.0' encoding='UTF-8'?>"
+        + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
+        + "             xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
+        + "             targetNamespace='http://cibseven.org/test'>"
+        + "  <process id='" + key + "' isExecutable='true' camunda:historyTimeToLive='1'>"
+        + body
+        + "  </process>"
+        + "</definitions>";
+    engineRule.getRepositoryService().createDeployment()
+        .addString(key + ".bpmn20.xml", bpmn).deploy();
+  }
+
+  private void deployProcess() {
+    String bpmn = ""
+        + "<?xml version='1.0' encoding='UTF-8'?>"
+        + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
+        + "             xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
+        + "             targetNamespace='http://cibseven.org/test'>"
+        + "  <process id='processContextEngineTest' isExecutable='true'"
+        + "           camunda:historyTimeToLive='1'>"
+        + "    <startEvent id='start'/>"
+        + "    <sequenceFlow id='f1' sourceRef='start' targetRef='agent'/>"
+        + "    <serviceTask id='agent'"
+        + "                 camunda:class='" + AgentDelegate.class.getName() + "'/>"
+        + "    <sequenceFlow id='f2' sourceRef='agent' targetRef='wait'/>"
+        // The instance parks here so its variables stay runtime variables. A
+        // process that ends in the same transaction has all of them deleted,
+        // and the chat log would only be reachable via includeDeleted() — which
+        // is not how an operator sees it in Cockpit either.
+        + "    <userTask id='wait'/>"
+        + "    <sequenceFlow id='f3' sourceRef='wait' targetRef='end'/>"
+        + "    <endEvent id='end'/>"
+        + "  </process>"
+        + "</definitions>";
+
+    engineRule.getRepositoryService()
+        .createDeployment()
+        .addString("processContextEngineTest.bpmn20.xml", bpmn)
+        .deploy();
+  }
+}
