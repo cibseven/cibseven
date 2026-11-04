@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.persistence.entity.util.TypedValueField;
 import org.cibseven.bpm.engine.impl.variable.serializer.TypedValueSerializer;
 import org.cibseven.bpm.engine.impl.variable.serializer.ValueFieldsImpl;
 import org.cibseven.bpm.engine.variable.Variables;
@@ -519,31 +520,31 @@ public final class ProcessContextResolver {
    */
   private static Rendered renderObjectValue(ObjectValue object) {
     String format = object.getSerializationDataFormat();
-    String serialized = null;
-    RuntimeException readFailure = null;
-    try {
-      // A value someone already deserialized may have been changed in place —
-      // e.g. a preceding delegate sets order.amount without calling setVariable.
-      // Its cached serialized form is then stale; the engine re-serializes the
-      // object only on command close. Serialize it now the way the engine will,
-      // so the model and the hash see the object as it is. A failure here would
-      // fail the flush too, so it is reported as (unreadable), not hidden.
-      String current = object.isDeserialized() ? currentSerializedForm(object) : null;
-      serialized = (current != null) ? current : object.getValueSerialized();
-    } catch (RuntimeException e) {
-      LOG.debug("Could not read serialized form of object value: {}", e.toString());
-      readFailure = e;
+    // A value someone already deserialized may have been changed in place —
+    // e.g. a preceding delegate sets order.amount without calling setVariable.
+    // Its cached serialized form is then stale; the engine re-serializes the
+    // object only on command close. Serialize it now the way the engine will,
+    // so the model and the hash see the object as it is. Deliberately outside
+    // the catch below: a failure here fails the flush too, so it propagates and
+    // readOne reports the variable as (unreadable) — a required one then stops
+    // the run instead of reaching the model as a substitute string.
+    String serialized = object.isDeserialized() ? currentSerializedForm(object) : null;
+    if (serialized == null) {
+      try {
+        serialized = object.getValueSerialized();
+      } catch (RuntimeException e) {
+        // A value that failed to read is not a null value, and not its
+        // toString() either. Rethrown so readOne reports it as (unreadable), as
+        // for every other read failure.
+        LOG.debug("Could not read serialized form of object value: {}", e.toString());
+        throw e;
+      }
     }
     if (serialized == null) {
       // Deserialized-only object values (e.g. built in memory and never stored)
       // still have a usable toString().
       if (object.isDeserialized() && object.getValue() != null) {
         return new Rendered(String.valueOf(object.getValue()), true);
-      }
-      if (readFailure != null) {
-        // A value that failed to read is not a null value. Rethrown so readOne
-        // reports it as (unreadable), as for every other read failure.
-        throw readFailure;
       }
       return null;
     }
@@ -556,26 +557,32 @@ public final class ProcessContextResolver {
   }
 
   /**
-   * Serializes a deserialized object value with the serializer the engine
-   * configured for its data format — the same {@code writeValue} the engine runs
-   * on command close to detect an implicit update. Works on a copy, so the
-   * variable's cached value and the engine's own update detection are left
-   * alone. Returns {@code null} when there is nothing to serialize or no engine
-   * on this thread (unit tests, a connector run outside a command); the caller
-   * then falls back to the cached serialized form.
+   * Serializes a deserialized object value the way the engine does in
+   * {@code TypedValueField.setValue}: the serializer comes from the engine's
+   * effective registry, {@link TypedValueField#getSerializers()}, which joins
+   * the current process application's own serializers (e.g. an application
+   * specific JSON mapping) onto the engine's, with the configured fallback
+   * factory. Its {@code writeValue} is also what the engine runs on command
+   * close to detect an implicit update.
+   *
+   * <p>Works on a copy, so the variable's cached value and the engine's own
+   * update detection are left alone. Returns {@code null} when there is nothing
+   * to serialize or no command on this thread (unit tests, a connector run
+   * outside a command); the caller then falls back to the cached serialized
+   * form.
    */
   @SuppressWarnings("unchecked")
   private static String currentSerializedForm(ObjectValue object) {
     Object value = object.getValue();
     ProcessEngineConfigurationImpl configuration = Context.getProcessEngineConfiguration();
-    if (value == null || configuration == null || configuration.getVariableSerializers() == null) {
+    if (value == null || configuration == null || Context.getCommandContext() == null) {
       return null;
     }
     ObjectValue copy = Variables.objectValue(value)
         .serializationDataFormat(object.getSerializationDataFormat())
         .create();
     TypedValueSerializer<TypedValue> serializer = (TypedValueSerializer<TypedValue>)
-        configuration.getVariableSerializers()
+        TypedValueField.getSerializers()
             .findSerializerForValue(copy, configuration.getFallbackSerializerFactory());
     serializer.writeValue(copy, new ValueFieldsImpl());
     return copy.getValueSerialized();

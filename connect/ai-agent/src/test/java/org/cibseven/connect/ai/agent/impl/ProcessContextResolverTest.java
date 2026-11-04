@@ -629,6 +629,30 @@ public class ProcessContextResolverTest {
     assertThat(block).contains("order = (unreadable)").doesNotContain("order (");
   }
 
+  /**
+   * Review round 5 (Copilot): a read failure wins over the toString() fallback.
+   * A deserialized value whose serialized form fails to read used to be sent as
+   * its toString() and pass the required-variable check.
+   */
+  @Test
+  public void shouldReportADeserializedObjectThatCannotBeReadAsUnreadable() {
+    org.cibseven.bpm.engine.variable.value.ObjectValue broken =
+        org.mockito.Mockito.mock(org.cibseven.bpm.engine.variable.value.ObjectValue.class);
+    org.mockito.Mockito.when(broken.isDeserialized()).thenReturn(true);
+    org.mockito.Mockito.when(broken.getValue()).thenReturn(new InMemoryOrder());
+    org.mockito.Mockito.when(broken.getValueSerialized())
+        .thenThrow(new IllegalStateException("corrupt"));
+    variables.put("order", broken);
+
+    List<ContextVariable> resolved = resolve("order", null);
+    String block = ProcessContextResolver.render(resolved,
+        AgentConnectorConstants.DEFAULT_MAX_CONTEXT_BLOCK_CHARS);
+
+    assertThat(block).contains("order = (unreadable)").doesNotContain("Order#42");
+    assertThatThrownBy(() -> ProcessContextResolver.failOnMissingRequired(resolved))
+        .hasMessageContaining("order (unreadable)");
+  }
+
   /** Mime type and object type are quoted, so they cannot forge descriptor text. */
   @Test
   public void shouldQuoteTheMimeTypeAndObjectTypeInDescriptors() {

@@ -19,6 +19,7 @@ package org.cibseven.connect.ai.agent.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +30,10 @@ import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.application.impl.EmbeddedProcessApplication;
+import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.variable.serializer.AbstractObjectValueSerializer;
+import org.cibseven.bpm.engine.impl.variable.serializer.DefaultVariableSerializers;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.variable.VariableMap;
@@ -183,7 +187,17 @@ public class ProcessContextEngineTest {
       if (memoryId != null) {
         request.useChatMemory(true).memoryId(memoryId);
       }
-      connector.execute(request);
+      if (Boolean.TRUE.equals(execution.getVariable("_inProcessApplication"))) {
+        // As in a deployed process application: the engine joins the
+        // application's serializers onto its own for anything run inside it.
+        EmbeddedProcessApplication application = new EmbeddedProcessApplication();
+        application.setVariableSerializers(new DefaultVariableSerializers()
+            .addSerializer(new JacksonOrderSerializer(true)));
+        Context.executeWithinProcessApplication(() -> connector.execute(request),
+            application.getReference());
+      } else {
+        connector.execute(request);
+      }
     }
   }
 
@@ -192,10 +206,22 @@ public class ProcessContextEngineTest {
     public int amount;
   }
 
-  /** Minimal JSON object serializer for {@link Order}, registered on the test engine. */
+  /**
+   * Minimal JSON object serializer for {@link Order}, registered on the test
+   * engine. A negative amount cannot be serialized, to drive the failure path.
+   * The process-application flavor has the same name, so it overrides the
+   * engine's within the application, and marks its output.
+   */
   static final class JacksonOrderSerializer extends AbstractObjectValueSerializer {
+    private final boolean processApplicationFlavor;
+
     JacksonOrderSerializer() {
+      this(false);
+    }
+
+    JacksonOrderSerializer(boolean processApplicationFlavor) {
       super("application/json");
+      this.processApplicationFlavor = processApplicationFlavor;
     }
 
     @Override
@@ -210,7 +236,13 @@ public class ProcessContextEngineTest {
 
     @Override
     protected byte[] serializeToByteArray(Object deserializedObject) throws Exception {
-      return MAPPER.writeValueAsBytes(deserializedObject);
+      int amount = ((Order) deserializedObject).amount;
+      if (amount < 0) {
+        throw new IllegalStateException("negative amount cannot be serialized");
+      }
+      return processApplicationFlavor
+          ? ("{\"amount\":" + amount + ",\"by\":\"application\"}").getBytes(StandardCharsets.UTF_8)
+          : MAPPER.writeValueAsBytes(deserializedObject);
     }
 
     @Override
@@ -237,7 +269,9 @@ public class ProcessContextEngineTest {
   public static class MutateOrderDelegate implements JavaDelegate {
     @Override
     public void execute(DelegateExecution execution) {
-      ((Order) execution.getVariable("order")).amount = 20;
+      Object newAmount = execution.getVariable("_newAmount");
+      ((Order) execution.getVariable("order")).amount =
+          (newAmount == null) ? 20 : (Integer) newAmount;
     }
   }
 
@@ -421,33 +455,9 @@ public class ProcessContextEngineTest {
    */
   @Test
   public void shouldSendAnObjectChangedInPlaceEarlierInTheSameCommand() throws Exception {
-    deploy("mutateThenAgent", ""
-        + "    <startEvent id='start'/>"
-        + "    <sequenceFlow id='f1' sourceRef='start' targetRef='before'/>"
-        // Wait state: the next command loads "order" from the database, so its
-        // cached value carries a serialized form that the delegate then outdates.
-        + "    <userTask id='before'/>"
-        + "    <sequenceFlow id='f2' sourceRef='before' targetRef='mutate'/>"
-        + "    <serviceTask id='mutate'"
-        + "                 camunda:class='" + MutateOrderDelegate.class.getName() + "'/>"
-        + "    <sequenceFlow id='f3' sourceRef='mutate' targetRef='agent'/>"
-        + "    <serviceTask id='agent'"
-        + "                 camunda:class='" + AgentDelegate.class.getName() + "'/>"
-        + "    <sequenceFlow id='f4' sourceRef='agent' targetRef='wait'/>"
-        + "    <userTask id='wait'/>"
-        + "    <sequenceFlow id='f5' sourceRef='wait' targetRef='end'/>"
-        + "    <endEvent id='end'/>");
-    Order order = new Order();
-    order.amount = 10;
-    String instanceId = engineRule.getRuntimeService().startProcessInstanceByKey("mutateThenAgent",
-        Variables.createVariables()
-            .putValue("_declared", "order")
-            .putValueTyped("order", Variables.objectValue(order)
-                .serializationDataFormat("application/json").create()))
-        .getId();
+    String instanceId = startMutateThenAgent(Variables.createVariables());
 
-    engineRule.getTaskService().complete(engineRule.getTaskService().createTaskQuery()
-        .processInstanceId(instanceId).taskDefinitionKey("before").singleResult().getId());
+    completeBefore(instanceId);
 
     assertThat(capturedSystemMessage)
         .contains("{\"amount\":20}")
@@ -463,6 +473,55 @@ public class ProcessContextEngineTest {
     assertThat(persisted.getValueSerialized()).isEqualTo("{\"amount\":20}");
   }
 
+  /**
+   * Review round 5 (Copilot): when serializing the changed object fails, the
+   * variable used to fall back to toString() and count as resolved, so a
+   * required one reached the model as a substitute string. It is unreadable
+   * now, and the required-variable check stops the run.
+   */
+  @Test
+  public void shouldFailWhenARequiredObjectChangedInPlaceCannotBeSerialized() {
+    String instanceId = startMutateThenAgent(Variables.createVariables()
+        .putValue("_newAmount", -1));
+
+    Throwable thrown = catchThrowable(() -> completeBefore(instanceId));
+
+    assertThat(rootCause(thrown))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("order (unreadable)")
+        .hasMessageContaining("the agent was not invoked");
+    assertThat(capturedSystemMessage).isNull();
+  }
+
+  /** The same case for an optional variable: sent as (unreadable), never as toString(). */
+  @Test
+  public void shouldSendAnOptionalObjectThatCannotBeSerializedAsUnreadable() {
+    String instanceId = startMutateThenAgent(Variables.createVariables()
+        .putValue("_optional", "order")
+        .putValue("_newAmount", -1));
+
+    // The agent runs; the engine's own flush then fails on the same object.
+    catchThrowable(() -> completeBefore(instanceId));
+
+    assertThat(capturedSystemMessage)
+        .contains("order = (unreadable)")
+        .doesNotContain(Order.class.getName() + "@");
+  }
+
+  /**
+   * Review round 5 (Copilot): the serializer has to come from the engine's
+   * effective registry, process-application serializers included, as the
+   * engine itself resolves it — not from the engine configuration alone.
+   */
+  @Test
+  public void shouldSerializeWithTheProcessApplicationSerializerInsideTheApplication() {
+    String instanceId = startMutateThenAgent(Variables.createVariables()
+        .putValue("_inProcessApplication", true));
+
+    completeBefore(instanceId);
+
+    assertThat(capturedSystemMessage).contains("{\"amount\":20,\"by\":\"application\"}");
+  }
   // ── required variables abort the activity ──────────────────────────────────
 
   @Test
@@ -635,6 +694,43 @@ public class ProcessContextEngineTest {
         .collect(java.util.stream.Collectors.toList());
     assertThat(matching).as("events of type " + type).hasSize(1);
     return matching.get(0);
+  }
+
+  /**
+   * Starts a process that holds "order" (amount 10) at a user task. Completing
+   * that task runs, in one command, a delegate that changes the order in place
+   * and then the agent — the next command loads "order" from the database, so
+   * its cached value carries a serialized form the delegate then outdates.
+   */
+  private String startMutateThenAgent(VariableMap extra) {
+    deploy("mutateThenAgent", ""
+        + "    <startEvent id='start'/>"
+        + "    <sequenceFlow id='f1' sourceRef='start' targetRef='before'/>"
+        + "    <userTask id='before'/>"
+        + "    <sequenceFlow id='f2' sourceRef='before' targetRef='mutate'/>"
+        + "    <serviceTask id='mutate'"
+        + "                 camunda:class='" + MutateOrderDelegate.class.getName() + "'/>"
+        + "    <sequenceFlow id='f3' sourceRef='mutate' targetRef='agent'/>"
+        + "    <serviceTask id='agent'"
+        + "                 camunda:class='" + AgentDelegate.class.getName() + "'/>"
+        + "    <sequenceFlow id='f4' sourceRef='agent' targetRef='wait'/>"
+        + "    <userTask id='wait'/>"
+        + "    <sequenceFlow id='f5' sourceRef='wait' targetRef='end'/>"
+        + "    <endEvent id='end'/>");
+    Order order = new Order();
+    order.amount = 10;
+    VariableMap variables = Variables.createVariables()
+        .putValue("_declared", "order")
+        .putValueTyped("order", Variables.objectValue(order)
+            .serializationDataFormat("application/json").create());
+    variables.putAll(extra);
+    return engineRule.getRuntimeService()
+        .startProcessInstanceByKey("mutateThenAgent", variables).getId();
+  }
+
+  private void completeBefore(String instanceId) {
+    engineRule.getTaskService().complete(engineRule.getTaskService().createTaskQuery()
+        .processInstanceId(instanceId).taskDefinitionKey("before").singleResult().getId());
   }
 
   private void deploy(String key, String body) {
