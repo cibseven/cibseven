@@ -308,6 +308,7 @@
         <dependency>
           <groupId>org.graalvm.js</groupId>
           <artifactId>js</artifactId>
+          <type>pom</type>
           <scope>test</scope>
         </dependency>
 

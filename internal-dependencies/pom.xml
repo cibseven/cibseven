@@ -167,6 +167,7 @@
       <dependency>
         <groupId>org.graalvm.js</groupId>
         <artifactId>js</artifactId>
+        <type>pom</type>
         <version>${version.graal.js}</version>
       </dependency>
       <dependency>
