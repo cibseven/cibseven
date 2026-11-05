@@ -160,7 +160,8 @@ public abstract class AbstractRenderFormDelegate {
 
     documentBuilder.startElement(divElement);
 
-    String formFieldId = formField.getId();
+    // fail before anything is rendered for an id that cannot be embedded into the form's scripts / expressions
+    String formFieldId = HtmlFormEngine.validateFormFieldId(formField.getId());
     String formFieldLabel = formField.getLabel();
 
     // write label
@@ -212,7 +213,7 @@ public abstract class AbstractRenderFormDelegate {
     HtmlElementWriter inputGroupDivElement = new HtmlElementWriter(DIV_ELEMENT)
         .attribute(CLASS_ATTRIBUTE, INPUT_GROUP_CLASS);
 
-    String formFieldId = formField.getId();
+    String formFieldId = HtmlFormEngine.validateFormFieldId(formField.getId());
 
     // <div>
     documentBuilder.startElement(inputGroupDivElement);
@@ -223,7 +224,8 @@ public abstract class AbstractRenderFormDelegate {
     if(!isReadOnly) {
       inputField
           .attribute(DATEPICKER_POPUP_ATTRIBUTE, DATE_FORMAT)
-          .attribute(IS_OPEN_ATTRIBUTE, String.format(DATE_FIELD_OPENED_ATTRIBUTE, formFieldId));
+          // AngularJS expression: constant text plus the validated form field id
+          .rawAttribute(IS_OPEN_ATTRIBUTE, String.format(DATE_FIELD_OPENED_ATTRIBUTE, formFieldId));
     }
 
     // <input ... />
@@ -246,7 +248,8 @@ public abstract class AbstractRenderFormDelegate {
       HtmlElementWriter buttonElement = new HtmlElementWriter(BUTTON_ELEMENT)
           .attribute(TYPE_ATTRIBUTE, BUTTON_BUTTON_TYPE)
           .attribute(CLASS_ATTRIBUTE, BUTTON_DEFAULT_CLASS)
-          .attribute(NG_CLICK_ATTRIBUTE, String.format(OPEN_DATEPICKER_FUNCTION_SNIPPET, formFieldId));
+          // AngularJS expression: constant text plus the validated form field id
+          .rawAttribute(NG_CLICK_ATTRIBUTE, String.format(OPEN_DATEPICKER_FUNCTION_SNIPPET, formFieldId));
 
       // <button>
       documentBuilder.startElement(buttonElement);
@@ -269,7 +272,8 @@ public abstract class AbstractRenderFormDelegate {
       HtmlElementWriter scriptElement = new HtmlElementWriter(SCRIPT_ELEMENT)
           .attribute(CAM_SCRIPT_ATTRIBUTE, null)
           .attribute(TYPE_ATTRIBUTE, TEXT_FORM_SCRIPT_TYPE)
-          .textContent(String.format(OPEN_DATEPICKER_SNIPPET, formFieldId, formFieldId));
+          // JavaScript executed by the client: constant text plus the validated form field id
+          .rawTextContent(String.format(OPEN_DATEPICKER_SNIPPET, formFieldId, formFieldId));
 
       // <script ...> </script>
       documentBuilder
@@ -333,11 +337,12 @@ public abstract class AbstractRenderFormDelegate {
   protected void renderInvalidMessageElement(FormField formField, HtmlDocumentBuilder documentBuilder) {
     HtmlElementWriter divElement = new HtmlElementWriter(DIV_ELEMENT);
 
-    String formFieldId = formField.getId();
+    String formFieldId = HtmlFormEngine.validateFormFieldId(formField.getId());
     String ifExpression = String.format(INVALID_EXPRESSION + " && " + DIRTY_EXPRESSION, formFieldId, formFieldId);
 
     divElement
-        .attribute(NG_IF_ATTRIBUTE, ifExpression)
+        // AngularJS expression: constant text plus the validated form field id
+        .rawAttribute(NG_IF_ATTRIBUTE, ifExpression)
         .attribute(CLASS_ATTRIBUTE, HAS_ERROR_CLASS);
 
     // <div ng-if="....$invalid && ....$dirty"...>
@@ -357,12 +362,13 @@ public abstract class AbstractRenderFormDelegate {
   protected void renderInvalidValueMessage(FormField formField, HtmlDocumentBuilder documentBuilder) {
     HtmlElementWriter divElement = new HtmlElementWriter(DIV_ELEMENT);
 
-    String formFieldId = formField.getId();
+    String formFieldId = HtmlFormEngine.validateFormFieldId(formField.getId());
 
     String expression = String.format(REQUIRED_ERROR_EXPRESSION, formFieldId);
 
     divElement
-        .attribute(NG_SHOW_ATTRIBUTE, expression)
+        // AngularJS expression: constant text plus the validated form field id
+        .rawAttribute(NG_SHOW_ATTRIBUTE, expression)
         .attribute(CLASS_ATTRIBUTE, HELP_BLOCK_CLASS)
         .textContent(REQUIRED_FIELD_MESSAGE);
 
@@ -374,7 +380,7 @@ public abstract class AbstractRenderFormDelegate {
   protected void renderInvalidTypeMessage(FormField formField, HtmlDocumentBuilder documentBuilder) {
     HtmlElementWriter divElement = new HtmlElementWriter(DIV_ELEMENT);
 
-    String formFieldId = formField.getId();
+    String formFieldId = HtmlFormEngine.validateFormFieldId(formField.getId());
 
     String expression = String.format(TYPE_ERROR_EXPRESSION, formFieldId);
 
@@ -385,7 +391,8 @@ public abstract class AbstractRenderFormDelegate {
     }
 
     divElement
-        .attribute(NG_SHOW_ATTRIBUTE, expression)
+        // AngularJS expression: constant text plus the validated form field id
+        .rawAttribute(NG_SHOW_ATTRIBUTE, expression)
         .attribute(CLASS_ATTRIBUTE, HELP_BLOCK_CLASS)
         .textContent(String.format(TYPE_FIELD_MESSAGE, typeName));
 
@@ -395,14 +402,15 @@ public abstract class AbstractRenderFormDelegate {
   }
 
   protected void renderInvalidDateMessage(FormField formField, HtmlDocumentBuilder documentBuilder) {
-    String formFieldId = formField.getId();
+    String formFieldId = HtmlFormEngine.validateFormFieldId(formField.getId());
 
     HtmlElementWriter firstDivElement = new HtmlElementWriter(DIV_ELEMENT);
 
     String firstExpression = String.format(REQUIRED_ERROR_EXPRESSION + " && !" + DATE_ERROR_EXPRESSION, formFieldId, formFieldId);
 
     firstDivElement
-        .attribute(NG_SHOW_ATTRIBUTE, firstExpression)
+        // AngularJS expression: constant text plus the validated form field id
+        .rawAttribute(NG_SHOW_ATTRIBUTE, firstExpression)
         .attribute(CLASS_ATTRIBUTE, HELP_BLOCK_CLASS)
         .textContent(REQUIRED_FIELD_MESSAGE);
 
@@ -415,7 +423,8 @@ public abstract class AbstractRenderFormDelegate {
     String secondExpression = String.format(DATE_ERROR_EXPRESSION, formFieldId);
 
     secondDivElement
-        .attribute(NG_SHOW_ATTRIBUTE, secondExpression)
+        // AngularJS expression: constant text plus the validated form field id
+        .rawAttribute(NG_SHOW_ATTRIBUTE, secondExpression)
         .attribute(CLASS_ATTRIBUTE, HELP_BLOCK_CLASS)
         .textContent(INVALID_DATE_FIELD_MESSAGE);
 
