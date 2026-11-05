@@ -309,13 +309,13 @@ pipeline {
                 stage('Run Integration') {
                     when { expression { params.QA_RUN_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f distro/run/pom.xml clean install -Pintegration-test-run" }}
+                        script { catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') { withMaven { sh "mvn -f distro/run/pom.xml clean install -Pintegration-test-run" }}}
                     }
                 }
                 stage('Spring Boot Integration') {
                     when { expression { params.QA_SPRING_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }}
+                        script { catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') { withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }}}
                     }
                 }
                 stage('Performance') {
@@ -351,26 +351,26 @@ pipeline {
                     when { expression { params.QA_LARGE_DATA || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         // cleanup parent qa directory before large-data test: it can contain h2 database from previous tests
-                        script { withMaven { sh "mvn -f qa/pom.xml clean" }}
-                        script { withMaven { sh "mvn -f qa/large-data-tests/pom.xml clean install -Plarge-data-tests,h2" }}
+                        script { catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') { withMaven { sh "mvn -f qa/pom.xml clean" }}}
+                        script { catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') { withMaven { sh "mvn -f qa/large-data-tests/pom.xml clean install -Plarge-data-tests,h2" }}}
                     }
                 }
                 stage('Old engine with new schema') { // TODO: fix BpmPlatformXmlLocationTest and DbIdentityServicePGTest
                     when { expression { params.QA_OLD_ENG || params.QA_TEST_SUITE == 'ALL' }}
-                    steps { script { withMaven { sh "mvn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}}
+                    steps { script { catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') { withMaven { sh "mvn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}}}
                 }
                 stage('Rolling update') {
                     when { expression { params.QA_ROLL_UPD || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
-                        script { withMaven { sh "mvn -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}
+                        script { catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}}
+                        script { catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') { withMaven { sh "mvn -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}}
                     }
                 }
                 stage('Instanse migration') {
                     when { expression { params.QA_INST_MIGR || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
-                        script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
+                        script { catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}}
+                        script { catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}}
                     }
                 }
             }
@@ -810,6 +810,8 @@ def checkDepVersionAlignment() {
 // run, since every "clean" of the same module deletes those of the run before (CIB7-2164).
 // The published reports are deleted afterwards, so that the final stage does not count them twice.
 def mvnWithTestReports(String mvnArgs, String moduleDir) {
+  // TRAIN-ONLY: keep going after a failed QA run
+  catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') { 
     try {
         withMaven { sh "mvn ${mvnArgs}" }
     } finally {
@@ -817,6 +819,7 @@ def mvnWithTestReports(String mvnArgs, String moduleDir) {
               testResults: "${moduleDir}/**/target/surefire-reports/*.xml,${moduleDir}/**/target/failsafe-reports/*.xml"
         sh "find ${moduleDir} -type d \\( -name surefire-reports -o -name failsafe-reports \\) -prune -exec rm -rf {} +"
     }
+  }
 }
 
 // - "1.2.0" -> no
