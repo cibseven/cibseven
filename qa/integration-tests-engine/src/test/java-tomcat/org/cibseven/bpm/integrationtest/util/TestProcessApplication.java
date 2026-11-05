@@ -17,15 +17,13 @@
 package org.cibseven.bpm.integrationtest.util;
 
 import org.cibseven.bpm.application.ProcessApplication;
+import org.cibseven.bpm.application.impl.JakartaServletProcessApplication;
 
 /**
  * @author Daniel Meyer
  *
  */
 @ProcessApplication
-// Tomcat deliberately keeps ServletProcessApplication. Switching it to
-// JakartaServletProcessApplication, which the WildFly servlet flavour does need, breaks CDI bean
-// resolution here: CdiBeanCallActivityResolutionTest then cannot resolve ${delegateBefore}.
-public class TestProcessApplication extends org.cibseven.bpm.application.impl.ServletProcessApplication {
+public class TestProcessApplication extends JakartaServletProcessApplication {
 
 }
