@@ -246,6 +246,19 @@ pipeline {
                 stage('webapp-UNIT-database-table-prefix') {
                     steps { script { withMaven { sh "mvn -f webapps/assembly/pom.xml test -Pdb-table-prefix -Dskip.frontend.build=true" }}}
                 }
+                stage('engine-rest') {
+                    // 'engine UNIT & IT' runs engine-rest on the default runtime (Jersey);
+                    // these stages cover the other JAX-RS runtimes. 'clean' is needed because
+                    // each profile registers its own ContainerSpecifics service in target/test-classes.
+                    stages {
+                        stage('engine-rest-UNIT-resteasy') {
+                            steps { script { withMaven { sh "mvn -f engine-rest/engine-rest/pom.xml clean test -Presteasy" }}}
+                        }
+                        stage('engine-rest-UNIT-ee10-compatibility') {
+                            steps { script { withMaven { sh "mvn -f engine-rest/engine-rest/pom.xml clean test -Pee10-compatibility" }}}
+                        }
+                    }
+                }
                 stage("quarkus") {
                     stages {
                         stage('quarkus-extension') {
