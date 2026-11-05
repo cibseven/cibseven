@@ -1983,7 +1983,21 @@ public class AgenticAdHocParseListenerTest {
         + " value='perActivity' /></camunda:properties>", "")
         .replace("'adHoc'", "'" + "a".repeat(180) + "'");
     assertThatThrownBy(() -> deploy(model)).isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("255-character limit").hasMessageContaining("Shorten the activity id");
+        .hasMessageContaining("255-byte limit").hasMessageContaining("Shorten the activity id");
+  }
+
+  /**
+   * The limit counts UTF-8 bytes, as the chat memory store does at runtime: an id that fits in
+   * characters but not in bytes is refused here rather than failing on every step (CIB7-2156).
+   */
+  @Test
+  public void refusesAPerActivityIdTooLongInBytesBeforeTheFirstInstance() {
+    String model = connectorScope("<userTask id='worker' />",
+        "<camunda:properties><camunda:property name='cibseven.agentic.conversation'"
+        + " value='perActivity' /></camunda:properties>", "")
+        .replace("'adHoc'", "'" + "\u00e4".repeat(100) + "'");
+    assertThatThrownBy(() -> deploy(model)).isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("bytes in UTF-8").hasMessageContaining("Shorten the activity id");
   }
 
   @Test
