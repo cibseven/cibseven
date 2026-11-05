@@ -18,6 +18,7 @@ package org.cibseven.connect.ai.agent.agentic;
 
 import java.util.Date;
 
+import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.db.entitymanager.cache.CachedDbEntity;
 import org.cibseven.bpm.engine.impl.db.entitymanager.cache.DbEntityState;
@@ -99,6 +100,13 @@ public final class AgenticTurnScheduler {
     message.setTenantId(scopeExecution.getTenantId());
     message.setProcessDefinitionId(scopeExecution.getProcessDefinitionId());
     message.setProcessDefinitionKey(scopeExecution.getProcessDefinition().getKey());
+    // The due date as a job declaration resolves it: an engine that gives every job one acquires
+    // only jobs whose due date has come, and would never acquire a turn without one.
+    ProcessEngineConfigurationImpl configuration = commandContext.getProcessEngineConfiguration();
+    if (configuration.isJobExecutorAcquireByDueDate()
+        || configuration.isEnsureJobDueDateNotNull()) {
+      message.setDuedate(ClockUtil.getCurrentTime());
+    }
 
     commandContext.getJobManager().send(message);
   }

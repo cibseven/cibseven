@@ -103,6 +103,8 @@ public class AgenticTurnJobTest {
   private String engineRetryCycle;
   /** Whether the next {@code start}'s job executor queues a job a job creates on its thread. */
   private boolean hintJobExecutor = true;
+  /** Whether the next {@code start}'s engine gives every job a due date. */
+  private boolean ensureJobDueDateNotNull;
   /** The default serialization format the next {@code start} configures; the engine's own if null. */
   private String defaultSerializationFormat;
   private final ConcurrentLinkedQueue<String> script = new ConcurrentLinkedQueue<>();
@@ -1895,6 +1897,38 @@ public class AgenticTurnJobTest {
     assertThat(finalValue(pi, "agentOutput")).isEqualTo("Warte auf den Worker.");
     assertThat(engine.getTaskService().createTaskQuery().processInstanceId(pi.getId())
         .taskDefinitionKey("worker").count()).as("the worker still runs").isOne();
+  }
+
+  /**
+   * An engine that gives every job a due date acquires only jobs whose due date has come, so a turn
+   * job needs one, as a job declaration gives it: the first turn, created as the process starts,
+   * and the next step run under the job executor.
+   */
+  @Test
+  public void withDueDatesEnsuredTheTurnJobsHaveOneAndRun() throws Exception {
+    ensureJobDueDateNotNull = true;
+    script.add(toolCall("worker", "{}"));
+    script.add(answer("Warte."));
+    ProcessInstance pi = start();
+    assertThat(engine.getManagementService().createJobQuery().singleResult().getDuedate())
+        .as("the turn job created on entry has a due date").isNotNull();
+
+    JobExecutor executor =
+        ((ProcessEngineConfigurationImpl) engine.getProcessEngineConfiguration()).getJobExecutor();
+    executor.start();
+    try {
+      long deadline = System.currentTimeMillis() + 30000;
+      while (engine.getManagementService().createJobQuery().count() > 0
+          && System.currentTimeMillis() < deadline) {
+        Thread.sleep(100);
+      }
+    } finally {
+      executor.shutdown();
+    }
+
+    assertThat(requests.get()).as("both steps ran under the executor").isEqualTo(2);
+    assertThat(engine.getTaskService().createTaskQuery().processInstanceId(pi.getId())
+        .taskDefinitionKey("worker").count()).isOne();
   }
 
   /** {@link #ASYNC_AND_WAITING}, both called in one answer, run under the job executor. */
@@ -4630,6 +4664,7 @@ public class AgenticTurnJobTest {
     // Off: the turn is run by hand, so the outcome is a step and not a race.
     configuration.setJobExecutorActivate(false);
     configuration.setHintJobExecutor(hintJobExecutor);
+    configuration.setEnsureJobDueDateNotNull(ensureJobDueDateNotNull);
     configuration.setHistoryTimeToLive("P30D");
     configuration.setHistory(ProcessEngineConfiguration.HISTORY_FULL);
     configuration.setFailedJobRetryTimeCycle(engineRetryCycle);
