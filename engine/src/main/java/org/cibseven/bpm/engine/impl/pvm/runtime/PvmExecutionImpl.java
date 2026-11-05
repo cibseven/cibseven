@@ -57,8 +57,10 @@ import org.cibseven.bpm.engine.impl.pvm.PvmProcessDefinition;
 import org.cibseven.bpm.engine.impl.pvm.PvmProcessInstance;
 import org.cibseven.bpm.engine.impl.pvm.PvmScope;
 import org.cibseven.bpm.engine.impl.pvm.PvmTransition;
+import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityBehavior;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;
 import org.cibseven.bpm.engine.impl.pvm.delegate.CompositeActivityBehavior;
+import org.cibseven.bpm.engine.impl.pvm.delegate.ForkObserverBehavior;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ModificationObserverBehavior;
 import org.cibseven.bpm.engine.impl.pvm.delegate.SignallableActivityBehavior;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
@@ -536,6 +538,13 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
     //  -------    -------      -------  -------  -------
     //
     // eX+1 is concurrent and the new root for the activity stack to instantiate
+    //
+    // (2) is not for a single child that is concurrent while this execution stands on a scope
+    // activity. That tree is expanded already, and the execution occupies no activity to hand over,
+    // so it is (3). Only an ad hoc sub process waits like that: its execution stays on its own
+    // activity and runs each child on a concurrent execution, so one child running alone is that
+    // case; taking (2) for a fork in it moved the child under a new concurrent execution and took the
+    // scope execution off its activity and its activity instance (CIB7-2264).
     List<? extends PvmExecutionImpl> children = this.getNonEventScopeExecutions();
 
     // whenever we change the set of child executions we have to force an update
@@ -552,7 +561,8 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
       this.inactivate();
       this.setActivity(null);
 
-    } else if (children.size() == 1) {
+    } else if (children.size() == 1
+        && !(children.get(0).isConcurrent() && getActivity() != null && getActivity().isScope())) {
       // (2)
       PvmExecutionImpl child = children.get(0);
 
@@ -992,12 +1002,32 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
     }
   }
 
+  /**
+   * CIB7-2264. The behavior of the scope this execution is a concurrent child of, when the scope
+   * execution stands on that scope's own activity and the behavior observes forks among its
+   * children; null otherwise.
+   */
+  public ForkObserverBehavior getForkObserver() {
+    PvmExecutionImpl scopeExecution = getParent();
+    if (!isConcurrent() || scopeExecution == null || scopeExecution.getActivity() == null) {
+      return null;
+    }
+    ActivityBehavior behavior = scopeExecution.getActivity().getActivityBehavior();
+    return behavior instanceof ForkObserverBehavior ? (ForkObserverBehavior) behavior : null;
+  }
+
   @Override
   @SuppressWarnings({"rawtypes", "unchecked"})
   public List<ActivityExecution> findInactiveConcurrentExecutions(PvmActivity activity) {
     List<PvmExecutionImpl> inactiveConcurrentExecutionsInActivity = new ArrayList<>();
     if (isConcurrent()) {
-      return getParent().findInactiveChildExecutions(activity);
+      List<ActivityExecution> inactiveSiblings = getParent().findInactiveChildExecutions(activity);
+      // CIB7-2264: under a scope that observes forks, a join counts only what the scope lets it
+      ForkObserverBehavior forkObserver = getForkObserver();
+      if (forkObserver != null) {
+        inactiveSiblings.removeIf(sibling -> !forkObserver.mayJoin(getParent(), this, sibling));
+      }
+      return inactiveSiblings;
     } else if (!isActive()) {
       inactiveConcurrentExecutionsInActivity.add(this);
     }
@@ -1049,6 +1079,13 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
     // execution).
     if (recyclableExecutions.size() > 1) {
       removeVariablesLocalInternal();
+
+      // CIB7-2264: a scope that observes forks may need to give the execution that goes on back
+      // what tells its branches apart
+      ForkObserverBehavior forkObserver = getForkObserver();
+      if (forkObserver != null) {
+        forkObserver.branchesJoined(getParent(), this, recyclableExecutions);
+      }
     }
 
     // mark all recyclable executions as ended
@@ -1060,6 +1097,11 @@ public abstract class PvmExecutionImpl extends CoreExecution implements
     // this is a workaround to not delete all recyclable
     // executions and create a new execution which leaves
     // the activity.
+    // CIB7-2264: keep marking all of them before the first
+    // of them ends below. An ad hoc sub process tells a branch
+    // merged here from the end of a path by a sibling at the
+    // same gateway already marked ended
+    // (AdHocSubProcessActivityBehavior#isMergedAtJoin).
     for (ActivityExecution execution : recyclableExecutions) {
       execution.setEnded(true);
     }

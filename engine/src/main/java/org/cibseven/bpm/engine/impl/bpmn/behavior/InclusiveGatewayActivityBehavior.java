@@ -28,8 +28,10 @@ import org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParse;
 import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
 import org.cibseven.bpm.engine.impl.pvm.PvmTransition;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;
+import org.cibseven.bpm.engine.impl.pvm.delegate.ForkObserverBehavior;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
+import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
 
 /**
  * Implementation of the Inclusive Gateway/OR gateway/inclusive data-based
@@ -116,6 +118,13 @@ public class InclusiveGatewayActivityBehavior extends GatewayActivityBehavior {
     else {
       Collection<ActivityExecution> executionsNotAtGateway = getLeafExecutions(scopeExecution);
       executionsNotAtGateway.removeAll(executionsAtGateway);
+
+      // CIB7-2264: under a scope that observes forks, only what the scope lets the join count can
+      // keep it waiting
+      ForkObserverBehavior forkObserver = ((PvmExecutionImpl) execution).getForkObserver();
+      if (forkObserver != null) {
+        executionsNotAtGateway.removeIf(other -> !forkObserver.mayJoin(scopeExecution, execution, other));
+      }
 
       for (ActivityExecution executionNotAtGateway : executionsNotAtGateway) {
         if (canReachActivity(executionNotAtGateway, gatewayActivity)) {

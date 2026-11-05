@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-2264. A fork into three branches and a join of all three, so one join merges two
+     branches of an activation. The scope gathers the activity each path ends in. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="threeWayJoin" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <extensionElements>
+        <camunda:properties>
+          <camunda:property name="outputCollection" value="results" />
+          <camunda:property name="outputElement" value="${execution.currentActivityId}" />
+        </camunda:properties>
+      </extensionElements>
+      <serviceTask id="split" camunda:expression="${1}" />
+      <sequenceFlow id="i1" sourceRef="split" targetRef="fork" />
+      <parallelGateway id="fork" />
+      <sequenceFlow id="i2" sourceRef="fork" targetRef="a" />
+      <sequenceFlow id="i3" sourceRef="fork" targetRef="b" />
+      <sequenceFlow id="i4" sourceRef="fork" targetRef="c" />
+      <userTask id="a" />
+      <userTask id="b" />
+      <userTask id="c" />
+      <sequenceFlow id="i5" sourceRef="a" targetRef="join" />
+      <sequenceFlow id="i6" sourceRef="b" targetRef="join" />
+      <sequenceFlow id="i7" sourceRef="c" targetRef="join" />
+      <parallelGateway id="join" />
+      <sequenceFlow id="i8" sourceRef="join" targetRef="after" />
+      <userTask id="after" />
+      <completionCondition xsi:type="tFormalExpression">${false}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

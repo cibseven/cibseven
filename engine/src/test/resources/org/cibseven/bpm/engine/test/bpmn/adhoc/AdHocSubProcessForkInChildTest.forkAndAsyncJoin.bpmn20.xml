@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-2264. The fork and join of forkAndJoin with a join that starts asynchronously, so a branch
+     reaches it in a job of its own, read back from the database. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="forkAndAsyncJoin" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <serviceTask id="split" camunda:expression="${1}" />
+      <sequenceFlow id="i1" sourceRef="split" targetRef="fork" />
+      <parallelGateway id="fork" />
+      <sequenceFlow id="i2" sourceRef="fork" targetRef="left" />
+      <sequenceFlow id="i3" sourceRef="fork" targetRef="right" />
+      <userTask id="left" />
+      <userTask id="right" />
+      <sequenceFlow id="i4" sourceRef="left" targetRef="join" />
+      <sequenceFlow id="i5" sourceRef="right" targetRef="join" />
+      <parallelGateway id="join" camunda:asyncBefore="true" />
+      <sequenceFlow id="i6" sourceRef="join" targetRef="after" />
+      <userTask id="after" />
+      <completionCondition xsi:type="tFormalExpression">${false}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>
