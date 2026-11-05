@@ -241,10 +241,19 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     // the HTTP transport for the JVM lifetime, which over many BPMN runs turns
     // into a noisy burst of reconnect WARNs every time the MCP server restarts.
     List<McpClient> mcpClients = new ArrayList<>();
+    // This invocation's audit listener, out here so the finally block can write what no model
+    // call's end wrote (CIB7-2156).
+    AgentChatListener auditListener = null;
+    // What this invocation failed with, if it did, so a failing flush does not hide it.
+    Throwable failure = null;
     // Everything after the ThreadLocal writes above must sit inside this try:
     // its finally is what clears them again, and a leaked caller Authentication
     // would be visible to the next, unrelated task on this pooled thread.
-    try {
+    // The conversation is written once, when this invocation ends, rather than on every message
+    // LangChain4j adds to it: one history row per model step instead of one per message
+    // (CIB7-2156).
+    try (ProcessVariableChatMemoryStore.Batch conversations =
+        ProcessVariableChatMemoryStore.Batch.open()) {
       // Decided once per run: an agentic turn gets the scope's activities as tools,
       // the state block in its message and the scope's own loop bound.
       ExecutionEntity agenticScope = agenticTurnScope();
@@ -291,6 +300,9 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       }
 
       ChatModel chatModel = createChatModel(request, apiKey, baseUrl, customHeaders);
+      // Taken at once, so the finally block writes the context and documents events recorded
+      // below even when the invocation fails before the model is asked (CIB7-2156).
+      auditListener = ProcessStarterToolContext.getActiveListener();
 
       // Now that createChatModel has installed the AgentChatListener, record
       // which declared variables resolved, then abort if a required one is
@@ -346,7 +358,6 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       // createChatModel. Stamped onto every event that lists tools or tool
       // calls so MCP-sourced tools stay distinguishable from local @Tool
       // Java implementations (EU AI Act Art. 26 data-flow disclosure).
-      AgentChatListener auditListener = ProcessStarterToolContext.getActiveListener();
       if (auditListener != null) {
         auditListener.setToolProvenance(
             buildToolProvenance(tools, mcpClients, mcpServerSpecs, mcpClientPrefixes));
@@ -511,10 +522,31 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         return new AgentResponseImpl(null, memoryId, aiMeta, true);
       }
       return new AgentResponseImpl(output, memoryId, aiMeta);
+    } catch (Throwable e) {
+      // Every throwable, a checked one thrown without being declared included: the flush below
+      // must not take its place.
+      failure = e;
+      throw e;
     } finally {
-      closeMcpClients(mcpClients);
-      ProcessStarterToolContext.restore(previousContext);
-      MCP_APPLICATION_ERROR.remove();
+      try {
+        // The chat log is written with the response or the error that ends a model call. A
+        // retrieval or request no such event followed, because the invocation failed in between,
+        // is written here, so a transaction that commits anyway keeps it in the audit trail.
+        if (auditListener != null) {
+          auditListener.flush();
+        }
+      } catch (RuntimeException | Error e) {
+        // Where the invocation failed already, its own exception is the one to report; the
+        // flush's goes with it rather than in its place.
+        if (failure == null) {
+          throw e;
+        }
+        failure.addSuppressed(e);
+      } finally {
+        closeMcpClients(mcpClients);
+        ProcessStarterToolContext.restore(previousContext);
+        MCP_APPLICATION_ERROR.remove();
+      }
     }
   }
 

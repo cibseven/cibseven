@@ -137,6 +137,21 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
     }
   }
 
+  /** What {@link ChildPeeksAtTheVariable} found under the conversation's name. */
+  static volatile Object seenRawByChild;
+
+  /**
+   * A child of the scope reading the conversation's variable name directly, as a tool could,
+   * reaching whatever its parent chain holds.
+   */
+  public static class ChildPeeksAtTheVariable implements JavaDelegate {
+
+    @Override
+    public void execute(DelegateExecution execution) {
+      seenRawByChild = execution.getVariable(VARIABLE_NAME);
+    }
+  }
+
   /** Whether {@link ChildClearsMemory} ran its clear. */
   static volatile boolean clearedByChild;
 
@@ -159,6 +174,7 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
   public void setUp() {
     readBack = null;
     seenByChild = null;
+    seenRawByChild = null;
     clearedByChild = false;
     ScriptedAgent.reset();
     // The children go through the shared store. With the persistent store switched off, or another
@@ -243,6 +259,8 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
         + ChildReadsMemory.class.getName() + "' />"
         + "    <serviceTask id='clears' name='Clears' camunda:class='"
         + ChildClearsMemory.class.getName() + "' />"
+        + "    <serviceTask id='peeks' name='Peeks' camunda:class='"
+        + ChildPeeksAtTheVariable.class.getName() + "' />"
         + "  </adHocSubProcess>"
         + "  <sequenceFlow id='f2' sourceRef='adHoc' targetRef='end' />"
         + "  <endEvent id='end' />"
@@ -567,6 +585,80 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
           : ((AiMessage) message).text());
     }
     return texts;
+  }
+
+  // --- within a batch, as a connector invocation writes (CIB7-2156) -----------
+
+  /**
+   * Writes the conversation within a batch, as a connector invocation does (CIB7-2156), and runs
+   * a tool before the batch closes, as a tool the agent calls in that invocation does.
+   */
+  private static final Turn WRITE_IN_A_BATCH_THEN_RUN_A_TOOL = (scope, store) -> {
+    try (ProcessVariableChatMemoryStore.Batch batch = ProcessVariableChatMemoryStore.Batch.open()) {
+      WRITE.run(scope, store);
+      new AdHocSubProcessTool().startActivity("peeks", Collections.<String, Object>emptyMap());
+      new AdHocSubProcessTool().startActivity("waits", Collections.<String, Object>emptyMap());
+    }
+  };
+
+  /**
+   * A write held back in a batch reaches no tool the invocation runs before the batch closes, and
+   * the close writes it on the agent state only: a conversation at the process level under the
+   * agent's name is not the agent's and stays as it was, as without a batch (CIB7-2408).
+   */
+  @Test
+  public void aWriteHeldInABatchLandsOnTheAgentStateAndLeavesTheProcessLevelAlone() {
+    ProcessInstance instance = start(keepingTheScopeOpen(PLANT_AT_PROCESS_LEVEL),
+        WRITE_IN_A_BATCH_THEN_RUN_A_TOOL);
+
+    runTurn(instance);
+    completeTask(instance, "waits");
+    runTurn(instance);
+
+    assertThat(seenRawByChild).as("the tool ran and found the planted conversation").isNotNull();
+    assertThat(texts(ChatMessageDeserializer.messagesFromJson(seenRawByChild.toString())))
+        .as("what the tool found under the conversation's name, not the agent's")
+        .containsExactly(PLANTED_TEXT);
+    List<VariableInstance> variables = memoryVariables(instance);
+    assertThat(variables).as("the agent's copy and the planted one").hasSize(2);
+    assertThat(texts(atProcessLevel(instance, variables)))
+        .as("the planted copy, unchanged").containsExactly(PLANTED_TEXT);
+    assertThat(texts(elsewhere(instance, variables)))
+        .as("written when the batch closed, on the agent state")
+        .containsExactly("My name is Alice.", "Noted, Alice.");
+  }
+
+  /**
+   * Within one batch: the agent writes its conversation, code outside the agent's call writes one
+   * at the process level under the same name, and the agent deletes its own.
+   */
+  private static final Turn WRITE_OTHER_WRITE_THEN_DELETE_IN_A_BATCH = (scope, store) -> {
+    try (ProcessVariableChatMemoryStore.Batch batch = ProcessVariableChatMemoryStore.Batch.open()) {
+      WRITE.run(scope, store);
+      AdHocConversation.outsideDrive(() -> {
+        store.updateMessages(MEMORY_ID,
+            Collections.<ChatMessage>singletonList(UserMessage.from(PLANTED_TEXT)));
+        return null;
+      });
+      DELETE.run(scope, store);
+    }
+  };
+
+  /**
+   * The agent's delete within a batch drops what the batch holds for the agent's conversation,
+   * and only that: a process-level write under the same name is not the agent's, and the close
+   * writes it, as the agent's delete leaves the process-level variable itself alone (CIB7-2408).
+   */
+  @Test
+  public void theAgentsDeleteInABatchDropsOnlyItsOwnHeldWrite() {
+    ProcessInstance instance = start(keepingTheScopeOpen(WRITE_OTHER_WRITE_THEN_DELETE_IN_A_BATCH));
+
+    runTurn(instance);
+
+    List<VariableInstance> variables = memoryVariables(instance);
+    assertThat(variables).as("the process-level write, and nothing of the agent's").hasSize(1);
+    assertThat(variables.get(0).getExecutionId()).isEqualTo(instance.getId());
+    assertThat(texts(variables.get(0))).containsExactly(PLANTED_TEXT);
   }
 
   // --- planted before the first turn, as a user of the process could ----------

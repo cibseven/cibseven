@@ -123,12 +123,57 @@ public final class AgentConnectorConstants {
   public static final String AGENT_CONNECTOR_FLAG_VARIABLE_NAME = "cibseven-connect-ai-agent";
 
   /**
-   * Prefix for the per-activity chat log process variable. The full variable
-   * name is {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId>}, so each service
+   * Prefix for the per-activity chat log process variables, so each service
    * task running the connector writes its own chat log without further
-   * configuration from the BPMN designer.
+   * configuration from the BPMN designer. The chat log of an activity is stored
+   * under {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> +
+   * AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR + <eventSeq>}, see
+   * {@link #AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR}.
    */
   public static final String AGENT_CONNECTOR_LOG_PREFIX = "cibseven-connect-ai-agent_";
+
+  /**
+   * Separates the activity id from the chunk number in a chat-log variable:
+   * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "~" + <eventSeq>}, with
+   * the {@code eventSeq} padded with zeros to ten digits, one variable per model call
+   * as a rule (precisely: per write, holding the events since the last one) holding its events, written once (CIB7-2156). A
+   * BPMN id cannot contain {@code ~}, so the activity id is everything before
+   * it; and {@code ~} is unreserved in a URL, so the name goes into a REST path
+   * such as {@code /process-instance/{id}/variables/{varName}} as it is.
+   *
+   * <p>How a reader puts an activity's chat log together, from all variables
+   * whose name starts with {@link #AGENT_CONNECTOR_LOG_PREFIX}:
+   * <ol>
+   *   <li>the activity id is the part of the name after the prefix and before
+   *       the last {@code ~}; a name without {@code ~} is the activity id
+   *       itself;</li>
+   *   <li>the variable without a suffix comes first: a log written before
+   *       chunking, by a version that rewrote the whole log on every event;</li>
+   *   <li>then the chunks, in the order of their suffix. The suffix is the
+   *       {@code eventSeq} padded with zeros to ten digits, such as
+   *       {@code ~0000000004} before {@code ~0000000010}, so the numeric order
+   *       and the order as text (REST, database, webclient) are the same. Each
+   *       holds a JSON array of events; concatenated they are the timeline.</li>
+   * </ol>
+   *
+   * <p>Concurrency: the numbering is one timeline only for invocations of an
+   * activity that follow each other. Two at the same time, such as parallel
+   * multi-instance or two branches reaching the same activity, each continue
+   * from what is committed and so name their chunk alike, as they wrote the one
+   * variable before. The second insert then fails on the engine's unique index
+   * {@code ACT_UNIQ_VARIABLE}, as the second update failed before, and the
+   * transaction of the second fails; run in a job, the job is retried. The
+   * engine reports that violation as an {@code OptimisticLockingException}
+   * on H2, MySQL, MariaDB, PostgreSQL, SQL Server and Oracle, and as a plain
+   * persistence error on DB2.
+   *
+   * <p>Compatibility: a reader that does not know the separator, such as a
+   * webclient from before this version, takes every chunk for a log of its own
+   * activity and shows one timeline per model call. Readers have to be updated
+   * together with the connector; a process instance running across the upgrade
+   * keeps its old variable and continues in chunks after it.
+   */
+  public static final String AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR = "~";
 
   // ── Chat memory defaults ──────────────────────────────────────────────────
 
