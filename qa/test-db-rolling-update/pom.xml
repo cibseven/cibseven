@@ -20,6 +20,8 @@
          which intentionally use mismatched dependency versions between old and new engines.
          The JDK version check (requireJavaVersion) still applies. -->
     <enforcer.skipRules>bannedDependencies</enforcer.skipRules>
+    <!-- with bannedDependencies skipped, the dependency-alignment executions have no rule left -->
+    <enforcer.failIfNoRules>false</enforcer.failIfNoRules>
   </properties>
 
   <modules>
