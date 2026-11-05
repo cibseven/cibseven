@@ -475,7 +475,9 @@ class AgentChatListener implements ChatModelListener {
     }
     Map<String, Object> event = newCorrelatedEvent("retrieval");
     event.putAll(payload);
-    appendEvent(event);
+    // A retrieval runs before the model call it grounds and is written with that call's
+    // response. One that failed ends the call there, so it is written at once.
+    appendEvent(event, payload.containsKey("errorClass"));
   }
 
   /**
@@ -497,9 +499,9 @@ class AgentChatListener implements ChatModelListener {
    *
    * <p>{@code renderedBlock} is the block as appended to the system prompt. The
    * {@code request} events of this run name this event in its place, as they
-   * describe documents instead of carrying them: the chat log is rewritten on
-   * every event and, at history level FULL, kept as a full copy each time, so a
-   * block repeated per model call would multiply the values in the history — and
+   * describe documents instead of carrying them: each model call's chunk is kept,
+   * at history level FULL, in the history as well, so a block repeated per model
+   * call would multiply the values in the history — and
    * keep them there after the variable itself is deleted or anonymised.
    */
   void recordContextEvent(Map<String, Object> payload, String renderedBlock) {
@@ -513,7 +515,8 @@ class AgentChatListener implements ChatModelListener {
           + ", eventSeq " + event.get("eventSeq") + "]";
       this.contextBlock = renderedBlock;
     }
-    appendEvent(event);
+    // Before the first model call, so written with it, in its chunk (CIB7-2156).
+    appendEvent(event, false);
   }
 
   /**
@@ -543,9 +546,8 @@ class AgentChatListener implements ChatModelListener {
     }
     Map<String, Object> event = newCorrelatedEvent("documents");
     event.putAll(payload);
-    // A retrieval runs before the model call it grounds and is written with that call's
-    // response. One that failed ends the call there, so it is written at once.
-    appendEvent(event, payload.containsKey("errorClass"));
+    // Before the first model call, so written with it, in its chunk (CIB7-2156).
+    appendEvent(event, false);
   }
 
   private static ExecutionEntity currentExecution() {

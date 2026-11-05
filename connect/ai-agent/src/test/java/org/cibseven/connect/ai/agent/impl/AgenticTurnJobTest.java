@@ -2202,10 +2202,12 @@ public class AgenticTurnJobTest {
     assertThat(stateBlock(lastUserMessage(requestBodies.get(2)))).as("after the change")
         .contains("\"processData\":{\"kunde\":\"Schmidt AG\"}");
     assertThat(requestBodies).noneSatisfy(body -> assertThat(body).contains("Kennwort-4711"));
-    // The instance has ended; its history keeps the chat log's last state.
-    String chatLog = String.valueOf(engine.getHistoryService()
+    // The instance has ended; its history keeps the chat log, one chunk per model call.
+    String chatLog = engine.getHistoryService()
         .createHistoricVariableInstanceQuery().processInstanceId(pi.getId())
-        .variableName("cibseven-connect-ai-agent_adHoc").singleResult().getValue());
+        .variableNameLike("cibseven-connect-ai-agent_adHoc~%").list().stream()
+        .map(chunk -> String.valueOf(chunk.getValue())).collect(Collectors.joining());
+    assertThat(chatLog).as("the chat log's chunks").isNotEmpty();
     assertThat(chatLog).as("the chat log keeps a marker, the variables keep the values")
         .doesNotContain("Müller GmbH").doesNotContain("Schmidt AG")
         .as("in the log's JSON, the message is a JSON string")

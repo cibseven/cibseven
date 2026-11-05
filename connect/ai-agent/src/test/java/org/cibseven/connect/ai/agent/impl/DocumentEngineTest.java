@@ -616,13 +616,32 @@ public class DocumentEngineTest {
     engineRule.getRuntimeService().startProcessInstanceByKey("documentEngineTest", variables);
   }
 
+  /**
+   * The activity's chat log as one JSON array: its chunks, one per model call, in the order of
+   * their names (CIB7-2156).
+   */
   private String chatLog() {
     List<VariableInstance> variables = engineRule.getRuntimeService()
         .createVariableInstanceQuery()
         .variableNameLike(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "%")
         .list();
-    assertThat(variables).as("chat-log variable").hasSize(1);
-    return (String) variables.get(0).getValue();
+    assertThat(variables).as("chat-log variables").isNotEmpty();
+    List<Map<String, Object>> events = new ArrayList<>();
+    variables.stream()
+        .sorted(java.util.Comparator.comparing(VariableInstance::getName))
+        .forEach(chunk -> {
+          try {
+            events.addAll(MAPPER.readValue((String) chunk.getValue(),
+                new TypeReference<List<Map<String, Object>>>() {}));
+          } catch (java.io.IOException e) {
+            throw new IllegalStateException(e);
+          }
+        });
+    try {
+      return MAPPER.writeValueAsString(events);
+    } catch (java.io.IOException e) {
+      throw new IllegalStateException(e);
+    }
   }
 
   private static Map<String, Object> single(List<Map<String, Object>> events, String type) {
