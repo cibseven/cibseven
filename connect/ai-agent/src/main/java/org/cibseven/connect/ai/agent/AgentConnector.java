@@ -25,7 +25,9 @@ import org.cibseven.connect.spi.Connector;
  * shows every supported input/output parameter; only {@code agentName} and
  * {@code message} are required, the rest are optional. When {@code instruction}
  * is empty, the bundled default system prompt from
- * {@code /org/cibseven/connect/ai/agent/default-instruction.txt} is used.
+ * {@code /org/cibseven/connect/ai/agent/default-instruction.txt} is used; when
+ * the connector drives an agentic ad hoc sub process, the one from
+ * {@code /org/cibseven/connect/ai/agent/default-instruction-adhoc.txt}.
  * <pre>{@code
  * <camunda:connector>
  *     <camunda:connectorId>cibseven-ai-agent</camunda:connectorId>
@@ -43,10 +45,12 @@ import org.cibseven.connect.spi.Connector;
  *       <camunda:inputParameter name="contextVariables">orderId,totalAmount,escalationReason</camunda:inputParameter>
  *       <camunda:inputParameter name="optionalContextVariables">escalationReason</camunda:inputParameter>
  *
- *       <!-- LLM endpoint / authentication -->
+ *       <!-- LLM endpoint. No apiKey: the connector reads OPENAI_API_KEY from the server's
+ *            environment. A key in a process variable is stored in the database and, with
+ *            history on, in the history; a key or token written here, in customHeaders or in
+ *            mcpServers, is stored in the deployed model. -->
  *       <camunda:inputParameter name="baseUrl">http://localhost:11434/v1</camunda:inputParameter>
- *       <camunda:inputParameter name="apiKey">${secrets.OPENAI_API_KEY}</camunda:inputParameter>
- *       <camunda:inputParameter name="customHeaders">{"Authorization": "Basic dXNlcjpwYXNz", "X-Tenant": "acme"}</camunda:inputParameter>
+ *       <camunda:inputParameter name="customHeaders">{"X-Tenant": "acme"}</camunda:inputParameter>
  *
  *       <!-- Reasoning controls -->
  *       <camunda:inputParameter name="reasoningEffort">medium</camunda:inputParameter>
@@ -58,7 +62,7 @@ import org.cibseven.connect.spi.Connector;
  *       <!-- Tools: MCP servers (JSON array) -->
  *       <camunda:inputParameter name="mcpServers">
  *         [
- *           {"url": "http://server1/mcp", "headers": {"Authorization": "Bearer abc"}},
+ *           {"url": "http://server1/mcp", "headers": {"X-Tenant": "acme"}},
  *           {"url": "http://server2/mcp"}
  *         ]
  *       </camunda:inputParameter>
@@ -71,13 +75,14 @@ import org.cibseven.connect.spi.Connector;
  *       <!-- EU AI Act audit -->
  *       <camunda:inputParameter name="persistChatLog">true</camunda:inputParameter>
  *
- *       <!-- RAG / pgvector embedding store -->
+ *       <!-- RAG / pgvector embedding store. pgPassword is left out: in a process variable or
+ *            written here it would be stored as above, and there is no server-side place for
+ *            it yet. -->
  *       <camunda:inputParameter name="pgHost">localhost</camunda:inputParameter>
  *       <camunda:inputParameter name="pgPort">5432</camunda:inputParameter>
  *       <camunda:inputParameter name="pgDatabase">vectors</camunda:inputParameter>
  *       <camunda:inputParameter name="pgUser">postgres</camunda:inputParameter>
- *       <camunda:inputParameter name="pgPassword">${secrets.PG_PASSWORD}</camunda:inputParameter>
- *       <camunda:inputParameter name="pgTable">embeddings</camunda:inputParameter>
+ * *       <camunda:inputParameter name="pgTable">embeddings</camunda:inputParameter>
  *       <camunda:inputParameter name="maxRagResults">5</camunda:inputParameter>
  *       <camunda:inputParameter name="minRagScore">0.7</camunda:inputParameter>
  *       <camunda:inputParameter name="embeddingDimension">384</camunda:inputParameter>
@@ -118,7 +123,10 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * the connector falls back to the bundled default prompt at
    * {@code /org/cibseven/connect/ai/agent/default-instruction.txt}, which
    * describes the generic CIB seven agent role and its possible capabilities
-   * (tools, RAG, chat memory, reasoning). Override this parameter to specialise
+   * (tools, RAG, chat memory, reasoning); when the connector drives an agentic
+   * ad hoc sub process, at
+   * {@code /org/cibseven/connect/ai/agent/default-instruction-adhoc.txt}, which
+   * describes an agent that runs the sub process. Override this parameter to specialise
    * the agent for a concrete task. See {@link #PARAM_NAME_INSTRUCTION_MODE} for
    * how this value is combined with the bundled default.
    */
@@ -167,15 +175,18 @@ public interface AgentConnector extends Connector<AgentRequest> {
   String PARAM_NAME_BASE_URL = "baseUrl";
 
   /**
-   * Optional. Override the {@code OPENAI_API_KEY} for this specific request.
-   * The environment variable {@code OPENAI_API_KEY} is the recommended approach.
+   * Optional. Override the {@code OPENAI_API_KEY} for this specific request. Leave it unset
+   * so that the connector reads the environment variable {@code OPENAI_API_KEY} of the server.
+   * Do not pass a key in a process variable: it is stored in the database and, with history
+   * on, in the history. Do not write it into the model either: it is stored in the deployment.
    */
   String PARAM_NAME_API_KEY = "apiKey";
 
   /**
    * Optional. Custom HTTP headers attached to every request sent to the OpenAI-compatible
    * endpoint. Format: JSON object of {@code String} → {@code String} pairs.
-   * Example: {@code {"Authorization": "Basic dXNlcjpwYXNz", "X-Tenant": "acme"}}
+   * Example: {@code {"X-Tenant": "acme"}}. Not for credentials: like {@link #PARAM_NAME_API_KEY},
+   * a header value in the model or in a process variable is stored.
    */
   String PARAM_NAME_CUSTOM_HEADERS = "customHeaders";
 
@@ -189,10 +200,12 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * object of {@code String} → {@code String} pairs. Example:
    * <pre>{@code
    * [
-   *   {"url": "http://server1/mcp", "headers": {"Authorization": "Bearer abc"}},
+   *   {"url": "http://server1/mcp", "headers": {"X-Tenant": "acme"}},
    *   {"url": "http://server2/mcp"}
    * ]
    * }</pre>
+   * Not for tokens: like {@link #PARAM_NAME_CUSTOM_HEADERS}, a header value in the model or in a
+   * process variable is stored.
    */
   String PARAM_NAME_MCP_SERVERS = "mcpServers";
 
@@ -367,7 +380,11 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * active and this parameter is {@code null} or empty, the connector generates
    * a new UUID and exposes it as the {@link #PARAM_NAME_MEMORY_ID} output so
    * the caller can persist it (e.g. into a process variable) and pass it back
-   * on the next invocation.
+   * on the next invocation. An AI agent task that the agent of an agentic ad hoc
+   * sub process calls as a tool gets an id derived from the sub process instead:
+   * with {@code perEntry} its calls share one conversation within an entry, with
+   * {@code perActivity} one across all entries. It stays a process variable until
+   * the process instance ends.
    */
   String PARAM_NAME_MEMORY_ID = "memoryId";
 
@@ -417,7 +434,10 @@ public interface AgentConnector extends Connector<AgentRequest> {
   /** Optional. PostgreSQL user. */
   String PARAM_NAME_PG_USER = "pgUser";
 
-  /** Optional. PostgreSQL password. */
+  /**
+   * Optional. PostgreSQL password. Like {@link #PARAM_NAME_API_KEY}, a value in a process
+   * variable or written into the model is stored there.
+   */
   String PARAM_NAME_PG_PASSWORD = "pgPassword";
 
   /**

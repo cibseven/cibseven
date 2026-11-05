@@ -82,6 +82,10 @@ logging:
 cibseven:
   # AI Agent connector — operator-facing overrides.
   #
+  # The AI agent itself, the connector and agentic ad hoc sub processes alike,
+  # is switched on and off by the start script (--ai, --production and the
+  # AI_AGENT_ENABLED environment variable), not here.
+  #
   # The connector reads JVM system properties (and environment-variable
   # fallbacks), not YAML keys. To override the default LLM model used when
   # the BPMN `model` input is omitted, set ONE of the following at startup:

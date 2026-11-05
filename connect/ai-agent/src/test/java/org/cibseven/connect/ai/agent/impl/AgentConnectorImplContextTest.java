@@ -262,15 +262,18 @@ public class AgentConnectorImplContextTest {
     assertThat(m.invoke(null, "prompt", "")).isEqualTo("prompt");
   }
 
-  /** The same composition the systemMessageTransformer applies in execute(). */
+  /**
+   * The same composition the systemMessageTransformer applies in execute(), for a service task:
+   * the agent that runs an ad hoc sub process gets no context block.
+   */
   private String invokeBuildSystemPrompt(AgentRequest request, String contextBlock)
       throws Exception {
     Method build = AgentConnectorImpl.class.getDeclaredMethod("buildSystemPrompt",
-        AgentRequest.class);
+        AgentRequest.class, boolean.class);
     build.setAccessible(true);
     Method append = AgentConnectorImpl.class.getDeclaredMethod("appendContextBlock",
         String.class, String.class);
     append.setAccessible(true);
-    return (String) append.invoke(null, build.invoke(connector, request), contextBlock);
+    return (String) append.invoke(null, build.invoke(connector, request, false), contextBlock);
   }
 }

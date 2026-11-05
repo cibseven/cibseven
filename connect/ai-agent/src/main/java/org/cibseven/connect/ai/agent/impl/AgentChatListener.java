@@ -623,7 +623,9 @@ class AgentChatListener implements ChatModelListener {
         m.put("toolCallId", ((ToolExecutionResultMessage) msg).id());
       }
       messages.add(m);
-      LOG.debug("[{}] {}", msg.type(), msg);
+      // What the log keeps, not the message: a step's processData as markers, and the content
+      // redacted when the deployment redacts it (CIB7-2179).
+      LOG.debug("[{}] {}", msg.type(), m.get("content"));
     }
     event.put("messages", messages);
 
@@ -960,7 +962,53 @@ class AgentChatListener implements ChatModelListener {
   // ── message content extraction ───────────────────────────────────────────
 
   private String extractContent(ChatMessage msg) {
-    return maybeRedact(extractPlainContent(msg));
+    String plain = extractPlainContent(msg);
+    if (msg instanceof UserMessage) {
+      plain = withProcessDataAsMarkers(plain);
+    }
+    return maybeRedact(plain);
+  }
+
+  /**
+   * An agentic step's message with each value under {@code processData} in its state block
+   * replaced by the redaction marker, its length and hash (CIB7-2179). The values are process
+   * variables, which keep them and their history. The log holds every message of the window on
+   * every request and is rewritten whole on every event, so a copy here would be one more per
+   * step and per rewrite, out of reach of whoever deletes or anonymises the variable. The marker
+   * still tells which value the model saw. A message without a state block is left as it is.
+   */
+  @SuppressWarnings("unchecked")
+  static String withProcessDataAsMarkers(String text) {
+    if (text == null) {
+      return null;
+    }
+    int open = text.indexOf(AgentConnectorImpl.STATE_BLOCK_OPEN + "\n");
+    int start = open + AgentConnectorImpl.STATE_BLOCK_OPEN.length() + 1;
+    int end = (open < 0) ? -1 : text.indexOf("\n" + AgentConnectorImpl.STATE_BLOCK_CLOSE, start);
+    if (end < 0) {
+      return text;
+    }
+    try {
+      Map<String, Object> state = MAPPER.readValue(text.substring(start, end), Map.class);
+      Object data = state.get("processData");
+      if (!(data instanceof Map)) {
+        return text;
+      }
+      Map<String, Object> marked = new LinkedHashMap<>();
+      for (Map.Entry<String, Object> entry : ((Map<String, Object>) data).entrySet()) {
+        Object value = entry.getValue();
+        marked.put(entry.getKey(), (value == null) ? null : redactionMarker(
+            (value instanceof String) ? (String) value : MAPPER.writeValueAsString(value)));
+      }
+      state.put("processData", marked);
+      return text.substring(0, start) + MAPPER.writeValueAsString(state) + text.substring(end);
+    } catch (JsonProcessingException e) {
+      // Written by the connector itself, so not expected; the block goes as a whole rather
+      // than the values in it.
+      LOG.warn("Could not read the state block of an agentic step; the chat log keeps it as a"
+          + " redaction marker.", e);
+      return text.substring(0, start) + redact(text.substring(start, end)) + text.substring(end);
+    }
   }
 
   /**
@@ -1126,16 +1174,21 @@ class AgentChatListener implements ChatModelListener {
     if (plain == null) {
       return null;
     }
-    Map<String, Object> marker = new LinkedHashMap<>();
-    marker.put("redacted", true);
-    marker.put("length", plain.length());
-    marker.put("hash", sha256(plain));
     try {
-      return MAPPER.writeValueAsString(marker);
+      return MAPPER.writeValueAsString(redactionMarker(plain));
     } catch (JsonProcessingException e) {
       LOG.error("Failed to encode redaction marker; falling back to empty string.", e);
       return "";
     }
+  }
+
+  /** The redaction marker of {@code plain}: its character length and SHA-256 hash. */
+  private static Map<String, Object> redactionMarker(String plain) {
+    Map<String, Object> marker = new LinkedHashMap<>();
+    marker.put("redacted", true);
+    marker.put("length", plain.length());
+    marker.put("hash", sha256(plain));
+    return marker;
   }
 
   /**

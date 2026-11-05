@@ -213,6 +213,19 @@ public class AgentConnectorImplCoverageTest {
     assertThat(first).isSameAs(second);
   }
 
+  /**
+   * The parts of the state block are named to the model, the process data among them (CIB7-2179):
+   * what processData holds, and what its two companions say.
+   */
+  @Test
+  public void theAdHocInstructionNamesTheProcessDataOfTheStateBlock() {
+    String content = AgentConnectorImpl.loadAdHocDefaultInstruction();
+    assertThat(content).contains("AD HOC SCOPE STATE")
+        .contains("processData: the current values of the process")
+        .contains("processDataNotSet names those the process has not set")
+        .contains("processDataNote those left out for size");
+  }
+
   // ── createContentRetriever — early-return null paths ────────────────────
 
   @Test
@@ -465,6 +478,32 @@ public class AgentConnectorImplCoverageTest {
         .containsEntry("length", "BPMN models business processes.".length());
   }
 
+  /**
+   * The query of an agentic step is its message, the state block with it: the retrieval event
+   * keeps each value of processData as a marker, as the request event does (CIB7-2179).
+   */
+  @Test
+  public void retrieverLambdaShouldKeepTheProcessDataOfAStateBlockAsMarkers() {
+    RagStubConnector ragConnector = new RagStubConnector();
+    ragConnector.store.matches = List.of();
+    AgentRequest request = ragConnector.createRequest()
+        .pgHost("h").pgPort("5432").pgDatabase("d").pgUser("u").pgPassword("p")
+        .pgTable("t").embeddingDimension(8).maxRagResults(5).minRagScore(0.0);
+    AgentChatListener listener = new AgentChatListener("gpt-5.4-nano", "https://chat/v1");
+    ProcessStarterToolContext.setActiveListener(listener);
+    String message = AgentConnectorImpl.STATE_BLOCK_OPEN + "\n"
+        + "{\"processData\":{\"kunde\":\"Müller GmbH\"}}\n"
+        + AgentConnectorImpl.STATE_BLOCK_CLOSE + "\n\nBearbeite den Auftrag.";
+
+    ragConnector.createContentRetriever(request).retrieve(Query.from(message));
+
+    Map<String, Object> event = listener.events().get(0);
+    assertThat(event).containsEntry("type", "retrieval")
+        .containsEntry("query", AgentChatListener.withProcessDataAsMarkers(message));
+    assertThat(String.valueOf(event.get("query"))).doesNotContain("Müller GmbH")
+        .contains("Bearbeite den Auftrag.");
+  }
+
   @Test
   public void retrieverLambdaShouldUseOpenAiEmbeddingDescriptorWhenModelNameSet() {
     RagStubConnector ragConnector = new RagStubConnector();
@@ -674,6 +713,44 @@ public class AgentConnectorImplCoverageTest {
     }
   }
 
+  // ── buildSystemPrompt — a step of an agentic scope reads its own prompt (CIB7-2235) ─
+
+  @Test
+  public void anAgenticStepWithoutAnInstructionReadsTheAdHocPrompt() throws Exception {
+    String prompt = invokeBuildSystemPrompt(connector.createRequest(), true);
+    assertThat(prompt).isEqualTo(AgentConnectorImpl.loadAdHocDefaultInstruction());
+  }
+
+  @Test
+  public void anAgenticStepUnderAppendPutsTheInstructionAfterTheAdHocPrompt() throws Exception {
+    AgentRequest request = connector.createRequest()
+        .instruction("Return JSON.")
+        .instructionMode(AgentConnectorConstants.INSTRUCTION_MODE_APPEND);
+    String prompt = invokeBuildSystemPrompt(request, true);
+    assertThat(prompt).isEqualTo(AgentConnectorImpl.loadAdHocDefaultInstruction()
+        + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR
+        + "Return JSON.");
+  }
+
+  @Test
+  public void anAgenticStepUnderPrependPutsTheInstructionBeforeTheAdHocPrompt() throws Exception {
+    AgentRequest request = connector.createRequest()
+        .instruction("Return JSON.")
+        .instructionMode(AgentConnectorConstants.INSTRUCTION_MODE_PREPEND);
+    String prompt = invokeBuildSystemPrompt(request, true);
+    assertThat(prompt).isEqualTo("Return JSON."
+        + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR
+        + AgentConnectorImpl.loadAdHocDefaultInstruction());
+  }
+
+  @Test
+  public void anAgenticStepUnderReplaceReadsOnlyTheInstruction() throws Exception {
+    AgentRequest request = connector.createRequest()
+        .instruction("Return JSON.")
+        .instructionMode(AgentConnectorConstants.INSTRUCTION_MODE_REPLACE);
+    assertThat(invokeBuildSystemPrompt(request, true)).isEqualTo("Return JSON.");
+  }
+
   // ── buildMcpClient — exercise the real factory body once ────────────────
 
   /**
@@ -754,13 +831,59 @@ public class AgentConnectorImplCoverageTest {
     assertThat(AgentConnectorImpl.loadDefaultInstruction()).isSameAs(repopulated);
   }
 
+  // ── the two bundled prompts, each from its own file and cache (CIB7-2235) ─
+
+  /**
+   * Each loader returns its own file, whichever is loaded first. The caches are emptied first, so
+   * the outcome does not depend on what ran before in the same JVM.
+   */
+  @Test
+  public void eachLoaderReturnsItsOwnFileWhicheverIsLoadedFirst() throws Exception {
+    String serviceTask = resource(AgentConnectorImpl.DEFAULT_INSTRUCTION_RESOURCE);
+    String adHoc = resource(AgentConnectorImpl.AD_HOC_DEFAULT_INSTRUCTION_RESOURCE);
+    assertThat(adHoc).isNotEqualTo(serviceTask);
+
+    emptyPromptCaches();
+    assertThat(AgentConnectorImpl.loadDefaultInstruction()).isEqualTo(serviceTask);
+    assertThat(AgentConnectorImpl.loadAdHocDefaultInstruction()).isEqualTo(adHoc);
+
+    emptyPromptCaches();
+    assertThat(AgentConnectorImpl.loadAdHocDefaultInstruction()).isEqualTo(adHoc);
+    assertThat(AgentConnectorImpl.loadDefaultInstruction()).isEqualTo(serviceTask);
+  }
+
+  private static void emptyPromptCaches() throws Exception {
+    for (String name : new String[] { "defaultInstructionCache", "adHocDefaultInstructionCache" }) {
+      java.lang.reflect.Field cache = AgentConnectorImpl.class.getDeclaredField(name);
+      cache.setAccessible(true);
+      cache.set(null, null);
+    }
+  }
+
+  private static String resource(String name) throws Exception {
+    try (java.io.InputStream in = AgentConnectorImplCoverageTest.class.getResourceAsStream(name)) {
+      assertThat(in).as(name + " on the classpath").isNotNull();
+      return new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+    }
+  }
+
   // ── Reflection helper for buildSystemPrompt ─────────────────────────────
 
+  /** The system prompt of a service task. */
   private String invokeBuildSystemPrompt(AgentRequest request) throws Exception {
-    Method m = AgentConnectorImpl.class.getDeclaredMethod("buildSystemPrompt",
-        AgentRequest.class);
+    return invokeBuildSystemPrompt(request, false);
+  }
+
+  /**
+   * The system prompt; {@code runsAdHocSubProcess} for a step of the agent that runs an ad hoc
+   * sub process.
+   */
+  private String invokeBuildSystemPrompt(AgentRequest request, boolean runsAdHocSubProcess)
+      throws Exception {
+    Method m = AgentConnectorImpl.class.getDeclaredMethod("buildSystemPrompt", AgentRequest.class,
+        boolean.class);
     m.setAccessible(true);
-    return (String) m.invoke(connector, request);
+    return (String) m.invoke(connector, request, runsAdHocSubProcess);
   }
 
   // ── Stubs ────────────────────────────────────────────────────────────────

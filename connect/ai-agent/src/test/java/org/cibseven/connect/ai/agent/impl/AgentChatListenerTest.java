@@ -33,6 +33,7 @@ import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
@@ -51,6 +52,11 @@ import dev.langchain4j.model.chat.response.ChatResponseMetadata;
 import dev.langchain4j.model.openai.OpenAiChatRequestParameters;
 import dev.langchain4j.model.output.FinishReason;
 import dev.langchain4j.model.output.TokenUsage;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 
 public class AgentChatListenerTest {
 
@@ -109,6 +115,73 @@ public class AgentChatListenerTest {
         .containsEntry("content", "Extract data from this invoice");
 
     assertThat(event.get("tools")).isEqualTo(Arrays.asList("lookupCustomer", "createInvoice"));
+  }
+
+  /**
+   * The chat log keeps an agentic step's process data as a marker per value, its length and
+   * hash, not the value: the process variable keeps the value (CIB7-2179). The rest of the block,
+   * the names not set among them, and the task stay as they were.
+   */
+  @Test
+  public void shouldKeepTheProcessDataOfAnAgenticStepAsMarkers() throws Exception {
+    AgentChatListener listener = new AgentChatListener();
+    String message = AgentConnectorImpl.STATE_BLOCK_OPEN + "\n"
+        + "{\"adHocActivityId\":\"adHoc\",\"processData\":{\"kunde\":\"Müller GmbH\","
+        + "\"prioritaet\":2,\"leer\":null},\"processDataNotSet\":[\"rabatt\"],\"turn\":1}\n"
+        + AgentConnectorImpl.STATE_BLOCK_CLOSE + "\n\nBearbeite den Auftrag.";
+
+    listener.onRequest(new ChatModelRequestContext(ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from(message))).build(), null,
+        new HashMap<>()));
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> messages =
+        (List<Map<String, Object>>) listener.events().get(0).get("messages");
+    String content = String.valueOf(messages.get(0).get("content"));
+    assertThat(content).doesNotContain("Müller GmbH")
+        .isEqualTo(AgentConnectorImpl.STATE_BLOCK_OPEN + "\n"
+            + "{\"adHocActivityId\":\"adHoc\",\"processData\":{\"kunde\":"
+            + AgentChatListener.redact("Müller GmbH") + ",\"prioritaet\":"
+            + AgentChatListener.redact("2") + ",\"leer\":null},"
+            + "\"processDataNotSet\":[\"rabatt\"],\"turn\":1}\n"
+            + AgentConnectorImpl.STATE_BLOCK_CLOSE + "\n\nBearbeite den Auftrag.");
+  }
+
+  /**
+   * The DEBUG log prints a request's messages as the chat log keeps them: a step's process data
+   * as markers, not the values (CIB7-2179).
+   */
+  @Test
+  public void shouldLogAStepAtDebugAsTheChatLogKeepsIt() {
+    Logger logger = (Logger) LoggerFactory.getLogger(AgentChatListener.class);
+    Level level = logger.getLevel();
+    ListAppender<ILoggingEvent> appender = new ListAppender<>();
+    appender.start();
+    logger.addAppender(appender);
+    logger.setLevel(Level.DEBUG);
+    String message = AgentConnectorImpl.STATE_BLOCK_OPEN + "\n"
+        + "{\"processData\":{\"kunde\":\"Müller GmbH\"}}\n"
+        + AgentConnectorImpl.STATE_BLOCK_CLOSE + "\n\nBearbeite den Auftrag.";
+    try {
+      new AgentChatListener().onRequest(new ChatModelRequestContext(ChatRequest.builder()
+          .messages(Collections.singletonList(UserMessage.from(message))).build(), null,
+          new HashMap<>()));
+    } finally {
+      logger.detachAppender(appender);
+      logger.setLevel(level);
+      appender.stop();
+    }
+
+    assertThat(appender.list).extracting(e -> e.getFormattedMessage())
+        .noneSatisfy(line -> assertThat(line).contains("Müller GmbH"))
+        .anySatisfy(line -> assertThat(line).contains(AgentChatListener.redact("Müller GmbH")));
+  }
+
+  /** A message without a state block, an ordinary agent's, is logged as it is. */
+  @Test
+  public void shouldLogAMessageWithoutAStateBlockAsItIs() {
+    assertThat(AgentChatListener.withProcessDataAsMarkers("processData: Müller GmbH"))
+        .isEqualTo("processData: Müller GmbH");
   }
 
   @Test

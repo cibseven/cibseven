@@ -133,7 +133,10 @@
          target/dependency/. They ship into a dedicated lib-ai/ folder (NOT the
          always-loaded lib/) which the shipped conf/catalina.properties adds to the
          common.loader — so the connector is on the same classloader as the engine
-         and registers via the cibseven-connect SPI, active by default.
+         and registers via the cibseven-connect SPI, active by default. Its engine
+         plugin for agentic ad hoc sub processes is in the same jar, and
+         ConnectProcessEnginePlugin finds it with the same classloader, so taking
+         lib-ai off the common.loader switches both off (CIB7-2145).
 
          Keeping it a separate folder makes it toggleable WITHOUT deleting jars:
          the docker image strips the lib-ai tokens from common.loader when
