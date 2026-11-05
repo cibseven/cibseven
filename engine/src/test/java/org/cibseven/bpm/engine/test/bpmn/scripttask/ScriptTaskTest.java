@@ -660,6 +660,16 @@ public class ScriptTaskTest extends AbstractScriptTaskTest {
     }
   }
 
+  @org.cibseven.bpm.engine.test.Deployment(resources = {
+      "org/cibseven/bpm/engine/test/bpmn/scripttask/ScriptTaskTest.testGroovyScriptCanUseIcu.bpmn20.xml"
+  })
+  @Test
+  public void testGroovyScriptCanUseIcu() {
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("groovyIcuProcess");
+
+    assertEquals("LATIN CAPITAL LETTER A", runtimeService.getVariable(processInstance.getId(), "icuCharacterName"));
+  }
+
   @org.cibseven.bpm.engine.test.Deployment
   @Test
   public void testGroovySetVariableThroughExecutionInScript() {

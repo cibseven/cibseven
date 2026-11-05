@@ -278,6 +278,22 @@ public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
               "Operation is not allowed");
       }
   }
+
+    @org.cibseven.bpm.engine.test.Deployment(resources = {
+        "org/cibseven/bpm/engine/test/bpmn/scripttask/ScriptTaskGraalJsTest.testJavaScriptCanUseIcu.bpmn20.xml"
+    })
+    @Test
+    public void testJavaScriptCanUseIcu() {
+      if (enableNashornCompat || configureHostAccess) {
+        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("graalIcuProcess");
+
+        assertEquals("LATIN CAPITAL LETTER A", runtimeService.getVariable(processInstance.getId(), "icuCharacterName"));
+      } else {
+        assertThatThrownBy(() -> runtimeService.startProcessInstanceByKey("graalIcuProcess"))
+          .isInstanceOf(ScriptEvaluationException.class)
+          .hasMessageContaining("Unable to evaluate script");
+      }
+    }
   
   @Test
   public void shouldLoadCibSevenClass() {

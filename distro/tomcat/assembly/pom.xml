@@ -83,6 +83,11 @@
       <artifactId>js-scriptengine</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.ibm.icu</groupId>
+      <artifactId>icu4j</artifactId>
+      <version>${version.icu.icu4j}</version>
+    </dependency>
+    <dependency>
       <groupId>org.graalvm.polyglot</groupId>
       <artifactId>polyglot</artifactId>
       <version>${version.graal.js}</version>

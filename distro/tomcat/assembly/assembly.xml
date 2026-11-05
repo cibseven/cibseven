@@ -59,6 +59,7 @@
         <include>org.graalvm.sdk:*:jar:*</include>
         <include>org.graalvm.shadowed:*:jar:*</include>
         <include>org.graalvm.polyglot:*:jar:*</include>
+        <include>com.ibm.icu:icu4j:jar:*</include>
         <include>org.slf4j:slf4j-api:jar:*</include>
         <include>org.slf4j:slf4j-jdk14:jar:*</include>
 
@@ -105,6 +106,7 @@
         <include>org.graalvm.sdk:*:jar:*</include>
         <include>org.graalvm.shadowed:*:jar:*</include>
         <include>org.graalvm.polyglot:*:jar:*</include>
+        <include>com.ibm.icu:icu4j:jar:*</include>
         <include>org.slf4j:slf4j-api:jar:*</include>
         <include>org.slf4j:slf4j-jdk14:jar:*</include>
 
