@@ -20,6 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -29,6 +34,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.junit.jupiter.api.Test;
@@ -45,7 +52,6 @@ public class AdHocElementTemplateTest {
 
   protected static final String STANDARD = "/element-templates/cibseven-ai-agent.json";
   protected static final String AD_HOC = "/element-templates/cibseven-ai-agent-adhoc.json";
-  protected static final String INGESTOR = "/element-templates/cibseven-knowledge-ingestor.json";
 
   /**
    * Connector fields that exist only on the ad hoc template, because what they mean has no
@@ -246,22 +252,68 @@ public class AdHocElementTemplateTest {
   }
 
   /**
+   * What reads as a credential in a template's text: an expression that reads a key, token,
+   * secret or password ({@code ${apiKey}}, {@code ${secrets.OPENAI_API_KEY}}), an Authorization
+   * header, a bearer or basic credential with a digit or sign in it, or an OpenAI key. Prose such
+   * as "bearer authentication" is not one; a credential of letters only, outside a header, is not
+   * found either.
+   */
+  protected static final Pattern CREDENTIAL = Pattern.compile(
+      "[$#]\\{[^}]*(?:api_?key|ai_?key|secret|password|passwd|token|credential)[^}]*\\}"
+          + "|\"authorization\"\\s*:\\s*\""
+          + "|\\b(?:bearer|basic)\\s+[\\w.~+/=-]*[\\d.~+/=-][\\w.~+/=-]*"
+          + "|\\bsk-",
+      Pattern.CASE_INSENSITIVE);
+
+  /**
    * A key read from a process variable is stored in the runtime tables and, with history on, in
    * the history, where Cockpit and the REST API show it after the process has ended; a key
-   * written into a field is stored in the deployed model. So no text of a shipped template may
-   * suggest either: no expression that reads the key from a variable, no literal bearer token or
-   * OpenAI key as an example. The connector takes the server's key when the field is empty.
+   * written into a field is stored in the deployed model. So no text of this module's templates
+   * may suggest either (see {@link #CREDENTIAL}). The connector takes the server's key when the
+   * field is empty. Every template in the folder is read, so a new one is checked as well.
    */
   @Test
   public void noTemplateSuggestsAKeyInAProcessVariableOrInTheModel() throws IOException {
-    Pattern credential = Pattern.compile(
-        "\\$\\{\\s*apiKey\\s*\\}|Bearer\\s+[\\w.~+/-]+|\\bsk-");
+    List<String> templates = templates();
+    assertThat(templates).contains(STANDARD, AD_HOC);
+
     List<String> suggesting = new ArrayList<String>();
-    for (String resource : new String[] { STANDARD, AD_HOC, INGESTOR }) {
-      findInTexts(read(resource), resource, credential, suggesting);
+    for (String resource : templates) {
+      findInTexts(read(resource), resource, CREDENTIAL, suggesting);
     }
     assertThat(suggesting).as("texts suggesting a key in a process variable or in the model")
         .isEmpty();
+  }
+
+  @Test
+  public void theCredentialCheckFindsKeysAndPassesProse() {
+    for (String credential : new String[] { "${apiKey}", "${ apiKey }", "#{apiKey}",
+        "${secrets.OPENAI_API_KEY}", "${execution.getVariable('apiKey')}", "${openAiKey}",
+        "${pgPassword}", "${authToken}", "{\"Authorization\": \"Bearer token\"}",
+        "{\"authorization\":\"x\"}", "Bearer sk-...", "bearer abc123", "Basic dXNlcjpwYXNz=",
+        "sk-proj-abc" }) {
+      assertThat(CREDENTIAL.matcher(credential).find()).as(credential).isTrue();
+    }
+    for (String prose : new String[] { "uses Bearer authentication", "a bearer token",
+        "basic settings", "the task-specific prompt", "${output}", "${memoryId}",
+        "environment variable OPENAI_API_KEY", "{\"X-Request-Source\": \"cibseven\"}" }) {
+      assertThat(CREDENTIAL.matcher(prose).find()).as(prose).isFalse();
+    }
+  }
+
+  /** The resource paths of every element template this module ships. */
+  protected static List<String> templates() throws IOException {
+    URL folder = AdHocElementTemplateTest.class.getResource("/element-templates");
+    assertThat(folder).as("the element template folder").isNotNull();
+    try (Stream<Path> files = Files.list(Paths.get(folder.toURI()))) {
+      return files.map(file -> file.getFileName().toString())
+          .filter(name -> name.endsWith(".json"))
+          .sorted()
+          .map(name -> "/element-templates/" + name)
+          .collect(Collectors.toList());
+    } catch (URISyntaxException e) {
+      throw new IOException(e);
+    }
   }
 
   /** Adds where {@code pattern} is found in any text under {@code node}, and what it found. */
