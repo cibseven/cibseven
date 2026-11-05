@@ -1,0 +1,15 @@
+/target/
+/.settings/
+/.classpath
+/.project
+/bin/
+/.springBeans
+/build/
+/src/main/resources/seven-webclient.yaml
+
+# IntelliJ
+.idea/
+*.iml
+
+# MacOS
+.DS_Store

@@ -58,11 +58,25 @@
     
     <dependencySet>
         <includes>
-            <!-- TODO CIB7-1535: switch to cibseven-webclient-web once the webclient Spring Boot 4 change is merged -->
-            <include>org.cibseven.webapp:cibseven-webclient-web-spring-boot-4:war:*</include>
+            <include>org.cibseven.webapp:cibseven-webclient-web:war:*</include>
         </includes>
         <outputDirectory>server/apache-tomcat-${version.tomcat}/webapps/webapp</outputDirectory>
         <unpack>true</unpack>
+    </dependencySet>
+
+    <dependencySet>
+        <!-- The direct provider and what it needs beyond the webclient war. The war used to bring
+             these in itself, before the direct provider moved to this repo. -->
+        <includes>
+            <include>org.cibseven.webapp:cibseven-direct-provider</include>
+            <include>org.cibseven.bpm:cibseven-engine-rest-core</include>
+            <include>commons-fileupload:commons-fileupload</include>
+            <include>com.fasterxml.jackson.jakarta.rs:jackson-jakarta-rs-base</include>
+            <include>com.fasterxml.jackson.jakarta.rs:jackson-jakarta-rs-json-provider</include>
+            <include>com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations</include>
+        </includes>
+        <outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}${dashClassifier?}.${artifact.extension}</outputFileNameMapping>
+        <outputDirectory>server/apache-tomcat-${version.tomcat}/webapps/webapp/WEB-INF/lib</outputDirectory>
     </dependencySet>
 
   </dependencySets>

@@ -56,14 +56,6 @@
         <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments</outputDirectory>
     </dependencySet>
     
-    <dependencySet>
-        <includes>
-          <!-- TODO CIB7-1535: switch to cibseven-webclient-web once the webclient Spring Boot 4 change is merged -->
-          <include>org.cibseven.webapp:cibseven-webclient-web-spring-boot-4:war:wildfly</include>
-         </includes>
-         <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments</outputDirectory>
-    </dependencySet>
-    
   </dependencySets>
   
   <fileSets>
@@ -74,6 +66,11 @@
   </fileSets>
   
   <files>
+    <!-- the webclient war with the direct provider, built by webclient-war.xml -->
+    <file>
+      <source>target/webclient/cibseven-webclient-web-${cibseven-webapp.version}-wildfly.war</source>
+      <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments/</outputDirectory>
+    </file>
      <file>
       <source>src/EMPTY_FILE</source>
       <outputDirectory>server/wildfly-${version.wildfly}/standalone/deployments/</outputDirectory>

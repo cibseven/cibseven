@@ -60,6 +60,21 @@
       <type>war</type>
     </dependency>
 
+    <!-- The webclient war no longer contains the direct provider, it is built in this repo now.
+         assembly.xml adds it to the webclient's WEB-INF/lib. -->
+    <dependency>
+      <groupId>org.cibseven.webapp</groupId>
+      <artifactId>cibseven-direct-provider</artifactId>
+      <version>${project.version}</version>
+      <exclusions>
+        <!-- the webclient war has it -->
+        <exclusion>
+          <groupId>org.cibseven.webapp</groupId>
+          <artifactId>cibseven-interfaces</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
   </dependencies>
 
   <build>
