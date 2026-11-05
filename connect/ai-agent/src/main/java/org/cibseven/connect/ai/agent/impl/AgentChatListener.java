@@ -83,8 +83,9 @@ import org.cibseven.connect.ai.agent.AgentConnectorConstants;
  * <p>The chat-log name is derived automatically from the current activity:
  * {@code AGENT_CONNECTOR_LOG_PREFIX + activityId}. The log is stored in chunks,
  * one variable per model call named {@code <name>~<eventSeq of its first
- * event>}, each written once (CIB7-2156). A reader puts the activity's log
- * together from its chunks in {@code eventSeq} order, after the single variable
+ * event>}, the number padded with zeros to ten digits, each written once
+ * (CIB7-2156). A reader puts the activity's log together from its chunks in
+ * the order of their names, after the single variable
  * {@code <name>} that versions before chunking rewrote whole. Numbering
  * continues after whatever an earlier invocation of the activity wrote. When
  * the listener is invoked without a {@link BpmnExecutionContext} (e.g. unit
@@ -576,10 +577,16 @@ class AgentChatListener implements ChatModelListener {
     }
     String chunkPrefix = variableName + CHUNK_SEPARATOR;
     int lastChunk = -1;
+    String lastChunkName = null;
     for (String name : execution.getVariableNames()) {
       if (name.startsWith(chunkPrefix)) {
         try {
-          lastChunk = Math.max(lastChunk, Integer.parseInt(name.substring(chunkPrefix.length())));
+          int chunk = Integer.parseInt(name.substring(chunkPrefix.length()));
+          if (chunk > lastChunk) {
+            lastChunk = chunk;
+            // Read by the name it has, padded or not, rather than one rebuilt from the number.
+            lastChunkName = name;
+          }
         } catch (NumberFormatException e) {
           // Not a chunk of this log; whatever it is, it does not number it.
         }
@@ -587,7 +594,7 @@ class AgentChatListener implements ChatModelListener {
     }
     if (lastChunk >= 0) {
       // After an undecodable chunk at least one past it, so no later name collides with it.
-      eventSeq.set(lastChunk + Math.max(1, decodedSize(execution, chunkPrefix + lastChunk)));
+      eventSeq.set(lastChunk + Math.max(1, decodedSize(execution, lastChunkName)));
     } else {
       eventSeq.set(decodedSize(execution, variableName));
     }
@@ -633,8 +640,8 @@ class AgentChatListener implements ChatModelListener {
     String name = chunkName(events.get(persisted).get("eventSeq"));
     if (name.getBytes(StandardCharsets.UTF_8).length
         > ProcessVariableChatMemoryStore.MAX_VARIABLE_NAME_LENGTH) {
-      // Caught here rather than as a database error, which would fail the invocation. Checked
-      // against the name actually written, so an id fits as long as its eventSeq leaves room.
+      // Caught here rather than as a database error, which would fail the invocation. Every
+      // chunk name of an activity has the same length, so an id that fits once always fits.
       // Counted in UTF-8 bytes, as a byte-length column (DB2) counts it; on a column counting
       // characters that is the conservative bound, the same for an ASCII id.
       if (TOO_LONG_WARNED.add(variableName)) {
@@ -678,9 +685,13 @@ class AgentChatListener implements ChatModelListener {
     persistEvents();
   }
 
-  /** The variable name of the chunk whose first event has {@code firstSeq}. */
+  /**
+   * The variable name of the chunk whose first event has {@code firstSeq}, the number padded with
+   * zeros to ten digits, the width of {@link Integer#MAX_VALUE}: every chunk name of an activity has
+   * the same length, and their order as text is their numeric order (CIB7-2156).
+   */
   String chunkName(Object firstSeq) {
-    return variableName + CHUNK_SEPARATOR + firstSeq;
+    return variableName + CHUNK_SEPARATOR + String.format("%010d", ((Number) firstSeq).longValue());
   }
 
   // ── ChatModelListener callbacks ──────────────────────────────────────────

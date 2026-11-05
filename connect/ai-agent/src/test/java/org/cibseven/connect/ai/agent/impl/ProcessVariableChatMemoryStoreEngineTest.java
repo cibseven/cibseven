@@ -476,9 +476,10 @@ public class ProcessVariableChatMemoryStoreEngineTest {
         .collect(Collectors.toList()))
         .as("the old log as it was started with, then each chunk written once")
         .containsExactlyInAnyOrder(log,
-            log + separator + 2, log + separator + 4, log + separator + 6, log + separator + 8);
+            log + separator + "0000000002", log + separator + "0000000004",
+            log + separator + "0000000006", log + separator + "0000000008");
     assertThat(String.valueOf(
-        ENGINE.getRuntimeService().getVariable(instance.getId(), log + separator + 6)))
+        ENGINE.getRuntimeService().getVariable(instance.getId(), log + separator + "0000000006")))
         .as("the second invocation starts after the first one's last chunk")
         .contains("\"eventSeq\":6").contains("\"eventSeq\":7");
   }

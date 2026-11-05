@@ -97,11 +97,11 @@ import org.cibseven.connect.spi.Connector;
  * }</pre>
  *
  * <p>The chat log is persisted automatically into process-scoped variables named
- * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "~" + <eventSeq>}, one per
- * model call, written once on the {@code response} or {@code error} event that ends
+ * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "~" + <eventSeq>}, the
+ * {@code eventSeq} padded with zeros to ten digits, one per model call, written once on the {@code response} or {@code error} event that ends
  * it; the {@code request} event and any {@code retrieval} before it are part of that
  * chunk. Numbering continues across invocations of the same service task, so they
- * form a single timeline when the chunks are read in {@code eventSeq} order, after a
+ * form a single timeline when the chunks are read in the order of their names, after a
  * variable {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId>} written before chunking
  * (see {@link AgentConnectorConstants#AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR}).
  * The chat log is not exposed as an output parameter because its serialised form
@@ -123,12 +123,11 @@ import org.cibseven.connect.spi.Connector;
  * {@code persistChatLog=false}, or the {@code chatLogVariable.enabled} setting, turns
  * them off where the audit trail goes to an external sink instead.
  *
- * <p>A chunk's name, {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "~" + eventSeq},
+ * <p>A chunk's name, {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "~"} and ten digits,
  * has to fit into the 255 bytes (UTF-8) the engine stores as a variable name, so
  * that it fits on a database counting the column in bytes (DB2) as well. An activity id of
- * at most 218 ASCII characters always leaves room (fewer where it has other characters); a
- * longer one stops its chat log at the first chunk that does not fit, with a warning,
- * rather than failing the invocation.
+ * at most 218 ASCII characters fits (fewer where it has other characters); a longer one
+ * gets no chat log, with a warning, rather than failing the invocation.
  */
 public interface AgentConnector extends Connector<AgentRequest> {
 

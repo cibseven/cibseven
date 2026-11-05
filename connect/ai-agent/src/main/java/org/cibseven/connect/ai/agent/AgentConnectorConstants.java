@@ -134,8 +134,8 @@ public final class AgentConnectorConstants {
 
   /**
    * Separates the activity id from the chunk number in a chat-log variable:
-   * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "~" + <eventSeq>}, one
-   * variable per model call holding its events, written once (CIB7-2156). A
+   * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "~" + <eventSeq>}, with
+   * the {@code eventSeq} padded with zeros to ten digits, one variable per model call holding its events, written once (CIB7-2156). A
    * BPMN id cannot contain {@code ~}, so the activity id is everything before
    * it; and {@code ~} is unreserved in a URL, so the name goes into a REST path
    * such as {@code /process-instance/{id}/variables/{varName}} as it is.
@@ -148,9 +148,11 @@ public final class AgentConnectorConstants {
    *       itself;</li>
    *   <li>the variable without a suffix comes first: a log written before
    *       chunking, by a version that rewrote the whole log on every event;</li>
-   *   <li>then the chunks, in the numeric order of their suffix (not the
-   *       lexicographic one: {@code ~10} comes after {@code ~4}). Each holds a
-   *       JSON array of events; concatenated they are the timeline.</li>
+   *   <li>then the chunks, in the order of their suffix. The suffix is the
+   *       {@code eventSeq} padded with zeros to ten digits, such as
+   *       {@code ~0000000004} before {@code ~0000000010}, so the numeric order
+   *       and the order as text (REST, database, webclient) are the same. Each
+   *       holds a JSON array of events; concatenated they are the timeline.</li>
    * </ol>
    *
    * <p>Concurrency: the numbering is one timeline only for invocations of an
