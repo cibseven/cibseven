@@ -45,6 +45,7 @@ public class AdHocElementTemplateTest {
 
   protected static final String STANDARD = "/element-templates/cibseven-ai-agent.json";
   protected static final String AD_HOC = "/element-templates/cibseven-ai-agent-adhoc.json";
+  protected static final String INGESTOR = "/element-templates/cibseven-knowledge-ingestor.json";
 
   /**
    * Connector fields that exist only on the ad hoc template, because what they mean has no
@@ -242,6 +243,25 @@ public class AdHocElementTemplateTest {
     List<String> naming = new ArrayList<String>();
     findInTexts(read(AD_HOC), "", Pattern.compile("CIB7-\\d+|\\bMVP\\b"), naming);
     assertThat(naming).as("texts naming a ticket or a release phase").isEmpty();
+  }
+
+  /**
+   * A key read from a process variable is stored in the runtime tables and, with history on, in
+   * the history, where Cockpit and the REST API show it after the process has ended; a key
+   * written into a field is stored in the deployed model. So no text of a shipped template may
+   * suggest either: no expression that reads the key from a variable, no literal bearer token or
+   * OpenAI key as an example. The connector takes the server's key when the field is empty.
+   */
+  @Test
+  public void noTemplateSuggestsAKeyInAProcessVariableOrInTheModel() throws IOException {
+    Pattern credential = Pattern.compile(
+        "\\$\\{\\s*apiKey\\s*\\}|Bearer\\s+[\\w.~+/-]+|\\bsk-");
+    List<String> suggesting = new ArrayList<String>();
+    for (String resource : new String[] { STANDARD, AD_HOC, INGESTOR }) {
+      findInTexts(read(resource), resource, credential, suggesting);
+    }
+    assertThat(suggesting).as("texts suggesting a key in a process variable or in the model")
+        .isEmpty();
   }
 
   /** Adds where {@code pattern} is found in any text under {@code node}, and what it found. */

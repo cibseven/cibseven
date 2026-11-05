@@ -170,8 +170,7 @@
           "label": "API key",
           "type": "String",
           "group": "agent",
-          "description": "API key for the LLM provider. Use an expression to reference a process variable, e.g. ${apiKey}.",
-          "placeholder": "${apiKey}",
+          "description": "Leave empty to use the server's key (environment variable OPENAI_API_KEY). Do not pass a key in a process variable: it is stored in the history.",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "apiKey"
@@ -181,8 +180,8 @@
           "label": "HTTP headers",
           "type": "Text",
           "group": "agent",
-          "description": "Additional request headers as a JSON object, e.g. {\"Authorization\": \"Bearer sk-...\"}.",
-          "placeholder": "{\"Authorization\": \"Bearer sk-...\"}",
+          "description": "Additional request headers as a JSON object, e.g. {\"X-Request-Source\": \"cibseven\"}. Do not write a key or token here: the text is stored in the deployed model.",
+          "placeholder": "{\"X-Request-Source\": \"cibseven\"}",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "customHeaders"
@@ -224,7 +223,7 @@
           "type": "Text",
           "group": "tools",
           "description": "JSON array of MCP server configs: [{\"name\": \"...\", \"url\": \"...\", \"headers\": {...}}]. The optional 'name' (1-32 chars of [a-zA-Z0-9_-]) is used as a prefix to disambiguate tool names across servers — the agent sees '<name>__<toolName>' instead of just '<toolName>', so two MCP servers exposing the same tool name no longer collide. When 'name' is omitted, the connector derives a slug from the URL host/port (e.g. localhost:8081 → 'localhost-8081'). Each entry's headers is a JSON object of header name → value. Use http://localhost:8080/mcp if the mcp-process-executor plugin is enabled on this instance.",
-          "placeholder": "[{\"name\": \"engine\", \"url\": \"http://localhost:8081/mcp\"}, {\"name\": \"krank\", \"url\": \"http://localhost:8082/mcp\", \"headers\": {\"Authorization\": \"Bearer token\"}}]",
+          "placeholder": "[{\"name\": \"engine\", \"url\": \"http://localhost:8081/mcp\"}, {\"name\": \"krank\", \"url\": \"http://localhost:8082/mcp\", \"headers\": {\"X-Tenant\": \"sales\"}}]",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "mcpServers"
