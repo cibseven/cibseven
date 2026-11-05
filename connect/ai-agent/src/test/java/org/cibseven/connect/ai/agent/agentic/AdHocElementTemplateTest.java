@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.cibseven.connect.ai.agent.AgentConnector;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.junit.jupiter.api.Test;
 
@@ -253,14 +254,16 @@ public class AdHocElementTemplateTest {
 
   /**
    * What reads as a credential in a template's text: an expression that reads a key, token,
-   * secret or password ({@code ${apiKey}}, {@code ${secrets.OPENAI_API_KEY}}), an Authorization
-   * header, a bearer or basic credential with a digit or sign in it, or an OpenAI key. Prose such
-   * as "bearer authentication" is not one; a credential of letters only, outside a header, is not
-   * found either.
+   * secret or password ({@code ${apiKey}}, {@code ${azureKey}}, {@code ${authToken}},
+   * {@code ${secrets.OPENAI_API_KEY}}), an Authorization or API key header, a bearer or basic
+   * credential with a digit or sign in it, or an OpenAI key. Prose such as "bearer
+   * authentication" is not one, nor is a setting such as {@code ${maxTokens}}; a credential of
+   * letters only, outside a header, is not found either.
    */
   protected static final Pattern CREDENTIAL = Pattern.compile(
-      "[$#]\\{[^}]*(?:api_?key|ai_?key|secret|password|passwd|token|credential)[^}]*\\}"
-          + "|\"authorization\"\\s*:\\s*\""
+      "[$#]\\{[^}]*(?:(?:api|ai|azure|openai|access|auth|secret|private)[_-]?key|secret"
+          + "|passw(?:or)?d|(?:auth|access|bearer|api|id|refresh)[_-]?token|credential)[^}]*\\}"
+          + "|\"(?:proxy-)?authorization\"\\s*:\\s*\"|\"(?:x-)?api-key\"\\s*:\\s*\""
           + "|\\b(?:bearer|basic)\\s+[\\w.~+/=-]*[\\d.~+/=-][\\w.~+/=-]*"
           + "|\\bsk-",
       Pattern.CASE_INSENSITIVE);
@@ -291,14 +294,59 @@ public class AdHocElementTemplateTest {
         "${secrets.OPENAI_API_KEY}", "${execution.getVariable('apiKey')}", "${openAiKey}",
         "${pgPassword}", "${authToken}", "{\"Authorization\": \"Bearer token\"}",
         "{\"authorization\":\"x\"}", "Bearer sk-...", "bearer abc123", "Basic dXNlcjpwYXNz=",
-        "sk-proj-abc" }) {
+        "sk-proj-abc", "${azureKey}", "${azure_api_key}", "{\"api-key\": \"abc\"}",
+        "{\"X-API-Key\": \"abc\"}" }) {
       assertThat(CREDENTIAL.matcher(credential).find()).as(credential).isTrue();
     }
     for (String prose : new String[] { "uses Bearer authentication", "a bearer token",
         "basic settings", "the task-specific prompt", "${output}", "${memoryId}",
-        "environment variable OPENAI_API_KEY", "{\"X-Request-Source\": \"cibseven\"}" }) {
+        "environment variable OPENAI_API_KEY", "{\"X-Request-Source\": \"cibseven\"}",
+        "${maxTokens}", "${max_tokens}", "${processDefinitionKey}", "${businessKey}" }) {
       assertThat(CREDENTIAL.matcher(prose).find()).as(prose).isFalse();
     }
+  }
+
+  /**
+   * The guidance itself is kept, not only the absence of bad examples: every API key field names
+   * the server's {@code OPENAI_API_KEY}, warns against a process variable and against the model,
+   * and has no placeholder to copy; every field for headers warns against the model.
+   */
+  @Test
+  public void everyCredentialFieldSaysWhereTheKeyGoesAndWhereNot() throws IOException {
+    List<String> missing = new ArrayList<String>();
+    int apiKeyFields = 0;
+    for (String resource : templates()) {
+      JsonNode template = read(resource);
+      List<JsonNode> all = new ArrayList<JsonNode>();
+      template.path("properties").forEach(all::add);
+      for (JsonNode scope : template.path("scopes")) {
+        scope.path("properties").forEach(all::add);
+      }
+      for (JsonNode property : all) {
+        String name = property.path("binding").path("name").asText();
+        String description = text(property, "description");
+        String where = resource + " -> " + text(property, "label");
+        if (AgentConnector.PARAM_NAME_API_KEY.equals(name)) {
+          apiKeyFields++;
+          for (String needed : new String[] { "OPENAI_API_KEY", "process variable",
+              "history", "deployed model" }) {
+            if (!description.contains(needed)) {
+              missing.add(where + ": no '" + needed + "'");
+            }
+          }
+          if (property.has("placeholder")) {
+            missing.add(where + ": a placeholder");
+          }
+        } else if (AgentConnector.PARAM_NAME_CUSTOM_HEADERS.equals(name)
+            || AgentConnector.PARAM_NAME_MCP_SERVERS.equals(name)) {
+          if (!description.contains("deployed model")) {
+            missing.add(where + ": no 'deployed model'");
+          }
+        }
+      }
+    }
+    assertThat(apiKeyFields).as("API key fields found").isGreaterThanOrEqualTo(3);
+    assertThat(missing).as("credential fields without their guidance").isEmpty();
   }
 
   /** The resource paths of every element template this module ships. */
