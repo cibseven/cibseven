@@ -549,6 +549,48 @@ public class AgentChatListenerTest {
   }
 
   @Test
+  public void shouldRetryEventsAfterAChunkWriteFails() {
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("agentTask");
+    pushExecution(execution);
+
+    org.mockito.Mockito.doThrow(new IllegalStateException("write failed")).doNothing()
+        .when(execution).setVariable(
+            org.mockito.Matchers.startsWith(varName + AgentConnectorConstants.AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR), org.mockito.Matchers.any());
+
+    AgentChatListener listener = new AgentChatListener();
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    org.assertj.core.api.Assertions.assertThatThrownBy(() -> listener.onResponse(
+        new ChatModelResponseContext(
+            ChatResponse.builder().aiMessage(AiMessage.from("first")).build(),
+            request, null, new HashMap<>())))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessage("write failed");
+
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    listener.onResponse(new ChatModelResponseContext(
+        ChatResponse.builder().aiMessage(AiMessage.from("second")).build(),
+        request, null, new HashMap<>()));
+
+    org.mockito.ArgumentCaptor<Object> value = org.mockito.ArgumentCaptor.forClass(Object.class);
+    verify(execution, org.mockito.Mockito.times(2)).setVariable(
+        org.mockito.Matchers.startsWith(varName + AgentConnectorConstants.AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR), value.capture());
+    String json = (String) ((org.cibseven.bpm.engine.variable.value.ObjectValue)
+        value.getValue()).getValue();
+    try {
+      List<Map<String, Object>> events =
+          new com.fasterxml.jackson.databind.ObjectMapper().readValue(json, List.class);
+      assertThat(events).extracting(event -> event.get("type"))
+          .containsExactly("request", "response", "request", "response");
+    } catch (java.io.IOException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  @Test
   public void shouldWriteConnectorFlagVariableOnlyOnceAcrossMultipleEvents() {
     ExecutionEntity execution = mock(ExecutionEntity.class);
     when(execution.getActivityId()).thenReturn("agentTask");
