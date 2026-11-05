@@ -59,8 +59,7 @@ pipeline {
               cambpmRunMaven('.',
                   'clean source:jar deploy source:test-jar com.mycila:license-maven-plugin:check -Pdistro,distro-wildfly,distro-webjar,h2-in-memory -DaltStagingDirectory=${WORKSPACE}/staging -DskipRemoteStaging=true '+ skipTests,
                   withCatch: false,
-                  // we use JDK 17 to build the artifacts, as it is required for supporting Spring Boot 4
-                  // the compiler source and target is set to JDK 11 in the release parents
+                  // JDK 17 is the minimum: the root pom sets version.java=17 (Jakarta EE 11, Spring Boot 4)
                   jdkVersion: 'jdk-17-latest',
                   withPodSpec: true)
             }
@@ -230,32 +229,6 @@ pipeline {
             ])
           }
         }
-      //stage('engine-IT-tomcat-9-postgresql-170') {
-      //  when {
-      //    expression {
-      //      cambpmWithLabels('all', 'all-as', 'tomcat')
-      //    }
-      //  }
-      //  steps {
-      //    cambpmConditionalRetry([
-      //      podSpec: [
-      //        cpu: 4,
-      //        images: ['maven:3.9.7-eclipse-temurin-11', 'postgres:17.0']
-      //      ],
-      //      runSteps: {
-      //        cambpmRunMaven('qa/',
-      //          'clean install -Ptomcat9,postgresql,engine-integration',
-      //          runtimeStash: true,
-      //          archiveStash: true,
-      //          jdkVersion: 'jdk-11-latest',
-      //          withPodSpec: true)
-      //      },
-      //      postFailure: {
-      //        cambpmPublishTestResult()
-      //      }
-      //    ])
-      //  }
-      //}
         stage('engine-IT-tomcat-10-postgresql-170') {
           when {
             expression {
