@@ -134,6 +134,21 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
     }
   }
 
+  /** What {@link ChildPeeksAtTheOldCopy} found under the conversation's name. */
+  static volatile Object seenRawByChild;
+
+  /**
+   * A child of the scope reading the conversation's variable name directly, as a tool could,
+   * reaching whatever its parent chain holds.
+   */
+  public static class ChildPeeksAtTheOldCopy implements JavaDelegate {
+
+    @Override
+    public void execute(DelegateExecution execution) {
+      seenRawByChild = execution.getVariable(VARIABLE_NAME);
+    }
+  }
+
   /** Whether {@link ChildClearsMemory} ran its clear. */
   static volatile boolean clearedByChild;
 
@@ -156,6 +171,7 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
   public void setUp() {
     readBack = null;
     seenByChild = null;
+    seenRawByChild = null;
     clearedByChild = false;
     ScriptedAgent.reset();
     // The children go through the shared store. With the persistent store switched off, or another
@@ -240,6 +256,8 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
         + ChildReadsMemory.class.getName() + "' />"
         + "    <serviceTask id='clears' name='Clears' camunda:class='"
         + ChildClearsMemory.class.getName() + "' />"
+        + "    <serviceTask id='peeks' name='Peeks' camunda:class='"
+        + ChildPeeksAtTheOldCopy.class.getName() + "' />"
         + "  </adHocSubProcess>"
         + "  <sequenceFlow id='f2' sourceRef='adHoc' targetRef='end' />"
         + "  <endEvent id='end' />"
@@ -455,6 +473,43 @@ public class ProcessVariableChatMemoryStoreAdHocTest {
     assertThat(variables).hasSize(1);
     assertThat(variables.get(0).getExecutionId()).isNotEqualTo(instance.getId());
     assertThat(ENGINE.getRuntimeService().getVariable(instance.getId(), VARIABLE_NAME)).isNull();
+  }
+
+  /**
+   * Writes the conversation within a batch, as a connector invocation does (CIB7-2156), and runs
+   * a tool before the batch closes, as a tool the agent calls in that invocation does.
+   */
+  private static final Turn WRITE_IN_A_BATCH_THEN_RUN_A_TOOL = (scope, store) -> {
+    try (ProcessVariableChatMemoryStore.Batch batch = ProcessVariableChatMemoryStore.Batch.open()) {
+      WRITE.run(scope, store);
+      new AdHocSubProcessTool().startActivity("peeks", Collections.<String, Object>emptyMap());
+      new AdHocSubProcessTool().startActivity("waits", Collections.<String, Object>emptyMap());
+    }
+  };
+
+  /**
+   * A write held back in a batch removes the old copy at once, not when the batch closes: a tool
+   * the invocation runs before that would otherwise still read the earlier build's conversation
+   * at the process level.
+   */
+  @Test
+  public void aWriteHeldInABatchRemovesTheOldCopyBeforeAToolRuns() {
+    ProcessInstance instance = start(keepingTheScopeOpen(SEED_LEGACY_COPY),
+        WRITE_IN_A_BATCH_THEN_RUN_A_TOOL);
+
+    runTurn(instance);
+    assertThat(ENGINE.getRuntimeService().getVariable(instance.getId(), VARIABLE_NAME))
+        .as("the earlier build's copy").isNotNull();
+
+    Task waits = ENGINE.getTaskService().createTaskQuery()
+        .processInstanceId(instance.getId()).taskDefinitionKey("waits").singleResult();
+    ENGINE.getTaskService().complete(waits.getId());
+    runTurn(instance);
+
+    assertThat(seenRawByChild).as("what the tool found under the conversation's name").isNull();
+    List<VariableInstance> variables = memoryVariables(instance);
+    assertThat(variables).as("written when the batch closed, on the agent state").hasSize(1);
+    assertThat(variables.get(0).getExecutionId()).isNotEqualTo(instance.getId());
   }
 
   /**

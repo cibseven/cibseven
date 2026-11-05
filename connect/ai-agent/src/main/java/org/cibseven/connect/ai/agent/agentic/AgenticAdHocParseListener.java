@@ -1155,12 +1155,15 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     int maxActivityIdLength = 255
         - AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX.length()
         - "adhoc-".length() - 64 - 1;
-    if (perActivity && activity.getId().length() > maxActivityIdLength) {
+    // Counted in UTF-8 bytes, as the chat memory store counts the name at runtime (CIB7-2156): an
+    // id that fits in characters but not in bytes would deploy and then fail on every step.
+    if (perActivity && activity.getId().getBytes(java.nio.charset.StandardCharsets.UTF_8).length
+        > maxActivityIdLength) {
       throw new BpmnParseException("Ad hoc sub process '" + activity.getId() + "': perActivity"
           + " conversation requires an activity id of at most " + maxActivityIdLength
-          + " characters so the memory variable name fits the 255-character limit (reserving"
-          + " 64 characters for the enclosing execution id). Shorten the activity id or use"
-          + " perEntry.", scopeElement);
+          + " bytes in UTF-8 (as many ASCII characters) so the memory variable name fits the"
+          + " 255-byte limit (reserving 64 characters for the enclosing execution id). Shorten"
+          + " the activity id or use perEntry.", scopeElement);
     }
 
     if (perActivity && scope instanceof ActivityImpl && ((ActivityImpl) scope)
