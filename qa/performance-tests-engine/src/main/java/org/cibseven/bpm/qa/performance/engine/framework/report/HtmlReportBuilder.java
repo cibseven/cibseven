@@ -112,7 +112,7 @@ public class HtmlReportBuilder {
      }
 
      if(jsonSourceFileName != null) {
-        sourceRow.startElement(new HtmlElementWriter("span").textContent("&nbsp;|&nbsp;")).endElement();
+        sourceRow.startElement(new HtmlElementWriter("span").rawTextContent("&nbsp;|&nbsp;")).endElement();
      }
 
      if(jsonSourceFileName != null) {
