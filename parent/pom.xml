@@ -381,6 +381,10 @@
   </build>
 
   <profiles>
+        <!-- Temporary JDK 25 test workaround for Graal/Truffle native-access and Unsafe warnings,
+          e.g. engine-dmn/ExpressionLanguageTest and engine/ScriptTaskGraalJsTest.
+          Remove or narrow these flags once the underlying APIs/dependencies no longer need them
+          and these tests pass without this workaround. -->
     <profile>
       <id>jdk25-test-jvm-args</id>
       <activation>
