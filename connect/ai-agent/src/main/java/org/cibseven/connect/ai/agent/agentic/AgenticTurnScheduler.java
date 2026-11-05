@@ -22,6 +22,7 @@ import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.db.entitymanager.cache.CachedDbEntity;
 import org.cibseven.bpm.engine.impl.db.entitymanager.cache.DbEntityState;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
+import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutorContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.MessageEntity;
@@ -41,14 +42,18 @@ public final class AgenticTurnScheduler {
   /**
    * Inserts a step job for {@code scopeExecution} unless one is already waiting.
    *
-   * <p>Waiting means not yet taken by an executor and not the job running now. Three children
+   * <p>Waiting means not yet started and not the job running now: not taken by an executor, or
+   * taken by the one that runs this command and still in its queue. Three children
    * ending at once fire three times and mean one thing, there is something new to look at, and
    * the waiting job sees all three because it reads the state rather than the signal. A job that
    * is running does not count: it may have read the state before this change, and skipping here
-   * would lose the change for good. The worst that follows is one step more: a job taken but not
-   * started yet may still read the change, and the job inserted here then finds nothing new. When
-   * the taken one ends the turn, that is a turn of its own, which counts against maxTurns and costs
-   * a model call.
+   * would lose the change for good. The worst that follows is one step more: a job another thread
+   * or node has taken but not started yet may still read the change, and the job inserted here then
+   * finds nothing new. When the taken one ends the turn, that is a turn of its own, which counts
+   * against maxTurns and costs a model call. A job in this thread's own queue is not such a case:
+   * a step that starts an asynchronous tool creates the tool's job and the next step, both come in
+   * one queue, as the hint or as one acquisition, and the next step runs after the tool has
+   * ended.
    *
    * <p>The scope's own jobs are read from the execution, which also holds the ones inserted earlier
    * in this transaction -- a database query would not see them, and a step whose tool ended
@@ -77,7 +82,7 @@ public final class AgenticTurnScheduler {
       if (isInsertedNow(commandContext, job)) {
         return;
       }
-      if (!isTakenByAnExecutor(job)) {
+      if (!isTakenByAnExecutor(job) || isQueuedOnThisThread(job)) {
         commandContext.getDbEntityManager().forceUpdate(job);
         return;
       }
@@ -102,6 +107,18 @@ public final class AgenticTurnScheduler {
   protected static boolean isInsertedNow(CommandContext commandContext, JobEntity job) {
     CachedDbEntity cached = commandContext.getDbEntityManager().getDbEntityCache().getCachedEntity(job);
     return cached != null && cached.getEntityState() == DbEntityState.TRANSIENT;
+  }
+
+  /**
+   * In the queue of the job executor thread that runs this command: taken, but started only after
+   * this command commits, so it reads this change. The executor locks the jobs of its queue before
+   * it runs them -- the one a job of the same instance creates, as the hint, and every job of an
+   * acquired batch -- so their lock does not tell them from a running job.
+   */
+  protected static boolean isQueuedOnThisThread(JobEntity job) {
+    JobExecutorContext executorContext = Context.getJobExecutorContext();
+    return executorContext != null
+        && executorContext.getCurrentProcessorJobQueue().contains(job.getId());
   }
 
   /** Locked by a job executor that has not let go of it: running, or about to. */

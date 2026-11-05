@@ -76,6 +76,7 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.cibseven.connect.ai.agent.agentic.AdHocAgentState;
+import org.cibseven.connect.ai.agent.agentic.AgenticTurnJobHandler;
 import org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -100,6 +101,8 @@ public class AgenticTurnJobTest {
   private HttpServer stub;
   /** The engine-wide retry cycle the next {@code start} configures; none by default. */
   private String engineRetryCycle;
+  /** Whether the next {@code start}'s job executor queues a job a job creates on its thread. */
+  private boolean hintJobExecutor = true;
   /** The default serialization format the next {@code start} configures; the engine's own if null. */
   private String defaultSerializationFormat;
   private final ConcurrentLinkedQueue<String> script = new ConcurrentLinkedQueue<>();
@@ -1784,6 +1787,87 @@ public class AgenticTurnJobTest {
     assertThat(engine.getHistoryService().createHistoricJobLogQuery()
         .processInstanceId(pi.getId()).creationLog().count())
         .as("one job for entering the scope and one for each further step").isEqualTo(3);
+  }
+
+  /** A tool behind asyncBefore and one that waits for a person: one answer calls both. */
+  protected static final String ASYNC_AND_WAITING =
+      "      <serviceTask id='spaeter' name='Spaeter' camunda:asyncBefore='true'"
+      + " camunda:expression='${1}' camunda:resultVariable='spaet' />"
+      + "      <userTask id='worker' name='Worker' />";
+
+  /**
+   * Under the job executor, an asynchronous tool that ends before the next step has started leaves
+   * that step to see its end. The step that called it queues the tool's job and the next step on
+   * this thread, as the hint; the next step is not running when the tool ends, so it is the step
+   * that waits, and no further one is scheduled: two model calls, not a third with nothing new.
+   */
+  @Test
+  public void underTheJobExecutorAnAsyncToolEndingBeforeTheNextStepAddsNoStep() throws Exception {
+    ProcessInstance pi = runAnAsyncToolAndAWaitingOne("");
+
+    assertThat(requests.get()).as("the call, then the answer that waits for the worker")
+        .isEqualTo(2);
+    assertThat(turnJobsCreated(pi)).as("one job on entry, one for the step after the call")
+        .isEqualTo(2);
+    assertThat(finalValue(pi, "agentOutput")).isEqualTo("Warte auf den Worker.");
+  }
+
+  /** As above with the hint off: the tool's job and the next step come in one acquisition. */
+  @Test
+  public void withoutTheHintAnAsyncToolEndingBeforeTheNextStepAddsNoStep() throws Exception {
+    hintJobExecutor = false;
+    ProcessInstance pi = runAnAsyncToolAndAWaitingOne("");
+
+    assertThat(requests.get()).isEqualTo(2);
+    assertThat(turnJobsCreated(pi)).isEqualTo(2);
+  }
+
+  /**
+   * With maxTurns 1 the one turn is the agent's: its answer stays, and no turn without news reaches
+   * the limit and writes turnLimit over it while the worker still runs.
+   */
+  @Test
+  public void anAsyncToolEndingBeforeTheNextStepSpendsNoTurn() throws Exception {
+    ProcessInstance pi = runAnAsyncToolAndAWaitingOne(limits("maxTurns", "1"));
+
+    assertThat(finalValue(pi, "agentOutcome")).isEqualTo("waiting");
+    assertThat(finalValue(pi, "agentOutput")).isEqualTo("Warte auf den Worker.");
+    assertThat(engine.getTaskService().createTaskQuery().processInstanceId(pi.getId())
+        .taskDefinitionKey("worker").count()).as("the worker still runs").isOne();
+  }
+
+  /** {@link #ASYNC_AND_WAITING}, both called in one answer, run under the job executor. */
+  protected ProcessInstance runAnAsyncToolAndAWaitingOne(String scopeExtensions) throws Exception {
+    script.add(twoToolCalls("spaeter", "worker"));
+    script.add(answer("Warte auf den Worker."));
+    script.add(answer("Nichts Neues."));
+    ProcessInstance pi = start(connectorModel(scopeExtensions,
+        "<camunda:inputParameter name='message'>Rechne.</camunda:inputParameter>", "",
+        "stub-key", ASYNC_AND_WAITING), Collections.<String, Object>emptyMap());
+
+    JobExecutor executor =
+        ((ProcessEngineConfigurationImpl) engine.getProcessEngineConfiguration()).getJobExecutor();
+    executor.start();
+    try {
+      long deadline = System.currentTimeMillis() + 30000;
+      while (engine.getManagementService().createJobQuery().count() > 0
+          && System.currentTimeMillis() < deadline) {
+        Thread.sleep(100);
+      }
+    } finally {
+      executor.shutdown();
+    }
+    assertThat(engine.getManagementService().createJobQuery().count())
+        .as("every job ran before the deadline").isZero();
+    return pi;
+  }
+
+  /** How many turn jobs the instance created, from the job log. */
+  protected long turnJobsCreated(ProcessInstance pi) {
+    return engine.getHistoryService().createHistoricJobLogQuery()
+        .processInstanceId(pi.getId()).creationLog().list().stream()
+        .filter(log -> AgenticTurnJobHandler.TYPE.equals(log.getJobDefinitionType()))
+        .count();
   }
 
   /**
@@ -4397,6 +4481,19 @@ public class AgenticTurnJobTest {
         + "\"usage\":{\"prompt_tokens\":1,\"completion_tokens\":1,\"total_tokens\":2}}";
   }
 
+  /** One answer that calls both tools, each without arguments. */
+  private static String twoToolCalls(String first, String second) {
+    return "{\"id\":\"c\",\"object\":\"chat.completion\",\"created\":1,"
+        + "\"model\":\"stub\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\","
+        + "\"content\":null,\"tool_calls\":["
+        + "{\"id\":\"call_1\",\"type\":\"function\",\"function\":{\"name\":\"" + first
+        + "\",\"arguments\":\"{}\"}},"
+        + "{\"id\":\"call_2\",\"type\":\"function\",\"function\":{\"name\":\"" + second
+        + "\",\"arguments\":\"{}\"}}]},"
+        + "\"finish_reason\":\"tool_calls\"}],"
+        + "\"usage\":{\"prompt_tokens\":1,\"completion_tokens\":1,\"total_tokens\":2}}";
+  }
+
   private static String answer(String text) {
     return "{\"id\":\"c\",\"object\":\"chat.completion\",\"created\":1,"
         + "\"model\":\"stub\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\","
@@ -4471,6 +4568,7 @@ public class AgenticTurnJobTest {
     configuration.setJdbcUrl("jdbc:h2:mem:agentic-turn;DB_CLOSE_DELAY=-1");
     // Off: the turn is run by hand, so the outcome is a step and not a race.
     configuration.setJobExecutorActivate(false);
+    configuration.setHintJobExecutor(hintJobExecutor);
     configuration.setHistoryTimeToLive("P30D");
     configuration.setHistory(ProcessEngineConfiguration.HISTORY_FULL);
     configuration.setFailedJobRetryTimeCycle(engineRetryCycle);
