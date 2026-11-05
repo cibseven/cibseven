@@ -61,7 +61,7 @@ import org.cibseven.bpm.engine.variable.value.TypedValue;
  *
  * <p>A tool that holds its results in an execution of its own loses them before its child ends;
  * {@link #carry} keeps them on the child's execution as the tool ends, and the child's end takes
- * them into the list (CIB7-2215). The list itself is still written only there.
+ * them into the list (CIB7-2215). An entry is still written only there.
  *
  * <p>Each entry is a variable of its own on the agent state, {@code adHocAgentResults~<n>} with
  * its position in the list padded with zeros to ten digits, written once as its child ends and
@@ -78,11 +78,11 @@ import org.cibseven.bpm.engine.variable.value.TypedValue;
  * update of the one list failed before. Run in a job, its transaction is retried and appends after
  * the first; a task completed through the API gets the exception, as it did then.
  *
- * <p>A step that reads the list must not write it either. The engine serializes an object it read
- * again when the command ends, and writes it back if the bytes differ; a hash map can come back with
- * a different table size, on Java 17 at twelve entries and every doubling of that. So every map in
- * the list is a {@link TreeMap}, whose bytes depend only on what it holds, and the list is rebuilt
- * that way whenever it is written.
+ * <p>A step that reads the entries must not write them either. The engine serializes an object it
+ * read again when the command ends, and writes it back if the bytes differ; a hash map can come back
+ * with a different table size, on Java 17 at twelve entries and every doubling of that. So every map
+ * in an entry is a {@link TreeMap}, whose bytes depend only on what it holds, and an entry is built
+ * that way when it is written.
  */
 public final class AdHocResults {
 

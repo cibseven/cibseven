@@ -4454,6 +4454,57 @@ public class AgenticTurnJobTest {
 
     assertThat(resultWrites(pi)).as("the old list once, as set; the new result after it")
         .containsExactlyInAnyOrder("adHocAgentResults", AdHocResults.entryName(1));
+    assertThat(shownActivations(lastUserMessage(requestBodies.get(requestBodies.size() - 1))))
+        .as("the agent is shown the old list's entry, then the new one")
+        .hasSize(2).first().isEqualTo("written-before");
+  }
+
+  /**
+   * A read position past a list an earlier version wrote counts its entries: the agent is shown
+   * only what was added after it (CIB7-2156).
+   */
+  @Test
+  public void aReadPositionPastAResultListFromBeforeShowsOnlyTheNewEntries() throws IOException {
+    script.add(toolCall("pruefA", "{}"));
+    script.add(toolCall("pruefB", "{}"));
+    script.add(answer("Warte."));
+    script.add(answer("Weiter."));
+    ProcessInstance pi = startWith("      <userTask id='pruefA' /><userTask id='pruefB' />");
+    runWaitingTurn();
+    String state = engine.getRuntimeService().createVariableInstanceQuery()
+        .processInstanceIdIn(pi.getId()).variableName(AdHocAgentState.STATE_MARKER)
+        .singleResult().getExecutionId();
+    Map<String, Object> earlier = new java.util.TreeMap<>();
+    earlier.put("activityId", "pruefA");
+    earlier.put("activationId", "written-before");
+    earlier.put("values", new java.util.TreeMap<String, Object>());
+    engine.getRuntimeService().setVariableLocal(state, "adHocAgentResults",
+        org.cibseven.bpm.engine.variable.Variables.objectValue(
+            new ArrayList<>(Collections.singletonList(earlier))).create());
+    @SuppressWarnings("unchecked")
+    Map<String, Object> stateMap = new java.util.TreeMap<>((Map<String, Object>) engine
+        .getRuntimeService().getVariableLocal(state, AdHocAgentState.STATE_MARKER));
+    stateMap.put("resultsRead", 1);
+    engine.getRuntimeService().setVariableLocal(state, AdHocAgentState.STATE_MARKER,
+        org.cibseven.bpm.engine.variable.Variables.objectValue(stateMap).create());
+
+    completeTask(pi, "pruefA", Collections.<String, Object>emptyMap());
+    runWaitingTurn();
+
+    assertThat(shownActivations(lastUserMessage(requestBodies.get(requestBodies.size() - 1))))
+        .as("only the new entry, the old one counts as read").hasSize(1)
+        .doesNotContain("written-before");
+  }
+
+  /** The activityInstanceIds of the results a message shows the agent, in their order. */
+  private static List<String> shownActivations(String message) {
+    List<String> ids = new ArrayList<>();
+    java.util.regex.Matcher matcher =
+        java.util.regex.Pattern.compile("\"activityInstanceId\":\"([^\"]*)\"").matcher(message);
+    while (matcher.find()) {
+      ids.add(matcher.group(1));
+    }
+    return ids;
   }
 
   /** The names of the result variables written in {@code pi}, one per write. */

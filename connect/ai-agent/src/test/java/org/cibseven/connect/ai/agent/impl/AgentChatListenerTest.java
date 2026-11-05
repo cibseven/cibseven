@@ -517,7 +517,7 @@ public class AgentChatListenerTest {
   @Test
   public void shouldMeasureTheChunkNameInBytes() {
     int longest = 255 - AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX.length() - 11;
-    ExecutionEntity execution = afterOneFailedCall(repeat('ä', longest));
+    ExecutionEntity execution = afterOneFailedCall(repeat('\u00e4', longest));
     verify(execution, never()).setVariable(
         startsWith(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX),
         any());

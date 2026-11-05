@@ -275,7 +275,7 @@ class AgentChatListener implements ChatModelListener {
 
   /**
    * How many names {@link #TOO_LONG_WARNED} keeps, so that it cannot grow for the life of the JVM;
-   * past that, every further one is warned about on each invocation.
+   * past that, every further one is warned about on each chunk it does not write.
    */
   private static final int TOO_LONG_WARNED_MAX = 1000;
 

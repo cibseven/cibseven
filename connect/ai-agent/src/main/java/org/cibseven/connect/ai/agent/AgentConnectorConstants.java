@@ -135,7 +135,8 @@ public final class AgentConnectorConstants {
   /**
    * Separates the activity id from the chunk number in a chat-log variable:
    * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "~" + <eventSeq>}, with
-   * the {@code eventSeq} padded with zeros to ten digits, one variable per model call holding its events, written once (CIB7-2156). A
+   * the {@code eventSeq} padded with zeros to ten digits, one variable per model call
+   * as a rule (precisely: per write, holding the events since the last one) holding its events, written once (CIB7-2156). A
    * BPMN id cannot contain {@code ~}, so the activity id is everything before
    * it; and {@code ~} is unreserved in a URL, so the name goes into a REST path
    * such as {@code /process-instance/{id}/variables/{varName}} as it is.
