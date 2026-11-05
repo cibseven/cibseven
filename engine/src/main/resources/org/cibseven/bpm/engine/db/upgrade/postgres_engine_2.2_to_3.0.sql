@@ -19,3 +19,8 @@
 
 insert into ACT_GE_SCHEMA_LOG
 values ('1600', CURRENT_TIMESTAMP, '3.0.0');
+
+-- This index was added in Camunda 7.21 for MSSQL only. It is needed on every database: the
+-- cascade delete of subtasks looks them up by PARENT_TASK_ID_.
+
+create index ACT_IDX_TASK_PARENT_TASK_ID on ACT_RU_TASK(PARENT_TASK_ID_);
