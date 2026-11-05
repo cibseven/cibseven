@@ -424,9 +424,9 @@
       
       <!-- Jakarta EL implementation for test environments -->
       <dependency>
-        <groupId>org.glassfish</groupId>
-        <artifactId>jakarta.el</artifactId>
-        <version>4.0.2</version>
+        <groupId>org.glassfish.expressly</groupId>
+        <artifactId>expressly</artifactId>
+        <version>${version.expressly}</version>
       </dependency>
       
       <!-- Jersey/JAX-RS dependencies for test environments -->
