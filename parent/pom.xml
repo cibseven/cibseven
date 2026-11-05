@@ -129,6 +129,8 @@
     <plugin.version.maven-bundle>5.1.9</plugin.version.maven-bundle> <!-- compatible with JDK 17 -->
     <!-- Define the maximum number of JVM processes that Surefire will spawn concurrently to execute the tests. 1C equals to number of available CPU cores in system. -->
     <surefire.forkCount>1</surefire.forkCount>
+    <!-- Arguments for test plugins on JDK 25; conditionally activated by the jdk25-test-jvm-args profile. -->
+    <test.jvm.args.jdk25 />
   </properties>
 
   <dependencyManagement>
@@ -205,7 +207,8 @@
             <argLine>-Xmx2g -Duser.language=en -Duser.region=US -XX:+HeapDumpOnOutOfMemoryError
               -XX:HeapDumpPath=${project.build.directory}/heap_dump.hprof
               --add-opens=java.base/java.util=ALL-UNNAMED
-              --add-opens=java.base/java.lang=ALL-UNNAMED</argLine>
+              --add-opens=java.base/java.lang=ALL-UNNAMED
+              ${test.jvm.args.jdk25}</argLine>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
             <forkCount>${surefire.forkCount}</forkCount>
           </configuration>
@@ -215,7 +218,7 @@
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>${version.surefire}</version>
           <configuration>
-            <argLine>-Xmx968m</argLine>
+            <argLine>-Xmx968m ${test.jvm.args.jdk25}</argLine>
             <runOrder>hourly</runOrder>
           </configuration>
           <executions>
@@ -415,6 +418,20 @@
   </build>
 
   <profiles>
+    <!-- Temporary JDK 25 test workaround for Graal/Truffle native-access and Unsafe warnings,
+         e.g. engine-dmn/ExpressionLanguageTest and engine/ScriptTaskGraalJsTest.
+         Remove or narrow these flags once the underlying APIs/dependencies no longer need them
+         and these tests run without the warnings. -->
+    <profile>
+      <id>jdk25-test-jvm-args</id>
+      <activation>
+        <jdk>[25,)</jdk>
+      </activation>
+      <properties>
+        <test.jvm.args.jdk25>--enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow</test.jvm.args.jdk25>
+      </properties>
+    </profile>
+
     <profile>
       <id>license-header-check</id>
       <build>
