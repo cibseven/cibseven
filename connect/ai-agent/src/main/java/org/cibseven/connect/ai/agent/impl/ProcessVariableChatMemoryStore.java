@@ -673,6 +673,9 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
     @Override
     public void close() {
       try {
+        // Every conversation is attempted, so one that cannot be written does not keep the others
+        // back; the first failure is thrown, any further ones go with it.
+        RuntimeException first = null;
         for (Map.Entry<Key, Held> write : held.entrySet()) {
           Key key = write.getKey();
           try {
@@ -681,8 +684,15 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
           } catch (RuntimeException e) {
             LOG.warn("AI Agent connector: could not write the conversation '{}' at the end of the "
                 + "connector invocation: {}", key.name, e.toString());
-            throw e;
+            if (first == null) {
+              first = e;
+            } else {
+              first.addSuppressed(e);
+            }
           }
+        }
+        if (first != null) {
+          throw first;
         }
       } finally {
         held.clear();

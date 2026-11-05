@@ -520,7 +520,9 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         return new AgentResponseImpl(null, memoryId, aiMeta, true);
       }
       return new AgentResponseImpl(output, memoryId, aiMeta);
-    } catch (RuntimeException | Error e) {
+    } catch (Throwable e) {
+      // Every throwable, a checked one thrown without being declared included: the flush below
+      // must not take its place.
       failure = e;
       throw e;
     } finally {
@@ -531,7 +533,7 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         if (auditListener != null) {
           auditListener.flush();
         }
-      } catch (RuntimeException e) {
+      } catch (RuntimeException | Error e) {
         // Where the invocation failed already, its own exception is the one to report; the
         // flush's goes with it rather than in its place.
         if (failure == null) {

@@ -235,6 +235,29 @@ public class ProcessVariableChatMemoryStoreTest {
         org.mockito.Matchers.any());
   }
 
+  /**
+   * A conversation the batch cannot write does not keep the others back: each is attempted, and
+   * the first failure is thrown with the rest suppressed (CIB7-2156).
+   */
+  @Test
+  public void aBatchWritesEveryConversationWhenOneWriteFails() {
+    ExecutionEntity execution = pushExecution();
+    String failing = AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX + "fails";
+    String written = AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX + "written";
+    doThrow(new IllegalStateException("write failed")).when(execution)
+        .setVariable(org.mockito.Matchers.eq(failing), org.mockito.Matchers.any());
+
+    assertThatThrownBy(() -> {
+      try (ProcessVariableChatMemoryStore.Batch batch = ProcessVariableChatMemoryStore.Batch.open()) {
+        store.updateMessages("fails", Arrays.asList(UserMessage.from("one")));
+        store.updateMessages("written", Arrays.asList(UserMessage.from("two")));
+      }
+    }).isInstanceOf(IllegalStateException.class).hasMessage("write failed");
+
+    verify(execution).setVariable(org.mockito.Matchers.eq(written), org.mockito.Matchers.any());
+    assertThat(ProcessVariableChatMemoryStore.Batch.isOpen()).isFalse();
+  }
+
   private ExecutionEntity pushExecution() {
     ExecutionEntity execution = mock(ExecutionEntity.class);
     Context.setExecutionContext(execution);

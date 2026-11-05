@@ -490,7 +490,7 @@ public class AgentChatListenerTest {
 
   /**
    * A chunk name is the activity's chat-log name plus the separator and the eventSeq of its
-   * first event, padded to ten digits. Whether it fits into the 255 characters of a variable
+   * first event, padded to ten digits. Whether it fits into the 255 bytes (UTF-8) of a variable
    * name is checked against the name actually written: a chunk that does not fit is skipped with
    * a warning, rather than failing in the database (CIB7-2156).
    */
@@ -820,8 +820,8 @@ public class AgentChatListenerTest {
 
     AgentChatListener listener = new AgentChatListener();
 
-    // The opt-out short-circuits loadExistingEvents() — prior events are not
-    // restored from the engine variable.
+    // The opt-out short-circuits continueNumbering(): the engine variable is not
+    // read, and the listener holds no events.
     assertThat(listener.events()).isEmpty();
     verify(execution, never()).getVariable(varName);
   }

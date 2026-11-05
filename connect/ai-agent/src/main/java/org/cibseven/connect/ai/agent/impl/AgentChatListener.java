@@ -273,6 +273,12 @@ class AgentChatListener implements ChatModelListener {
    */
   private static final Set<String> TOO_LONG_WARNED = ConcurrentHashMap.newKeySet();
 
+  /**
+   * How many names {@link #TOO_LONG_WARNED} keeps, so that it cannot grow for the life of the JVM;
+   * past that, every further one is warned about on each invocation.
+   */
+  private static final int TOO_LONG_WARNED_MAX = 1000;
+
   // ── last-response state (for Art. 50(2) AI-output marker) ────────────────
   private volatile String lastProvider;
   private volatile String lastModel;
@@ -644,7 +650,8 @@ class AgentChatListener implements ChatModelListener {
       // chunk name of an activity has the same length, so an id that fits once always fits.
       // Counted in UTF-8 bytes, as a byte-length column (DB2) counts it; on a column counting
       // characters that is the conservative bound, the same for an ASCII id.
-      if (TOO_LONG_WARNED.add(variableName)) {
+      if (!TOO_LONG_WARNED.contains(variableName)
+          && (TOO_LONG_WARNED.size() >= TOO_LONG_WARNED_MAX || TOO_LONG_WARNED.add(variableName))) {
         LOG.warn("AI Agent connector: the chat-log variable '{}' is longer than the {} bytes"
             + " the engine stores; the chat log of activity '{}' is not persisted from here on."
             + " Shorten the activity id to keep its audit trail.", name,
