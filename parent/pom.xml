@@ -82,9 +82,10 @@
     <version.freemarker>2.3.35</version.freemarker>
 
     <version.jboss-javaee-spec>3.0.2.Final</version.jboss-javaee-spec>
-    <version.jakarta-ee-spec>10.0.0</version.jakarta-ee-spec>
-    <!-- the Spring Framework 7 / Spring Boot 4 modules need Jakarta EE 11 -->
-    <version.jakarta-ee11-spec>11.0.0</version.jakarta-ee11-spec>
+    <!-- Jakarta EE platform level of all modules (jakartaee-bom / jakartaee-api) -->
+    <version.jakarta-ee-spec>11.0.0</version.jakarta-ee-spec>
+    <!-- Jakarta Expression Language 6.0 implementation, used in tests (the API comes from the EE BOM) -->
+    <version.expressly>6.0.0</version.expressly>
 
     <version.eirslett.frontend.maven.plugin>1.12.1</version.eirslett.frontend.maven.plugin>
     <version.nodejs>24.13.1</version.nodejs>
@@ -406,6 +407,37 @@
                         version.spring.frameworkN update;
                       2. a third-party dependency declares its own framework version in a module
                         that does not manage Spring — manage it there, or exclude it at the source.
+                  </message>
+                </bannedDependencies>
+              </rules>
+            </configuration>
+          </execution>
+          <!-- CIB seven 3.x is built against Jakarta EE 11 (EL 6.0). Catches an older platform API or
+               EL API that sneaks in through a pinned version or a third-party dependency. -->
+          <execution>
+            <id>enforce-jakarta-ee-11</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <fail>true</fail>
+              <rules>
+                <bannedDependencies>
+                  <searchTransitive>true</searchTransitive>
+                  <excludes>
+                    <exclude>jakarta.platform:jakarta.jakartaee-api:(,11.0.0)</exclude>
+                    <exclude>jakarta.platform:jakarta.jakartaee-web-api:(,11.0.0)</exclude>
+                    <exclude>jakarta.platform:jakarta.jakartaee-core-api:(,11.0.0)</exclude>
+                    <exclude>jakarta.el:jakarta.el-api:(,6.0.0)</exclude>
+                    <!-- EL 4.0 implementation; use org.glassfish.expressly:expressly (EL 6.0) -->
+                    <exclude>org.glassfish:jakarta.el</exclude>
+                  </excludes>
+                  <message>
+                    CIB seven is built against Jakarta EE 11: the platform APIs come from
+                    jakarta.jakartaee-bom ${version.jakarta-ee-spec} (property version.jakarta-ee-spec)
+                    and the Expression Language API must be 6.0 or later. Remove the pinned version,
+                    or exclude the old API at the dependency that brings it in.
                   </message>
                 </bannedDependencies>
               </rules>

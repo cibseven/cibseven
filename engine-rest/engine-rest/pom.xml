@@ -95,7 +95,7 @@
     <dependency>
       <groupId>jakarta.platform</groupId>
       <artifactId>jakarta.jakartaee-api</artifactId>
-      <version>10.0.0</version>
+      <version>${version.jakarta-ee-spec}</version>
       <scope>provided</scope>
       <exclusions>
         <!-- Exclude to prevent conflicts with explicit Jersey dependencies -->
@@ -113,12 +113,13 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- Add JAX-RS API for test classloader -->
+    <!-- JAX-RS API. jakartaee-api 11 no longer bundles the API classes, so it is declared
+         explicitly. Stays on JAX-RS 3.1 until the test runtimes move to JAX-RS 4.0. -->
     <dependency>
       <groupId>jakarta.ws.rs</groupId>
       <artifactId>jakarta.ws.rs-api</artifactId>
       <version>3.1.0</version>
-      <scope>test</scope>
+      <scope>provided</scope>
     </dependency>
 
     <!--

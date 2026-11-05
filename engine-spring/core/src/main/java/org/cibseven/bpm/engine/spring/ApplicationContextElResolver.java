@@ -16,8 +16,6 @@
  */
 package org.cibseven.bpm.engine.spring;
 
-import java.beans.FeatureDescriptor;
-import java.util.Iterator;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.springframework.context.ApplicationContext;
 
