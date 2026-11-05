@@ -55,10 +55,20 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
     return licenseKey;
   }
   
+  /**
+   * Resolves the JWT secret before any encryption, so a missing secret is reported as such and
+   * not as a failed encryption or decryption.
+   */
   private String getSecret() {
-    String secret = Configuration.getInstance().getSecret();
+    String secret;
+    try {
+      secret = Configuration.getInstance().getSecret();
+    } catch (IllegalStateException e) {
+      throw new InvalidRequestException(Status.INTERNAL_SERVER_ERROR, e,
+          "JWT secret is not configured. Cannot encrypt/decrypt license signature. " + e.getMessage());
+    }
     if (secret == null || secret.isEmpty()) {
-      throw new InvalidRequestException(Status.FORBIDDEN,
+      throw new InvalidRequestException(Status.INTERNAL_SERVER_ERROR,
           "JWT secret is not configured. Cannot encrypt/decrypt license signature.");
     }
     return secret;
@@ -76,11 +86,11 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
 
   private String encryptSignature(String licenseKey) {
     ObjectMapper objectMapper = new ObjectMapper();
+    String secret = getSecret();
     try {
       Map<String, Object> map = objectMapper.readValue(licenseKey, new TypeReference<Map<String, Object>>() {
       });
       String signature = (String) map.get("signature");
-      String secret = getSecret();
       SecretKeySpec key = getAesKey(secret);
       String jwe = Jwts.builder()
           .content(signature)
@@ -98,11 +108,11 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
 
   private String decryptSignature(String licenseKey) {
     ObjectMapper objectMapper = new ObjectMapper();
+    String secret = getSecret();
     try {
       Map<String, Object> map = objectMapper.readValue(licenseKey, new TypeReference<Map<String, Object>>() {
       });
       String jwe = (String) map.get("signature");
-      String secret = getSecret();
       SecretKeySpec key = getAesKey(secret);
       byte[] payload = Jwts.parser()
           .decryptWith(key)
@@ -116,7 +126,8 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
       throw new InvalidRequestException(Status.BAD_REQUEST, e, "Invalid license key JSON format");
     } catch (Exception e) {
       throw new InvalidRequestException(Status.INTERNAL_SERVER_ERROR, e,
-          "Failed to decrypt license signature. The JWT secret may have been rotated.");
+          "Failed to decrypt license signature. The webclient and the engine must use the same JWT secret;"
+          + " it may have been rotated.");
     }
   }
 
