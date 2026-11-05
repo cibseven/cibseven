@@ -332,7 +332,8 @@ public final class AdHocResults {
 
     /** The variable name of the entry at {@code position} in the list. */
     static String entryName(int position) {
-        return ENTRY_PREFIX + String.format("%010d", position);
+        // Locale.ROOT: one name per position, in ASCII, whatever a node's default locale.
+        return ENTRY_PREFIX + String.format(java.util.Locale.ROOT, "%010d", position);
     }
 
     /**
@@ -352,7 +353,8 @@ public final class AdHocResults {
 
     /** The position an entry's variable name carries, or null for any other name. */
     private static Integer positionOf(String name) {
-        if (!name.startsWith(ENTRY_PREFIX)) {
+        if (!name.startsWith(ENTRY_PREFIX)
+                || !AgentChatListener.isAsciiNumber(name.substring(ENTRY_PREFIX.length()))) {
             return null;
         }
         try {
@@ -579,8 +581,8 @@ public final class AdHocResults {
      * unread, so the next state block continues where this one stopped rather than skipping it.
      */
     static List<Map<String, Object>> since(ExecutionEntity scope) {
-        List<Map<String, Object>> entries = entries(scope);
         int from = readPosition(scope);
+        List<Map<String, Object>> entries = entries(scope, from);
         if (from >= entries.size()) {
             return Collections.emptyList();
         }
@@ -597,7 +599,7 @@ public final class AdHocResults {
                         + " was reached. You will be shown them in your next turn.";
                 break;
             }
-            if (reported.remove(activationIdOf(entries.get(index)))) {
+            if (entries.get(index) == null || reported.remove(activationIdOf(entries.get(index)))) {
                 continue;
             }
             Map<String, Object> entry = describe(entries.get(index));
@@ -617,9 +619,10 @@ public final class AdHocResults {
         return described;
     }
 
-    /** How many entries the scope has gathered so far. */
+    /** How many entries the scope has gathered so far; counted by name, none of them read. */
     static int gathered(ExecutionEntity scope) {
-        return entries(scope).size();
+        PvmExecutionImpl state = AdHocAgentState.find(scope);
+        return (state == null) ? 0 : legacyEntries(state).size() + positions(state).size();
     }
 
     /**
@@ -627,13 +630,13 @@ public final class AdHocResults {
      * was gathered while a tool ran within its call, whose values the tool result carried.
      */
     static void markReported(ExecutionEntity scope, int from) {
-        List<Map<String, Object>> entries = entries(scope);
+        List<Map<String, Object>> entries = entries(scope, from);
         if (from >= entries.size()) {
             return;
         }
         Set<String> reported = reported(scope);
         for (Map<String, Object> entry : entries.subList(from, entries.size())) {
-            String id = activationIdOf(entry);
+            String id = (entry == null) ? null : activationIdOf(entry);
             if (id != null) {
                 reported.add(id);
             }
@@ -654,11 +657,11 @@ public final class AdHocResults {
      */
     static Map<String, Object> gatheredWithinTheCall(ExecutionEntity scope, int from,
             String activityId) {
-        List<Map<String, Object>> entries = entries(scope);
+        List<Map<String, Object>> entries = entries(scope, from);
         Map<String, String> pending = AdHocLoopState.pending(scope);
         for (int index = entries.size() - 1; index >= from; index--) {
             Map<String, Object> entry = entries.get(index);
-            if (activityId.equals(entry.get(ACTIVITY_ID))
+            if (entry != null && activityId.equals(entry.get(ACTIVITY_ID))
                     && !pending.containsKey(activationIdOf(entry))) {
                 return entry;
             }
@@ -999,14 +1002,32 @@ public final class AdHocResults {
         return "<" + value.getClass().getSimpleName() + " value, not shown>";
     }
 
-    /** Every entry the scope has gathered, oldest first: an earlier version's list, then the rest. */
+    /**
+     * Every entry the scope has gathered, oldest first: an earlier version's list, then the rest.
+     * The entries before {@code from} are null, not read: each is a serialized value of its own, so
+     * reading it costs a fetch, and the callers look only at the entries from their position on.
+     * An entry whose value is not a map is null too, so the positions stay those of the names.
+     */
     @SuppressWarnings("unchecked")
-    private static List<Map<String, Object>> entries(ExecutionEntity scope) {
+    private static List<Map<String, Object>> entries(ExecutionEntity scope, int from) {
         PvmExecutionImpl state = AdHocAgentState.find(scope);
         if (state == null) {
             return new ArrayList<Map<String, Object>>();
         }
         List<Map<String, Object>> entries = legacyEntries(state);
+        for (String name : positions(state).values()) {
+            if (entries.size() < from) {
+                entries.add(null);
+                continue;
+            }
+            Object entry = state.getVariableLocal(name);
+            entries.add((entry instanceof Map) ? (Map<String, Object>) entry : null);
+        }
+        return entries;
+    }
+
+    /** The names of the entries on {@code state}, by position; their values are not read. */
+    private static TreeMap<Integer, String> positions(PvmExecutionImpl state) {
         TreeMap<Integer, String> names = new TreeMap<Integer, String>();
         for (String name : state.getVariableNamesLocal()) {
             Integer position = positionOf(name);
@@ -1014,13 +1035,7 @@ public final class AdHocResults {
                 names.put(position, name);
             }
         }
-        for (String name : names.values()) {
-            Object entry = state.getVariableLocal(name);
-            if (entry instanceof Map) {
-                entries.add((Map<String, Object>) entry);
-            }
-        }
-        return entries;
+        return names;
     }
 
     /** The entries of the list an earlier version wrote as one variable; empty without one. */

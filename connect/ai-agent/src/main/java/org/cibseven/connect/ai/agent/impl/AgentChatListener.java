@@ -587,7 +587,7 @@ class AgentChatListener implements ChatModelListener {
     int lastChunk = -1;
     String lastChunkName = null;
     for (String name : execution.getVariableNames()) {
-      if (name.startsWith(chunkPrefix)) {
+      if (name.startsWith(chunkPrefix) && isAsciiNumber(name.substring(chunkPrefix.length()))) {
         try {
           int chunk = Integer.parseInt(name.substring(chunkPrefix.length()));
           if (chunk > lastChunk) {
@@ -606,6 +606,23 @@ class AgentChatListener implements ChatModelListener {
     } else {
       eventSeq.set(decodedSize(execution, variableName));
     }
+  }
+
+  /**
+   * Whether {@code suffix} is a chunk number as the connector writes it: ASCII digits only.
+   * {@code Integer.parseInt} also takes a sign and other scripts' digits.
+   */
+  static boolean isAsciiNumber(String suffix) {
+    if (suffix.isEmpty()) {
+      return false;
+    }
+    for (int i = 0; i < suffix.length(); i++) {
+      char c = suffix.charAt(i);
+      if (c < '0' || c > '9') {
+        return false;
+      }
+    }
+    return true;
   }
 
   /** The number of events the variable {@code name} holds; 0 when absent or undecodable. */
@@ -700,7 +717,10 @@ class AgentChatListener implements ChatModelListener {
    * the same length, and their order as text is their numeric order (CIB7-2156).
    */
   String chunkName(Object firstSeq) {
-    return variableName + CHUNK_SEPARATOR + String.format("%010d", ((Number) firstSeq).longValue());
+    // Locale.ROOT: the default locale may format with other digits (Arabic-Indic, say), which
+    // would take more bytes and break the order as text across nodes.
+    return variableName + CHUNK_SEPARATOR
+        + String.format(java.util.Locale.ROOT, "%010d", ((Number) firstSeq).longValue());
   }
 
   // ── ChatModelListener callbacks ──────────────────────────────────────────

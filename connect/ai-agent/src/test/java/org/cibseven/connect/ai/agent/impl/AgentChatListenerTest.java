@@ -543,6 +543,37 @@ public class AgentChatListenerTest {
    * The eventSeq in a chunk name is padded with zeros to ten digits, so that sorting the names as
    * text, as REST, the database and the webclient do, puts the chunks in their order (CIB7-2156).
    */
+  /**
+   * Chunk and result-entry names are ASCII whatever the default locale: one whose numbers have other
+   * digits, such as Arabic-Indic, would take more bytes and give one position two names (CIB7-2156).
+   */
+  @Test
+  public void shouldNameChunksAndResultsInAsciiWhateverTheDefaultLocale() {
+    java.util.Locale previous = java.util.Locale.getDefault();
+    java.util.Locale.setDefault(java.util.Locale.forLanguageTag("ar-EG-u-nu-arab"));
+    try {
+      ExecutionEntity execution = mock(ExecutionEntity.class);
+      when(execution.getActivityId()).thenReturn("agentTask");
+      pushExecution(execution);
+      AgentChatListener listener = new AgentChatListener(null, null, Boolean.TRUE);
+
+      assertThat(String.format("%d", 4)).as("the locale does format other digits").isNotEqualTo("4");
+      assertThat(listener.chunkName(4)).isEqualTo(
+          AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask~0000000004");
+      assertThat(AdHocResults.entryName(4)).isEqualTo("adHocAgentResults~0000000004");
+    } finally {
+      java.util.Locale.setDefault(previous);
+    }
+  }
+
+  @Test
+  public void shouldContinueNumberingOnlyAfterChunksNumberedInAsciiDigits() {
+    assertThat(AgentChatListener.isAsciiNumber("0000000012")).isTrue();
+    assertThat(AgentChatListener.isAsciiNumber("١٢")).isFalse();
+    assertThat(AgentChatListener.isAsciiNumber("+12")).isFalse();
+    assertThat(AgentChatListener.isAsciiNumber("")).isFalse();
+  }
+
   @Test
   public void shouldNameChunksSoThatTheirOrderAsTextIsTheirNumericOrder() {
     ExecutionEntity execution = mock(ExecutionEntity.class);
