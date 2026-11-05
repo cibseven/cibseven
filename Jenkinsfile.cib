@@ -246,6 +246,18 @@ pipeline {
                 stage('webapp-UNIT-database-table-prefix') {
                     steps { script { withMaven { sh "mvn -f webapps/assembly/pom.xml test -Pdb-table-prefix -Dskip.frontend.build=true" }}}
                 }
+                stage('engine-rest') {
+                    // 'engine UNIT & IT' runs engine-rest on the default runtime (Jersey);
+                    // these stages cover the other JAX-RS runtimes, see engineRestTest().
+                    stages {
+                        stage('engine-rest-UNIT-resteasy') {
+                            steps { script { engineRestTest('resteasy') }}
+                        }
+                        stage('engine-rest-UNIT-ee10-compatibility') {
+                            steps { script { engineRestTest('ee10-compatibility') }}
+                        }
+                    }
+                }
                 stage("quarkus") {
                     stages {
                         stage('quarkus-extension') {
@@ -728,6 +740,21 @@ pipeline {
             }
         }
     }
+}
+
+// Runs the engine-rest tests with another JAX-RS runtime (Maven profile). 'engine UNIT & IT' has run
+// them before on the default one (Jersey), and the 'JUnit Report' stage collects the reports of all
+// runs from engine-rest/engine-rest/target at the end (CIB7-2582):
+// - No 'clean': it would also delete the Jersey reports. 'engine UNIT & IT' ignores test failures, so
+//   failing Jersey tests would then never be reported and the build could stay green. Everything else
+//   in target/ is removed instead, because each profile compiles its own runtime classes and
+//   ContainerSpecifics service into target/test-classes, and leftovers break the next profile.
+// - The reports get the profile as suffix (TEST-<class>-<profile>.xml, test class "<class>(<profile>)"),
+//   so that the runs do not overwrite each other's reports.
+def engineRestTest(String profile) {
+    String module = 'engine-rest/engine-rest'
+    sh "if [ -d ${module}/target ]; then find ${module}/target -mindepth 1 -maxdepth 1 ! -name '*-reports' -exec rm -rf {} +; fi"
+    withMaven { sh "mvn -f ${module}/pom.xml test -P${profile} -Dsurefire.reportNameSuffix=${profile}" }
 }
 
 // Split in two on purpose: collecting the facts pays the one Maven start-up
