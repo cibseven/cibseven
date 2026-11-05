@@ -24,3 +24,10 @@ values ('1600', CURRENT_TIMESTAMP, '3.0.0');
 -- cascade delete of subtasks looks them up by PARENT_TASK_ID_.
 
 create index ACT_IDX_TASK_PARENT_TASK_ID on ACT_RU_TASK(PARENT_TASK_ID_);
+
+-- Cascade deployment deletion deletes job logs by DEPLOYMENT_ID_
+-- (deleteHistoricJobLogByDeploymentId). Without this index that delete scans the whole
+-- ACT_HI_JOB_LOG table. Building the index on a large job log takes a while. It blocks writes to
+-- ACT_HI_JOB_LOG while it runs. To avoid that, create the index beforehand with
+-- CREATE INDEX CONCURRENTLY under the same name; this statement then skips it.
+create index if not exists ACT_IDX_HI_JOB_LOG_DEPLOYMENT on ACT_HI_JOB_LOG(DEPLOYMENT_ID_);
