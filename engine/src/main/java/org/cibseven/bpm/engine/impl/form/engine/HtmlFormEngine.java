@@ -157,8 +157,8 @@ public class HtmlFormEngine implements FormEngine {
 
     } else {
       HtmlElementWriter formElement = new HtmlElementWriter(FORM_ELEMENT)
-          .attribute(NAME_ATTRIBUTE, GENERATED_FORM_NAME)
-          .attribute(ROLE_ATTRIBUTE, FORM_ROLE);
+          .rawAttribute(NAME_ATTRIBUTE, GENERATED_FORM_NAME)
+          .rawAttribute(ROLE_ATTRIBUTE, FORM_ROLE);
 
       HtmlDocumentBuilder documentBuilder = new HtmlDocumentBuilder(formElement);
 
@@ -183,7 +183,7 @@ public class HtmlFormEngine implements FormEngine {
   protected void renderFormField(FormField formField, HtmlDocumentBuilder documentBuilder) {
     // start group
     HtmlElementWriter divElement = new HtmlElementWriter(DIV_ELEMENT)
-        .attribute(CLASS_ATTRIBUTE, FORM_GROUP_CLASS);
+        .rawAttribute(CLASS_ATTRIBUTE, FORM_GROUP_CLASS);
 
     documentBuilder.startElement(divElement);
 
@@ -227,7 +227,7 @@ public class HtmlFormEngine implements FormEngine {
 
     addCommonFormFieldAttributes(formField, inputField);
 
-    inputField.attribute(TYPE_ATTRIBUTE, TEXT_INPUT_TYPE);
+    inputField.rawAttribute(TYPE_ATTRIBUTE, TEXT_INPUT_TYPE);
 
     return inputField;
   }
@@ -237,7 +237,7 @@ public class HtmlFormEngine implements FormEngine {
 
     // start input-group
     HtmlElementWriter inputGroupDivElement = new HtmlElementWriter(DIV_ELEMENT)
-        .attribute(CLASS_ATTRIBUTE, INPUT_GROUP_CLASS);
+        .rawAttribute(CLASS_ATTRIBUTE, INPUT_GROUP_CLASS);
 
     String formFieldId = formField.getId();
 
@@ -251,7 +251,7 @@ public class HtmlFormEngine implements FormEngine {
     if(!isReadOnly) {
       inputField
           .attribute(DATEPICKER_POPUP_ATTRIBUTE, dateFormat)
-          .attribute(IS_OPEN_ATTRIBUTE, String.format(DATE_FIELD_OPENED_ATTRIBUTE, formFieldId));
+          .rawAttribute(IS_OPEN_ATTRIBUTE, String.format(DATE_FIELD_OPENED_ATTRIBUTE, formFieldId));
     }
 
     // <input ... />
@@ -265,22 +265,22 @@ public class HtmlFormEngine implements FormEngine {
 
       // input addon
       HtmlElementWriter addonElement = new HtmlElementWriter(DIV_ELEMENT)
-          .attribute(CLASS_ATTRIBUTE, INPUT_GROUP_BTN_CLASS);
+          .rawAttribute(CLASS_ATTRIBUTE, INPUT_GROUP_BTN_CLASS);
 
       // <div>
       documentBuilder.startElement(addonElement);
 
       // button to open date picker
       HtmlElementWriter buttonElement = new HtmlElementWriter(BUTTON_ELEMENT)
-          .attribute(TYPE_ATTRIBUTE, BUTTON_BUTTON_TYPE)
-          .attribute(CLASS_ATTRIBUTE, BUTTON_DEFAULT_CLASS)
-          .attribute(NG_CLICK_ATTRIBUTE, String.format(OPEN_DATEPICKER_FUNCTION_SNIPPET, formFieldId));
+          .rawAttribute(TYPE_ATTRIBUTE, BUTTON_BUTTON_TYPE)
+          .rawAttribute(CLASS_ATTRIBUTE, BUTTON_DEFAULT_CLASS)
+          .rawAttribute(NG_CLICK_ATTRIBUTE, String.format(OPEN_DATEPICKER_FUNCTION_SNIPPET, formFieldId));
 
       // <button>
       documentBuilder.startElement(buttonElement);
 
       HtmlElementWriter iconElement = new HtmlElementWriter(I_ELEMENT)
-          .attribute(CLASS_ATTRIBUTE, CALENDAR_GLYPHICON);
+          .rawAttribute(CLASS_ATTRIBUTE, CALENDAR_GLYPHICON);
 
       // <i ...></i>
       documentBuilder
@@ -295,9 +295,9 @@ public class HtmlFormEngine implements FormEngine {
 
 
       HtmlElementWriter scriptElement = new HtmlElementWriter(SCRIPT_ELEMENT)
-          .attribute(CAM_SCRIPT_ATTRIBUTE, null)
-          .attribute(TYPE_ATTRIBUTE, TEXT_FORM_SCRIPT_TYPE)
-          .textContent(String.format(OPEN_DATEPICKER_SNIPPET, formFieldId, formFieldId));
+          .rawAttribute(CAM_SCRIPT_ATTRIBUTE, null)
+          .rawAttribute(TYPE_ATTRIBUTE, TEXT_FORM_SCRIPT_TYPE)
+          .rawTextContent(String.format(OPEN_DATEPICKER_SNIPPET, formFieldId, formFieldId));
 
       // <script ...> </script>
       documentBuilder
@@ -317,7 +317,7 @@ public class HtmlFormEngine implements FormEngine {
 
     String inputType = !isBoolean(formField) ? TEXT_INPUT_TYPE : CHECKBOX_INPUT_TYPE;
 
-    inputField.attribute(TYPE_ATTRIBUTE, inputType);
+    inputField.rawAttribute(TYPE_ATTRIBUTE, inputType);
 
     // add default value
     Object defaultValue = formField.getDefaultValue();
@@ -365,8 +365,8 @@ public class HtmlFormEngine implements FormEngine {
     String ifExpression = String.format(INVALID_EXPRESSION + " && " + DIRTY_EXPRESSION, formFieldId, formFieldId);
 
     divElement
-        .attribute(NG_IF_ATTRIBUTE, ifExpression)
-        .attribute(CLASS_ATTRIBUTE, HAS_ERROR_CLASS);
+        .rawAttribute(NG_IF_ATTRIBUTE, ifExpression)
+        .rawAttribute(CLASS_ATTRIBUTE, HAS_ERROR_CLASS);
 
     // <div ng-if="....$invalid && ....$dirty"...>
     documentBuilder.startElement(divElement);
@@ -390,9 +390,9 @@ public class HtmlFormEngine implements FormEngine {
     String expression = String.format(REQUIRED_ERROR_EXPRESSION, formFieldId);
 
     divElement
-        .attribute(NG_SHOW_ATTRIBUTE, expression)
-        .attribute(CLASS_ATTRIBUTE, HELP_BLOCK_CLASS)
-        .textContent(REQUIRED_FIELD_MESSAGE);
+        .rawAttribute(NG_SHOW_ATTRIBUTE, expression)
+        .rawAttribute(CLASS_ATTRIBUTE, HELP_BLOCK_CLASS)
+        .rawTextContent(REQUIRED_FIELD_MESSAGE);
 
     documentBuilder
         .startElement(divElement)
@@ -413,9 +413,9 @@ public class HtmlFormEngine implements FormEngine {
     }
 
     divElement
-        .attribute(NG_SHOW_ATTRIBUTE, expression)
-        .attribute(CLASS_ATTRIBUTE, HELP_BLOCK_CLASS)
-        .textContent(String.format(TYPE_FIELD_MESSAGE, typeName));
+        .rawAttribute(NG_SHOW_ATTRIBUTE, expression)
+        .rawAttribute(CLASS_ATTRIBUTE, HELP_BLOCK_CLASS)
+        .rawTextContent(String.format(TYPE_FIELD_MESSAGE, typeName));
 
     documentBuilder
         .startElement(divElement)
@@ -430,9 +430,9 @@ public class HtmlFormEngine implements FormEngine {
     String firstExpression = String.format(REQUIRED_ERROR_EXPRESSION + " && !" + DATE_ERROR_EXPRESSION, formFieldId, formFieldId);
 
     firstDivElement
-        .attribute(NG_SHOW_ATTRIBUTE, firstExpression)
-        .attribute(CLASS_ATTRIBUTE, HELP_BLOCK_CLASS)
-        .textContent(REQUIRED_FIELD_MESSAGE);
+        .rawAttribute(NG_SHOW_ATTRIBUTE, firstExpression)
+        .rawAttribute(CLASS_ATTRIBUTE, HELP_BLOCK_CLASS)
+        .rawTextContent(REQUIRED_FIELD_MESSAGE);
 
     documentBuilder
         .startElement(firstDivElement)
@@ -443,9 +443,9 @@ public class HtmlFormEngine implements FormEngine {
     String secondExpression = String.format(DATE_ERROR_EXPRESSION, formFieldId);
 
     secondDivElement
-        .attribute(NG_SHOW_ATTRIBUTE, secondExpression)
-        .attribute(CLASS_ATTRIBUTE, HELP_BLOCK_CLASS)
-        .textContent(INVALID_DATE_FIELD_MESSAGE + "'" + formField.getType().getInformation(DATE_PATTERN_ATTRIBUTE) + "'");
+        .rawAttribute(NG_SHOW_ATTRIBUTE, secondExpression)
+        .rawAttribute(CLASS_ATTRIBUTE, HELP_BLOCK_CLASS)
+        .rawTextContent(INVALID_DATE_FIELD_MESSAGE + "'" + formField.getType().getInformation(DATE_PATTERN_ATTRIBUTE) + "'");
 
     documentBuilder
         .startElement(secondDivElement)
@@ -465,16 +465,16 @@ public class HtmlFormEngine implements FormEngine {
     String formFieldId = formField.getId();
 
     formControl
-        .attribute(CLASS_ATTRIBUTE, FORM_CONTROL_CLASS)
-        .attribute(NAME_ATTRIBUTE, formFieldId);
+    .attribute(CLASS_ATTRIBUTE, FORM_CONTROL_CLASS)
+    .attribute(NAME_ATTRIBUTE, formFieldId);
 
     if (!formField.isBusinessKey()) {
       formControl
           .attribute(CAM_VARIABLE_TYPE_ATTRIBUTE, typeName)
-          .attribute(CAM_VARIABLE_NAME_ATTRIBUTE, formFieldId);
+          .rawAttribute(CAM_VARIABLE_NAME_ATTRIBUTE, formFieldId);
     }
     else {
-      formControl.attribute(CAM_BUSINESS_KEY_ATTRIBUTE, null);
+      formControl.rawAttribute(CAM_BUSINESS_KEY_ATTRIBUTE, null);
     }
 
     // add validation constraints
