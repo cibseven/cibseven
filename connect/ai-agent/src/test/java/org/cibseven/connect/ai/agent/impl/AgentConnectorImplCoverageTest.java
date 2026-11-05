@@ -861,6 +861,35 @@ public class AgentConnectorImplCoverageTest {
   }
 
   /**
+   * The invocation's listener is flushed when the invocation fails after the model was built but
+   * before the MCP clients are, as for a missing required process variable: the listener is taken
+   * as soon as {@code createChatModel} installed it (CIB7-2156).
+   */
+  @Test
+  public void executeShouldFlushTheChatLogWhenItFailsBeforeTheModelIsAsked() {
+    FlushRecordingListener listener = new FlushRecordingListener(null);
+    RagStubConnector base = (RagStubConnector) connectorWith(listener, null);
+    AgentConnectorImpl failing = new RagStubConnector() {
+      @Override
+      protected ChatModel createChatModel(AgentRequest request, String apiKey, String baseUrl,
+          Map<String, String> customHeaders) {
+        return base.createChatModel(request, apiKey, baseUrl, customHeaders);
+      }
+
+      @Override
+      protected List<McpClient> createMcpClients(AgentRequest request) {
+        throw new IllegalStateException("mcp down");
+      }
+    };
+
+    Throwable thrown = org.assertj.core.api.Assertions.catchThrowable(
+        () -> failing.execute(ragRequest(failing)));
+
+    assertThat(innermost(thrown)).hasMessage("mcp down");
+    assertThat(listener.flushes).as("flushed although no model call began").isEqualTo(1);
+  }
+
+  /**
    * A connector whose model call goes through {@code listener}'s retrieval only: it installs the
    * listener as {@code createChatModel} does, and its model throws {@code modelFailure} without
    * telling the listener, as when the invocation fails between a retrieval and the model's

@@ -98,9 +98,11 @@ import org.cibseven.connect.spi.Connector;
  *
  * <p>The chat log is persisted automatically into process-scoped variables named
  * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "~" + <eventSeq>}, the
- * {@code eventSeq} padded with zeros to ten digits, one per model call, written once on the {@code response} or {@code error} event that ends
- * it; the {@code request} event and any {@code retrieval} before it are part of that
- * chunk. Numbering continues across invocations of the same service task, so they
+ * {@code eventSeq} padded with zeros to ten digits, one per model call, written once
+ * on the {@code response} or {@code error} event that ends it; the {@code request}
+ * event and any {@code retrieval} before it are part of that chunk. A failed
+ * retrieval is written at once, as a chunk of its own, and what no model call's end
+ * wrote is written as one when the invocation ends. Numbering continues across invocations of the same service task, so they
  * form a single timeline when the chunks are read in the order of their names, after a
  * variable {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId>} written before chunking
  * (see {@link AgentConnectorConstants#AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR}).
@@ -420,8 +422,8 @@ public interface AgentConnector extends Connector<AgentRequest> {
   String PARAM_NAME_CHAT_MEMORY_MAX_MESSAGES = "chatMemoryMaxMessages";
 
   /**
-   * Optional. Per-activity override for the EU AI Act chat-log audit variable
-   * ({@code cibseven-connect-ai-agent_<activityId>}). Tri-state:
+   * Optional. Per-activity override for the EU AI Act chat-log audit variables
+   * ({@code cibseven-connect-ai-agent_<activityId>~<eventSeq>}). Tri-state:
    * <ul>
    *   <li>{@code null} / empty / unset — fall through to the deployment-wide
    *       default (system property {@code cibseven.connect.ai-agent.chatLogVariable.enabled}

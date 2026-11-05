@@ -75,7 +75,8 @@ import org.cibseven.bpm.engine.variable.value.TypedValue;
  * ending while a step waits for the model therefore meets no row the step changes, and neither has
  * to be repeated (T01). Two children ending at once take the same next position: the second insert
  * fails on the engine's unique index of variable names ({@code ACT_UNIQ_VARIABLE}), as the second
- * update of the one list failed before, and its transaction is retried and appends after the first.
+ * update of the one list failed before. Run in a job, its transaction is retried and appends after
+ * the first; a task completed through the API gets the exception, as it did then.
  *
  * <p>A step that reads the list must not write it either. The engine serializes an object it read
  * again when the command ends, and writes it back if the bytes differ; a hash map can come back with

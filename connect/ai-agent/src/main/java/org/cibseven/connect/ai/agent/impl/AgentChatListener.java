@@ -101,8 +101,8 @@ import org.cibseven.connect.ai.agent.AgentConnectorConstants;
  * webclient JSON contract).
  *
  * <h3>Chat-log variable opt-out (DB-bloat control)</h3>
- * The per-activity {@code cibseven-connect-ai-agent_<activityId>} process
- * variable can be suppressed at two scopes:
+ * The per-activity {@code cibseven-connect-ai-agent_<activityId>~<eventSeq>}
+ * process variables can be suppressed at two scopes:
  * <ul>
  *   <li><b>Per activity</b> — the {@code persistChatLog} connector input
  *       parameter (boolean). When set, overrides the deployment-wide

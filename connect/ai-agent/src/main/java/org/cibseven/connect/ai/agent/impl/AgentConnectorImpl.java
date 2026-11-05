@@ -300,6 +300,9 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       }
 
       ChatModel chatModel = createChatModel(request, apiKey, baseUrl, customHeaders);
+      // Taken at once, so the finally block writes the context and documents events recorded
+      // below even when the invocation fails before the model is asked (CIB7-2156).
+      auditListener = ProcessStarterToolContext.getActiveListener();
 
       // Now that createChatModel has installed the AgentChatListener, record
       // which declared variables resolved, then abort if a required one is
@@ -355,7 +358,6 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
       // createChatModel. Stamped onto every event that lists tools or tool
       // calls so MCP-sourced tools stay distinguishable from local @Tool
       // Java implementations (EU AI Act Art. 26 data-flow disclosure).
-      auditListener = ProcessStarterToolContext.getActiveListener();
       if (auditListener != null) {
         auditListener.setToolProvenance(
             buildToolProvenance(tools, mcpClients, mcpServerSpecs, mcpClientPrefixes));

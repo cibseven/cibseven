@@ -621,10 +621,13 @@ public class DocumentEngineTest {
    * their names (CIB7-2156).
    */
   private String chatLog() {
+    // By the prefix in Java: in a LIKE pattern its '_' matches any character, the '-' of the
+    // memory prefix included.
     List<VariableInstance> variables = engineRule.getRuntimeService()
-        .createVariableInstanceQuery()
-        .variableNameLike(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "%")
-        .list();
+        .createVariableInstanceQuery().list().stream()
+        .filter(variable -> variable.getName()
+            .startsWith(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX))
+        .collect(Collectors.toList());
     assertThat(variables).as("chat-log variables").isNotEmpty();
     List<Map<String, Object>> events = new ArrayList<>();
     variables.stream()
