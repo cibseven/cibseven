@@ -95,6 +95,22 @@ import com.google.gson.JsonElement;
  *     Children that never forked carry none, and still join each other as before; but they never
  *     join a branch of a fork, since a join that counted both kinds could count more branches than
  *     it has incoming flows and then never fire (CIB7-2264).</li>
+ * <li><b>A non-interrupting handler is a child too.</b> A non-interrupting event sub process, or the
+ *     path of a non-interrupting boundary event on one of the scope's activities, runs on a concurrent
+ *     execution of the scope, keeps the scope open while it runs and ends as a child (CIB7-2269).
+ *     <ul>
+ *     <li>Neither is an activation. Once the completion condition has held with
+ *         {@code cancelRemainingInstances="false"}, activation is refused, but a handler still starts
+ *         on its event, and the scope waits for it as for the activities still running. A handler
+ *         started by process instance modification is an activation, and is refused.</li>
+ *     <li>An event sub process is not gathered. A boundary path is, once, where it ends, like any
+ *         path; not when it ends at the event, which has no outgoing flow, nor when the condition
+ *         holds on the flow out of the event. Either way it has performed nothing.</li>
+ *     <li>A boundary path with an outgoing flow joins like a branch of its activity: its start counts
+ *         as a fork, so it carries that activity's {@link #ACTIVATION_ID} and meets the activity's own
+ *         path at a join, and from then on that path no longer meets a child activated on its own. A
+ *         boundary event without an outgoing flow is no fork.</li>
+ *     </ul></li>
  * </ul>
  */
 public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavior
@@ -456,8 +472,14 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     // branch the join keeps still had its path to go, and that branch then went on, on an execution
     // the completion had already removed. The condition is consulted as that branch takes the join's
     // outgoing flow, and the rule without one when the path ends.
+    //
+    // A non-interrupting event sub process ends here like any child, but it is an event handler
+    // rather than a performance, so it is gathered no more than an interrupting one is in complete:
+    // evaluated against the handler, the element expression would add whatever the last performance
+    // left behind (CIB7-2269). So is the path of a boundary event without an outgoing flow, which
+    // ends at the event and has performed nothing. Unlike a merged branch, both decide completion.
     boolean mergedAtJoin = isMergedAtJoin(scopeExecution, endedExecution);
-    if (!mergedAtJoin) {
+    if (!mergedAtJoin && !isHandlerThatPerformedNothing(endedExecution.getActivity())) {
       gatherResult(scopeExecution, endedExecution);
     }
 
@@ -518,6 +540,21 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     ActivityBehavior behavior = activity == null ? null : activity.getActivityBehavior();
     return behavior instanceof ParallelGatewayActivityBehavior
         || behavior instanceof InclusiveGatewayActivityBehavior;
+  }
+
+  /** Whether the activity is an event sub process, a handler started by its own start event. */
+  protected boolean isEventSubProcess(PvmActivity activity) {
+    return activity instanceof ActivityImpl && ((ActivityImpl) activity).isTriggeredByEvent();
+  }
+
+  /**
+   * Whether a child that ended in this activity was an event handler that performed nothing: an
+   * event sub process, or the path of a boundary event that ended at the event, having no outgoing
+   * flow (CIB7-2269).
+   */
+  protected boolean isHandlerThatPerformedNothing(PvmActivity activity) {
+    ActivityBehavior behavior = activity == null ? null : activity.getActivityBehavior();
+    return isEventSubProcess(activity) || behavior instanceof BoundaryEventActivityBehavior;
   }
 
   // ------------------------------------------------------------ one activation of a forking child
@@ -657,12 +694,11 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     // a caller that the interruption had just cancelled, in the agentic shape where that caller is
     // the driver. Measured: no model can recover it, only an external completeAdHocSubProcess.
     //
-    // Safe only while a non-interrupting event sub process and a non-interrupting boundary event
-    // inside the scope are refused at deployment (CIB7-1967). Such a handler runs *beside* the
-    // scope and must not end it. If that refusal is ever lifted, this has to tell the two apart
-    // again. A model that wants to react without ending the scope already has a supported way to
-    // say so: a non-interrupting boundary event on the ad hoc sub process itself, which runs
-    // alongside and leaves the scope open -- measured on a distribution.
+    // A non-interrupting handler never comes here, so this needs no way to tell the two apart. It
+    // runs beside the scope's children on a concurrent execution of its own, because the process
+    // virtual machine does not expand an ad hoc scope (CIB7-2264, CIB7-2269), and it ends through
+    // concurrentChildExecutionEnded like any child. Everything that reaches this callback has
+    // interrupted the scope.
     //
     // CIB7-1961 keeps its guard: under cancelRemainingInstances="false" the survivors decide when
     // the scope may go, and until they have finished it does not.
@@ -676,7 +712,8 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    *
    * <p>Called from two places, each time <em>before</em> the completion condition is consulted, so a
    * condition can be written against what has been gathered so far, which is the natural way to say
-   * "enough". As a child ends, unless a join merged it, which ends no path (CIB7-2264); and from
+   * "enough". As a child ends, unless a join merged it, which ends no path (CIB7-2264), or it is an
+   * event sub process, which is a handler rather than a performance (CIB7-2269); and from
    * {@link #childTransitioned(ActivityExecution, ActivityExecution)} when the condition holds on an
    * inner flow and cancels the rest, since that path never reaches its end. Not from
    * {@link #complete(ActivityExecution)}: see there for why.
@@ -966,7 +1003,9 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
    * <p>With {@code true} the path is also gathered here (CIB7-1892), because it never reaches the
    * end where a path is otherwise gathered. What it has done is finished work, not remaining work:
    * without this, a completed step was kept when no flow followed it and lost when one did. With
-   * {@code false} the path goes on and is gathered at its end, once.
+   * {@code false} the path goes on and is gathered at its end, once. A path that takes the flow out
+   * of a boundary event has performed nothing yet, the event only started it, so it is consulted
+   * like any other but not gathered (CIB7-2269).
    *
    * <p>Without a completion condition there is nothing to consult: the no-condition rule is asked
    * when a child ends, and taking a flow is not an end.
@@ -980,7 +1019,9 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
     }
     // Before completing: completing deletes the transitioning execution, and with it the only
     // execution the element expression can be evaluated against.
-    gatherResult(scopeExecution, transitioning);
+    if (!isHandlerThatPerformedNothing(transitioning.getActivity())) {
+      gatherResult(scopeExecution, transitioning);
+    }
     completeScopeOnRequest(scopeExecution);
   }
 

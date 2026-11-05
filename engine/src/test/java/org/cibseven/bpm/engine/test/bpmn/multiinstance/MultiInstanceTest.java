@@ -1756,4 +1756,57 @@ public class MultiInstanceTest extends PluggableProcessEngineTest {
 
     taskService.complete(userTask.getId());
   }
+
+  // Leaving the multi-instance body through two flows expands the tree as after any activity: the
+  // parent execution stands on the body for that moment, and must not be taken for the execution of
+  // a scope that keeps its children beside it (CIB7-2269).
+
+  @Deployment
+  @Test
+  public void testParallelTaskLeftThroughTwoFlows() {
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("miParallelTwoFlows");
+
+    for (Task task : taskService.createTaskQuery().taskDefinitionKey("miTask").list()) {
+      taskService.complete(task.getId());
+    }
+
+    assertEquals(1, taskService.createTaskQuery().taskDefinitionKey("a").count());
+    assertEquals(1, taskService.createTaskQuery().taskDefinitionKey("b").count());
+    completeTasks("a", "b");
+    testRule.assertProcessEnded(processInstance.getId());
+  }
+
+  @Deployment
+  @Test
+  public void testSequentialTaskLeftThroughTwoFlows() {
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("miSequentialTwoFlows");
+
+    taskService.complete(taskService.createTaskQuery().taskDefinitionKey("miTask").singleResult().getId());
+    taskService.complete(taskService.createTaskQuery().taskDefinitionKey("miTask").singleResult().getId());
+
+    assertEquals(1, taskService.createTaskQuery().taskDefinitionKey("a").count());
+    assertEquals(1, taskService.createTaskQuery().taskDefinitionKey("b").count());
+    completeTasks("a", "b");
+    testRule.assertProcessEnded(processInstance.getId());
+  }
+
+  @Deployment
+  @Test
+  public void testParallelTaskLeftThroughAFlowToATaskAndOneToAnEnd() {
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("miParallelTaskAndEnd");
+
+    for (Task task : taskService.createTaskQuery().taskDefinitionKey("miTask").list()) {
+      taskService.complete(task.getId());
+    }
+
+    assertEquals(1, taskService.createTaskQuery().taskDefinitionKey("a").count());
+    completeTasks("a");
+    testRule.assertProcessEnded(processInstance.getId());
+  }
+
+  protected void completeTasks(String... taskDefinitionKeys) {
+    for (String taskDefinitionKey : taskDefinitionKeys) {
+      taskService.complete(taskService.createTaskQuery().taskDefinitionKey(taskDefinitionKey).singleResult().getId());
+    }
+  }
 }

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A scope followed by two unconditional flows: leaving it forks as leaving any activity does. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="adHocTwoOutgoingFlows" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <userTask id="taskA" />
+    </adHocSubProcess>
+    <sequenceFlow id="toA" sourceRef="adHoc" targetRef="a" />
+    <sequenceFlow id="toB" sourceRef="adHoc" targetRef="b" />
+    <userTask id="a" />
+    <sequenceFlow id="fromA" sourceRef="a" targetRef="end" />
+    <userTask id="b" />
+    <sequenceFlow id="fromB" sourceRef="b" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

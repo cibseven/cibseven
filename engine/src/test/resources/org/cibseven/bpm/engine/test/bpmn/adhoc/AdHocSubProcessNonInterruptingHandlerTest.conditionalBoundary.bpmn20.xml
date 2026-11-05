@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-2269. A non-interrupting conditional boundary event on an activity of the scope,
+     without camunda:variableName, so it is evaluated on every variable change below the scope of the activity.
+     Its condition stays true once it held; the engine's own writes, such as the label it puts on the
+     activity when the side path starts, must not fire it again. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="conditionalBoundary" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <userTask id="work" />
+      <boundaryEvent id="onFire" attachedToRef="work" cancelActivity="false">
+        <conditionalEventDefinition>
+          <condition xsi:type="tFormalExpression">${fire}</condition>
+        </conditionalEventDefinition>
+      </boundaryEvent>
+      <sequenceFlow id="b1" sourceRef="onFire" targetRef="handle" />
+      <userTask id="handle" />
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="after" />
+    <userTask id="after" />
+    <sequenceFlow id="f3" sourceRef="after" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

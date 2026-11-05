@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-2269. A non-interrupting event sub process inside the scope, started by a message. No
+     completion condition, and every performance is gathered under the activity it ended in. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <message id="noticeMessage" name="notice" />
+  <process id="nonInterruptingEventSubProcess" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <extensionElements>
+        <camunda:properties>
+          <camunda:property name="outputCollection" value="results" />
+          <camunda:property name="outputElement" value="${execution.currentActivityId}" />
+        </camunda:properties>
+      </extensionElements>
+      <userTask id="taskA" />
+      <subProcess id="onNotice" triggeredByEvent="true">
+        <startEvent id="noticed" isInterrupting="false">
+          <messageEventDefinition messageRef="noticeMessage" />
+        </startEvent>
+        <sequenceFlow id="e1" sourceRef="noticed" targetRef="handled" />
+        <userTask id="handled" />
+        <sequenceFlow id="e2" sourceRef="handled" targetRef="handlerEnd" />
+        <endEvent id="handlerEnd" />
+      </subProcess>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="after" />
+    <userTask id="after" />
+    <sequenceFlow id="f3" sourceRef="after" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

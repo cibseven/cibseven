@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-2269. A non-interrupting message boundary event with an outgoing flow on an activity of a
+     scope whose completion condition holds once `stop` is true, with cancelRemainingInstances="true".
+     The scope gathers the activity each path ends in. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <message id="pingMessage" name="ping" />
+  <process id="boundaryWithCondition" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc" cancelRemainingInstances="true">
+      <extensionElements>
+        <camunda:properties>
+          <camunda:property name="outputCollection" value="results" />
+          <camunda:property name="outputElement" value="${execution.currentActivityId}" />
+        </camunda:properties>
+      </extensionElements>
+      <userTask id="work" />
+      <boundaryEvent id="pinged" attachedToRef="work" cancelActivity="false">
+        <messageEventDefinition messageRef="pingMessage" />
+      </boundaryEvent>
+      <sequenceFlow id="b1" sourceRef="pinged" targetRef="sideTask" />
+      <userTask id="sideTask" />
+      <completionCondition xsi:type="tFormalExpression">${execution.hasVariable('stop') and stop}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="after" />
+    <userTask id="after" />
+    <sequenceFlow id="f3" sourceRef="after" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

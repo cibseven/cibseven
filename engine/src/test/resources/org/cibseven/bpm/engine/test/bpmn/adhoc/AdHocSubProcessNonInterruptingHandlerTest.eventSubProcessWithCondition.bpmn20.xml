@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CIB7-2269. The event sub process of eventSubProcess in a scope whose condition holds once
+     something has set stop to true; the remaining work is cancelled then. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <message id="noticeMessage" name="notice" />
+  <process id="nonInterruptingEventSubProcessWithCondition" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <userTask id="taskA" />
+      <subProcess id="onNotice" triggeredByEvent="true">
+        <startEvent id="noticed" isInterrupting="false">
+          <messageEventDefinition messageRef="noticeMessage" />
+        </startEvent>
+        <sequenceFlow id="e1" sourceRef="noticed" targetRef="handled" />
+        <userTask id="handled" />
+        <sequenceFlow id="e2" sourceRef="handled" targetRef="handlerEnd" />
+        <endEvent id="handlerEnd" />
+      </subProcess>
+      <completionCondition xsi:type="tFormalExpression">${execution.hasVariable('stop') and stop}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="after" />
+    <userTask id="after" />
+    <sequenceFlow id="f3" sourceRef="after" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A parallel multi-instance task followed by a flow to a task and a flow to an end event. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             targetNamespace="Examples">
+  <process id="miParallelTaskAndEnd" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="miTask" />
+    <userTask id="miTask">
+      <multiInstanceLoopCharacteristics isSequential="false">
+        <loopCardinality>2</loopCardinality>
+      </multiInstanceLoopCharacteristics>
+    </userTask>
+    <sequenceFlow id="toA" sourceRef="miTask" targetRef="a" />
+    <sequenceFlow id="toSecond" sourceRef="miTask" targetRef="endAtOnce" />
+    <userTask id="a" />
+    <sequenceFlow id="fromA" sourceRef="a" targetRef="end" />
+    <endEvent id="endAtOnce" />
+    <endEvent id="end" />
+  </process>
+</definitions>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A parallel multi-instance task followed by two unconditional flows. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             targetNamespace="Examples">
+  <process id="miParallelTwoFlows" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="miTask" />
+    <userTask id="miTask">
+      <multiInstanceLoopCharacteristics isSequential="false">
+        <loopCardinality>2</loopCardinality>
+      </multiInstanceLoopCharacteristics>
+    </userTask>
+    <sequenceFlow id="toA" sourceRef="miTask" targetRef="a" />
+    <sequenceFlow id="toSecond" sourceRef="miTask" targetRef="b" />
+    <userTask id="a" />
+    <sequenceFlow id="fromA" sourceRef="a" targetRef="end" />
+    <userTask id="b" />
+    <sequenceFlow id="fromB" sourceRef="b" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

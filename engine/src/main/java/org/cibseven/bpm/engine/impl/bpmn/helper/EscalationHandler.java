@@ -22,6 +22,7 @@ import org.cibseven.bpm.engine.impl.bpmn.parser.EscalationEventDefinition;
 import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
 import org.cibseven.bpm.engine.impl.pvm.PvmScope;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;
+import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
 import org.cibseven.bpm.engine.impl.tree.ActivityExecutionHierarchyWalker;
 import org.cibseven.bpm.engine.impl.tree.ActivityExecutionMappingCollector;
 import org.cibseven.bpm.engine.impl.tree.ActivityExecutionTuple;
@@ -78,13 +79,21 @@ public class EscalationHandler {
 
     PvmActivity escalationHandler = escalationEventDefinition.getEscalationHandler();
     PvmScope escalationScope = getScopeForEscalation(escalationEventDefinition);
-    ActivityExecution escalationExecution = activityExecutionMappingCollector.getExecutionForScope(escalationScope);
+    PvmExecutionImpl escalationExecution = activityExecutionMappingCollector.getExecutionForScope(escalationScope);
 
     if (escalationEventDefinition.getEscalationCodeVariable() != null) {
       escalationExecution.setVariable(escalationEventDefinition.getEscalationCodeVariable(), escalationCode);
     }
 
-    escalationExecution.executeActivity(escalationHandler);
+    PvmScope eventScope = escalationHandler.getEventScope();
+    if (!escalationEventDefinition.isCancelActivity() && eventScope != escalationScope) {
+      // CIB7-2269: a non-interrupting boundary event starts its path beside the activity that
+      // escalated, as the other event handlers do
+      PvmExecutionImpl trigger = activityExecutionMappingCollector.getExecutionForScope(eventScope);
+      escalationExecution.executeEventHandlerBeside(trigger, escalationHandler);
+    } else {
+      escalationExecution.executeActivity(escalationHandler);
+    }
   }
 
   protected static PvmScope getScopeForEscalation(EscalationEventDefinition escalationEventDefinition) {
