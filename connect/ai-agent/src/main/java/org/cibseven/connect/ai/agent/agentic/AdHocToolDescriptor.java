@@ -115,12 +115,19 @@ public final class AdHocToolDescriptor {
         private final String type;
         private final String description;
         private final boolean required;
+        private final boolean storedWhole;
 
         public Parameter(String name, String type, String description, boolean required) {
+            this(name, type, description, required, false);
+        }
+
+        public Parameter(String name, String type, String description, boolean required,
+                boolean storedWhole) {
             this.name = name;
             this.type = type;
             this.description = description;
             this.required = required;
+            this.storedWhole = storedWhole;
         }
 
         /** The parameter's name: its key in {@link #TOOL_CALL_VARIABLE}. */
@@ -145,6 +152,16 @@ public final class AdHocToolDescriptor {
          */
         public boolean isRequired() {
             return required;
+        }
+
+        /**
+         * Whether the call is the whole value of one of the tool's own input parameters, so that a
+         * variable of the tool holds the argument as it is: a text one as a String variable, which
+         * a database column bounds. A call inside a list or a map, in a text with more around it,
+         * or in a connector's input is not stored so.
+         */
+        public boolean isStoredWhole() {
+            return storedWhole;
         }
     }
 

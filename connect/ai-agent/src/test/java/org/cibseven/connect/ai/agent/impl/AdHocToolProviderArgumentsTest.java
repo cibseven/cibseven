@@ -151,4 +151,97 @@ public class AdHocToolProviderArgumentsTest {
         .hasMessageContaining("has no parameter 'farbe'")
         .hasMessageContaining("is missing required parameter 'limit'");
   }
+
+  /** As {@link #SUCHE}, with 'query' the whole value of one of the tool's own inputs. */
+  private static final AdHocToolDescriptor SUCHE_STORED = new AdHocToolDescriptor("suche", null,
+      null, Collections.<String>emptyList(), false, Arrays.asList(
+          new AdHocToolDescriptor.Parameter("query", "string", "", false, true),
+          new AdHocToolDescriptor.Parameter("limit", "integer", "", true)));
+
+  private static Map<String, Object> storedArguments(String json) {
+    return new AdHocToolProvider(null).arguments(SUCHE_STORED, json);
+  }
+
+  /** A text a String variable holds passes whole: 4000 characters, the column outside Oracle. */
+  @Test
+  public void aTextAsLongAsAStringVariableHoldsPasses() {
+    Map<String, Object> values =
+        storedArguments("{\"query\":\"" + text(4000) + "\",\"limit\":3}");
+
+    assertThat((String) values.get("query")).hasSize(4000);
+  }
+
+  /**
+   * A longer one, for a parameter the tool stores whole, is refused before the activity starts,
+   * with its length and the limit, so the model shortens it. Let through, the input would store
+   * it as a String variable, and the step would fail at the flush on every attempt, the model
+   * asked and paid each time. It is refused as a mistake of its own, not also as a missing one.
+   */
+  @Test
+  public void aTextLongerThanAStringVariableHoldsIsRefused() {
+    assertThatThrownBy(() -> storedArguments("{\"query\":\"" + text(4001) + "\",\"limit\":3}"))
+        .isInstanceOf(AdHocToolRefusedException.class)
+        .hasMessageContaining("'suche' parameter 'query' is 4001 characters long")
+        .hasMessageContaining("at most 4000 characters")
+        .hasMessageNotContaining("missing required");
+  }
+
+  /**
+   * A parameter the tool does not store whole -- in a connector's input, a list, a map, a text
+   * with more around it -- is handed on at any length: no String variable holds it as it is.
+   */
+  @Test
+  public void aLongTextOfAParameterNotStoredWholeIsHandedOn() {
+    Map<String, Object> values = arguments("{\"query\":\"" + text(4001) + "\",\"limit\":3}");
+
+    assertThat((String) values.get("query")).hasSize(4001);
+  }
+
+  /** On Oracle the column holds 2000 characters, and the limit the model is told says so. */
+  @Test
+  public void onOracleATextOver2000CharactersIsRefused() {
+    AdHocToolProvider onOracle = new AdHocToolProvider(null) {
+      @Override
+      protected String databaseType() {
+        return "oracle";
+      }
+    };
+
+    assertThat((String) onOracle.arguments(SUCHE_STORED,
+        "{\"query\":\"" + text(2000) + "\",\"limit\":3}").get("query")).hasSize(2000);
+    assertThatThrownBy(() -> onOracle.arguments(SUCHE_STORED,
+        "{\"query\":\"" + text(2001) + "\",\"limit\":3}"))
+        .isInstanceOf(AdHocToolRefusedException.class)
+        .hasMessageContaining("is 2001 characters long")
+        .hasMessageContaining("at most 2000 characters");
+  }
+
+  /** On DB2 the column counts bytes too: the model is told both, umlauts reach the bytes first. */
+  @Test
+  public void onDb2ATextOver4000BytesIsRefusedWithItsBytes() {
+    AdHocToolProvider onDb2 = new AdHocToolProvider(null) {
+      @Override
+      protected String databaseType() {
+        return "db2";
+      }
+    };
+    StringBuilder umlauts = new StringBuilder();
+    for (int i = 0; i < 2001; i++) {
+      umlauts.append('\u00e4');
+    }
+
+    assertThatThrownBy(() -> onDb2.arguments(SUCHE_STORED,
+        "{\"query\":\"" + umlauts + "\",\"limit\":3}"))
+        .isInstanceOf(AdHocToolRefusedException.class)
+        .hasMessageContaining("is 2001 characters, 4002 bytes, long")
+        .hasMessageContaining("at most 4000 characters and 4000 bytes");
+  }
+
+  private static String text(int length) {
+    StringBuilder text = new StringBuilder(length);
+    for (int i = 0; i < length; i++) {
+      text.append('a');
+    }
+    return text.toString();
+  }
 }

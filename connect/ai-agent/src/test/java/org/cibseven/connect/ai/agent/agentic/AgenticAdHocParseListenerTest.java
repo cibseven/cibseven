@@ -417,6 +417,39 @@ public class AgenticAdHocParseListenerTest {
     assertThat(grund.getType()).as("a type in double quotes").isEqualTo("number");
   }
 
+  /**
+   * A parameter whose call is the whole value of one of the tool's own inputs is stored as it is,
+   * a text one as a String variable, which a column bounds: only such a parameter is marked, and
+   * only its text the tool provider refuses when too long. A call in a text with more around it,
+   * in a list, or in a connector's input is not stored so.
+   */
+  @Test
+  public void onlyACallThatIsAWholeInputOfTheToolIsMarkedStoredWhole() {
+    deploy(agentic("<userTask id='antworten'><extensionElements><camunda:inputOutput>"
+        + "<camunda:inputParameter name='text'> ${toolParameter(toolCall.text, 'Antwort',"
+        + " 'string')} </camunda:inputParameter>"
+        + "<camunda:inputParameter name='anrede'>Hallo ${toolParameter(toolCall.anrede, '',"
+        + " 'string')}</camunda:inputParameter>"
+        + "<camunda:inputParameter name='zeilen'><camunda:list><camunda:value>"
+        + "${toolParameter(toolCall.zeile, '', 'string')}</camunda:value></camunda:list>"
+        + "</camunda:inputParameter>"
+        + "</camunda:inputOutput></extensionElements></userTask>"
+        + "<serviceTask id='senden'><extensionElements><camunda:connector>"
+        + "<camunda:connectorId>http-connector</camunda:connectorId><camunda:inputOutput>"
+        + "<camunda:inputParameter name='payload'>${toolParameter(toolCall.body, '', 'string')}"
+        + "</camunda:inputParameter>"
+        + "</camunda:inputOutput></camunda:connector></extensionElements></serviceTask>"));
+
+    java.util.Map<String, Boolean> stored = new java.util.TreeMap<String, Boolean>();
+    for (AdHocToolDescriptor tool : catalogOf("adHoc")) {
+      for (AdHocToolDescriptor.Parameter parameter : tool.getParameters()) {
+        stored.put(parameter.getName(), parameter.isStoredWhole());
+      }
+    }
+    assertThat(stored).containsEntry("text", true).containsEntry("anrede", false)
+        .containsEntry("zeile", false).containsEntry("body", false).hasSize(4);
+  }
+
   @Test
   public void refusesAToolParameterWhoseDescriptionIsNoLiteral() {
     String model = agentic("<userTask id='freigeben'><extensionElements><camunda:inputOutput>"

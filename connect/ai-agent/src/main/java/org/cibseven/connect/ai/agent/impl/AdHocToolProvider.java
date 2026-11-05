@@ -16,6 +16,7 @@
  */
 package org.cibseven.connect.ai.agent.impl;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,6 +26,10 @@ import java.util.stream.Collectors;
 
 import org.cibseven.connect.ai.agent.agentic.AdHocToolDescriptor;
 import org.cibseven.connect.ai.agent.agentic.AgenticToolCatalogParser;
+import org.cibseven.connect.ai.agent.agentic.AgenticTurnRunner;
+import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.db.sql.DbSqlSessionFactory;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 
@@ -47,11 +52,11 @@ import dev.langchain4j.service.tool.ToolProviderResult;
  *
  * <p>Built from the parse-time catalogue on the scope's activity, so what the model is
  * offered is exactly what the deployment validated. A tool's parameters are the
- * {@code toolParameter} calls in its input mappings (CIB7-2136), and nothing else. Three things
+ * {@code toolParameter} calls in its input mappings (CIB7-2136), and nothing else. Four things
  * are refused before the activity starts, through the same exception channel every other tool
  * error takes back to the model: a value the declaration does not name, a value of the wrong
- * type, and a call that leaves out a parameter the declaration makes required — the model reads
- * the refusal and calls again.
+ * type, a text longer than the String variable that would hold it, and a call that leaves out a
+ * parameter the declaration makes required — the model reads the refusal and calls again.
  *
  * <p>The execution stays in {@link AdHocSubProcessTool}: this class only translates a
  * tool call into that layer's {@code startActivity}/{@code completeScope}, which is
@@ -220,7 +225,7 @@ public class AdHocToolProvider implements ToolProvider {
         Map<String, Object> raw = parse(argumentsJson);
         Map<String, Object> values = new LinkedHashMap<String, Object>();
         List<String> refusals = new ArrayList<String>();
-        List<String> wronglyTyped = new ArrayList<String>();
+        List<String> refused = new ArrayList<String>();
         for (Map.Entry<String, Object> argument : raw.entrySet()) {
             AdHocToolDescriptor.Parameter declared = null;
             for (AdHocToolDescriptor.Parameter candidate : descriptor.getParameters()) {
@@ -238,10 +243,10 @@ public class AdHocToolProvider implements ToolProvider {
                 values.put(declared.getName(), typed(descriptor, declared, argument.getValue()));
             } catch (AdHocToolRefusedException e) {
                 refusals.add(e.getMessage());
-                wronglyTyped.add(declared.getName());
+                refused.add(declared.getName());
             }
         }
-        String missing = missingRequiredParameters(descriptor, values, wronglyTyped);
+        String missing = missingRequiredParameters(descriptor, values, refused);
         if (missing != null) {
             refusals.add(missing);
         }
@@ -254,16 +259,16 @@ public class AdHocToolProvider implements ToolProvider {
     /**
      * Why the call lacks a required parameter, or null: every required parameter missing from
      * {@code values} or passed as {@code null} is named in one sentence. One passed with the
-     * wrong type is not missing; its refusal says so already. A variable of the same name
-     * visible on the scope does not stand in for it: the activity reads the value from
-     * {@code toolCall}, not from that variable.
+     * wrong type, or with a text too long to store, is not missing; its refusal says so already.
+     * A variable of the same name visible on the scope does not stand in for it: the activity
+     * reads the value from {@code toolCall}, not from that variable.
      */
     protected String missingRequiredParameters(AdHocToolDescriptor descriptor,
-            Map<String, Object> values, List<String> wronglyTyped) {
+            Map<String, Object> values, List<String> refused) {
         List<String> missing = new ArrayList<String>();
         for (AdHocToolDescriptor.Parameter parameter : descriptor.getParameters()) {
             if (parameter.isRequired() && values.get(parameter.getName()) == null
-                    && !wronglyTyped.contains(parameter.getName())) {
+                    && !refused.contains(parameter.getName())) {
                 missing.add(parameter.getName());
             }
         }
@@ -304,6 +309,15 @@ public class AdHocToolProvider implements ToolProvider {
         return variables;
     }
 
+    /**
+     * The engine's database type, which decides how long a String variable may be; null outside
+     * a command.
+     */
+    protected String databaseType() {
+        ProcessEngineConfigurationImpl configuration = Context.getProcessEngineConfiguration();
+        return (configuration == null) ? null : configuration.getDatabaseType();
+    }
+
     /** One value checked against its declared type. Refused, never coerced. */
     protected Object typed(AdHocToolDescriptor descriptor, AdHocToolDescriptor.Parameter declared,
             Object value) {
@@ -312,7 +326,7 @@ public class AdHocToolProvider implements ToolProvider {
         }
         String type = declared.getType();
         if ("string".equals(type) && value instanceof String) {
-            return value;
+            return declared.isStoredWhole() ? fitting(descriptor, declared, (String) value) : value;
         }
         if ("boolean".equals(type) && value instanceof Boolean) {
             return value;
@@ -326,6 +340,33 @@ public class AdHocToolProvider implements ToolProvider {
         throw new AdHocToolRefusedException("'" + descriptor.getActivityId() + "' parameter '"
                 + declared.getName() + "' must be a " + type + ", but '" + value
                 + "' is a " + value.getClass().getSimpleName() + ".");
+    }
+
+    /**
+     * A text argument of a parameter the tool stores whole
+     * ({@link AdHocToolDescriptor.Parameter#isStoredWhole}), as long as a String variable holds; a
+     * longer one refused, with its length and the limit, so that the model shortens it. Let
+     * through, the input would fail the step at the flush, and the step's retries would ask the
+     * model again each time and end in an incident. The limit is the one the agent's answer is kept
+     * within ({@link AgenticTurnRunner#fitsAStringVariable}). A text the tool stores with more
+     * around it is not checked here: what it adds is known only when the input is evaluated.
+     */
+    protected String fitting(AdHocToolDescriptor descriptor, AdHocToolDescriptor.Parameter declared,
+            String text) {
+        String databaseType = databaseType();
+        if (AgenticTurnRunner.fitsAStringVariable(text, databaseType)) {
+            return text;
+        }
+        boolean db2 = DbSqlSessionFactory.DB2.equals(databaseType);
+        String length = db2
+                ? text.length() + " characters, "
+                        + text.getBytes(StandardCharsets.UTF_8).length + " bytes,"
+                : text.length() + " characters";
+        String limit = DbSqlSessionFactory.ORACLE.equals(databaseType) ? "2000 characters"
+                : db2 ? "4000 characters and 4000 bytes" : "4000 characters";
+        throw new AdHocToolRefusedException("'" + descriptor.getActivityId() + "' parameter '"
+                + declared.getName() + "' is " + length + " long; a text parameter holds at most "
+                + limit + " here. Shorten it and call again.");
     }
 
     protected static Map<String, Object> parse(String argumentsJson) {

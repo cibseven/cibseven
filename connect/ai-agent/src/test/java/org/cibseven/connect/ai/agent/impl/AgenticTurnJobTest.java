@@ -1664,6 +1664,67 @@ public class AgenticTurnJobTest {
     assertThat(alive(pi)).as("the model answered, nothing runs: the scope ended").isFalse();
   }
 
+  /** A tool that waits for a person and takes the reply's text from the model. */
+  protected static final String REPLY_TOOL =
+      "      <userTask id='antworten' name='Antworten'>"
+      + "        <extensionElements><camunda:inputOutput>"
+      + "          <camunda:inputParameter name='text'>"
+      + "${toolParameter(toolCall.text, 'Antworttext', 'string')}</camunda:inputParameter>"
+      + "        </camunda:inputOutput></extensionElements>"
+      + "      </userTask>";
+
+  /**
+   * A text argument longer than a String variable holds is refused before the tool starts, and
+   * the model reads why in the next step. Let through, the input mapping would store it as a
+   * String, the step would fail at the flush, and its retries would ask the model again each time
+   * and end in an incident.
+   */
+  @Test
+  public void aTextArgumentLongerThanAStringVariableIsRefusedAndTheModelIsTold()
+      throws IOException {
+    script.add(toolCall("antworten", "{\\\"text\\\":\\\"" + repeat("a", 4001) + "\\\"}"));
+    script.add(toolCall("antworten", "{\\\"text\\\":\\\"Kurz.\\\"}"));
+    script.add(answer("Fertig."));
+    ProcessInstance pi = startWith(REPLY_TOOL);
+
+    runOneJob();
+    assertThat(requests.get()).as("the step asked the model once").isEqualTo(1);
+    assertThat(engine.getTaskService().createTaskQuery().processInstanceId(pi.getId()).count())
+        .as("refused before the tool started").isZero();
+    assertThat(engine.getManagementService().createJobQuery().withException().count())
+        .as("the step committed; nothing failed").isZero();
+
+    runOneJob();
+    assertThat(requestBodies.get(1)).as("the next step's request carries the refusal")
+        .contains("'antworten' parameter 'text' is 4001 characters long")
+        .contains("at most 4000 characters");
+    assertThat(engine.getTaskService().createTaskQuery().processInstanceId(pi.getId())
+        .taskDefinitionKey("antworten").count()).as("the shorter call started the tool").isOne();
+    assertThat(engine.getRuntimeService().createIncidentQuery().count()).isZero();
+  }
+
+  /**
+   * A text argument the tool does not store whole -- here in a list -- is handed on at any length:
+   * the list is stored as an object, and the tool starts with all of it.
+   */
+  @Test
+  public void aLongTextArgumentInAListIsHandedOn() throws IOException {
+    script.add(toolCall("antworten", "{\\\"zeile\\\":\\\"" + repeat("a", 4001) + "\\\"}"));
+    script.add(answer("Fertig."));
+    ProcessInstance pi = startWith("      <userTask id='antworten' name='Antworten'>"
+        + "        <extensionElements><camunda:inputOutput>"
+        + "          <camunda:inputParameter name='zeilen'><camunda:list><camunda:value>"
+        + "${toolParameter(toolCall.zeile, 'Zeile', 'string')}</camunda:value></camunda:list>"
+        + "</camunda:inputParameter>"
+        + "        </camunda:inputOutput></extensionElements>"
+        + "      </userTask>");
+
+    runOneJob();
+    assertThat(engine.getTaskService().createTaskQuery().processInstanceId(pi.getId())
+        .taskDefinitionKey("antworten").count()).as("the tool started").isOne();
+    assertThat(engine.getManagementService().createJobQuery().withException().count()).isZero();
+  }
+
   /**
    * CIB7-2135: a call that omits a required parameter is refused before the activity starts, not
    * failed inside it. The model reads the refusal, naming the parameter, calls again with it

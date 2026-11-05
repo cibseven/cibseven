@@ -665,7 +665,43 @@ public final class AgenticToolCatalogParser {
       parsing.check(() -> refuseUndeclaredReads(scopeElement, child, text, byName));
     }
     parsing.check(() -> refuseUndeclaredReadsInTool(scopeElement, child, child, byName));
-    return new ArrayList<AdHocToolDescriptor.Parameter>(byName.values());
+    Set<String> storedWhole = storedWhole(child);
+    List<AdHocToolDescriptor.Parameter> parameters = new ArrayList<AdHocToolDescriptor.Parameter>();
+    for (AdHocToolDescriptor.Parameter parameter : byName.values()) {
+      parameters.add(storedWhole.contains(parameter.getName())
+          ? new AdHocToolDescriptor.Parameter(parameter.getName(), parameter.getType(),
+              parameter.getDescription(), parameter.isRequired(), true)
+          : parameter);
+    }
+    return parameters;
+  }
+
+  /**
+   * The parameters whose call is the whole value of one of the child's own input parameters,
+   * {@code ${toolParameter(toolCall.<name>, ...)}} and nothing around it: the input then holds
+   * the argument as it is ({@link AdHocToolDescriptor.Parameter#isStoredWhole}). A list, a map or
+   * a script in the input, and a connector's inputs, which live only for the call, are left out.
+   */
+  protected static Set<String> storedWhole(Element child) {
+    Set<String> names = new HashSet<String>();
+    Element inputOutput = BpmnParseUtil.findCamundaExtensionElement(child, "inputOutput");
+    if (inputOutput == null) {
+      return names;
+    }
+    for (Element input : inputOutput.elementsNS(
+        BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS, "inputParameter")) {
+      String text = (input.getText() == null) ? "" : input.getText().trim();
+      if (!input.elements().isEmpty() || text.length() < 3
+          || !(text.startsWith("${") || text.startsWith("#{")) || !text.endsWith("}")) {
+        continue;
+      }
+      String body = text.substring(2, text.length() - 1).trim();
+      Matcher call = AgenticToolParameterFunction.DECLARATION.matcher(body);
+      if (call.lookingAt() && call.end() == body.length()) {
+        names.add(call.group(1));
+      }
+    }
+    return names;
   }
 
   /**

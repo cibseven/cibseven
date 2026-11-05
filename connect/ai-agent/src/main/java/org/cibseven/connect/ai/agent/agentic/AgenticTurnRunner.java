@@ -262,8 +262,9 @@ public final class AgenticTurnRunner {
    * Whether a String variable's text column holds {@code text}: 2000 characters on Oracle,
    * NVARCHAR2(2000), and 4000 on the others; on DB2 also no more than 4000 bytes of UTF-8, since
    * its VARCHAR(4000) counts bytes, and text with umlauts reaches them before 4000 characters.
+   * The tool provider refuses a text argument by the same limit.
    */
-  protected static boolean fitsAStringVariable(String text, String databaseType) {
+  public static boolean fitsAStringVariable(String text, String databaseType) {
     if (DbSqlSessionFactory.ORACLE.equals(databaseType)) {
       return text.length() <= 2000;
     }
