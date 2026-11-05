@@ -339,6 +339,13 @@
     </dependency>
 
     <dependency>
+      <groupId>com.ibm.icu</groupId>
+      <artifactId>icu4j</artifactId>
+      <version>${version.icu.icu4j}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>com.github.h-thurow</groupId>
       <artifactId>simple-jndi</artifactId>
       <version>0.24.0</version>
