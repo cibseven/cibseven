@@ -17,15 +17,13 @@
 package org.cibseven.bpm.integrationtest.util;
 
 import org.cibseven.bpm.application.ProcessApplication;
+import org.cibseven.bpm.application.impl.JakartaServletProcessApplication;
 
 /**
  * @author meyerd
  *
  */
 @ProcessApplication
-// JakartaServletProcessApplication, not ServletProcessApplication: only the former is registered
-// by the JakartaServletProcessApplicationDeployer servlet container initializer, so a subclass of
-// the latter never becomes a servlet listener and its deployment fails with a missing NO_VIEW service.
-public class TestProcessApplication extends org.cibseven.bpm.application.impl.JakartaServletProcessApplication {
+public class TestProcessApplication extends JakartaServletProcessApplication {
 
 }

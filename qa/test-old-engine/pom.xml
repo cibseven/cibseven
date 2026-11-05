@@ -491,6 +491,9 @@
 
                 <!-- The test is not relevant in `old-engine` setup and lacks necessary resource files -->
                 <exclude>**DatabaseNamingConsistencyTest.java</exclude>
+
+                <!-- The old engine test suite still contains Nashorn tests, but Nashorn is not part of the JDK anymore -->
+                <exclude>**/*NashornTest.java</exclude>
                 <exclude>${TEMPORARY_OLD_ENGINE_TEST_EXCLUDE}</exclude>
               </excludes>
               <testFailureIgnore>false</testFailureIgnore>
@@ -505,28 +508,6 @@
           </plugin>
 
         </plugins>
-      </build>
-    </profile>
-
-    <profile>
-     <id>exclude-post-jdk15-tests</id>
-      <activation>
-        <jdk>[15,)</jdk>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <configuration>
-                <!-- Nashorn is not part of the JDK anymore in Java 15+ -->
-                <excludes combine.children="append">
-                  <exclude>**/*NashornTest.java</exclude>
-                </excludes>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
       </build>
     </profile>
 
