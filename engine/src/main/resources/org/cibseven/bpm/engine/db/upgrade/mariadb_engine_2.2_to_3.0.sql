@@ -25,7 +25,8 @@ values ('1600', CURRENT_TIMESTAMP, '3.0.0');
 
 create index ACT_IDX_TASK_PARENT_TASK_ID on ACT_RU_TASK(PARENT_TASK_ID_);
 
--- Cascade deployment deletion deletes job logs by DEPLOYMENT_ID_ (deleteHistoricJobLogByDeploymentId).
--- Without this index that delete scans the whole ACT_HI_JOB_LOG table. Creating it on a large
--- job log takes a while.
-CREATE INDEX ACT_IDX_HI_JOB_LOG_DEPLOYMENT ON ACT_HI_JOB_LOG (DEPLOYMENT_ID_);
+-- Cascade deployment deletion deletes job logs by DEPLOYMENT_ID_
+-- (deleteHistoricJobLogByDeploymentId). Without this index that delete scans the whole
+-- ACT_HI_JOB_LOG table. Building the index on a large job log takes a while. If the index was
+-- created beforehand under the same name, this statement skips it.
+create index if not exists ACT_IDX_HI_JOB_LOG_DEPLOYMENT on ACT_HI_JOB_LOG(DEPLOYMENT_ID_);
