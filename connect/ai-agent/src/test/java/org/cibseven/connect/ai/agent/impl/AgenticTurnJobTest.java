@@ -2436,7 +2436,7 @@ public class AgenticTurnJobTest {
     completeWorker("ja");
 
     assertThat(engine.getHistoryService().createHistoricVariableInstanceQuery()
-        .processInstanceId(pi.getId()).variableName("adHocAgentResults").singleResult()
+        .processInstanceId(pi.getId()).variableName(AdHocResults.entryName(0)).singleResult()
         .getExecutionId()).as("gathered when the worker ended, on the agent's state")
         .isNotEqualTo(pi.getId());
     assertThat(engine.getRuntimeService().getVariables(pi.getId()))
@@ -4394,9 +4394,73 @@ public class AgenticTurnJobTest {
         .filter(variable -> state.equals(variable.getExecutionId()))
         .map(VariableInstance::getName).sorted().collect(Collectors.toList());
     assertThat(names).hasSize(3);
-    assertThat(names.get(0)).isEqualTo("adHocAgentResults");
+    assertThat(names.get(0)).isEqualTo(AdHocResults.entryName(0));
     assertThat(names.get(1)).isEqualTo(AdHocAgentState.STATE_MARKER);
     assertThat(names.get(2)).startsWith("cibseven-connect-ai-agent-memory_adhoc-");
+  }
+
+  /**
+   * Each result is a variable of its own, written once as its child ends: a later child's end
+   * writes its own and leaves the earlier one as it is, so the stored volume grows with the
+   * results, not with their square (CIB7-2156).
+   */
+  @Test
+  public void eachResultIsWrittenOnceAsAVariableOfItsOwn() throws IOException {
+    script.add(toolCall("pruefA", "{}"));
+    script.add(toolCall("pruefB", "{}"));
+    script.add(answer("Warte."));
+    script.add(answer("Weiter."));
+    script.add(answer("Fertig."));
+    ProcessInstance pi = startWith("      <userTask id='pruefA' /><userTask id='pruefB' />");
+    runWaitingTurn();
+    completeTask(pi, "pruefA", Collections.<String, Object>emptyMap());
+    runWaitingTurn();
+    completeTask(pi, "pruefB", Collections.<String, Object>emptyMap());
+    runWaitingTurn();
+
+    assertThat(resultWrites(pi)).as("one write per result; the first is not written again")
+        .containsExactlyInAnyOrder(AdHocResults.entryName(0), AdHocResults.entryName(1));
+    assertThat(lastUserMessage(requestBodies.get(requestBodies.size() - 1)))
+        .as("the second step was shown the second result").contains("pruefB");
+  }
+
+  /**
+   * A list an earlier version wrote as one variable is read before the entries and not written
+   * again: the next result takes the position after it (CIB7-2156).
+   */
+  @Test
+  public void aResultListFromBeforeIsReadFirstAndNotRewritten() throws IOException {
+    script.add(toolCall("pruefA", "{}"));
+    script.add(toolCall("pruefB", "{}"));
+    script.add(answer("Warte."));
+    script.add(answer("Weiter."));
+    ProcessInstance pi = startWith("      <userTask id='pruefA' /><userTask id='pruefB' />");
+    runWaitingTurn();
+    String state = engine.getRuntimeService().createVariableInstanceQuery()
+        .processInstanceIdIn(pi.getId()).variableName(AdHocAgentState.STATE_MARKER)
+        .singleResult().getExecutionId();
+    Map<String, Object> earlier = new java.util.TreeMap<>();
+    earlier.put("activityId", "pruefA");
+    earlier.put("activationId", "written-before");
+    earlier.put("values", new java.util.TreeMap<String, Object>());
+    engine.getRuntimeService().setVariableLocal(state, "adHocAgentResults",
+        org.cibseven.bpm.engine.variable.Variables.objectValue(
+            new ArrayList<>(Collections.singletonList(earlier))).create());
+
+    completeTask(pi, "pruefA", Collections.<String, Object>emptyMap());
+    runWaitingTurn();
+
+    assertThat(resultWrites(pi)).as("the old list once, as set; the new result after it")
+        .containsExactlyInAnyOrder("adHocAgentResults", AdHocResults.entryName(1));
+  }
+
+  /** The names of the result variables written in {@code pi}, one per write. */
+  private List<String> resultWrites(ProcessInstance pi) {
+    return engine.getHistoryService().createHistoricDetailQuery()
+        .processInstanceId(pi.getId()).variableUpdates().list()
+        .stream().map(detail -> ((HistoricVariableUpdate) detail).getVariableName())
+        .filter(name -> name.startsWith("adHocAgentResults"))
+        .collect(Collectors.toList());
   }
 
   /** History updates of the agent state's variables other than the results. */
@@ -4405,7 +4469,7 @@ public class AgenticTurnJobTest {
         .processInstanceId(pi.getId()).variableUpdates().list().stream()
         .map(detail -> (HistoricVariableUpdate) detail)
         .filter(update -> stateExecution.equals(update.getExecutionId()))
-        .filter(update -> !"adHocAgentResults".equals(update.getVariableName()))
+        .filter(update -> !update.getVariableName().startsWith("adHocAgentResults"))
         .count();
   }
 
@@ -4441,7 +4505,8 @@ public class AgenticTurnJobTest {
         .contains("\"wert01\":1").contains("\"wert12\":12");
     long writes = engine.getHistoryService().createHistoricDetailQuery()
         .processInstanceId(pi.getId()).variableUpdates().list().stream()
-        .filter(detail -> "adHocAgentResults".equals(((HistoricVariableUpdate) detail).getVariableName()))
+        .filter(detail -> ((HistoricVariableUpdate) detail).getVariableName()
+            .startsWith("adHocAgentResults"))
         .count();
     assertThat(writes).as("one write, by the child that ended").isEqualTo(1);
   }
