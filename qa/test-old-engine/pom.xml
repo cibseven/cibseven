@@ -13,6 +13,9 @@
 
   <properties>
     <cibseven.old.engine.version>2.2.0</cibseven.old.engine.version>
+        <!-- Old engine 2.2.0 lacks the GraalJS 25 builder and parser-isolation fixes.
+          Remove these exclusions when the old engine version includes those fixes. -->
+        <TEMPORARY_OLD_ENGINE_TEST_EXCLUDE_2_2_0>**/ScriptTaskGraalJsTest.java,**/ScriptTaskTest.java,**/BpmnParseTest.java</TEMPORARY_OLD_ENGINE_TEST_EXCLUDE_2_2_0>
   </properties>
 
   <build>
@@ -308,6 +311,7 @@
         <dependency>
           <groupId>org.graalvm.js</groupId>
           <artifactId>js</artifactId>
+          <type>pom</type>
           <scope>test</scope>
         </dependency>
 
@@ -495,6 +499,7 @@
                 <!-- The old engine test suite still contains Nashorn tests, but Nashorn is not part of the JDK anymore -->
                 <exclude>**/*NashornTest.java</exclude>
                 <exclude>${TEMPORARY_OLD_ENGINE_TEST_EXCLUDE}</exclude>
+                <exclude>${TEMPORARY_OLD_ENGINE_TEST_EXCLUDE_2_2_0}</exclude>
               </excludes>
               <testFailureIgnore>false</testFailureIgnore>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>

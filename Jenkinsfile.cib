@@ -12,17 +12,14 @@ import groovy.transform.Field
 @Field String mavenLocalRepoRedirected = null
 @Field Map pipelineParams = [
     pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
-    mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
     uiParamPresets: [:],
     testMode: false,
     dependencyTrackSynchronous: true,
     buildPodConfig: [
-        (Constants.MAVEN_JDK_17_CONTAINER): [
-            resources: [
-                cpu: '4',
-                memory: '16Gi',
-                ephemeralStorage: '16Gi'
-            ]
+        resources: [
+            cpu: '4',
+            memory: '16Gi',
+            ephemeralStorage: '16Gi'
         ]
     ]
 ]
@@ -32,14 +29,20 @@ pipeline {
     agent {
         kubernetes {
             yaml BuildPodCreator.cibStandardPod(nodepool: Constants.NODEPOOL_STABLE)
-                    .withContainerFromName(pipelineParams.mvnContainerName, pipelineParams.buildPodConfig[pipelineParams.mvnContainerName])
+                    .withContainerFromName(getMavenContainerName(params.JDK_VERSION), pipelineParams.buildPodConfig)
                     .asYaml()
-            defaultContainer pipelineParams.mvnContainerName
+            defaultContainer(getMavenContainerName(params.JDK_VERSION))
         }
     }
 
     // Parameter that can be changed in the Jenkins UI
     parameters {
+
+        choice(
+            name: 'JDK_VERSION',
+            choices: ['17', '21', '25'],
+            description: 'Java version for the Maven container'
+        )
 
         booleanParam(
             name: 'BUILD_FEATURE_BRANCH',
@@ -445,6 +448,7 @@ pipeline {
                 anyOf {
                     // allow deploy of snapshots from main branch
                     allOf {
+                        expression { params.JDK_VERSION == '17' }
                         branch 'main'
                         expression { mavenProjectInformation.version.endsWith("-SNAPSHOT") == true }
                         anyOf {
@@ -499,6 +503,7 @@ pipeline {
         stage('Deploy to Maven Central') {
             when {
                 allOf {
+                    expression { params.JDK_VERSION == '17' }
                     expression { params.DEPLOY_TO_MAVEN_CENTRAL }
                     expression { mavenProjectInformation.version.endsWith("-SNAPSHOT") == false }
                     expression { isPatchVersion() == false }
@@ -763,6 +768,17 @@ def engineRestTest(String profile) {
     } finally {
         junit allowEmptyResults: true, testResults: reports
         sh "rm -f ${reports}"
+    }
+}
+
+def getMavenContainerName(String jdkVersion) {
+    switch (jdkVersion) {
+        case '25':
+            return Constants.MAVEN_JDK_25_CONTAINER
+        case '21':
+            return Constants.MAVEN_JDK_21_CONTAINER
+        default:
+            return Constants.MAVEN_JDK_17_CONTAINER
     }
 }
 
