@@ -54,25 +54,34 @@ import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 import org.opentest4j.AssertionFailedError;
+import org.opentest4j.TestAbortedException;
 import org.slf4j.Logger;
 
 
 /**
+ * JUnit 5 base class with a process engine life cycle per test method
+ * ({@link BeforeEach} / {@link AfterEach}).
+ *
+ * <p>Test methods must be annotated with {@link org.junit.jupiter.api.Test @Test}: since the
+ * JUnit 5 migration this class no longer extends {@code junit.framework.TestCase}, so
+ * JUnit 3 style {@code public void testXxx()} methods are not discovered anymore.</p>
+ *
  * @author Tom Baeyens
  */
 public abstract class AbstractProcessEngineTestCase extends PvmTestCase {
   /**
    * This class isn't used in the Process Engine test suite anymore.
    * However, some Test classes in the following modules still use it:
-   *   * camunda-engine-plugin-spin
-   *   * camunda-engine-plugin-connect
-   *   * camunda-engine-spring
-   *   * camunda-identity-ldap
+   *   * cibseven-engine-plugin-spin
+   *   * cibseven-engine-plugin-connect
+   *   * cibseven-engine-spring
    *
-   * It should be removed once those Test classes are migrated to JUnit 4.
+   * It should be removed once those Test classes are migrated to the JUnit 5 ProcessEngineExtension.
    */
 
   private final static Logger LOG = TestLogger.TEST_LOGGER.getLogger();
@@ -441,18 +450,33 @@ public abstract class AbstractProcessEngineTestCase extends PvmTestCase {
     return deploymentId;
   }
 
+  /**
+   * Replaces the former JUnit 3 {@code runBare()} set up: initializes the process engine and its
+   * services, skips the test (JUnit 5 assumption) if {@link org.cibseven.bpm.engine.test.RequiredHistoryLevel}
+   * or {@link RequiredDatabase} do not match and performs the
+   * {@link org.cibseven.bpm.engine.test.Deployment @Deployment} of the test method.
+   *
+   * <p>Subclasses that override this method must annotate the override with {@link BeforeEach}
+   * (JUnit 5 does not run an overridden lifecycle method that is not annotated itself) and call
+   * {@code super}. Test methods must be annotated with {@link org.junit.jupiter.api.Test @Test}.</p>
+   */
+  @BeforeEach
   public void setUpAbstractProcessEngineTestCase(TestInfo testInfo) {
     initializeProcessEngine();
     initializeServices();
     String testMethodName = testInfo.getTestMethod().map(Method::getName).orElse(null);
+    Class<?>[] parameterTypes = testInfo.getTestMethod().map(Method::getParameterTypes).orElse(new Class<?>[0]);
     try {
-      boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine, getClass(), testMethodName);
-      boolean runsWithRequiredDatabase = TestHelper.annotationRequiredDatabaseCheck(processEngine, getClass(), testMethodName);
-      // ignore test case when current history level is too low or database doesn't match
-      if (hasRequiredHistoryLevel && runsWithRequiredDatabase) {
-        deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, getClass(), testMethodName);
-        // super.runBare(); // Remove this, as JUnit 5 manages test execution
-      }
+      boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine, getClass(), testMethodName, parameterTypes);
+      boolean runsWithRequiredDatabase = TestHelper.annotationRequiredDatabaseCheck(processEngine, getClass(), testMethodName, parameterTypes);
+      // skip test case when current history level is too low or database doesn't match
+      Assumptions.assumeTrue(hasRequiredHistoryLevel, "ignored because the current history level is too low");
+      Assumptions.assumeTrue(runsWithRequiredDatabase, "ignored because the current database is not supported");
+
+      deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, getClass(), testMethodName, parameterTypes);
+    }
+    catch (TestAbortedException e) {
+      throw e;
     }
     catch (AssertionFailedError e) {
       LOG.error("ASSERTION FAILED: " + e, e);
@@ -466,24 +490,30 @@ public abstract class AbstractProcessEngineTestCase extends PvmTestCase {
     }
   }
 
-  
+  /**
+   * Replaces the former JUnit 3 {@code runBare()} clean up. Null-safe, so that a failing
+   * {@link #setUpAbstractProcessEngineTestCase(TestInfo) set up} does not hide its cause behind a
+   * {@link NullPointerException}. Subclasses that override this method must annotate the override
+   * with {@link AfterEach} and call {@code super}.
+   */
   @AfterEach
   public void tearDownAbstractProcessEngineTestCase() {
-    identityService.clearAuthentication();
-    processEngineConfiguration.setTenantCheckEnabled(true);
-    deleteDeployments();
-    deleteHistoryCleanupJobs();
-    // only fail if no test failure was recorded
-    TestHelper.assertAndEnsureCleanDbAndCache(processEngine, exception == null);
-    TestHelper.resetIdGenerator(processEngineConfiguration);
-    ClockUtil.reset();
-    closeDownProcessEngine();
-    clearServiceReferences();
-
-    deleteDeployments();
-    clearServiceReferences();
-    closeDownProcessEngine();
-    // Add any additional cleanup logic here if needed
+    try {
+      if (processEngine != null && processEngineConfiguration != null) {
+        identityService.clearAuthentication();
+        processEngineConfiguration.setTenantCheckEnabled(true);
+        deleteDeployments();
+        deleteHistoryCleanupJobs();
+        // only fail if no test failure was recorded
+        TestHelper.assertAndEnsureCleanDbAndCache(processEngine, exception == null);
+        TestHelper.resetIdGenerator(processEngineConfiguration);
+      }
+    }
+    finally {
+      ClockUtil.reset();
+      closeDownProcessEngine();
+      clearServiceReferences();
+    }
   }
 
 }

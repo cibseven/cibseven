@@ -21,6 +21,7 @@ import org.cibseven.bpm.engine.spring.test.SpringProcessEngineTestCase;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.springframework.test.context.ContextConfiguration;
+import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
@@ -31,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class TaskListenerSpringTest extends SpringProcessEngineTestCase {
   
   @Deployment
+  @Test
   public void testTaskListenerDelegateExpression() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("taskListenerDelegateExpression");
     
