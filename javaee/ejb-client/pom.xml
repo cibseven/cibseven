@@ -43,6 +43,7 @@
     <dependency>
       <groupId>jakarta.ejb</groupId>
       <artifactId>jakarta.ejb-api</artifactId>
+      <scope>provided</scope>
       <!-- The Jakarta EE 10 BOM managed this artifact with a wildcard exclusion, the
            Jakarta EE 11 BOM does not; keep jakarta.transaction-api out of the compile
            scope as before (CIB7-2582) -->
@@ -56,10 +57,12 @@
     <dependency>
       <groupId>jakarta.servlet</groupId>
       <artifactId>jakarta.servlet-api</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>jakarta.annotation</groupId>
       <artifactId>jakarta.annotation-api</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
