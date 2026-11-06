@@ -38,33 +38,60 @@ import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.opentest4j.AssertionFailedError;
 
 
-/** Convenience for ProcessEngine and services initialization in the form of a JUnit base class.
+/** Convenience for ProcessEngine and services initialization in the form of a JUnit 5 base class
+ * or a JUnit 5 extension.
  *
- * <p>Usage: <code>public class YourTest extends ProcessEngineTestCase</code></p>
+ * <p>Usage as base class:</p>
+ * <pre>
+ * public class YourTest extends ProcessEngineTestCase {
+ *
+ *   &#64;Test
+ *   &#64;Deployment
+ *   public void testSomething() {
+ *     runtimeService.startProcessInstanceByKey("process");
+ *   }
+ * }
+ * </pre>
+ * <p>Test methods must be annotated with {@link org.junit.jupiter.api.Test @Test}. This class no
+ * longer extends {@code junit.framework.TestCase}, so JUnit 3 style {@code public void testXxx()}
+ * methods are not discovered anymore. The life cycle is driven by the {@link BeforeEach} method
+ * {@link #setUpProcessEngineTestCase(TestInfo)} and the {@link AfterEach} method
+ * {@link #tearDownProcessEngineTestCase(TestInfo)}; subclasses that override one of them must
+ * annotate the override accordingly and call {@code super}. Own set up and tear down methods of
+ * subclasses (annotated with {@link BeforeEach} / {@link AfterEach}) run after the process engine
+ * set up and before the process engine tear down, respectively.</p>
+ *
+ * <p>Usage as extension: <code>&#64;RegisterExtension ProcessEngineTestCase extension = new ProcessEngineTestCase();</code>,
+ * the services are then available through the getters, e.g. {@link #getRuntimeService()}.</p>
  *
  * <p>The ProcessEngine and the services available to subclasses through protected member fields.
  * The processEngine will be initialized by default with the camunda.cfg.xml resource
  * on the classpath.  To specify a different configuration file, override the
  * {@link #getConfigurationResource()} method.
- * Process engines will be cached statically.  The first time the setUp is called for a given
+ * Process engines will be cached statically.  The first time the set up is called for a given
  * configuration resource, the process engine will be constructed.</p>
  *
  * <p>You can declare a deployment with the {@link Deployment} annotation.
  * This base class will make sure that this deployment gets deployed in the
- * setUp and {@link RepositoryService#deleteDeploymentCascade(String, boolean) cascade deleted}
- * in the afterEach.
+ * set up and {@link RepositoryService#deleteDeploymentCascade(String, boolean) cascade deleted}
+ * in the tear down.
  * </p>
+ *
+ * <p>Test methods annotated with {@link RequiredHistoryLevel} are skipped (JUnit 5 assumption)
+ * if the history level of the process engine is too low.</p>
  *
  * <p>This class also lets you {@link #setCurrentTime(Date) set the current time used by the
  * process engine}. This can be handy to control the exact time that is used by the engine
  * in order to verify e.g. e.g. due dates of timers.  Or start, end and duration times
- * in the history service.  In the afterEach, the internal clock will automatically be
+ * in the history service.  In the tear down, the internal clock will automatically be
  * reset to use the current system time rather then the time that was set during
  * a test method.  In other words, you don't have to clean up your own time messing mess ;-)
  * </p>
@@ -101,22 +128,35 @@ public class ProcessEngineTestCase implements BeforeEachCallback, AfterEachCallb
     ProcessEngineAssert.assertProcessEnded(processEngine, processInstanceId);
   }
 
+  /**
+   * Set up if this class is registered as JUnit 5 extension (<code>&#64;RegisterExtension</code>).
+   */
+  @Override
   public void beforeEach(ExtensionContext context) throws Exception {
+    doSetUp(context.getRequiredTestClass(), context.getRequiredTestMethod());
+  }
+
+  /**
+   * Set up if this class is used as base class of a test class.
+   */
+  @BeforeEach
+  public void setUpProcessEngineTestCase(TestInfo testInfo) {
+    doSetUp(getClass(), testInfo.getTestMethod().orElseThrow(
+        () -> new IllegalStateException("ProcessEngineTestCase supports test methods only")));
+  }
+
+  private void doSetUp(Class<?> testClass, Method testMethod) {
     if (processEngine==null) {
       initializeProcessEngine();
       initializeServices();
     }
-    final Method testMethod = context.getTestMethod().get();
 
-    boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine, context.getTestClass().get(), testMethod.getName(), testMethod.getParameterTypes());
+    boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine, testClass, testMethod.getName(), testMethod.getParameterTypes());
     // ignore test case when current history level is too low
     skipTest = !hasRequiredHistoryLevel;
     Assumptions.assumeTrue(hasRequiredHistoryLevel, "ignored because the current history level is too low");
 
-    if (!skipTest) {
-      deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, context.getTestClass().get(), 
-          context.getTestMethod().get().getName());
-    }
+    deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, testClass, testMethod.getName(), testMethod.getParameterTypes());
   }
 
   protected void initializeProcessEngine() {
@@ -147,10 +187,29 @@ public class ProcessEngineTestCase implements BeforeEachCallback, AfterEachCallb
     caseService = processEngine.getCaseService();
   }
 
+  /**
+   * Tear down if this class is registered as JUnit 5 extension (<code>&#64;RegisterExtension</code>).
+   */
   @Override
   public void afterEach(ExtensionContext context) throws Exception {
-    TestHelper.annotationDeploymentTearDown(processEngine, deploymentId, getClass(), context.getTestMethod().get().getName());
-    ClockUtil.reset();
+    doTearDown(context.getRequiredTestClass(), context.getRequiredTestMethod().getName());
+  }
+
+  /**
+   * Tear down if this class is used as base class of a test class.
+   */
+  @AfterEach
+  public void tearDownProcessEngineTestCase(TestInfo testInfo) {
+    doTearDown(getClass(), testInfo.getTestMethod().map(Method::getName).orElse(null));
+  }
+
+  private void doTearDown(Class<?> testClass, String testMethodName) {
+    try {
+      TestHelper.annotationDeploymentTearDown(processEngine, deploymentId, testClass, testMethodName);
+    } finally {
+      deploymentId = null;
+      ClockUtil.reset();
+    }
   }
 
   public static void closeProcessEngines() {

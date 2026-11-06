@@ -21,6 +21,7 @@ import org.cibseven.bpm.engine.spring.test.SpringProcessEngineTestCase;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.springframework.test.context.ContextConfiguration;
+import org.junit.jupiter.api.Test;
 
 /**
  * @see http://jira.codehaus.org/browse/ACT-1166
@@ -31,6 +32,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class BoundaryErrorEventSpringTest extends SpringProcessEngineTestCase {
 
   @Deployment
+  @Test
   public void testCatchErrorThrownByJavaDelegateOnServiceTask() {
     String procId = runtimeService.startProcessInstanceByKey("catchErrorThrownByExpressionDelegateOnServiceTask").getId();
     assertThatErrorHasBeenCaught(procId);

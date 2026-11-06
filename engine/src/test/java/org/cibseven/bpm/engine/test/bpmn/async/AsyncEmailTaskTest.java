@@ -24,6 +24,7 @@ import java.util.List;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.bpmn.mail.EmailServiceTaskTest;
 import org.cibseven.bpm.engine.test.bpmn.mail.EmailTestCase;
+import org.junit.jupiter.api.Test;
 import org.subethamail.wiser.WiserMessage;
 
 /**
@@ -35,6 +36,7 @@ public class AsyncEmailTaskTest extends EmailTestCase {
 
   // copied from org.cibseven.bpm.engine.test.bpmn.mail.EmailServiceTaskTest
   @Deployment
+  @Test
   public void testSimpleTextMail() throws Exception {
     String procId = runtimeService.startProcessInstanceByKey("simpleTextOnly").getId();
 
@@ -54,6 +56,7 @@ public class AsyncEmailTaskTest extends EmailTestCase {
 
   // copied from org.cibseven.bpm.engine.test.bpmn.mail.EmailSendTaskTest
   @Deployment
+  @Test
   public void testSimpleTextMailSendTask() throws Exception {
     runtimeService.startProcessInstanceByKey("simpleTextOnly");
 

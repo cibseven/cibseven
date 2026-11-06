@@ -34,6 +34,7 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -51,6 +52,7 @@ public class SpringTransactionIntegrationTest extends SpringProcessEngineTestCas
   private static long WAIT_TIME_MILLIS = TimeUnit.MILLISECONDS.convert(20L, TimeUnit.SECONDS);
 
   @Deployment
+  @Test
   public void testBasicActivitiSpringIntegration() {
     userBean.hello();
 
@@ -59,6 +61,7 @@ public class SpringTransactionIntegrationTest extends SpringProcessEngineTestCas
   }
 
   @Deployment
+  @Test
   public void testRollbackTransactionOnActivitiException() {
 
     // Create a table that the userBean is supposed to fill with some data
@@ -92,6 +95,7 @@ public class SpringTransactionIntegrationTest extends SpringProcessEngineTestCas
       "org/cibseven/bpm/engine/spring/test/transaction/SpringTransactionIntegrationTest.testErrorPropagationOnExceptionInTransaction.bpmn20.xml",
       "org/cibseven/bpm/engine/spring/test/transaction/SpringTransactionIntegrationTest.throwExceptionProcess.bpmn20.xml"
   })
+  @Test
   public void testErrorPropagationOnExceptionInTransaction(){
       runtimeService.startProcessInstanceByKey("process");
       waitForJobExecutorToProcessAllJobs(WAIT_TIME_MILLIS);
@@ -100,6 +104,7 @@ public class SpringTransactionIntegrationTest extends SpringProcessEngineTestCas
   }
 
   @Deployment
+  @Test
   public void testTransactionRollbackInServiceTask() throws Exception {
 
     runtimeService.startProcessInstanceByKey("txRollbackServiceTask");
@@ -118,6 +123,7 @@ public class SpringTransactionIntegrationTest extends SpringProcessEngineTestCas
   }
 
   @Deployment
+  @Test
   public void testTransactionRollbackInServiceTaskWithCustomRetryCycle() throws Exception {
 
     runtimeService.startProcessInstanceByKey("txRollbackServiceTaskWithCustomRetryCycle");
@@ -136,6 +142,7 @@ public class SpringTransactionIntegrationTest extends SpringProcessEngineTestCas
   }
 
   @Deployment
+  @Test
   public void testFailingTransactionListener() throws Exception {
 
     runtimeService.startProcessInstanceByKey("failingTransactionListener");

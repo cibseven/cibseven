@@ -23,18 +23,24 @@ import org.opentest4j.AssertionFailedError;
 
 
 /**
+ * Plain helper base class (assertions) for tests.
+ *
+ * <p>Since the JUnit 5 migration this class no longer extends {@code junit.framework.TestCase}:
+ * it has no test life cycle of its own, and test methods of subclasses must be annotated with
+ * {@link org.junit.jupiter.api.Test @Test} (JUnit 3 style {@code public void testXxx()} methods
+ * are not discovered anymore).</p>
+ *
  * @author Tom Baeyens
  */
 public class PvmTestCase {
   /**
    * This class isn't used in the Process Engine test suite anymore.
    * However, some Test classes in the following modules still use it:
-   *   * camunda-engine-plugin-spin
-   *   * camunda-engine-plugin-connect
-   *   * camunda-engine-spring
-   *   * camunda-identity-ldap
+   *   * cibseven-engine-plugin-spin
+   *   * cibseven-engine-plugin-connect
+   *   * cibseven-engine-spring
    *
-   * It should be removed once those Test classes are migrated to JUnit 4.
+   * It should be removed once those Test classes are migrated to the JUnit 5 ProcessEngineExtension.
    */
 
   /**

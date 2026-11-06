@@ -25,6 +25,7 @@ import org.cibseven.bpm.engine.spring.test.SpringProcessEngineTestCase;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.springframework.test.context.ContextConfiguration;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -36,6 +37,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class SpringLimitedExpressionsTest extends SpringProcessEngineTestCase {
 
   @Deployment
+  @Test
   public void testLimitedBeansExposed() throws Exception {
     // Start process, which has a service-task which calls 'bean1', which is exposed
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("limitedExpressionProcess");
@@ -53,7 +55,7 @@ public class SpringLimitedExpressionsTest extends SpringProcessEngineTestCase {
       taskService.complete(task.getId());
       fail("Exception should have been thrown");
     } catch(ProcessEngineException ae) {
-      assertTextPresent(ae.getMessage(), "Unknown property used in expression");
+      assertTextPresent("Unknown property used in expression", ae.getMessage());
     }
   }
 }

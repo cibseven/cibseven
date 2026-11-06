@@ -21,6 +21,7 @@ import java.util.ServiceLoader;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.impl.test.AbstractProcessEngineTestCase;
 import org.cibseven.bpm.engine.impl.test.TestLogger;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 import org.slf4j.Logger;
@@ -62,25 +63,40 @@ public abstract class SpringProcessEngineTestCase extends AbstractProcessEngineT
   }
 
   @BeforeEach
+  @Override
   public void setUpAbstractProcessEngineTestCase(TestInfo testInfo) {
     try {
       testContextManager.prepareTestInstance(this); // this will initialize all dependencies
-      super.setUpAbstractProcessEngineTestCase(testInfo);
+    } catch (Exception e) {
+      throw new IllegalStateException("Could not prepare the Spring test instance " + getClass().getName(), e);
+    }
+    super.setUpAbstractProcessEngineTestCase(testInfo);
+  }
+
+  @AfterEach
+  @Override
+  public void tearDownAbstractProcessEngineTestCase() {
+    try {
+      super.tearDownAbstractProcessEngineTestCase();
+    }
+    finally {
+      closeApplicationContext();
+    }
+  }
+
+  protected void closeApplicationContext() {
+    try {
+      testContextManager.afterTestClass();
     } catch (Exception e) {
       LOG.error("EXCEPTION: " + e, e);
     }
-    finally {
-      try {
-        testContextManager.afterTestClass();
-      } catch (Exception e) {
-        LOG.error("EXCEPTION: " + e, e);
-      }
+    if (applicationContext != null) {
       applicationContext.close();
-      applicationContext = null;
-      processEngine = null;
-      testContextManager = null;
-      CachedIntrospectionResults.clearClassLoader(getClass().getClassLoader());
     }
+    applicationContext = null;
+    processEngine = null;
+    testContextManager = null;
+    CachedIntrospectionResults.clearClassLoader(getClass().getClassLoader());
   }
 
   @Override
