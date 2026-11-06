@@ -11,6 +11,18 @@
     <version>3.0.0-SNAPSHOT</version>
   </parent>
 
+  <dependencyManagement>
+    <dependencies>
+      <!-- Jackson's jakarta-xmlbind module still asks for the EE 9 API 3.0.1; with Jersey the war
+           got 4.0.x through jersey-common. Keep the Jakarta EE 10/11 API in WEB-INF/lib. -->
+      <dependency>
+        <groupId>jakarta.xml.bind</groupId>
+        <artifactId>jakarta.xml.bind-api</artifactId>
+        <version>${version.jakarta.xml.bind-api}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
@@ -35,6 +47,22 @@
       <scope>provided</scope>
     </dependency>
 
+    <!-- JAX-RS runtime of the Tomcat war (assembly-war-tomcat.xml): RESTEasy, the same as the
+         Tomcat web applications (distro/tomcat/webapp) and WildFly. Tomcat provides the Servlet API. -->
+    <dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-core</artifactId>
+      <version>${version.resteasy}</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>jakarta.servlet</groupId>
+          <artifactId>jakarta.servlet-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- JAX-RS runtime of the WebLogic war (assembly-war-wls.xml) -->
     <dependency>
       <groupId>org.glassfish.jersey.containers</groupId>
       <artifactId>jersey-container-servlet</artifactId>
