@@ -26,6 +26,14 @@
       <groupId>org.jboss.resteasy</groupId>
       <artifactId>resteasy-core</artifactId>
       <version>${version.resteasy}</version>
+      <exclusions>
+        <!-- Tomcat provides the Servlet API (6.1 in Tomcat 11); RESTEasy 6.2 would put
+             jakarta.servlet-api 6.0.0 into WEB-INF/lib, which Tomcat does not load anyway -->
+        <exclusion>
+          <groupId>jakarta.servlet</groupId>
+          <artifactId>jakarta.servlet-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 
