@@ -149,11 +149,19 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- Jakarta EL implementation at runtime (CIB7-2609). JUEL evaluates the expressions, but
+         jakarta.el.BeanELResolver (method calls) and ELContext#convertToType ask the global
+         jakarta.el.ELManager for an ExpressionFactory, which is looked up via ServiceLoader.
+         Without any EL implementation on the classpath that lookup fails, and method calls that
+         need an argument conversion, for example ${dateTime().plusDays(1)}, throw
+         ExceptionInInitializerError. Up to 2.2 the shaded copy of the EL API inside
+         cibseven-juel found JUEL itself. Containers (Tomcat, WildFly) bring their own EL
+         implementation; their distributions do not ship this jar. -->
     <dependency>
       <groupId>org.glassfish.expressly</groupId>
       <artifactId>expressly</artifactId>
       <version>${version.expressly}</version>
-      <scope>test</scope>
+      <scope>runtime</scope>
     </dependency>
 
     <dependency>
