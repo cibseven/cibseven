@@ -140,6 +140,13 @@ public class HtmlFormEngine implements FormEngine {
    * statement, a call, an assignment, a <script> block or an AngularJS interpolation. */
   protected static final Pattern SAFE_FORM_FIELD_ID_PATTERN = Pattern.compile("[\\p{L}\\p{M}\\p{Nd}_$.\\-]+");
 
+  /* The generated form is compiled by AngularJS in the legacy Tasklist, which evaluates
+   * '{{ ... }}' in text and attribute values after the HTML entities were decoded, i.e.
+   * HTML escaping does not protect against it. Dynamic values that contain the markers
+   * are rejected instead (client-side template injection, CIB7-1753). */
+  protected static final String INTERPOLATION_START_MARKER = "{{";
+  protected static final String INTERPOLATION_END_MARKER = "}}";
+
   /* constraints */
   public static final String CONSTRAINT_READONLY = "readonly";
   public static final String CONSTRAINT_REQUIRED = "required";
@@ -198,7 +205,7 @@ public class HtmlFormEngine implements FormEngine {
 
     // fail before anything is rendered for an id that cannot be embedded into the form's scripts / expressions
     String formFieldId = validateFormFieldId(formField.getId());
-    String formFieldLabel = formField.getLabel();
+    String formFieldLabel = validateNoInterpolation(formField.getLabel(), "label", formFieldId);
 
     // write label
     if (formFieldLabel != null && !formFieldLabel.isEmpty()) {
@@ -257,7 +264,7 @@ public class HtmlFormEngine implements FormEngine {
     // input field
     HtmlElementWriter inputField = createInputField(formField);
 
-    String dateFormat = validateDatePattern((String) formField.getType().getInformation(DATE_PATTERN_ATTRIBUTE));
+    String dateFormat = validateDatePattern((String) formField.getType().getInformation(DATE_PATTERN_ATTRIBUTE), formFieldId);
     if(!isReadOnly) {
       inputField
           .attribute(DATEPICKER_POPUP_ATTRIBUTE, dateFormat)
@@ -335,7 +342,7 @@ public class HtmlFormEngine implements FormEngine {
     // add default value
     Object defaultValue = formField.getDefaultValue();
     if(defaultValue != null) {
-      inputField.attribute(VALUE_ATTRIBUTE, defaultValue.toString());
+      inputField.attribute(VALUE_ATTRIBUTE, validateNoInterpolation(defaultValue.toString(), "default value", formField.getId()));
     }
 
     // <input ... />
@@ -360,12 +367,13 @@ public class HtmlFormEngine implements FormEngine {
   protected void renderSelectOptions(FormField formField, HtmlDocumentBuilder documentBuilder) {
     EnumFormType enumFormType = (EnumFormType) formField.getType();
     Map<String, String> values = enumFormType.getValues();
+    String formFieldId = formField.getId();
 
     for (Entry<String, String> value : values.entrySet()) {
       // <option>
       HtmlElementWriter option = new HtmlElementWriter(OPTION_ELEMENT, false)
-          .attribute(VALUE_ATTRIBUTE, value.getKey())
-          .textContent(value.getValue());
+          .attribute(VALUE_ATTRIBUTE, validateNoInterpolation(value.getKey(), "enum value id", formFieldId))
+          .textContent(validateNoInterpolation(value.getValue(), "enum value name", formFieldId));
 
       documentBuilder.startElement(option).endElement();
     }
@@ -431,7 +439,7 @@ public class HtmlFormEngine implements FormEngine {
         // AngularJS expression: constant text plus the validated form field id
         .rawAttribute(NG_SHOW_ATTRIBUTE, expression)
         .attribute(CLASS_ATTRIBUTE, HELP_BLOCK_CLASS)
-        .textContent(String.format(TYPE_FIELD_MESSAGE, typeName));
+        .textContent(String.format(TYPE_FIELD_MESSAGE, validateNoInterpolation(typeName, "type name", formFieldId)));
 
     documentBuilder
         .startElement(divElement)
@@ -463,7 +471,7 @@ public class HtmlFormEngine implements FormEngine {
         // AngularJS expression: constant text plus the validated form field id
         .rawAttribute(NG_SHOW_ATTRIBUTE, secondExpression)
         .attribute(CLASS_ATTRIBUTE, HELP_BLOCK_CLASS)
-        .textContent(INVALID_DATE_FIELD_MESSAGE + "'" + validateDatePattern(String.valueOf(formField.getType().getInformation(DATE_PATTERN_ATTRIBUTE))) + "'");
+        .textContent(INVALID_DATE_FIELD_MESSAGE + "'" + validateDatePattern(String.valueOf(formField.getType().getInformation(DATE_PATTERN_ATTRIBUTE)), formFieldId) + "'");
 
     documentBuilder
         .startElement(secondDivElement)
@@ -472,15 +480,15 @@ public class HtmlFormEngine implements FormEngine {
 
   protected void addCommonFormFieldAttributes(FormField formField, HtmlElementWriter formControl) {
 
-    String typeName = formField.getTypeName();
+    String formFieldId = formField.getId();
+
+    String typeName = validateNoInterpolation(formField.getTypeName(), "type name", formFieldId);
 
     if (isEnum(formField) || isDate(formField)) {
       typeName = StringFormType.TYPE_NAME;
     }
 
     typeName = typeName.substring(0, 1).toUpperCase() + typeName.substring(1);
-
-    String formFieldId = formField.getId();
 
     formControl
         .attribute(CLASS_ATTRIBUTE, FORM_CONTROL_CLASS)
@@ -497,13 +505,35 @@ public class HtmlFormEngine implements FormEngine {
 
     // add validation constraints
     for (FormFieldValidationConstraint constraint : formField.getValidationConstraints()) {
-      String constraintName = constraint.getName();
-      String configuration = (String) constraint.getConfiguration();
+      String constraintName = validateNoInterpolation(constraint.getName(), "validation constraint name", formFieldId);
+      String configuration = validateNoInterpolation((String) constraint.getConfiguration(),
+          "configuration of the validation constraint '" + constraintName + "'", formFieldId);
       formControl.attribute(CONSTRAINT_READONLY.equals(constraintName) ? CONSTRAINT_DISABLED : constraintName, configuration);
     }
   }
 
   // helper /////////////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Validates that a dynamic value can be written as text or attribute value of a generated
+   * HTML form. The value is HTML-escaped when written, but the generated form is compiled by
+   * AngularJS (legacy Tasklist), which evaluates interpolation markers (<code>{{</code> ...
+   * <code>}}</code>) in text and attribute values after the HTML entities were decoded, i.e.
+   * escaping does not prevent the injected expression from being executed.
+   *
+   * @param value the value to validate, <code>null</code> is allowed and returned as is
+   * @param what describes the value in the exception message, e.g. "label"
+   * @param formFieldId the id of the form field the value belongs to, for the exception message
+   * @return the value, if it does not contain <code>{{</code> or <code>}}</code>
+   * @throws FormException otherwise
+   */
+  public static String validateNoInterpolation(String value, String what, String formFieldId) {
+    if (value != null && (value.contains(INTERPOLATION_START_MARKER) || value.contains(INTERPOLATION_END_MARKER))) {
+      throw new FormException("Cannot render form field '" + formFieldId + "' as HTML form: the " + what + " '" + value
+          + "' contains the AngularJS interpolation markers '" + INTERPOLATION_START_MARKER + "' or '" + INTERPOLATION_END_MARKER + "'.");
+    }
+    return value;
+  }
 
   /**
    * Validates that a form field id can be embedded into the AngularJS expressions and the
@@ -521,16 +551,18 @@ public class HtmlFormEngine implements FormEngine {
   }
 
   /**
-   * Validates that a date pattern can be embedded into a generated HTML form. The pattern is
-   * HTML-escaped when written, but the generated form is compiled by AngularJS, which would
-   * evaluate interpolation markers ('{{' ... '}}') contained in it.
+   * Validates that a date pattern can be embedded into a generated HTML form. Like every
+   * other dynamic value it must not contain AngularJS interpolation markers (see
+   * {@link #validateNoInterpolation(String, String, String)}); as a date pattern has no
+   * use for braces at all, single '{' and '}' are rejected as well.
    *
    * @return the pattern, if it does not contain '{' or '}'
    * @throws FormException otherwise
    */
-  public static String validateDatePattern(String datePattern) {
+  public static String validateDatePattern(String datePattern, String formFieldId) {
+    validateNoInterpolation(datePattern, "date pattern", formFieldId);
     if (datePattern != null && (datePattern.indexOf('{') >= 0 || datePattern.indexOf('}') >= 0)) {
-      throw new FormException("Cannot render date form field as HTML form: "
+      throw new FormException("Cannot render form field '" + formFieldId + "' as HTML form: "
           + "the date pattern '" + datePattern + "' must not contain '{' or '}'.");
     }
     return datePattern;

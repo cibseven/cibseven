@@ -56,8 +56,34 @@ import org.junit.jupiter.api.Test;
  * interprets as code (the form field id inside AngularJS expressions and inside the date
  * picker script) cannot be protected by escaping and are therefore validated: only ids
  * made of letters, digits, '_', '$', '-' and '.' are rendered.</p>
+ *
+ * <p>The legacy Tasklist compiles the generated form with AngularJS, which evaluates
+ * '{{ ... }}' in text and attribute values after HTML entities were decoded (client-side
+ * template injection). Escaping cannot prevent that, so every dynamic value that contains
+ * '{{' or '}}' is rejected with a {@link FormException}.</p>
  */
 public class HtmlFormEngineEscapingTest extends PluggableProcessEngineTest {
+
+  protected static final String INTERPOLATION_PAYLOAD = "{{constructor.constructor('alert(1)')()}}";
+
+  protected static final String[] INTERPOLATION_VALUES = {
+      INTERPOLATION_PAYLOAD,
+      "x" + INTERPOLATION_PAYLOAD + "y",
+      "{{",
+      "}}",
+      "}}{{",
+      "a{{b",
+      "a}}b"
+  };
+
+  /** braces that are not interpolation markers are harmless and must still be rendered */
+  protected static final String[] SINGLE_BRACE_VALUES = {
+      "{x}",
+      "{ x } { y }",
+      "x{",
+      "}x",
+      "}{"
+  };
 
   protected static final String[] UNSAFE_FORM_FIELD_IDS = {
       "field\"",            // ends the HTML attribute / a JavaScript string
@@ -74,6 +100,8 @@ public class HtmlFormEngineEscapingTest extends PluggableProcessEngineTest {
       "field=x",            // assignment
       "field x",            // separate token
       "field\nx",           // line terminator (automatic semicolon insertion)
+      "field x",       // line separator: a line terminator in JavaScript, not a letter
+      "field x",       // paragraph separator: a line terminator in JavaScript, not a letter
       "field/x",            // comment / regex / end tag
       "field&x",            // operator / character reference
       "field|x",            // AngularJS filter
@@ -236,9 +264,148 @@ public class HtmlFormEngineEscapingTest extends PluggableProcessEngineTest {
 
   @Test
   public void testRejectsInterpolationMarkersInDatePattern() {
-    assertThrows(FormException.class, () -> render(formField("dateField", new DateFormType("{{1}}dd.MM.yyyy"))));
-    assertThrows(FormException.class, () -> render(formField("dateField", new DateFormType("dd.MM.yyyy}"))));
+    for (String value : INTERPOLATION_VALUES) {
+      // as quoted literal, so that SimpleDateFormat accepts the pattern
+      String pattern = "'" + value.replace("'", "''") + "'dd.MM.yyyy";
+      FormException e = assertThrows(FormException.class, () -> render(formField("dateField", new DateFormType(pattern))), "pattern: " + pattern);
+      assertInterpolationRejected(e, "dateField", "date pattern", pattern);
+    }
+    // a date pattern has no use for braces at all: single braces are rejected as well
+    FormException e = assertThrows(FormException.class, () -> render(formField("dateField", new DateFormType("dd.MM.yyyy}"))));
+    assertTrue(e.getMessage().contains("Cannot render form field 'dateField' as HTML form: the date pattern 'dd.MM.yyyy}' must not contain '{' or '}'"), e.getMessage());
     assertThrows(FormException.class, () -> render(formField("dateField", new DateFormType("{dd.MM.yyyy"))));
+    // ... also for a read-only date field, whose pattern is only written into the error message
+    FormFieldImpl readOnlyDateField = formField("dateField", new DateFormType("{{1}}dd.MM.yyyy"));
+    readOnlyDateField.getValidationConstraints().add(new FormFieldValidationConstraintImpl(HtmlFormEngine.CONSTRAINT_READONLY, null));
+    assertThrows(FormException.class, () -> render(readOnlyDateField));
+  }
+
+  // AngularJS interpolation markers (client-side template injection) ////////////////////////
+
+  @Test
+  public void testRejectsInterpolationMarkersInLabel() {
+    for (String value : INTERPOLATION_VALUES) {
+      FormFieldImpl formField = formField("field", new StringFormType());
+      formField.setLabel(value);
+
+      FormException e = assertThrows(FormException.class, () -> render(formField), "label: " + value);
+      assertInterpolationRejected(e, "field", "label", value);
+    }
+  }
+
+  @Test
+  public void testRejectsInterpolationMarkersInEnumValueName() {
+    for (String value : INTERPOLATION_VALUES) {
+      FormFieldImpl formField = formField("field", new EnumFormType(Collections.singletonMap("a", value)));
+
+      FormException e = assertThrows(FormException.class, () -> render(formField), "enum value name: " + value);
+      assertInterpolationRejected(e, "field", "enum value name", value);
+    }
+  }
+
+  @Test
+  public void testRejectsInterpolationMarkersInEnumValueId() {
+    for (String value : INTERPOLATION_VALUES) {
+      FormFieldImpl formField = formField("field", new EnumFormType(Collections.singletonMap(value, "A")));
+
+      FormException e = assertThrows(FormException.class, () -> render(formField), "enum value id: " + value);
+      assertInterpolationRejected(e, "field", "enum value id", value);
+    }
+  }
+
+  @Test
+  public void testRejectsInterpolationMarkersInDefaultValue() {
+    for (String value : INTERPOLATION_VALUES) {
+      FormFieldImpl stringField = formField("field", new StringFormType());
+      stringField.setDefaultValue(value);
+
+      FormException e = assertThrows(FormException.class, () -> render(stringField), "default value: " + value);
+      assertInterpolationRejected(e, "field", "default value", value);
+
+      // every default value is rendered via toString(), whatever the type of the field
+      FormFieldImpl booleanField = formField("field", new BooleanFormType());
+      booleanField.setDefaultValue(value);
+      assertThrows(FormException.class, () -> render(booleanField), "default value: " + value);
+    }
+  }
+
+  @Test
+  public void testRejectsInterpolationMarkersInValidationConstraintConfiguration() {
+    for (String value : INTERPOLATION_VALUES) {
+      FormFieldImpl formField = formField("field", new StringFormType());
+      formField.getValidationConstraints().add(new FormFieldValidationConstraintImpl("maxlength", value));
+
+      FormException e = assertThrows(FormException.class, () -> render(formField), "configuration: " + value);
+      assertInterpolationRejected(e, "field", "configuration of the validation constraint 'maxlength'", value);
+    }
+  }
+
+  @Test
+  public void testRejectsInterpolationMarkersInValidationConstraintName() {
+    for (String value : INTERPOLATION_VALUES) {
+      FormFieldImpl formField = formField("field", new StringFormType());
+      formField.getValidationConstraints().add(new FormFieldValidationConstraintImpl(value, "true"));
+
+      FormException e = assertThrows(FormException.class, () -> render(formField), "constraint name: " + value);
+      assertInterpolationRejected(e, "field", "validation constraint name", value);
+    }
+  }
+
+  @Test
+  public void testRejectsInterpolationMarkersInTypeName() {
+    for (String value : INTERPOLATION_VALUES) {
+      FormFieldImpl formField = formField("field", new StringFormType() {
+        @Override
+        public String getName() {
+          return value;
+        }
+      });
+
+      FormException e = assertThrows(FormException.class, () -> render(formField), "type name: " + value);
+      assertInterpolationRejected(e, "field", "type name", value);
+    }
+  }
+
+  @Test
+  public void testRendersSingleBraces() {
+    for (String value : SINGLE_BRACE_VALUES) {
+      FormFieldImpl stringField = formField("field", new StringFormType());
+      stringField.setLabel(value);
+      stringField.setDefaultValue(value);
+      stringField.getValidationConstraints().add(new FormFieldValidationConstraintImpl("maxlength", value));
+
+      String html = render(stringField);
+
+      assertHtmlContains("<label for=\"field\">" + value + "</label>", html);
+      assertHtmlContains("value=\"" + value + "\"", html);
+      assertHtmlContains("maxlength=\"" + value + "\"", html);
+
+      Map<String, String> values = new LinkedHashMap<String, String>();
+      values.put(value, value);
+      html = render(formField("field", new EnumFormType(values)));
+
+      assertHtmlContains("<option value=\"" + value + "\">" + value + "</option>", html);
+    }
+  }
+
+  @Test
+  public void testSingleBracesAreEscapedWithTheRest() {
+    FormFieldImpl formField = formField("field", new StringFormType());
+    formField.setLabel("{<b>x</b>}");
+
+    String html = render(formField);
+
+    assertHtmlContains("<label for=\"field\">{&lt;b&gt;x&lt;/b&gt;}</label>", html);
+  }
+
+  @Test
+  public void testValidateNoInterpolation() {
+    assertEquals(null, HtmlFormEngine.validateNoInterpolation(null, "label", "field"));
+    assertEquals("", HtmlFormEngine.validateNoInterpolation("", "label", "field"));
+    assertEquals("{x}", HtmlFormEngine.validateNoInterpolation("{x}", "label", "field"));
+
+    FormException e = assertThrows(FormException.class, () -> HtmlFormEngine.validateNoInterpolation("{{x}}", "label", "field"));
+    assertEquals("Cannot render form field 'field' as HTML form: the label '{{x}}' contains the AngularJS interpolation markers '{{' or '}}'.", e.getMessage());
   }
 
   @Test
@@ -406,6 +573,74 @@ public class HtmlFormEngineEscapingTest extends PluggableProcessEngineTest {
     assertFalse(html.contains("<b>"), html);
   }
 
+  @Test
+  public void testDelegateRejectsInterpolationMarkers() {
+    for (String value : INTERPOLATION_VALUES) {
+      FormFieldImpl labelField = formField("field", new StringFormType());
+      labelField.setLabel(value);
+      FormException e = assertThrows(FormException.class, () -> renderWithDelegate(labelField), "label: " + value);
+      assertInterpolationRejected(e, "field", "label", value);
+
+      FormFieldImpl defaultValueField = formField("field", new StringFormType());
+      defaultValueField.setDefaultValue(value);
+      e = assertThrows(FormException.class, () -> renderWithDelegate(defaultValueField), "default value: " + value);
+      assertInterpolationRejected(e, "field", "default value", value);
+
+      FormFieldImpl booleanDefaultValueField = formField("field", new BooleanFormType());
+      booleanDefaultValueField.setDefaultValue(value);
+      assertThrows(FormException.class, () -> renderWithDelegate(booleanDefaultValueField), "default value: " + value);
+
+      FormFieldImpl enumNameField = formField("field", new EnumFormType(Collections.singletonMap("a", value)));
+      e = assertThrows(FormException.class, () -> renderWithDelegate(enumNameField), "enum value name: " + value);
+      assertInterpolationRejected(e, "field", "enum value name", value);
+
+      FormFieldImpl enumIdField = formField("field", new EnumFormType(Collections.singletonMap(value, "A")));
+      e = assertThrows(FormException.class, () -> renderWithDelegate(enumIdField), "enum value id: " + value);
+      assertInterpolationRejected(e, "field", "enum value id", value);
+
+      FormFieldImpl constraintField = formField("field", new StringFormType());
+      constraintField.getValidationConstraints().add(new FormFieldValidationConstraintImpl("maxlength", value));
+      e = assertThrows(FormException.class, () -> renderWithDelegate(constraintField), "configuration: " + value);
+      assertInterpolationRejected(e, "field", "configuration of the validation constraint 'maxlength'", value);
+
+      FormFieldImpl constraintNameField = formField("field", new StringFormType());
+      constraintNameField.getValidationConstraints().add(new FormFieldValidationConstraintImpl(value, "true"));
+      e = assertThrows(FormException.class, () -> renderWithDelegate(constraintNameField), "constraint name: " + value);
+      assertInterpolationRejected(e, "field", "validation constraint name", value);
+
+      FormFieldImpl typeNameField = formField("field", new StringFormType() {
+        @Override
+        public String getName() {
+          return value;
+        }
+      });
+      e = assertThrows(FormException.class, () -> renderWithDelegate(typeNameField), "type name: " + value);
+      assertInterpolationRejected(e, "field", "type name", value);
+    }
+  }
+
+  @Test
+  public void testDelegateRendersSingleBraces() {
+    for (String value : SINGLE_BRACE_VALUES) {
+      FormFieldImpl stringField = formField("field", new StringFormType());
+      stringField.setLabel(value);
+      stringField.setDefaultValue(value);
+      stringField.getValidationConstraints().add(new FormFieldValidationConstraintImpl("maxlength", value));
+
+      String html = renderWithDelegate(stringField);
+
+      assertHtmlContains("<label for=\"field\">" + value + "</label>", html);
+      assertHtmlContains("value=\"" + value + "\"", html);
+      assertHtmlContains("maxlength=\"" + value + "\"", html);
+
+      Map<String, String> values = new LinkedHashMap<String, String>();
+      values.put(value, value);
+      html = renderWithDelegate(formField("field", new EnumFormType(values)));
+
+      assertHtmlContains("<option value=\"" + value + "\">" + value + "</option>", html);
+    }
+  }
+
   // end-to-end through BPMN deployment ////////////////////////////////////////////////////////
 
   @Deployment
@@ -475,7 +710,104 @@ public class HtmlFormEngineEscapingTest extends PluggableProcessEngineTest {
     assertTrue(html.contains("$scope.openmy.date = function ($event)"), html);
   }
 
+  @Deployment
+  @Test
+  public void testRenderStartFormRejectsInterpolationMarkersInLabel() {
+    ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().singleResult();
+
+    FormException e = assertThrows(FormException.class, () -> formService.getRenderedStartForm(processDefinition.getId()));
+
+    assertInterpolationRejected(e, "field", "label", INTERPOLATION_PAYLOAD);
+  }
+
+  @Deployment
+  @Test
+  public void testRenderTaskFormRejectsInterpolationMarkersInDefaultValueFromProcessVariable() {
+    // the default value of a form field may be an expression, e.g. over a variable that
+    // was set by any user who can modify variables of the process instance
+    Map<String, Object> variables = new HashMap<String, Object>();
+    variables.put("evilDefault", INTERPOLATION_PAYLOAD);
+    runtimeService.startProcessInstanceByKey("HtmlFormEngineEscapingTest.defaultValueFromVariable", variables);
+
+    Task task = taskService.createTaskQuery().singleResult();
+
+    FormException e = assertThrows(FormException.class, () -> formService.getRenderedTaskForm(task.getId()));
+
+    assertInterpolationRejected(e, "field", "default value", INTERPOLATION_PAYLOAD);
+
+    // ... the same form renders once the variable is harmless
+    runtimeService.setVariable(task.getProcessInstanceId(), "evilDefault", "{harmless}");
+
+    String html = (String) formService.getRenderedTaskForm(task.getId());
+
+    assertTrue(html.contains("value=\"{harmless}\""), html);
+  }
+
+  @Deployment(resources = "org/cibseven/bpm/engine/test/api/form/HtmlFormEngineEscapingTest.testRenderTaskFormEscapesLabelFromProcessVariable.bpmn20.xml")
+  @Test
+  public void testRenderTaskFormRejectsInterpolationMarkersInLabelFromProcessVariable() {
+    Map<String, Object> variables = new HashMap<String, Object>();
+    variables.put("evilLabel", INTERPOLATION_PAYLOAD);
+    runtimeService.startProcessInstanceByKey("HtmlFormEngineEscapingTest.labelFromVariable", variables);
+
+    Task task = taskService.createTaskQuery().singleResult();
+
+    FormException e = assertThrows(FormException.class, () -> formService.getRenderedTaskForm(task.getId()));
+
+    assertInterpolationRejected(e, "field", "label", INTERPOLATION_PAYLOAD);
+  }
+
+  @Deployment
+  @Test
+  public void testRenderStartFormRejectsInterpolationMarkersInFormPropertyName() {
+    // deprecated camunda:formProperty: its name is the label
+    ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().singleResult();
+
+    FormException e = assertThrows(FormException.class, () -> formService.getRenderedStartForm(processDefinition.getId()));
+
+    assertInterpolationRejected(e, "property", "label", INTERPOLATION_PAYLOAD);
+  }
+
+  @Deployment
+  @Test
+  public void testRenderTaskFormRejectsInterpolationMarkersInFormPropertyValueFromProcessVariable() {
+    // deprecated camunda:formProperty: the current value of the variable with the property's id is the default value
+    runtimeService.startProcessInstanceByKey("HtmlFormEngineEscapingTest.formPropertyValueFromVariable");
+
+    Task task = taskService.createTaskQuery().singleResult();
+
+    String html = (String) formService.getRenderedTaskForm(task.getId());
+    assertTrue(html.contains("value=\"initial\""), html);
+
+    runtimeService.setVariable(task.getProcessInstanceId(), "property", INTERPOLATION_PAYLOAD);
+
+    FormException e = assertThrows(FormException.class, () -> formService.getRenderedTaskForm(task.getId()));
+
+    assertInterpolationRejected(e, "property", "default value", INTERPOLATION_PAYLOAD);
+  }
+
+  @Deployment
+  @Test
+  public void testRenderStartFormWithSingleBraces() {
+    ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().singleResult();
+
+    String html = (String) formService.getRenderedStartForm(processDefinition.getId());
+
+    assertHtmlContains("<label for=\"stringField\">{String} Field</label>", html);
+    assertHtmlContains("value=\"{default}\"", html);
+    assertHtmlContains("maxlength=\"{10}\"", html);
+    assertHtmlContains("<option value=\"{a}\">{A}</option>", html);
+    assertHtmlContains("<label for=\"property\">{Property}</label>", html);
+    assertHtmlContains("value=\"{value}\"", html);
+  }
+
   // helper ///////////////////////////////////////////////////////////////////////////////////
+
+  protected static void assertInterpolationRejected(FormException e, String formFieldId, String what, String value) {
+    String expected = "Cannot render form field '" + formFieldId + "' as HTML form: the " + what + " '" + value
+        + "' contains the AngularJS interpolation markers '{{' or '}}'.";
+    assertTrue(e.getMessage().contains(expected), "expected <" + expected + "> in <" + e.getMessage() + ">");
+  }
 
   protected static FormFieldImpl formField(String id, FormType type) {
     FormFieldImpl formField = new FormFieldImpl();
@@ -505,6 +837,11 @@ public class HtmlFormEngineEscapingTest extends PluggableProcessEngineTest {
 
   protected static void assertHtmlEquals(String expected, String actual) {
     assertEquals(filterWhitespace(expected), filterWhitespace(actual));
+  }
+
+  /** compares ignoring whitespace, like {@link #assertHtmlEquals(String, String)} */
+  protected static void assertHtmlContains(String expectedFragment, String html) {
+    assertTrue(filterWhitespace(html).contains(filterWhitespace(expectedFragment)), "expected <" + expectedFragment + "> in\n" + html);
   }
 
   protected static String filterWhitespace(String toFilter) {
