@@ -137,14 +137,16 @@
     <dependency>
       <groupId>jakarta.enterprise</groupId>
       <artifactId>jakarta.enterprise.cdi-api</artifactId>
-      <!-- The Jakarta EE 10 BOM managed this artifact with a wildcard exclusion, the
-           Jakarta EE 11 BOM does not. Without it the CDI 4.1 API family (jakarta.inject,
-           jakarta.annotation, jakarta.interceptor, the CDI lang-model) becomes a compile
-           dependency of the engine: it is shaded into the engine jar and leaks into every
-           distribution. The container or the application classpath provides these APIs.
-           On WildFly the engine module is a dependency of every process application, and
-           a second copy of jakarta.inject.Named made Weld drop the bean names of EJB-module
-           process applications (CIB7-2582). -->
+      <!-- Provided, like every other Jakarta EE API of the engine: the engine only uses the
+           @Dependent annotation on RepositoryService, which the JVM ignores when CDI is absent.
+           A compile-scope cdi-api is shaded into the engine jar together with its transitive
+           APIs (jakarta.inject, jakarta.annotation, jakarta.interceptor, the CDI lang-model),
+           and the Jakarta EE 11 BOM no longer manages it with a wildcard exclusion as the
+           Jakarta EE 10 BOM did. On WildFly the engine module is a dependency of every process
+           application, and a second copy of jakarta.inject.Named made Weld drop the bean names
+           of EJB-module process applications (CIB7-2582). The container or the application
+           classpath provides the CDI API. -->
+      <scope>provided</scope>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -536,6 +538,10 @@
               <exclude>org.slf4j:*</exclude>
               <exclude>com.sun.mail:*</exclude>
               <exclude>javax.activation:*</exclude>
+              <!-- Transitive compile dependency of cibseven-commons-typed-values, which uses
+                   jakarta.activation.MimetypesFileTypeMap. It stays a regular dependency instead
+                   of an unrelocated copy inside the engine jar (CIB7-2582). -->
+              <exclude>jakarta.activation:*</exclude>
               <exclude>org.mybatis:mybatis:*</exclude>
               <exclude>joda-time:*</exclude>
 
@@ -589,8 +595,11 @@
               </target>
             </configuration>
           </execution>
-          <!-- Guard for the exclusions on jakarta.enterprise.cdi-api: the shaded engine jar
-               must not carry its own copy of the Jakarta EE API classes (CIB7-2582). -->
+          <!-- The shaded engine jar must not carry its own copy of any Jakarta EE / Java EE API
+               (jakarta.*, javax.*): the container or the application classpath provides these
+               APIs, a second copy breaks class identity (CIB7-2582). No exceptions; a library
+               that needs such an API inside the jar must be relocated. Bound to verify, after
+               the shade plugin has replaced the jar in the package phase. -->
           <execution>
             <id>verify-no-jakarta-api-in-shaded-jar</id>
             <phase>verify</phase>
@@ -599,10 +608,10 @@
             </goals>
             <configuration>
               <target>
-                <fail message="${project.build.finalName}.jar bundles Jakarta EE API classes (jakarta.inject, jakarta.annotation, jakarta.interceptor or the CDI lang-model). They must come from the container or the application classpath; check the exclusions of the jakarta.enterprise.cdi-api dependency.">
+                <fail message="${project.build.finalName}.jar bundles unrelocated jakarta.* or javax.* classes. Jakarta EE APIs must come from the container or the application classpath: declare them provided, or exclude them from the maven-shade-plugin artifactSet (see the jakarta.enterprise.cdi-api and jakarta.activation entries).">
                   <condition>
                     <resourcecount when="greater" count="0">
-                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="jakarta/inject/**,jakarta/annotation/**,jakarta/interceptor/**,jakarta/enterprise/lang/**" />
+                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="jakarta/**,javax/**" />
                     </resourcecount>
                   </condition>
                 </fail>

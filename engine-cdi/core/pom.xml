@@ -106,6 +106,17 @@
     <dependency>
       <groupId>jakarta.enterprise</groupId>
       <artifactId>jakarta.enterprise.cdi-api</artifactId>
+      <!-- The Jakarta EE 10 BOM managed this artifact with a wildcard exclusion, the
+           Jakarta EE 11 BOM does not. Keep the exclusion so that consumers of
+           cibseven-engine-cdi get the CDI API, but not its transitive APIs (jakarta.inject,
+           jakarta.annotation, jakarta.interceptor, jakarta.el, the CDI lang-model) in compile
+           scope (CIB7-2582). -->
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>jakarta.faces</groupId>

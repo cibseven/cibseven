@@ -412,8 +412,11 @@
               </rules>
             </configuration>
           </execution>
-          <!-- CIB seven 3.x is built against Jakarta EE 11 (EL 6.0). Catches an older platform API or
-               EL API that sneaks in through a pinned version or a third-party dependency. -->
+          <!-- CIB seven 3.x is built against Jakarta EE 11 (EL 6.0). Catches an older platform API, or
+               an older EL, CDI or Servlet API, that sneaks in through a pinned version or a third-party
+               dependency. It covers the platform POMs and the APIs whose version CIB seven code depends
+               on, not every Jakarta EE API. The QA servers (e.g. Tomcat 10.1 of the tomcat10 profile) are
+               not affected: they come as distribution archives, not as these API artifacts. -->
           <execution>
             <id>enforce-jakarta-ee-11</id>
             <phase>validate</phase>
@@ -432,11 +435,16 @@
                     <exclude>jakarta.el:jakarta.el-api:(,6.0.0)</exclude>
                     <!-- EL 4.0 implementation; use org.glassfish.expressly:expressly (EL 6.0) -->
                     <exclude>org.glassfish:jakarta.el</exclude>
+                    <!-- EL 5.0 API under JBoss coordinates (e.g. via RESTEasy 6.2) -->
+                    <exclude>org.jboss.spec.jakarta.el:jboss-el-api_5.0_spec</exclude>
+                    <exclude>jakarta.enterprise:jakarta.enterprise.cdi-api:(,4.1.0)</exclude>
+                    <exclude>jakarta.servlet:jakarta.servlet-api:(,6.1.0)</exclude>
                   </excludes>
                   <message>
                     CIB seven is built against Jakarta EE 11: the platform APIs come from
-                    jakarta.jakartaee-bom ${version.jakarta-ee-spec} (property version.jakarta-ee-spec)
-                    and the Expression Language API must be 6.0 or later. Remove the pinned version,
+                    jakarta.jakartaee-bom ${version.jakarta-ee-spec} (property version.jakarta-ee-spec).
+                    The Expression Language API must be 6.0 or later, the CDI API 4.1 or later and the
+                    Servlet API 6.1 or later. Remove the pinned version, import the Jakarta EE BOM,
                     or exclude the old API at the dependency that brings it in.
                   </message>
                 </bannedDependencies>
