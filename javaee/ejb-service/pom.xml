@@ -60,6 +60,15 @@
     <dependency>
       <groupId>jakarta.ejb</groupId>
       <artifactId>jakarta.ejb-api</artifactId>
+      <!-- The Jakarta EE 10 BOM managed this artifact with a wildcard exclusion, the
+           Jakarta EE 11 BOM does not; keep jakarta.transaction-api out of the compile
+           scope as before (CIB7-2582) -->
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>jakarta.servlet</groupId>
