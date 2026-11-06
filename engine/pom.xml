@@ -319,6 +319,7 @@
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js</artifactId>
+      <type>pom</type>
       <scope>test</scope>
       <version>${version.graal.js}</version>
     </dependency>
@@ -334,6 +335,13 @@
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-bpm-archunit</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.ibm.icu</groupId>
+      <artifactId>icu4j</artifactId>
+      <version>${version.icu.icu4j}</version>
       <scope>test</scope>
     </dependency>
 

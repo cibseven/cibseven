@@ -92,6 +92,25 @@ public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
     processEngineConfiguration.setUseCibSevenNamespaceInScripting(true);
   }
 
+  @org.cibseven.bpm.engine.test.Deployment(resources = {
+      "org/cibseven/bpm/engine/test/bpmn/scripttask/ScriptTaskGraalJsTest.testJavaScriptCanUseIcu.bpmn20.xml"
+  })
+  @ParameterizedTest
+  @MethodSource("setups")
+  public void testJavaScriptCanUseIcu(boolean configureHostAccess, boolean enableExternalResources, boolean enableNashornCompat) {
+    applyParams(configureHostAccess, enableExternalResources, enableNashornCompat);
+
+    if (enableNashornCompat || configureHostAccess) {
+      ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("graalIcuProcess");
+
+      assertEquals("LATIN CAPITAL LETTER A", runtimeService.getVariable(processInstance.getId(), "icuCharacterName"));
+    } else {
+      assertThatThrownBy(() -> runtimeService.startProcessInstanceByKey("graalIcuProcess"))
+        .isInstanceOf(ScriptEvaluationException.class)
+        .hasMessageContaining("Unable to evaluate script");
+    }
+  }
+
   @ParameterizedTest
   @MethodSource("setups")
   public void testJavascriptProcessVarVisibility(boolean configureHostAccess, boolean enableExternalResources, boolean enableNashornCompat) {

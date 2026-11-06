@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions id="definitions"
+  xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  targetNamespace="Examples">
+
+  <process id="graalIcuProcess" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="flow1" sourceRef="start" targetRef="icuScript" />
+    <scriptTask id="icuScript" scriptFormat="graal.js">
+      <script>var UCharacter = Java.type("com.ibm.icu.lang.UCharacter"); execution.setVariable("icuCharacterName", UCharacter.getName(65));</script>
+    </scriptTask>
+    <sequenceFlow id="flow2" sourceRef="icuScript" targetRef="wait" />
+    <userTask id="wait" />
+    <sequenceFlow id="flow3" sourceRef="wait" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

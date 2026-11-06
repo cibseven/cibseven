@@ -45,8 +45,10 @@
         <include>org.apache.groovy:groovy-datetime:jar:*</include>
         <include>org.graalvm.js:*</include>
         <include>org.graalvm.regex:regex:jar:*</include>
-        <include>org.graalvm.truffle:truffle-api:jar:*</include>
-        <include>org.graalvm.sdk:graal-sdk:jar:*</include>
+        <include>org.graalvm.truffle:*:jar:*</include>
+        <include>org.graalvm.sdk:*:jar:*</include>
+        <include>org.graalvm.polyglot:*:jar:*</include>
+        <include>org.graalvm.shadowed:*:jar:*</include>
         <include>com.ibm.icu:icu4j:jar:*</include>
         <include>org.slf4j:slf4j-api:jar:*</include>
 
@@ -89,8 +91,10 @@
         <include>org.apache.groovy:groovy-datetime:jar:*</include>
         <include>org.graalvm.js:*</include>
         <include>org.graalvm.regex:regex:jar:*</include>
-        <include>org.graalvm.truffle:truffle-api:jar:*</include>
-        <include>org.graalvm.sdk:graal-sdk:jar:*</include>
+        <include>org.graalvm.truffle:*:jar:*</include>
+        <include>org.graalvm.sdk:*:jar:*</include>
+        <include>org.graalvm.polyglot:*:jar:*</include>
+        <include>org.graalvm.shadowed:*:jar:*</include>
         <include>com.ibm.icu:icu4j:jar:*</include>
         <include>org.slf4j:slf4j-api:jar:*</include>
 
