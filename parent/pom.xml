@@ -244,6 +244,8 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
+          <!-- release-parent pins 3.2.4, whose ASM cannot read Java 17 class files (major version 61) -->
+          <version>3.6.0</version>
           <configuration>
             <createSourcesJar>true</createSourcesJar>
           </configuration>
@@ -383,33 +385,33 @@
             <goals>
               <goal>enforce</goal>
             </goals>
+            <configuration>
+              <fail>true</fail>
+              <rules>
+                <bannedDependencies>
+                  <searchTransitive>true</searchTransitive>
+                  <excludes>
+                    <exclude>org.springframework:spring-core</exclude>
+                  </excludes>
+                  <includes>
+                    <include>org.springframework:spring-core:[${version.spring.framework}]</include>
+                    <include>org.springframework:spring-core:[${version.spring.framework7}]</include>
+                  </includes>
+                  <message>
+                    Spring Framework must appear in the dependency graph only at a pinned line:
+                    ${version.spring.framework} / ${version.spring.framework7}.
+                    Note this checks the whole graph, including versions that lose mediation and
+                    never reach the classpath. Two usual causes:
+                      1. a Spring Boot BOM bump moved the framework line without the matching
+                        version.spring.frameworkN update;
+                      2. a third-party dependency declares its own framework version in a module
+                        that does not manage Spring — manage it there, or exclude it at the source.
+                  </message>
+                </bannedDependencies>
+              </rules>
+            </configuration>
           </execution>
         </executions>
-        <configuration>
-          <fail>true</fail>
-          <rules>
-            <bannedDependencies>
-              <searchTransitive>true</searchTransitive>
-              <excludes>
-                <exclude>org.springframework:spring-core</exclude>
-              </excludes>
-              <includes>
-                <include>org.springframework:spring-core:[${version.spring.framework}]</include>
-                <include>org.springframework:spring-core:[${version.spring.framework7}]</include>
-              </includes>
-              <message>
-                Spring Framework must appear in the dependency graph only at a pinned line:
-                ${version.spring.framework} / ${version.spring.framework7}.
-                Note this checks the whole graph, including versions that lose mediation and
-                never reach the classpath. Two usual causes:
-                  1. a Spring Boot BOM bump moved the framework line without the matching
-                    version.spring.frameworkN update;
-                  2. a third-party dependency declares its own framework version in a module
-                    that does not manage Spring — manage it there, or exclude it at the source.
-              </message>
-            </bannedDependencies>
-          </rules>
-        </configuration>
       </plugin>
     </plugins>
   </build>

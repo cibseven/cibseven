@@ -164,35 +164,6 @@
 
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-enforcer-plugin</artifactId>
-            <version>3.0.0-M1</version>
-            <executions>
-              <execution>
-                <id>enforce-java</id>
-                <goals>
-                  <goal>enforce</goal>
-                </goals>
-                <configuration>
-                  <rules>
-                    <requireJavaVersion>
-                      <version>[11,)</version>
-                      <message>
-                        *****************************************************************************************************
-                        *                                                                                                   *
-                        *               You must use at least JDK 11 to start CIB seven Platform Wildfly!!!                  *
-                        *                                                                                                   *
-                        *****************************************************************************************************
-                      </message>
-                    </requireJavaVersion>
-                  </rules>
-                  <failFast>true</failFast>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-dependency-plugin</artifactId>
             <executions>
               <execution>

@@ -12,8 +12,6 @@
   <name>CIB seven - connect - AI agent (LangChain4j)</name>
 
   <properties>
-    <!-- LangChain4j requires Java 17+ -->
-    <maven.compiler.release>17</maven.compiler.release>
     <version.langchain4j>1.16.3</version.langchain4j>
     <version.langchain4j-beta>1.16.3-beta26</version.langchain4j-beta>
   </properties>
