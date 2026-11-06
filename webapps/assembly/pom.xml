@@ -245,11 +245,6 @@
     <profile>
       <id>develop</id>
       <dependencies>
-<!--        <dependency>
-          <groupId>org.jboss.resteasy</groupId>
-          <artifactId>resteasy-jaxrs</artifactId>
-          <scope>runtime</scope>
-        </dependency>-->
         <dependency>
           <groupId>org.cibseven.bpm</groupId>
           <artifactId>cibseven-engine</artifactId>
@@ -383,17 +378,6 @@
 
     <profile>
       <id>dev-e2e</id>
-      <dependencies>
-<!--        <dependency>
-          <groupId>org.jboss.resteasy</groupId>
-          <artifactId>resteasy-jaxrs</artifactId>
-          <scope>runtime</scope>
-        </dependency>-->
-        <!-- We need to override the "provided" scope
-          from the main dependency declaration here or
-          else the dependency will not be available in Jetty
-          (see also Jetty plugin config option useProvidedScope) -->
-      </dependencies>
       <build>
         <plugins>
           <plugin>
