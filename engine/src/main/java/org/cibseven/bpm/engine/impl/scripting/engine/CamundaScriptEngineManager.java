@@ -170,7 +170,6 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
       // Use reflection to load GraalVM classes
       Class<?> contextClass = Class.forName("org.graalvm.polyglot.Context");
       Class<?> hostAccessClass = Class.forName("org.graalvm.polyglot.HostAccess");
-      Class<?> ioAccessClass = Class.forName("org.graalvm.polyglot.io.IOAccess");
       Class<?> graalJSEngineClass = Class.forName("com.oracle.truffle.js.scriptengine.GraalJSScriptEngine");
       Class<?> engineClass = Class.forName("org.graalvm.polyglot.Engine");
 
@@ -206,9 +205,15 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
       }
       if (config.isEnableScriptEngineLoadExternalResources()) {
         // make sure Graal JS can load external scripts
-        var ioAccessAll = ioAccessClass.getField("ALL").get(null);
-        var allowIO = builderClass.getMethod("allowIO", ioAccessClass);
-        builder = allowIO.invoke(builder, ioAccessAll);
+        try {
+          Class<?> ioAccessClass = Class.forName("org.graalvm.polyglot.io.IOAccess");
+          var allowIO = builderClass.getMethod("allowIO", ioAccessClass);
+          var ioAccessAll = ioAccessClass.getField("ALL").get(null);
+          builder = allowIO.invoke(builder, ioAccessAll);
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
+          var allowIO = builderClass.getMethod("allowIO", boolean.class);
+          builder = allowIO.invoke(builder, true);
+        }
       }
       if (config.isEnableScriptEngineNashornCompatibility()) {
         // enable Nashorn compatibility mode

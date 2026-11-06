@@ -29,11 +29,9 @@ pipeline {
     agent {
         kubernetes {
             yaml BuildPodCreator.cibStandardPod(nodepool: Constants.NODEPOOL_STABLE)
-                    .withContainerFromName(Constants.MAVEN_JDK_25_CONTAINER, pipelineParams.buildPodConfig)
-                    .withContainerFromName(Constants.MAVEN_JDK_21_CONTAINER, pipelineParams.buildPodConfig)
-                    .withContainerFromName(Constants.MAVEN_JDK_17_CONTAINER, pipelineParams.buildPodConfig)
+                    .withContainerFromName(getMavenContainerName(params.JDK_VERSION), pipelineParams.buildPodConfig)
                     .asYaml()
-            defaultContainer(params.JDK_VERSION == '25' ? Constants.MAVEN_JDK_25_CONTAINER : (params.JDK_VERSION == '21' ? Constants.MAVEN_JDK_21_CONTAINER : Constants.MAVEN_JDK_17_CONTAINER))
+            defaultContainer(getMavenContainerName(params.JDK_VERSION))
         }
     }
 
@@ -728,6 +726,17 @@ pipeline {
                 }
             }
         }
+    }
+}
+
+def getMavenContainerName(String jdkVersion) {
+    switch (jdkVersion) {
+        case '25':
+            return Constants.MAVEN_JDK_25_CONTAINER
+        case '21':
+            return Constants.MAVEN_JDK_21_CONTAINER
+        default:
+            return Constants.MAVEN_JDK_17_CONTAINER
     }
 }
 
