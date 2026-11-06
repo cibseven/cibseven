@@ -28,8 +28,6 @@ import org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity;
 import jakarta.el.ELContext;
 import jakarta.el.ELResolver;
 
-import java.beans.FeatureDescriptor;
-import java.util.Iterator;
 import java.util.List;
 
 
@@ -121,10 +119,6 @@ public class VariableScopeElResolver extends ELResolver {
 
   public Class< ? > getCommonPropertyType(ELContext arg0, Object arg1) {
     return Object.class;
-  }
-
-  public Iterator<FeatureDescriptor> getFeatureDescriptors(ELContext arg0, Object arg1) {
-    return null;
   }
 
   public Class< ? > getType(ELContext arg0, Object arg1, Object arg2) {
