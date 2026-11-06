@@ -137,6 +137,20 @@
     <dependency>
       <groupId>jakarta.enterprise</groupId>
       <artifactId>jakarta.enterprise.cdi-api</artifactId>
+      <!-- The Jakarta EE 10 BOM managed this artifact with a wildcard exclusion, the
+           Jakarta EE 11 BOM does not. Without it the CDI 4.1 API family (jakarta.inject,
+           jakarta.annotation, jakarta.interceptor, the CDI lang-model) becomes a compile
+           dependency of the engine: it is shaded into the engine jar and leaks into every
+           distribution. The container or the application classpath provides these APIs.
+           On WildFly the engine module is a dependency of every process application, and
+           a second copy of jakarta.inject.Named made Weld drop the bean names of EJB-module
+           process applications (CIB7-2582). -->
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -572,6 +586,26 @@
                   <fileset dir="target/classes/org/cibseven/bpm/engine/db/upgrade" excludes="*_6.*_*,*_7.0_*,*_7.1_*,*_7.2_*,*_7.3_*,*_7.4_*,*_7.5_*,*_7.6_*,*_7.7_*, *_7.8_*,*_7.9_*,*_7.10_*,*_7.11_*,*_7.12_*,*_7.13_*,*_7.14_*,*_7.15_*" />
                 </copy>
 
+              </target>
+            </configuration>
+          </execution>
+          <!-- Guard for the exclusions on jakarta.enterprise.cdi-api: the shaded engine jar
+               must not carry its own copy of the Jakarta EE API classes (CIB7-2582). -->
+          <execution>
+            <id>verify-no-jakarta-api-in-shaded-jar</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <fail message="${project.build.finalName}.jar bundles Jakarta EE API classes (jakarta.inject, jakarta.annotation, jakarta.interceptor or the CDI lang-model). They must come from the container or the application classpath; check the exclusions of the jakarta.enterprise.cdi-api dependency.">
+                  <condition>
+                    <resourcecount when="greater" count="0">
+                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="jakarta/inject/**,jakarta/annotation/**,jakarta/interceptor/**,jakarta/enterprise/lang/**" />
+                    </resourcecount>
+                  </condition>
+                </fail>
               </target>
             </configuration>
           </execution>
