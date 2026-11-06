@@ -45,7 +45,11 @@ public class JuelElProvider implements ElProvider {
   protected final ELContext parsingElContext;
 
   public JuelElProvider() {
-    this(new ExpressionFactoryImpl(), new JuelElContextFactory(createDefaultResolver()));
+    this(new ExpressionFactoryImpl());
+  }
+
+  private JuelElProvider(ExpressionFactoryImpl expressionFactory) {
+    this(expressionFactory, new JuelElContextFactory(createDefaultResolver(), expressionFactory));
   }
 
   public JuelElProvider(ExpressionFactoryImpl expressionFactory, JuelElContextFactory elContextFactory) {
