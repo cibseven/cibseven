@@ -28,9 +28,12 @@
       <artifactId>jakarta.xml.bind-api</artifactId>
     </dependency>
 
+    <!-- the Jakarta XML Binding 4 implementation of cibseven-spin-dataformat-xml-dom;
+         com.sun.xml.bind:jaxb-impl 2.3.x implements the javax.xml.bind API of the 2.x line -->
     <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-impl</artifactId>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+      <version>${version.xml.jaxb-impl4}</version>
     </dependency>
 
   </dependencies>
@@ -55,6 +58,11 @@
                   <exclude>org.cibseven.commons:*</exclude>
                   <exclude>org.cibseven.spin:camunda-spin-core</exclude>
                   <exclude>org.slf4j:*</exclude>
+                  <!-- test libraries never belong into the runtime jar -->
+                  <exclude>org.junit.jupiter:*</exclude>
+                  <exclude>org.junit.platform:*</exclude>
+                  <exclude>org.opentest4j:*</exclude>
+                  <exclude>org.apiguardian:*</exclude>
                 </excludes>
               </artifactSet>
               <relocations>
@@ -75,29 +83,34 @@
                   <shadedPattern>spinjar.com.objectweb</shadedPattern>
                 </relocation>
 
+                <!-- JAXB API + implementation and the Jakarta Activation API + implementation
+                     they need, relocated like the javax.xml.bind JAXB of 2.x: the jar lives in
+                     shared classloaders (Tomcat lib/) and must not expose a JAXB or Activation
+                     API to every web application. The ServicesResourceTransformer below
+                     relocates their META-INF/services entries along with them. -->
+                <relocation>
+                  <pattern>jakarta.xml.bind</pattern>
+                  <shadedPattern>spinjar.jakarta.xml.bind</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.glassfish.jaxb</pattern>
+                  <shadedPattern>spinjar.org.glassfish.jaxb</shadedPattern>
+                </relocation>
                 <relocation>
                   <pattern>com.sun.istack</pattern>
                   <shadedPattern>spinjar.com.sun.istack</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>com.sun.activation</pattern>
-                  <shadedPattern>spinjar.com.sun.activation</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>com.sun.xml.bind</pattern>
-                  <shadedPattern>spinjar.com.sun.xml.bind</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>com.sun.xml.txw2</pattern>
                   <shadedPattern>spinjar.com.sun.xml.txw2</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>javax.xml.bind</pattern>
-                  <shadedPattern>spinjar.javax.xml.bind</shadedPattern>
+                  <pattern>jakarta.activation</pattern>
+                  <shadedPattern>spinjar.jakarta.activation</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>javax.activation</pattern>
-                  <shadedPattern>spinjar.javax.activation</shadedPattern>
+                  <pattern>org.eclipse.angus</pattern>
+                  <shadedPattern>spinjar.org.eclipse.angus</shadedPattern>
                 </relocation>
               </relocations>
               <transformers>
@@ -105,18 +118,40 @@
               </transformers>
               <filters>
                 <filter>
-                  <artifact>com.sun.xml.bind:*</artifact>
-                  <excludes>
-                    <exclude>META-INF/services/javax.xml.bind.JAXBContext</exclude>
-                  </excludes>
-                </filter>
-                <filter>
                   <artifact>*:*</artifact>
                   <excludes>
                     <exclude>module-info.class</exclude>
                   </excludes>
                 </filter>
               </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- The shaded jar may only carry Spin's own classes and libraries relocated to spinjar.*:
+           it sits in shared classloaders (Tomcat lib/), where an unrelocated library (JAXB,
+           Jakarta Activation, JUnit, ...) is exposed to every web application. Bound to verify,
+           after the shade plugin has replaced the jar in the package phase. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>verify-only-relocated-classes-in-shaded-jar</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <fail message="${project.build.finalName}.jar bundles classes outside org/cibseven/spin and spinjar (e.g. jakarta.*, javax.*, org.junit.*). Relocate every shaded library to spinjar.* or exclude it from the maven-shade-plugin artifactSet.">
+                  <condition>
+                    <resourcecount when="greater" count="0">
+                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="**/*.class" excludes="org/cibseven/spin/**,spinjar/**,META-INF/**" />
+                    </resourcecount>
+                  </condition>
+                </fail>
+              </target>
             </configuration>
           </execution>
         </executions>
