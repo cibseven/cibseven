@@ -18,8 +18,8 @@
       <scope>provided</scope>
       <includes>
         <include>org.cibseven.bpm:cibseven-engine-rest-core:jar</include>
-        <include>org.glassfish.jersey.containers:jersey-container-servlet:jar:*</include>
-        <include>org.glassfish.jersey.inject:jersey-hk2:jar:*</include>
+        <!-- RESTEasy, as in 2.2 and as the Tomcat web applications and WildFly (CIB7-2618) -->
+        <include>org.jboss.resteasy:resteasy-core:jar:*</include>
       </includes>
       <excludes>
         <exclude>org.cibseven.bpm:cibseven-engine-rest-core:jar:tests</exclude>
