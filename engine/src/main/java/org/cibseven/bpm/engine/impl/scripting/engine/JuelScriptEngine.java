@@ -175,6 +175,8 @@ public class JuelScriptEngine extends AbstractScriptEngine {
         return funcMapper;
       }
     };
+    // convert with JUEL instead of the global jakarta.el.ELManager (CIB7-2609)
+    elContext.putContext(ExpressionFactory.class, expressionFactory);
     // Store the elcontext in the scriptContext to be able to reuse
     scriptCtx.setAttribute("elcontext", elContext, ScriptContext.ENGINE_SCOPE);
     return elContext;
