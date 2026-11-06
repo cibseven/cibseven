@@ -36,7 +36,7 @@
       <dependency>
         <groupId>jakarta.platform</groupId>
         <artifactId>jakarta.jakartaee-bom</artifactId>
-        <version>${version.jakarta-ee11-spec}</version>
+        <version>${version.jakarta-ee-spec}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -112,9 +112,9 @@
     <!-- Jakarta EL implementation (reference impl) required at runtime by the JUEL script engine.
          Only the jakarta.el-api is provided by the Jakarta EE BOM; the impl (com.sun.el.ExpressionFactoryImpl) is missing. -->
     <dependency>
-      <groupId>org.glassfish</groupId>
-      <artifactId>jakarta.el</artifactId>
-      <version>4.0.2</version>
+      <groupId>org.glassfish.expressly</groupId>
+      <artifactId>expressly</artifactId>
+      <version>${version.expressly}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -256,27 +256,6 @@
             <goals>
               <goal>jar-no-fork</goal>
             </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>enforce-java</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireJavaVersion>
-                  <version>[17,)</version>
-                  <message>You must use at least JDK 17 to build the Process Engine Spring integration (Spring Framework 7).</message>
-                </requireJavaVersion>
-              </rules>
-              <failFast>true</failFast>
-            </configuration>
           </execution>
         </executions>
       </plugin>

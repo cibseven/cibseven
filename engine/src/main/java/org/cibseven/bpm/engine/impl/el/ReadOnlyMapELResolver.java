@@ -16,8 +16,6 @@
  */
 package org.cibseven.bpm.engine.impl.el;
 
-import java.beans.FeatureDescriptor;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
@@ -64,10 +62,6 @@ public class ReadOnlyMapELResolver extends ELResolver {
 
   public Class< ? > getCommonPropertyType(ELContext context, Object arg) {
     return Object.class;
-  }
-
-  public Iterator<FeatureDescriptor> getFeatureDescriptors(ELContext context, Object arg) {
-    return null;
   }
 
   public Class< ? > getType(ELContext context, Object arg1, Object arg2) {
