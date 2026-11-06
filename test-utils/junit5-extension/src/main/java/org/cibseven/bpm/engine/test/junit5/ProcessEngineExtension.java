@@ -24,10 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import org.cibseven.bpm.engine.AuthorizationService;
 import org.cibseven.bpm.engine.CaseService;
@@ -39,7 +36,6 @@ import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.ManagementService;
 import org.cibseven.bpm.engine.ProcessEngine;
-import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.ProcessEngineServices;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.RuntimeService;
@@ -64,6 +60,8 @@ import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.jupiter.api.extension.TestInstancePostProcessor;
 import org.junit.jupiter.api.extension.TestWatcher;
+import org.junit.platform.commons.support.AnnotationSupport;
+import org.junit.platform.commons.support.HierarchyTraversalMode;
 import org.slf4j.Logger;
 
 /**
@@ -112,9 +110,16 @@ import org.slf4j.Logger;
  * {@link RequiredHistoryLevel} annotation. If the current history level of the
  * process engine is lower than the specified one then the test is skipped.
  * </p>
+ * <p>
+ * JUnit Jupiter calls the {@code @BeforeEach} methods of the test class before
+ * the deployment is created and the {@code @AfterEach} methods after it is
+ * deleted. The extension does not call them itself, unless a test runner skips
+ * them: Arquillian's JUnit 5 integration does so for an embedded container that
+ * runs the test through the Arquillian "Local" protocol (e.g.
+ * {@code arquillian-weld-embedded}). Only for such a setup, let the extension
+ * call them with {@link #invokeBeforeAndAfterEachMethods(boolean)}.
+ * </p>
  */
-
-//TODO: add TestInstancePreDestroyCallback to call the @AfterEach method not automatically called by Arquillian
 public class ProcessEngineExtension implements TestWatcher,
     TestInstancePostProcessor, BeforeTestExecutionCallback, AfterTestExecutionCallback,
     AfterAllCallback, ParameterResolver, ProcessEngineServices {
@@ -139,6 +144,7 @@ public class ProcessEngineExtension implements TestWatcher,
   protected String configurationResource = "camunda.cfg.xml";
   protected String deploymentId;
   protected boolean ensureCleanAfterTest = false;
+  protected boolean invokeBeforeAndAfterEachMethods = false;
   protected List<String> additionalDeployments = new ArrayList<>();
 
   // SETUP
@@ -206,7 +212,9 @@ public class ProcessEngineExtension implements TestWatcher,
     final Method testMethod = context.getTestMethod().orElseThrow(illegalStateException("testMethod not set"));
     final Class<?> testClass = context.getTestClass().orElseThrow(illegalStateException("testClass not set"));
 
-    context.getTestInstance().ifPresent(this::invokeBeforeEachMethods);
+    if (invokeBeforeAndAfterEachMethods) {
+      context.getTestInstance().ifPresent(this::invokeBeforeEachMethods);
+    }
 
     deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, testClass, testMethod.getName(), null, testMethod.getParameterTypes());
     boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine, testClass, testMethod.getName(), testMethod.getParameterTypes());
@@ -232,7 +240,9 @@ public class ProcessEngineExtension implements TestWatcher,
    ClockUtil.reset();
    PlatformDiagnosticsRegistry.clear();
 
-   context.getTestInstance().ifPresent(this::invokeAfterEachMethods);
+   if (invokeBeforeAndAfterEachMethods) {
+     context.getTestInstance().ifPresent(this::invokeAfterEachMethods);
+   }
 
    // finally clear database and fail test if database is dirty
    if (ensureCleanAfterTest) {
@@ -255,78 +265,28 @@ public class ProcessEngineExtension implements TestWatcher,
     .forEach(field -> inject(testInstance, field));
   }
 
-  private Stream<Field> getAllFields(Class<?> clazz) {
-    Stream<Field> fields = Stream.of(clazz.getDeclaredFields());
-    Class<?> superclass = clazz.getSuperclass();
-
-    return superclass != null
-            ? Stream.concat(fields, getAllFields(superclass))
-            : fields;
-  }
-
-  protected void inject(Object testInstance, Field field, Object serviceInstance) {
-    field.setAccessible(true);
-    try {
-      field.set(testInstance, serviceInstance);
-    } catch (IllegalAccessException iae) {
-      throw new RuntimeException(iae);
-    }
-  }
-
-  private void injectProcessEngineService(Object testInstance, Class<?> serviceType) {
-    Objects.requireNonNull(processEngine, "ProcessEngine not initialized");
-    Optional<Object> serviceInstance = Arrays.stream(ProcessEngineServices.class.getDeclaredMethods())
-              .filter(method -> method.getReturnType() == serviceType)
-              .findFirst()
-              .map(method -> {
-                try {
-                  return method.invoke(processEngine);
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                  throw new RuntimeException(e);
-                }
-              });
-
-      serviceInstance.ifPresent(instance -> getAllFields(testInstance.getClass())
-              .filter(field -> field.getType() != Object.class && field.getType().isAssignableFrom(serviceType))
-              .forEach(field -> inject(testInstance, field, instance)));
-  }
-
   /**
-   * Finds and invokes all methods annotated with @BeforeEach in the testInstance's class and superclasses.
-   * Superclass methods are invoked first (bottom-up collection, so superclass runs before subclass).
+   * Invokes the {@code @BeforeEach} methods of the test instance, superclass
+   * methods first (the order of JUnit Jupiter). Only used if
+   * {@link #invokeBeforeAndAfterEachMethods(boolean)} is enabled.
    */
   protected void invokeBeforeEachMethods(Object testInstance) {
-    List<Method> beforeEachMethods = collectAnnotatedMethods(testInstance.getClass(), BeforeEach.class);
-    // reverse so superclass @BeforeEach runs first
-    java.util.Collections.reverse(beforeEachMethods);
-    invokeAnnotatedMethods(testInstance, beforeEachMethods, "@BeforeEach");
+    invokeAnnotatedMethods(testInstance, BeforeEach.class, HierarchyTraversalMode.TOP_DOWN);
   }
 
   /**
-   * Finds and invokes all methods annotated with @AfterEach in the testInstance's class and superclasses.
-   * Subclass methods are invoked first (same order as JUnit 5 default).
+   * Invokes the {@code @AfterEach} methods of the test instance, subclass
+   * methods first (the order of JUnit Jupiter). Only used if
+   * {@link #invokeBeforeAndAfterEachMethods(boolean)} is enabled.
    */
   protected void invokeAfterEachMethods(Object testInstance) {
-    List<Method> afterEachMethods = collectAnnotatedMethods(testInstance.getClass(), AfterEach.class);
-    invokeAnnotatedMethods(testInstance, afterEachMethods, "@AfterEach");
+    invokeAnnotatedMethods(testInstance, AfterEach.class, HierarchyTraversalMode.BOTTOM_UP);
   }
 
-  private List<Method> collectAnnotatedMethods(Class<?> startClass, Class<? extends Annotation> annotation) {
-    List<Method> result = new ArrayList<>();
-    Class<?> clazz = startClass;
-    while (clazz != null && clazz != Object.class) {
-      for (Method method : clazz.getDeclaredMethods()) {
-        if (method.isAnnotationPresent(annotation)) {
-          result.add(method);
-        }
-      }
-      clazz = clazz.getSuperclass();
-    }
-    return result;
-  }
-
-  private void invokeAnnotatedMethods(Object testInstance, List<Method> methods, String annotationLabel) {
-    for (Method method : methods) {
+  private void invokeAnnotatedMethods(Object testInstance, Class<? extends Annotation> annotation,
+      HierarchyTraversalMode traversalMode) {
+    String annotationLabel = "@" + annotation.getSimpleName();
+    for (Method method : AnnotationSupport.findAnnotatedMethods(testInstance.getClass(), annotation, traversalMode)) {
       method.setAccessible(true);
       try {
         if (method.getParameterCount() == 0) {
@@ -358,6 +318,24 @@ public class ProcessEngineExtension implements TestWatcher,
 
   public ProcessEngineExtension ensureCleanAfterTest(boolean ensureCleanAfterTest) {
     this.ensureCleanAfterTest = ensureCleanAfterTest;
+    return this;
+  }
+
+  /**
+   * Lets the extension invoke the {@code @BeforeEach} and {@code @AfterEach}
+   * methods of the test instance itself: the {@code @BeforeEach} methods right
+   * before the {@link Deployment} is created, the {@code @AfterEach} methods
+   * right after it is deleted. Methods with parameters are not invoked.
+   * <p>
+   * Default: {@code false}. Enable it only if the test runner skips these
+   * methods, e.g. Arquillian's JUnit 5 integration with an embedded container
+   * that uses the Arquillian "Local" protocol such as
+   * {@code arquillian-weld-embedded}. In a plain JUnit Jupiter run, JUnit already
+   * calls them, so enabling it would call each of them twice per test.
+   * </p>
+   */
+  public ProcessEngineExtension invokeBeforeAndAfterEachMethods(boolean invokeBeforeAndAfterEachMethods) {
+    this.invokeBeforeAndAfterEachMethods = invokeBeforeAndAfterEachMethods;
     return this;
   }
 
