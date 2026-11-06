@@ -19,6 +19,7 @@ package org.cibseven.connect.ai.agent.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -234,6 +235,29 @@ public class ProcessVariableChatMemoryStoreTest {
         org.mockito.Matchers.any());
   }
 
+  /**
+   * A conversation the batch cannot write does not keep the others back: each is attempted, and
+   * the first failure is thrown with the rest suppressed (CIB7-2156).
+   */
+  @Test
+  public void aBatchWritesEveryConversationWhenOneWriteFails() {
+    ExecutionEntity execution = pushExecution();
+    String failing = AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX + "fails";
+    String written = AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX + "written";
+    doThrow(new IllegalStateException("write failed")).when(execution)
+        .setVariable(org.mockito.Matchers.eq(failing), org.mockito.Matchers.any());
+
+    assertThatThrownBy(() -> {
+      try (ProcessVariableChatMemoryStore.Batch batch = ProcessVariableChatMemoryStore.Batch.open()) {
+        store.updateMessages("fails", Arrays.asList(UserMessage.from("one")));
+        store.updateMessages("written", Arrays.asList(UserMessage.from("two")));
+      }
+    }).isInstanceOf(IllegalStateException.class).hasMessage("write failed");
+
+    verify(execution).setVariable(org.mockito.Matchers.eq(written), org.mockito.Matchers.any());
+    assertThat(ProcessVariableChatMemoryStore.Batch.isOpen()).isFalse();
+  }
+
   private ExecutionEntity pushExecution() {
     ExecutionEntity execution = mock(ExecutionEntity.class);
     Context.setExecutionContext(execution);
@@ -447,6 +471,17 @@ public class ProcessVariableChatMemoryStoreTest {
         .hasMessageContaining("memoryId is too long");
   }
 
+  /** Counted in UTF-8 bytes, as the chat-log chunk names are (CIB7-2156). */
+  @Test
+  public void shouldMeasureTheMemoryVariableNameInBytes() {
+    int maxIdLength = 255 - AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX.length();
+    String twoBytesEach = repeat('ä', maxIdLength);
+
+    assertThatThrownBy(() -> ProcessVariableChatMemoryStore.variableName(twoBytesEach))
+        .isInstanceOf(AgentConnectorException.class)
+        .hasMessageContaining("bytes");
+  }
+
   @Test
   public void shouldAcceptMemoryIdAtMaximumLength() {
     int maxIdLength = 255 - AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX.length();
@@ -467,6 +502,76 @@ public class ProcessVariableChatMemoryStoreTest {
         .doesNotStartWith(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX);
     assertThat(AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX)
         .doesNotStartWith(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX);
+  }
+
+  // ── batch: the failure path (CIB7-2156) ─────────────────────────────────
+
+  /**
+   * An invocation that fails still writes what its batch held when the batch closes, and leaves
+   * no batch open on the thread.
+   */
+  @Test
+  public void aBatchWritesWhatItHeldWhenTheInvocationFails() {
+    ExecutionEntity execution = pushExecution();
+
+    assertThatThrownBy(() -> {
+      try (ProcessVariableChatMemoryStore.Batch batch = ProcessVariableChatMemoryStore.Batch.open()) {
+        store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("hi")));
+        verify(execution, never()).setVariable(org.mockito.Matchers.eq(VARIABLE_NAME),
+            org.mockito.Matchers.any());
+        throw new IllegalStateException("model call failed");
+      }
+    }).hasMessage("model call failed");
+
+    verify(execution).setVariable(org.mockito.Matchers.eq(VARIABLE_NAME),
+        org.mockito.Matchers.any());
+    assertThat(ProcessVariableChatMemoryStore.Batch.isOpen()).isFalse();
+  }
+
+  /** A write that fails when the batch closes does not leave it open for the next invocation. */
+  @Test
+  public void aBatchWhoseWriteFailsIsClosedAnyway() {
+    ExecutionEntity execution = pushExecution();
+    doThrow(new IllegalStateException("write failed")).when(execution)
+        .setVariable(org.mockito.Matchers.eq(VARIABLE_NAME), org.mockito.Matchers.any());
+
+    ProcessVariableChatMemoryStore.Batch batch = ProcessVariableChatMemoryStore.Batch.open();
+    store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("hi")));
+
+    assertThatThrownBy(batch::close).hasMessage("write failed");
+    assertThat(ProcessVariableChatMemoryStore.Batch.isOpen()).isFalse();
+  }
+
+  /**
+   * A conversation the outer batch holds is written, when that batch closes, from the outer
+   * invocation's execution, even when a nested invocation on another execution staged its newest
+   * version: the nested one may have ended by then.
+   */
+  @Test
+  public void aNestedWriteIsWrittenFromTheExecutionThatFirstHeldIt() {
+    ExecutionEntity outer = statefulExecutionMock();
+    Context.setExecutionContext(outer);
+    pushedExecution = true;
+    ExecutionEntity inner = mock(ExecutionEntity.class);
+    when(inner.getParentVariableScope()).thenReturn(outer);
+
+    try (ProcessVariableChatMemoryStore.Batch batch = ProcessVariableChatMemoryStore.Batch.open()) {
+      store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("hi")));
+      Context.setExecutionContext(inner);
+      try (ProcessVariableChatMemoryStore.Batch nested =
+          ProcessVariableChatMemoryStore.Batch.open()) {
+        store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("hi"), AiMessage.from("ok")));
+      } finally {
+        Context.removeExecutionContext();
+      }
+      verify(inner, never()).setVariable(org.mockito.Matchers.eq(VARIABLE_NAME),
+          org.mockito.Matchers.any());
+    }
+
+    verify(inner, never()).setVariable(org.mockito.Matchers.eq(VARIABLE_NAME),
+        org.mockito.Matchers.any());
+    verify(outer).setVariable(org.mockito.Matchers.eq(VARIABLE_NAME), org.mockito.Matchers.any());
+    assertThat(outer.getVariable(VARIABLE_NAME).toString()).contains("\"ok\"");
   }
 
   private static String repeat(char c, int times) {

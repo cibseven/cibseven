@@ -96,14 +96,42 @@ import org.cibseven.connect.spi.Connector;
  * </camunda:connector>
  * }</pre>
  *
- * <p>The chat log is persisted automatically into a process-scoped variable named
- * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId>} and updated on every
- * {@code request}/{@code response}/{@code error} event of the underlying chat model.
- * If a variable with that name already exists when the connector runs, its content
- * is deserialised and used as the starting point — so multiple invocations of the
- * same service task within one process instance accumulate into a single timeline.
+ * <p>The chat log is persisted automatically into process-scoped variables named
+ * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "~" + <eventSeq>}, the
+ * {@code eventSeq} padded with zeros to ten digits, one per model call, written once
+ * on the {@code response} or {@code error} event that ends it; the {@code request}
+ * event and any {@code retrieval} before it are part of that chunk. Precisely, a chunk
+ * holds the events since the last write: a failed retrieval is written at once, as a
+ * chunk of its own; what no model call's end wrote is written as one when the
+ * invocation ends; and after a write that failed, the next chunk holds that model
+ * call's events too. Numbering continues across invocations of the same service task, so they
+ * form a single timeline when the chunks are read in the order of their names, after a
+ * variable {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId>} written before chunking
+ * (see {@link AgentConnectorConstants#AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR}).
  * The chat log is not exposed as an output parameter because its serialised form
  * regularly exceeds the {@code VARCHAR(4000)} limit of Camunda's TEXT_ column.
+ *
+ * <p><b>Upgrading:</b> versions before CIB7-2156 kept the chat log of an activity in
+ * the single variable {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId>}. Anything that
+ * reads chat logs by that prefix (the webclient's AI chat view, custom audit exports)
+ * has to read the chunks as described at
+ * {@link AgentConnectorConstants#AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR}, and so has to
+ * be updated together with the connector; an older reader shows each model call as an
+ * activity of its own.
+ *
+ * <p>An activity has about as many chat-log variables as it made model calls, and
+ * every one of them is loaded whenever all variables of the process instance are
+ * (a variables tab, {@code GET /process-instance/{id}/variables}). They hold, taken
+ * together, what the single variable held before; their history, at level
+ * {@code full}, now grows with the events rather than with their square.
+ * {@code persistChatLog=false}, or the {@code chatLogVariable.enabled} setting, turns
+ * them off where the audit trail goes to an external sink instead.
+ *
+ * <p>A chunk's name, {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "~"} and ten digits,
+ * has to fit into the 255 bytes (UTF-8) the engine stores as a variable name, so
+ * that it fits on a database counting the column in bytes (DB2) as well. An activity id of
+ * at most 218 ASCII characters fits (fewer where it has other characters); a longer one
+ * gets no chat log, with a warning, rather than failing the invocation.
  */
 public interface AgentConnector extends Connector<AgentRequest> {
 
@@ -396,8 +424,8 @@ public interface AgentConnector extends Connector<AgentRequest> {
   String PARAM_NAME_CHAT_MEMORY_MAX_MESSAGES = "chatMemoryMaxMessages";
 
   /**
-   * Optional. Per-activity override for the EU AI Act chat-log audit variable
-   * ({@code cibseven-connect-ai-agent_<activityId>}). Tri-state:
+   * Optional. Per-activity override for the EU AI Act chat-log audit variables
+   * ({@code cibseven-connect-ai-agent_<activityId>~<eventSeq>}). Tri-state:
    * <ul>
    *   <li>{@code null} / empty / unset — fall through to the deployment-wide
    *       default (system property {@code cibseven.connect.ai-agent.chatLogVariable.enabled}
