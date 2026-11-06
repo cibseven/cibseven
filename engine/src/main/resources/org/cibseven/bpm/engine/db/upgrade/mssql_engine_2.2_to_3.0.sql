@@ -22,7 +22,5 @@ values ('1600', CURRENT_TIMESTAMP, '3.0.0');
 
 -- Cascade deployment deletion deletes job logs by DEPLOYMENT_ID_
 -- (deleteHistoricJobLogByDeploymentId). Without this index that delete scans the whole
--- ACT_HI_JOB_LOG table. Building the index on a large job log takes a while. SQL Server has no
--- IF NOT EXISTS for indexes: if the index was created beforehand, drop it before the update or
--- remove this statement.
+-- ACT_HI_JOB_LOG table. Building the index on a large job log takes a while.
 create index ACT_IDX_HI_JOB_LOG_DEPLOYMENT on ACT_HI_JOB_LOG(DEPLOYMENT_ID_);
