@@ -43,6 +43,8 @@
 
     <module name="org.cibseven.bpm.dmn.cibseven-engine-dmn" />
     <module name="org.cibseven.bpm.juel.cibseven-juel" services="import"/>
+    <!-- as in distro/wildfly/modules: the classes use jakarta.el directly -->
+    <module name="jakarta.el.api" />
 
     <module name="org.slf4j" />
 
