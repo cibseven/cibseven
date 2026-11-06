@@ -587,9 +587,10 @@
 
     <profile>
       <id>ee10-compatibility</id>
-      <!-- Runs the suite on a Jakarta EE 10 stack: RESTEasy 6.2 (JBoss EAP 8.1, CIB seven Tomcat
-           distro) on Tomcat 10.1 with the JAX-RS 3.1 API. Proves that engine-rest, compiled against
-           JAX-RS 4.0, still runs on a JAX-RS 3.1 runtime. -->
+      <!-- Runs the suite with the JAX-RS 3.1 API of Jakarta EE 10 and RESTEasy 6.2 (as in JBoss EAP 8.1)
+           on Tomcat 10.1. Proves that engine-rest, compiled against JAX-RS 4.0, still runs on a JAX-RS 3.1
+           runtime. Only the JAX-RS API is swapped: the other Jakarta APIs keep the versions of the build
+           (e.g. EL 6.0 via the engine), so this is not a complete Jakarta EE 10 stack. -->
       <properties>
         <version.resteasy>6.2.17.Final</version.resteasy>
       </properties>

@@ -43,9 +43,7 @@ public class ResteasyServerBootstrap extends EmbeddedServerBootstrap {
   @Override
   protected void startServerInternal() {
     server.start();
-    // start the deployment ourselves so that the servlet dispatcher picks it up
-    // instead of bootstrapping an empty one from the (absent) servlet config
-    server.getDeployment().start();
+    // deploy() also starts the ResteasyDeployment (with the application) if it is not running yet
     server.deploy();
   }
 

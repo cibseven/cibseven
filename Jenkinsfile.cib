@@ -737,18 +737,27 @@ pipeline {
 }
 
 // Runs the engine-rest tests with another JAX-RS runtime (Maven profile). 'engine UNIT & IT' has run
-// them before on the default one (Jersey), and the 'JUnit Report' stage collects the reports of all
-// runs from engine-rest/engine-rest/target at the end (CIB7-2582):
+// them before on the default one (Jersey), and the 'JUnit Report' stage publishes those reports from
+// engine-rest/engine-rest/target at the end (CIB7-2582):
 // - No 'clean': it would also delete the Jersey reports. 'engine UNIT & IT' ignores test failures, so
 //   failing Jersey tests would then never be reported and the build could stay green. Everything else
 //   in target/ is removed instead, because each profile compiles its own runtime classes and
 //   ContainerSpecifics service into target/test-classes, and leftovers break the next profile.
-// - The reports get the profile as suffix (TEST-<class>-<profile>.xml, test class "<class>(<profile>)"),
-//   so that the runs do not overwrite each other's reports.
+// - Failing tests do not fail the stage (-Dmaven.test.failure.ignore, as in 'engine UNIT & IT'): a failed
+//   stage skips all later ones, 'QA Tests' and 'JUnit Report' included. junit marks the build unstable.
+// - The reports get the profile as suffix (TEST-<class>-<profile>.xml, test class "<class>(<profile>)").
+//   They are published right after the run, also when Maven fails, and then deleted, so that 'JUnit
+//   Report' does not count them twice. The Jersey reports stay for it.
 def engineRestTest(String profile) {
     String module = 'engine-rest/engine-rest'
+    String reports = "${module}/target/surefire-reports/TEST-*-${profile}.xml"
     sh "if [ -d ${module}/target ]; then find ${module}/target -mindepth 1 -maxdepth 1 ! -name '*-reports' -exec rm -rf {} +; fi"
-    withMaven { sh "mvn -f ${module}/pom.xml test -P${profile} -Dsurefire.reportNameSuffix=${profile}" }
+    try {
+        withMaven { sh "mvn -f ${module}/pom.xml test -P${profile} -Dsurefire.reportNameSuffix=${profile} -Dmaven.test.failure.ignore=true" }
+    } finally {
+        junit allowEmptyResults: true, testResults: reports
+        sh "rm -f ${reports}"
+    }
 }
 
 // Split in two on purpose: collecting the facts pays the one Maven start-up
