@@ -36,10 +36,12 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineTestCase;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
+import org.junit.jupiter.api.Test;
 
 public class InvoiceTestCase extends ProcessEngineTestCase {
 
   @Deployment(resources= {"invoice.v1.bpmn", "invoiceBusinessDecisions.dmn"})
+  @Test
   public void testHappyPathV1() {
     InputStream invoiceInputStream = InvoiceProcessApplication.class.getClassLoader().getResourceAsStream("invoice.pdf");
     VariableMap variables = Variables.createVariables()
@@ -83,6 +85,7 @@ public class InvoiceTestCase extends ProcessEngineTestCase {
   }
 
   @Deployment(resources= {"invoice.v2.bpmn", "invoiceBusinessDecisions.dmn"})
+  @Test
   public void testHappyPathV2() {
     InputStream invoiceInputStream = InvoiceProcessApplication.class.getClassLoader().getResourceAsStream("invoice.pdf");
     VariableMap variables = Variables.createVariables()
@@ -126,6 +129,7 @@ public class InvoiceTestCase extends ProcessEngineTestCase {
   }
 
   @Deployment(resources= {"invoice.v2.bpmn", "invoiceBusinessDecisions.dmn"})
+  @Test
   public void testApproveInvoiceAssignment() {
     InputStream invoiceInputStream = InvoiceProcessApplication.class.getClassLoader().getResourceAsStream("invoice.pdf");
 
@@ -170,6 +174,7 @@ public class InvoiceTestCase extends ProcessEngineTestCase {
   }
 
   @Deployment(resources= {"invoice.v2.bpmn", "reviewInvoice.bpmn", "invoiceBusinessDecisions.dmn"})
+  @Test
   public void testNonSuccessfulPath() {
     InputStream invoiceInputStream = InvoiceProcessApplication.class.getClassLoader().getResourceAsStream("invoice.pdf");
     VariableMap variables = Variables.createVariables()

@@ -32,6 +32,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Tom Baeyens
@@ -70,6 +72,7 @@ public class SpringAutoDeployTest extends PvmTestCase {
     this.repositoryService = applicationContext.getBean(RepositoryService.class);
   }
 
+  @AfterEach
   protected void tearDown() throws Exception {
     DynamicResourceProducer.clearResources();
     removeAllDeployments();
@@ -78,6 +81,7 @@ public class SpringAutoDeployTest extends PvmTestCase {
     this.repositoryService = null;
   }
 
+  @Test
   public void testBasicActivitiSpringIntegration() {
     createAppContext(CTX_PATH);
     List<ProcessDefinition> processDefinitions = repositoryService
@@ -97,6 +101,7 @@ public class SpringAutoDeployTest extends PvmTestCase {
     assertEquals(expectedProcessDefinitionKeys, processDefinitionKeys);
   }
 
+  @Test
   public void testNoRedeploymentForSpringContainerRestart() throws Exception {
     createAppContext(CTX_PATH);
     DeploymentQuery deploymentQuery = repositoryService.createDeploymentQuery();
@@ -111,6 +116,7 @@ public class SpringAutoDeployTest extends PvmTestCase {
     assertEquals(3, processDefinitionQuery.count());
   }
 
+  @Test
   public void testAutoDeployCmmn() {
     createAppContext(CTX_CMMN_PATH);
 
@@ -119,6 +125,7 @@ public class SpringAutoDeployTest extends PvmTestCase {
     assertEquals(1, definitions.size());
   }
 
+  @Test
   public void testAutoDeployCmmnAndBpmnTogether() {
     createAppContext(CTX_CMMN_BPMN_TOGETHER_PATH);
 
@@ -130,6 +137,7 @@ public class SpringAutoDeployTest extends PvmTestCase {
   }
 
   // when deployChangeOnly=true, new deployment should be created only for the changed resources
+  @Test
   public void testDeployChangeOnly() throws Exception {
     // given
     BpmnModelInstance model1 = Bpmn.createExecutableProcess("model1").startEvent("oldId").endEvent().done();
@@ -160,6 +168,7 @@ public class SpringAutoDeployTest extends PvmTestCase {
   }
 
   // Updating the bpmn20 file should lead to a new deployment when restarting the Spring container
+  @Test
   public void testResourceRedeploymentAfterProcessDefinitionChange() throws Exception {
     // given
     BpmnModelInstance model1 = Bpmn.createExecutableProcess("model1").startEvent("oldId").endEvent().done();
@@ -187,12 +196,14 @@ public class SpringAutoDeployTest extends PvmTestCase {
     assertEquals(4, repositoryService.createProcessDefinitionQuery().count());
   }
 
+  @Test
   public void testAutoDeployWithCreateDropOnCleanDb() {
     createAppContext(CTX_CREATE_DROP_CLEAN_DB);
     assertEquals(1, repositoryService.createDeploymentQuery().count());
     assertEquals(3, repositoryService.createProcessDefinitionQuery().count());
   }
 
+  @Test
   public void testAutoDeployTenantId() {
     createAppContext(CTX_TENANT_ID_PATH);
 
@@ -201,6 +212,7 @@ public class SpringAutoDeployTest extends PvmTestCase {
     assertEquals(1, deploymentQuery.tenantIdIn("tenant1").count());
   }
 
+  @Test
   public void testAutoDeployWithoutTenantId() {
     createAppContext(CTX_CMMN_BPMN_TOGETHER_PATH);
 
@@ -209,6 +221,7 @@ public class SpringAutoDeployTest extends PvmTestCase {
     assertEquals(1, deploymentQuery.withoutTenantId().count());
   }
 
+  @Test
   public void testAutoDeployCustomName() {
     createAppContext(CTX_CUSTOM_NAME_PATH);
 

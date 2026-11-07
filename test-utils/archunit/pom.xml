@@ -12,6 +12,11 @@
         <version>3.0.0-SNAPSHOT</version>
     </parent>
 
+    <properties>
+        <!-- Test helper: ArchUnit rules, built on archunit-junit5 -->
+        <cibseven.enforcer.allowTestLibraries>true</cibseven.enforcer.allowTestLibraries>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.tngtech.archunit</groupId>

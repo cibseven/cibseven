@@ -29,6 +29,9 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
@@ -42,14 +45,17 @@ public class SpinScriptTaskSupportWithAutoStoreScriptVariablesTest extends Plugg
 
   protected ProcessInstance processInstance;
 
+  @BeforeEach
   public void setUp() {
     processEngineConfiguration.setAutoStoreScriptVariables(true);
   }
 
+  @AfterEach
   public void tearDown() {
     processEngineConfiguration.setAutoStoreScriptVariables(false);
   }
 
+  @Test
   public void testSpinInternalVariablesNotExportedGroovyScriptTask() {
     String importXML = "XML = org.cibseven.spin.Spin.&XML\n";
     String importJSON = "JSON = org.cibseven.spin.Spin.&JSON\n";
@@ -79,6 +85,7 @@ public class SpinScriptTaskSupportWithAutoStoreScriptVariablesTest extends Plugg
     checkVariables("foo", "var_s", "var_xml", "var_json");
   }
 
+  @Test
   public void testSpinInternalVariablesNotExportedByPythonScriptTask() {
     String importXML = "import org.cibseven.spin.Spin.XML as XML;\n";
     String importJSON = "import org.cibseven.spin.Spin.JSON as JSON;\n";
@@ -93,6 +100,7 @@ public class SpinScriptTaskSupportWithAutoStoreScriptVariablesTest extends Plugg
     checkVariables("foo", "var_s", "var_xml", "var_json");
   }
 
+  @Test
   public void testSpinInternalVariablesNotExportedByRubyScriptTask() {
     String importXML = "def XML(*args)\n\torg.cibseven.spin.Spin.XML(*args)\nend\n";
     String importJSON = "def JSON(*args)\n\torg.cibseven.spin.Spin.JSON(*args)\nend\n";
