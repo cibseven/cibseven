@@ -80,9 +80,12 @@ public abstract class CdiProcessEngineTestCase {
         "org.cibseven.bpm.engine.experimental")
       .addAsManifestResource("META-INF/beans.xml", "beans.xml");
   }
+  // The Weld embedded container runs the tests through the Arquillian "Local" protocol,
+  // for which the ArquillianExtension skips the @BeforeEach and @AfterEach methods.
   @RegisterExtension
   protected ProcessEngineExtension processEngineExtension = ProcessEngineExtension.builder()
       .configurationResource("activiti.cfg.xml")
+      .invokeBeforeAndAfterEachMethods(true)
       .build();
 
   protected ProcessEngine processEngine;
