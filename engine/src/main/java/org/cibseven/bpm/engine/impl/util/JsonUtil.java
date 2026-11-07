@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.engine.impl.util;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +44,10 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.internal.LazilyParsedNumber;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.MalformedJsonException;
 
 /**
  * @author Tassilo Weidner
@@ -49,6 +55,12 @@ import com.google.gson.internal.LazilyParsedNumber;
 public final class JsonUtil {
 
   private static final EngineUtilLogger LOG = ProcessEngineLogger.UTIL_LOGGER;
+
+  /**
+   * The maximum nesting depth of JSON that the engine reads with Gson, the same as for JSON
+   * request bodies of the REST API. Gson's own default (since Gson 2.12) is 255 (CIB7-2634).
+   */
+  public static final int MAX_JSON_NESTING_DEPTH = 1000;
 
   protected static Gson gsonMapper = createGsonMapper();
 
@@ -217,10 +229,10 @@ public final class JsonUtil {
 
     JsonObject jsonObject = null;
     try {
-      jsonObject = getGsonMapper().fromJson(stringValue, JsonObject.class);
+      jsonObject = fromJson(stringValue, JsonObject.class);
 
     } catch (JsonParseException e) {
-      LOG.logJsonException(e);
+      logJsonParseException(e);
     }
 
     if (jsonObject != null) {
@@ -237,9 +249,12 @@ public final class JsonUtil {
 
     if (jsonString != null) {
       try {
-        jsonObject = getGsonMapper().fromJson(jsonString, JsonObject.class);
+        jsonObject = fromJson(jsonString, JsonObject.class);
 
-      } catch (JsonParseException | ClassCastException e) {
+      } catch (JsonParseException e) {
+        logJsonParseException(e);
+
+      } catch (ClassCastException e) {
         LOG.logJsonException(e);
       }
     }
@@ -722,6 +737,62 @@ public final class JsonUtil {
 
   public static Gson getGsonMapper() {
     return gsonMapper;
+  }
+
+  /**
+   * Reads JSON like {@link Gson#fromJson(String, Class)} with the engine's Gson mapper.
+   *
+   * @see #fromJson(Gson, String, Class)
+   */
+  public static <T> T fromJson(String json, Class<T> type) {
+    return fromJson(getGsonMapper(), json, type);
+  }
+
+  /**
+   * Reads JSON like {@link Gson#fromJson(String, Class)} (lenient, the whole input must be
+   * consumed, {@code null} for {@code null} or empty input), but accepts JSON nested up to
+   * {@link #MAX_JSON_NESTING_DEPTH} levels instead of Gson's default of 255.
+   *
+   * @throws JsonSyntaxException if the JSON is malformed or nested deeper than
+   *           {@link #MAX_JSON_NESTING_DEPTH} levels
+   */
+  public static <T> T fromJson(Gson gson, String json, Class<T> type) {
+    if (json == null) {
+      return null;
+    }
+
+    JsonReader reader = gson.newJsonReader(new StringReader(json));
+    reader.setNestingLimit(MAX_JSON_NESTING_DEPTH);
+    T result = gson.fromJson(reader, TypeToken.get(type));
+
+    try {
+      if (result != null && reader.peek() != JsonToken.END_DOCUMENT) {
+        throw new JsonSyntaxException("JSON document was not fully consumed.");
+      }
+    } catch (MalformedJsonException e) {
+      throw new JsonSyntaxException(e);
+    } catch (IOException e) {
+      throw new JsonIOException(e);
+    }
+
+    return result;
+  }
+
+  protected static void logJsonParseException(JsonParseException e) {
+    if (isNestingLimitExceeded(e)) {
+      LOG.warnJsonNestingLimitExceeded(MAX_JSON_NESTING_DEPTH);
+    }
+    LOG.logJsonException(e);
+  }
+
+  protected static boolean isNestingLimitExceeded(Throwable e) {
+    for (Throwable cause = e; cause != null; cause = cause.getCause()) {
+      if (cause instanceof MalformedJsonException && cause.getMessage() != null
+          && cause.getMessage().startsWith("Nesting limit ")) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public static Gson createGsonMapper() {

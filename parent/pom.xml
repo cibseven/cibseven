@@ -30,7 +30,7 @@
     <version.groovy>5.0.4</version.groovy>
     <version.graal.js>21.3.19.1</version.graal.js>
     <version.icu.icu4j>71.1</version.icu.icu4j>
-    <version.gson>2.8.9</version.gson>
+    <version.gson>2.13.2</version.gson>
     <version.commons-lang3>3.20.0</version.commons-lang3>
     <version.openjpa>2.4.3</version.openjpa>
     <version.hamcrest>3.0</version.hamcrest>
