@@ -39,7 +39,7 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.cibseven.connect.ai.agent.agentic.AdHocConversation;
-import org.cibseven.connect.ai.agent.agentic.AdHocConversationTestAccess;
+import org.cibseven.connect.ai.agent.agentic.DrivingAgentForTests;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -372,7 +372,7 @@ public class ProcessVariableChatMemoryStoreEngineTest {
       ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
       ProcessVariableChatMemoryStore store = new ProcessVariableChatMemoryStore();
       try (ProcessVariableChatMemoryStore.Batch batch = ProcessVariableChatMemoryStore.Batch.open()) {
-        AdHocConversationTestAccess.drive(scope, () -> {
+        DrivingAgentForTests.drive(scope, () -> {
           store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("My name is Alice.")));
           store.updateMessages(MEMORY_ID, Arrays.asList(UserMessage.from("My name is Alice."),
               AiMessage.from("Hello Alice.")));

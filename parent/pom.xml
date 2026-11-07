@@ -22,9 +22,11 @@
     <version.spring.framework>5.3.39</version.spring.framework>
     <version.spring.framework7>7.0.9</version.spring.framework7>
     <version.spring-boot>4.1.1</version.spring-boot>
-    <version.resteasy>3.15.6.Final</version.resteasy>
-    <version.jersey3>3.1.11</version.jersey3>
-    <version.jaxrs.api>2.0.1.Final</version.jaxrs.api>
+    <!-- JAX-RS runtimes, both Jakarta REST 4.0 (Jakarta EE 11, see version.jakarta-ee-spec):
+         Jersey as managed by Spring Boot (version.spring-boot) and used by the REST API webapp,
+         RESTEasy as shipped by WildFly (version.wildfly) and bundled by the Tomcat distro webapp. -->
+    <version.jersey>4.0.2</version.jersey>
+    <version.resteasy>7.0.5.Final</version.resteasy>
     <version.groovy>5.0.4</version.groovy>
     <version.graal.js>21.3.19.1</version.graal.js>
     <version.icu.icu4j>71.1</version.icu.icu4j>
@@ -82,9 +84,10 @@
     <version.freemarker>2.3.35</version.freemarker>
 
     <version.jboss-javaee-spec>3.0.2.Final</version.jboss-javaee-spec>
-    <version.jakarta-ee-spec>10.0.0</version.jakarta-ee-spec>
-    <!-- the Spring Framework 7 / Spring Boot 4 modules need Jakarta EE 11 -->
-    <version.jakarta-ee11-spec>11.0.0</version.jakarta-ee11-spec>
+    <!-- Jakarta EE platform level of all modules (jakartaee-bom / jakartaee-api) -->
+    <version.jakarta-ee-spec>11.0.0</version.jakarta-ee-spec>
+    <!-- Jakarta Expression Language 6.0 implementation, used in tests (the API comes from the EE BOM) -->
+    <version.expressly>6.0.0</version.expressly>
 
     <version.eirslett.frontend.maven.plugin>1.12.1</version.eirslett.frontend.maven.plugin>
     <version.nodejs>24.13.1</version.nodejs>
@@ -244,6 +247,8 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
+          <!-- release-parent pins 3.2.4, whose ASM cannot read Java 17 class files (major version 61) -->
+          <version>3.6.0</version>
           <configuration>
             <createSourcesJar>true</createSourcesJar>
           </configuration>
@@ -383,33 +388,72 @@
             <goals>
               <goal>enforce</goal>
             </goals>
+            <configuration>
+              <fail>true</fail>
+              <rules>
+                <bannedDependencies>
+                  <searchTransitive>true</searchTransitive>
+                  <excludes>
+                    <exclude>org.springframework:spring-core</exclude>
+                  </excludes>
+                  <includes>
+                    <include>org.springframework:spring-core:[${version.spring.framework}]</include>
+                    <include>org.springframework:spring-core:[${version.spring.framework7}]</include>
+                  </includes>
+                  <message>
+                    Spring Framework must appear in the dependency graph only at a pinned line:
+                    ${version.spring.framework} / ${version.spring.framework7}.
+                    Note this checks the whole graph, including versions that lose mediation and
+                    never reach the classpath. Two usual causes:
+                      1. a Spring Boot BOM bump moved the framework line without the matching
+                        version.spring.frameworkN update;
+                      2. a third-party dependency declares its own framework version in a module
+                        that does not manage Spring — manage it there, or exclude it at the source.
+                  </message>
+                </bannedDependencies>
+              </rules>
+            </configuration>
+          </execution>
+          <!-- CIB seven 3.x is built against Jakarta EE 11 (EL 6.0). Catches an older platform API, or
+               an older EL, CDI or Servlet API, that sneaks in through a pinned version or a third-party
+               dependency. It covers the platform POMs and the APIs whose version CIB seven code depends
+               on, not every Jakarta EE API. The QA servers (e.g. Tomcat 10.1 of the tomcat10 profile) are
+               not affected: they come as distribution archives, not as these API artifacts. -->
+          <execution>
+            <id>enforce-jakarta-ee-11</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <fail>true</fail>
+              <rules>
+                <bannedDependencies>
+                  <searchTransitive>true</searchTransitive>
+                  <excludes>
+                    <exclude>jakarta.platform:jakarta.jakartaee-api:(,11.0.0)</exclude>
+                    <exclude>jakarta.platform:jakarta.jakartaee-web-api:(,11.0.0)</exclude>
+                    <exclude>jakarta.platform:jakarta.jakartaee-core-api:(,11.0.0)</exclude>
+                    <exclude>jakarta.el:jakarta.el-api:(,6.0.0)</exclude>
+                    <!-- EL 4.0 implementation; use org.glassfish.expressly:expressly (EL 6.0) -->
+                    <exclude>org.glassfish:jakarta.el</exclude>
+                    <!-- EL 5.0 API under JBoss coordinates (e.g. via RESTEasy 6.2) -->
+                    <exclude>org.jboss.spec.jakarta.el:jboss-el-api_5.0_spec</exclude>
+                    <exclude>jakarta.enterprise:jakarta.enterprise.cdi-api:(,4.1.0)</exclude>
+                    <exclude>jakarta.servlet:jakarta.servlet-api:(,6.1.0)</exclude>
+                  </excludes>
+                  <message>
+                    CIB seven is built against Jakarta EE 11: the platform APIs come from
+                    jakarta.jakartaee-bom ${version.jakarta-ee-spec} (property version.jakarta-ee-spec).
+                    The Expression Language API must be 6.0 or later, the CDI API 4.1 or later and the
+                    Servlet API 6.1 or later. Remove the pinned version, import the Jakarta EE BOM,
+                    or exclude the old API at the dependency that brings it in.
+                  </message>
+                </bannedDependencies>
+              </rules>
+            </configuration>
           </execution>
         </executions>
-        <configuration>
-          <fail>true</fail>
-          <rules>
-            <bannedDependencies>
-              <searchTransitive>true</searchTransitive>
-              <excludes>
-                <exclude>org.springframework:spring-core</exclude>
-              </excludes>
-              <includes>
-                <include>org.springframework:spring-core:[${version.spring.framework}]</include>
-                <include>org.springframework:spring-core:[${version.spring.framework7}]</include>
-              </includes>
-              <message>
-                Spring Framework must appear in the dependency graph only at a pinned line:
-                ${version.spring.framework} / ${version.spring.framework7}.
-                Note this checks the whole graph, including versions that lose mediation and
-                never reach the classpath. Two usual causes:
-                  1. a Spring Boot BOM bump moved the framework line without the matching
-                    version.spring.frameworkN update;
-                  2. a third-party dependency declares its own framework version in a module
-                    that does not manage Spring — manage it there, or exclude it at the source.
-              </message>
-            </bannedDependencies>
-          </rules>
-        </configuration>
       </plugin>
     </plugins>
   </build>

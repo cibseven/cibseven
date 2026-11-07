@@ -33,7 +33,7 @@ import java.util.List;
 import org.cibseven.bpm.admin.impl.web.SetupResource;
 import org.cibseven.bpm.application.PostDeploy;
 import org.cibseven.bpm.application.ProcessApplication;
-import org.cibseven.bpm.application.impl.ServletProcessApplication;
+import org.cibseven.bpm.application.impl.JakartaServletProcessApplication;
 import org.cibseven.bpm.engine.CaseService;
 import org.cibseven.bpm.engine.ExternalTaskService;
 import org.cibseven.bpm.engine.externaltask.ExternalTask;
@@ -61,7 +61,7 @@ import org.joda.time.DateTime;
  * @author nico.rehwaldt
  */
 @ProcessApplication("camunda-test-processes")
-public class DevProcessApplication extends ServletProcessApplication {
+public class DevProcessApplication extends JakartaServletProcessApplication {
 
   private final static Logger LOGGER = Logger.getLogger(DevProcessApplication.class.getName());
 

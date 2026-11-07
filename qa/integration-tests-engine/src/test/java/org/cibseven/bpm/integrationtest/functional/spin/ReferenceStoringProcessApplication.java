@@ -18,6 +18,8 @@ package org.cibseven.bpm.integrationtest.functional.spin;
 
 import org.cibseven.bpm.application.PostDeploy;
 import org.cibseven.bpm.application.ProcessApplication;
+import org.cibseven.bpm.application.impl.JakartaServletProcessApplication;
+
 
 /**
  * {@link org.cibseven.bpm.application.impl.ServletProcessApplication} is fine on all containers as the tests
@@ -26,8 +28,7 @@ import org.cibseven.bpm.application.ProcessApplication;
  * @author Thorben Lindhauer
  */
 @ProcessApplication
-// Using fully-qualified class name instead of import statement to allow for automatic Jakarta transformation
-public class ReferenceStoringProcessApplication extends org.cibseven.bpm.application.impl.ServletProcessApplication {
+public class ReferenceStoringProcessApplication extends JakartaServletProcessApplication {
 
   public static ReferenceStoringProcessApplication INSTANCE = null;
 

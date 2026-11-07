@@ -21,12 +21,13 @@ import java.util.function.Supplier;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 
 /**
- * Gives tests outside this package {@link AdHocConversation#drive}, which only the turn runner
- * calls, so that a change to its signature breaks them when they are compiled (CIB7-2156).
+ * Opens {@link AdHocConversation#drive}, which only the turn runner calls, to tests in
+ * other packages: a test that needs the store to take a call for the driving agent's
+ * on an execution the turn runner would never drive, such as one without an agent state.
  */
-public final class AdHocConversationTestAccess {
+public final class DrivingAgentForTests {
 
-  private AdHocConversationTestAccess() {
+  private DrivingAgentForTests() {
   }
 
   /** Runs {@code call} as the agent that drives {@code scopeExecution}. */
