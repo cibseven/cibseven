@@ -50,10 +50,10 @@
         </exclusions>
       </dependency>
       <dependency>
-        <!-- The version spring-core 7 and pdfbox 3 declare (CIB7-2636). -->
+        <!-- Aligned with Spring Boot 4.1 (1.3.6); spring-core 7 and pdfbox 3 need 1.3.x (CIB7-2636). -->
         <groupId>commons-logging</groupId>
         <artifactId>commons-logging</artifactId>
-        <version>1.3.5</version>
+        <version>1.3.6</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
