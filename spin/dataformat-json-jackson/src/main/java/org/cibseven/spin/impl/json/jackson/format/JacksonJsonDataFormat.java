@@ -231,10 +231,15 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
    * @return the default JsonPath configuration
    */
   protected static Configuration createDefaultJsonPathConfiguration(ObjectMapper objectMapper) {
-    return new ConfigurationBuilder()
-        .jsonProvider(new Jackson3JsonProvider(objectMapper))
-        .mappingProvider(new Jackson3MappingProvider(objectMapper))
-        .build();
+    try {
+      return new ConfigurationBuilder()
+          .jsonProvider(new Jackson3JsonProvider(objectMapper))
+          .mappingProvider(new Jackson3MappingProvider(objectMapper))
+          .build();
+    } catch (NoClassDefFoundError e) {
+      // json-path before 3.0.0 has no Jackson 3 providers, e.g. the version Spring Boot manages
+      throw LOG.jsonPathWithoutJackson3Support(e);
+    }
   }
 
   /**
