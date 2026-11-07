@@ -17,7 +17,7 @@
 package org.cibseven.bpm.springboot.project.qa.spin;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,11 +49,11 @@ public class SpinApplicationTestIT {
   }
 
   @Test
-  public void shouldFailWithSpinException() {
-
-    // when
-    assertThatThrownBy(() -> runtimeService.startProcessInstanceByKey("spinJava8ServiceProcess"))
-      .hasMessageContaining("SPIN/JACKSON-JSON-01006 Cannot deserialize");
-
+  public void shouldDeserializeJavaTimeWithShadedJackson3() {
+    // the Jackson 3 shaded into cibseven-spin-dataformat-all supports java.time out of the box;
+    // with Jackson 2, this failed with SPIN/JACKSON-JSON-01006 (the starter's Jackson 2 module
+    // configurators cannot reach a shaded mapper)
+    assertThatCode(() -> runtimeService.startProcessInstanceByKey("spinJava8ServiceProcess"))
+      .doesNotThrowAnyException();
   }
 }

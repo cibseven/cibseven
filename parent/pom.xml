@@ -30,10 +30,6 @@
     <version.groovy>5.0.4</version.groovy>
     <version.graal.js>21.3.19.1</version.graal.js>
     <version.icu.icu4j>71.1</version.icu.icu4j>
-    <!-- json-smart and accessors-smart are runtime dependencies of json-path -->
-    <version.json-path>2.9.0</version.json-path>
-    <version.json-smart>2.5.2</version.json-smart>
-    <version.accessors-smart>2.5.2</version.accessors-smart>
     <version.gson>2.8.9</version.gson>
     <version.commons-lang3>3.20.0</version.commons-lang3>
     <version.openjpa>2.4.3</version.openjpa>
@@ -135,6 +131,11 @@
     <plugin.version.maven-bundle>5.1.9</plugin.version.maven-bundle> <!-- compatible with JDK 17 -->
     <!-- Define the maximum number of JVM processes that Surefire will spawn concurrently to execute the tests. 1C equals to number of available CPU cores in system. -->
     <surefire.forkCount>1</surefire.forkCount>
+    <!-- Spin JSON variant banned from the dependency graph by the enforce-single-spin-json-variant
+         execution below: the deprecated Jackson 2 artifacts by default. A module that uses the Jackson 2
+         variant on purpose bans the Jackson 3 artifacts instead. -->
+    <spin.json.banned.json-jackson>org.cibseven.spin:cibseven-spin-dataformat-json-jackson2</spin.json.banned.json-jackson>
+    <spin.json.banned.all>org.cibseven.spin:cibseven-spin-dataformat-all-jackson2</spin.json.banned.all>
   </properties>
 
   <dependencyManagement>
@@ -144,6 +145,14 @@
         <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-bom</artifactId>
         <version>${project.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>tools.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson3}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -412,6 +421,37 @@
                         version.spring.frameworkN update;
                       2. a third-party dependency declares its own framework version in a module
                         that does not manage Spring — manage it there, or exclude it at the source.
+                  </message>
+                </bannedDependencies>
+              </rules>
+            </configuration>
+          </execution>
+          <!-- The deprecated Jackson 2 variants of Spin JSON (cibseven-spin-dataformat-json-jackson2,
+               cibseven-spin-dataformat-all-jackson2) have the same packages and class names as the
+               Jackson 3 artifacts, so the two variants must never meet on one classpath. The banned
+               coordinates come from the spin.json.banned.* properties. -->
+          <execution>
+            <id>enforce-single-spin-json-variant</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <fail>true</fail>
+              <rules>
+                <bannedDependencies>
+                  <searchTransitive>true</searchTransitive>
+                  <excludes>
+                    <exclude>${spin.json.banned.json-jackson}</exclude>
+                    <exclude>${spin.json.banned.all}</exclude>
+                  </excludes>
+                  <message>
+                    Spin JSON comes in a Jackson 3 variant (cibseven-spin-dataformat-json-jackson,
+                    cibseven-spin-dataformat-all) and a deprecated Jackson 2 variant (the same artifacts
+                    with the suffix -jackson2). Both have the same packages and class names: never put both
+                    on one classpath. CIB seven modules use the Jackson 3 variant; a module that uses the
+                    Jackson 2 variant on purpose sets the properties spin.json.banned.json-jackson and
+                    spin.json.banned.all to the Jackson 3 artifacts.
                   </message>
                 </bannedDependencies>
               </rules>
