@@ -1,0 +1,1 @@
+{"links":[{"method":"GET","href":"http://localhost:8080/engine-rest/process-instance/processInstanceId","rel":"self"}],"id":"processInstanceId","definitionId":"invoice:1:abc","businessKey":"businessKey","caseInstanceId":null,"ended":false,"suspended":true,"tenantId":null,"definitionKey":null}

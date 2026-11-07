@@ -1,0 +1,1 @@
+{"int-from-string":"4","int-from-float":"4","int-from-null":"null","int-from-empty-string":"null","int-overflow":"rejected","int-from-boolean":"rejected","long-from-string":"12","long-overflow":"rejected"}
