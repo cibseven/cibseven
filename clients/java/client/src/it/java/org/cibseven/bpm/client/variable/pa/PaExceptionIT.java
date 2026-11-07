@@ -176,9 +176,9 @@ public class PaExceptionIT {
     assertThat(px.getType()).isEqualTo("NotAllowedException");
     assertThat(px.getMessage()).isEqualTo("TASK/CLIENT-01031 Exception while completing the external task: "
         + "The request failed with status code 405 and message: "
-        + "\"HTTP 405 Method Not Allowed\"");
+        + "\"RESTEASY003650: No resource method found for POST, return 405 with Allow header\"");
     assertThat(px.getHttpStatusCode()).isEqualTo(405);
-    assertThat(px.getCause().getMessage()).isEqualTo("HTTP 405 Method Not Allowed");
+    assertThat(px.getCause().getMessage()).isEqualTo("RESTEASY003650: No resource method found for POST, return 405 with Allow header");
   }
 
   @Test
