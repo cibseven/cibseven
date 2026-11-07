@@ -204,7 +204,7 @@
         <groupId>uk.org.webcompere</groupId>
         <artifactId>system-stubs-jupiter</artifactId>
         <version>2.1.8</version>
-        <scope>compile</scope>
+        <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.rest-assured</groupId>
