@@ -1,0 +1,6 @@
+<!-- DEPRECATED: until CIB seven 2.x this module was named
+     org.cibseven.spin.cibseven-spin-dataformat-xml-dom-jakarta. The alias keeps deployments working
+     that still name it in a jboss-deployment-structure.xml or a MANIFEST "Dependencies:" entry;
+     change such references to org.cibseven.spin.cibseven-spin-dataformat-xml-dom.
+     module-alias needs urn:jboss:module:1.1 or later. -->
+<module-alias xmlns="urn:jboss:module:1.9" name="org.cibseven.spin.cibseven-spin-dataformat-xml-dom-jakarta" target-name="org.cibseven.spin.cibseven-spin-dataformat-xml-dom" />
