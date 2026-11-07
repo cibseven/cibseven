@@ -57,7 +57,7 @@ public class SpringTransactionIntegrationTest extends SpringProcessEngineTestCas
     userBean.hello();
 
     ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().singleResult();
-    assertEquals(runtimeService.getVariable(processInstance.getId(), "myVar"), "Hello from Printer!");
+    assertEquals("Hello from Printer!", runtimeService.getVariable(processInstance.getId(), "myVar"));
   }
 
   @Deployment

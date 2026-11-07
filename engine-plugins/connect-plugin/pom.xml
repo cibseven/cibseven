@@ -88,6 +88,14 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- ArchUnit rules, TestMethodRulesTest runs through <dependenciesToScan> -->
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-bpm-archunit</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -96,6 +104,16 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <!-- TestMethodRulesTest: a public test*() method must carry @Test, JUnit 5 silently skips it otherwise -->
+          <dependenciesToScan>
+            <dependency>org.cibseven.bpm:cibseven-bpm-archunit</dependency>
+          </dependenciesToScan>
+          <excludes>
+            <!-- the public API rules of ArchRulesTest do not apply to this module -->
+            <exclude>**/ArchRulesTest.java</exclude>
+            <!-- surefire default, dropped as soon as excludes are configured -->
+            <exclude>**/*$*</exclude>
+          </excludes>
         </configuration>
       </plugin>
     </plugins>

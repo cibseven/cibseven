@@ -824,7 +824,7 @@ public class MixedConditionalEventTest extends AbstractConditionalEventTestCase 
     assertEquals(3, conditionEventSubscriptionQuery.count());
   }
 
-  @Disabled
+  @Disabled("Missing 1 task")
   @Deployment
   @Test
   public void testCompensationWithConditionalEvents() {
