@@ -27,9 +27,6 @@ import org.cibseven.bpm.client.ExternalTaskClient;
 import org.cibseven.bpm.client.UrlResolver;
 import org.cibseven.bpm.engine.impl.util.ReflectUtil;
 import org.junit.jupiter.api.Test;
-
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 import org.mockito.ArgumentCaptor;
 
 public class ExternalTaskClientBuilderImplTest {
@@ -105,15 +102,16 @@ public class ExternalTaskClientBuilderImplTest {
   }
 
   @Test
-  public void testRestMapperKeepsTheNestingDepthOfJackson2() {
-    // given: the REST mapper of the client (Jackson 3 alone would stop at 500 levels)
+  public void testRestMapperKeepsTheNestingDepthOfJackson2() throws Exception {
+    // given: the REST mapper of the client (Jackson 3 alone would stop at 500 levels); no Jackson
+    // imports, so the test also runs in cibseven-external-task-client-jackson2, which shares it
     var clientBuilder = new ExternalTaskClientBuilderImpl();
     clientBuilder.initObjectMapper();
-    ObjectMapper objectMapper = clientBuilder.getObjectMapper();
+    var objectMapper = clientBuilder.getObjectMapper();
     String deepJson = "[".repeat(700) + "]".repeat(700);
 
     // when
-    JsonNode node = objectMapper.readTree(deepJson);
+    var node = objectMapper.readTree(deepJson);
 
     // then
     assertThat(node.isArray()).isTrue();
