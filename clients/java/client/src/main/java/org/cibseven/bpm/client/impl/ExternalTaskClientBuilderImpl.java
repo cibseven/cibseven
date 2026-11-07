@@ -206,6 +206,8 @@ public class ExternalTaskClientBuilderImpl implements ExternalTaskClientBuilder 
   }
 
   public ExternalTaskClient build() {
+    JacksonVariantCheck.ensureSingleVariant(ExternalTaskClientBuilderImpl.class.getClassLoader());
+
     if (maxTasks <= 0) {
       throw LOG.maxTasksNotGreaterThanZeroException(maxTasks);
     }
