@@ -22,6 +22,8 @@
     <version.httpcomponents>5.3.1</version.httpcomponents>
     <!-- Keep Groovy on 4.x for RestAssured QA tests; Groovy 5 from Spring Boot 4 causes NPEs in RestAssured request execution. -->
     <version.rest-assured.groovy>4.0.32</version.rest-assured.groovy>
+    <!-- QA modules are test code and are not published -->
+    <cibseven.enforcer.allowTestLibraries>true</cibseven.enforcer.allowTestLibraries>
   </properties>
 
   <dependencyManagement>
