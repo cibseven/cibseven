@@ -343,7 +343,7 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   protected static JsonArray jsonArrayOfIds(String text, String scopeId) {
     JsonArray array = null;
     try {
-      array = JsonUtil.getGsonMapper().fromJson(text, JsonArray.class);
+      array = JsonUtil.fromJson(text, JsonArray.class);
     } catch (RuntimeException e) {
       // not JSON at all: refused below, with the text that was given
     }
