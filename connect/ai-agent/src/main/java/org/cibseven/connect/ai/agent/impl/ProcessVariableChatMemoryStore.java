@@ -54,10 +54,14 @@ import org.cibseven.connect.ai.agent.AgentConnectorConstants;
  * <p>One conversation is kept elsewhere: that of the agent driving an agentic ad
  * hoc sub process, whose tools are the scope's children. The turn runner says
  * which call that is ({@code AdHocConversation.drive}), and its conversation goes
- * where those tools cannot reach it. Every other AI agent task, inside an ad hoc
- * sub process too, plain or used as a tool, keeps its conversation at the process
- * level, so it outlives the scope and stays until the process instance ends
- * (CIB7-2232).
+ * where those tools cannot reach it, and only there: it is never read from,
+ * written to or cleared at the process level (CIB7-2408). This store is the only
+ * one that does so; with any other store, as {@link AgentChatMemoryStore} says,
+ * the agent's conversation is as reachable as any other.
+ *
+ * <p>Every other AI agent task, inside an ad hoc sub process too, plain or used as
+ * a tool, keeps its conversation at the process level, so it outlives the scope
+ * and stays until the process instance ends (CIB7-2232).
  *
  * <p>Holds no state of its own and is safe to share as a singleton across
  * job-executor threads: the execution is resolved per call from the engine's
@@ -196,9 +200,11 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
       // is their sibling, so it is unreachable that way — and so is the
       // conversation holder one level up, which a scope keeping its conversation
       // across entries uses instead (CIB7-2137).
+      //
+      // Nothing at the process level is touched: a process variable under this name is
+      // not the agent's, whoever wrote it, and stays where it is (CIB7-2408).
       PvmExecutionImpl state = AdHocConversation.memoryExecution(drivenScope);
       state.setVariableLocal(name, Variables.objectValue(json).create());
-      removeLegacyCopy(execution, name);
       return;
     }
     // Every other AI agent task, inside an ad hoc sub process as well, keeps its
@@ -223,17 +229,19 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
     String name = variableName(memoryId);
     ExecutionEntity drivenScope = AdHocConversation.drivenScope(execution);
     if (drivenScope != null) {
-      // Only the driving agent's own call clears its conversation; from anywhere
-      // else, the scope itself included, this reaches the process level only, as
-      // AgentChatMemoryStore.clear(Object) says (CIB7-2232).
+      // The driving agent's own call, the only one that clears its conversation
+      // (CIB7-2232). It clears only where the agent keeps it, never the process
+      // level, which the agent neither reads nor writes (CIB7-2408).
       PvmExecutionImpl state = AdHocConversation.findMemoryExecution(drivenScope);
       if (state != null && state.hasVariableLocal(name)) {
         state.removeVariableLocal(name);
       }
+      return;
     }
-    // The process level, where every other conversation lives. For the driving
-    // agent's it is the pre-change location, cleared too, so a conversation started
-    // by an earlier build is really gone rather than only half gone.
+    // The process level, where every other conversation lives. A call with the
+    // driving agent's memoryId from anywhere else, the scope itself included, ends
+    // here too and so cannot reach the agent's conversation, as
+    // AgentChatMemoryStore.clear(Object) says (CIB7-2232).
     //
     // Unconditionally, because removeVariable already checks containsKey before it
     // walks up the parent chain and does nothing when the name is nowhere. Guarding
@@ -405,14 +413,17 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
   }
 
   /**
-   * Reads the conversation: the driving agent's from where {@link AdHocConversation}
-   * keeps it, falling back to the pre-change location, and every other one from the
-   * process level.
+   * Reads the conversation: the driving agent's only from where {@link AdHocConversation}
+   * keeps it, every other one from the process level.
    *
-   * <p>The fallback covers two cases at once: every AI agent task but the driving
-   * agent, inside an ad hoc sub process or not, which is the ordinary usage, and an
-   * instance started before this change, whose driving agent's conversation sits at
-   * the process instance.
+   * <p>The driving agent's has no fallback to the process level, not even before its
+   * first write (CIB7-2408). The variable name there is predictable — with
+   * {@code perActivity} it is made of the enclosing execution's id and the scope's id —
+   * so whoever can set a process variable before the agent's first turn, the assignee of
+   * a user task before the scope or a correlated message, could otherwise hand the agent
+   * a conversation of their choice, which it would take for its own. The fallback was
+   * there for instances of builds of the agentic branch from before CIB7-2232; no
+   * release has the agentic layer, so no released instance needs it.
    *
    * <p>No migration for anything else that builds of the agentic branch kept elsewhere
    * before CIB7-2232: the conversation of an AI agent task other than the driving
@@ -429,31 +440,9 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
     ExecutionEntity drivenScope = AdHocConversation.drivenScope(execution);
     if (drivenScope != null) {
       PvmExecutionImpl state = AdHocConversation.findMemoryExecution(drivenScope);
-      if (state != null && state.hasVariableLocal(name)) {
-        return state.getVariableLocal(name);
-      }
+      return (state == null) ? null : state.getVariableLocal(name);
     }
     return execution.getVariable(name);
   }
-
-  /**
-   * Removes the copy at the pre-change location once the conversation has been
-   * written to the agent state execution.
-   *
-   * <p>Without this, an instance whose conversation started before this change
-   * would keep a readable and writable copy at the process instance, so the
-   * exposure this change removes would persist for exactly those instances.
-   *
-   * <p>Unconditional for the same reason as in {@link #deleteMessages(Object)}:
-   * {@code removeVariable} already checks {@code containsKey} before walking up
-   * the parent chain, so it does nothing when the name is nowhere. Guarding on
-   * {@code getVariable() != null} would leave behind a variable that exists
-   * holding null — and leaving the old copy behind is precisely the exposure
-   * this method exists to close.
-   */
-  private static void removeLegacyCopy(ExecutionEntity execution, String name) {
-    execution.removeVariable(name);
-  }
-
 
 }

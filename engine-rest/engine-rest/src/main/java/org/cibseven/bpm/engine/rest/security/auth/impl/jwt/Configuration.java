@@ -58,8 +58,10 @@ public class Configuration {
 
   private void loadProperties() {
     Properties properties = new Properties();
+    boolean fileFound = false;
     try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(PROPERTIES_FILE)) {
       if (inputStream != null) {
+        fileFound = true;
         properties.load(inputStream);
         this.secret = getProperty(properties, PROPERTY_JWTSECRET);
       }
@@ -67,8 +69,18 @@ public class Configuration {
       throw new IllegalStateException("Unable to load template configuration from: " + PROPERTIES_FILE, e);
     }
     if (this.secret == null || this.secret.isEmpty()) {
-      throw new IllegalStateException("Could not find configuration file " + PROPERTIES_FILE + " in classpath");
+      throw new IllegalStateException(missingSecretMessage(fileFound));
     }
+  }
+
+  static String missingSecretMessage(boolean fileFound) {
+    String sources = "Set the system property " + PROPERTY_JWTSECRET
+        + ", the environment variable " + PROPERTY_JWTSECRET.replace('.', '_').toUpperCase()
+        + " or the key " + PROPERTY_JWTSECRET + " in " + PROPERTIES_FILE + " on the classpath.";
+    if (fileFound) {
+      return "No JWT secret found: " + PROPERTIES_FILE + " in classpath has no " + PROPERTY_JWTSECRET + ". " + sources;
+    }
+    return "No JWT secret found: could not find configuration file " + PROPERTIES_FILE + " in classpath. " + sources;
   }
 
   String readEnvironment() {
