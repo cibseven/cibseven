@@ -45,6 +45,8 @@
 
     <tomcat.runtime.location>../tomcat-runtime/target/server/apache-tomcat-${version.tomcat}</tomcat.runtime.location>
     <tomcat10.runtime.location>../tomcat10-runtime/target/server/apache-tomcat-${version.tomcat10}</tomcat10.runtime.location>
+    <!-- QA modules are test code and are not published -->
+    <cibseven.enforcer.allowTestLibraries>true</cibseven.enforcer.allowTestLibraries>
 
   </properties>
 

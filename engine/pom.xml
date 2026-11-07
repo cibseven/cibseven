@@ -380,13 +380,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.glassfish.expressly</groupId>
-      <artifactId>expressly</artifactId>
-      <version>${version.expressly}</version>
-      <scope>test</scope>
-    </dependency>
-    
-    <dependency>
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest</artifactId>
         <version>${version.hamcrest}</version>
@@ -542,6 +535,10 @@
                    jakarta.activation.MimetypesFileTypeMap. It stays a regular dependency instead
                    of an unrelocated copy inside the engine jar (CIB7-2582). -->
               <exclude>jakarta.activation:*</exclude>
+              <!-- EL implementation, a runtime dependency of cibseven-engine-dmn (CIB7-2609).
+                   It must stay a regular dependency so that applications and containers can
+                   replace or exclude it. -->
+              <exclude>org.glassfish.expressly:*</exclude>
               <exclude>org.mybatis:mybatis:*</exclude>
               <exclude>joda-time:*</exclude>
 
@@ -608,10 +605,10 @@
             </goals>
             <configuration>
               <target>
-                <fail message="${project.build.finalName}.jar bundles unrelocated jakarta.* or javax.* classes. Jakarta EE APIs must come from the container or the application classpath: declare them provided, or exclude them from the maven-shade-plugin artifactSet (see the jakarta.enterprise.cdi-api and jakarta.activation entries).">
+                <fail message="${project.build.finalName}.jar bundles unrelocated jakarta.* or javax.* classes or an EL implementation. Jakarta EE APIs must come from the container or the application classpath: declare them provided, or exclude them from the maven-shade-plugin artifactSet (see the jakarta.enterprise.cdi-api and jakarta.activation entries).">
                   <condition>
                     <resourcecount when="greater" count="0">
-                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="jakarta/**,javax/**" />
+                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="jakarta/**,javax/**,org/glassfish/expressly/**,com/sun/el/**" />
                     </resourcecount>
                   </condition>
                 </fail>

@@ -11,6 +11,11 @@
   <name>CIB seven Commons - Testing</name>
   <packaging>jar</packaging>
 
+  <properties>
+    <!-- Test helper: ships JUnit 5 base classes and extensions, consumed at test scope -->
+    <cibseven.enforcer.allowTestLibraries>true</cibseven.enforcer.allowTestLibraries>
+  </properties>
+
   <dependencies>
 
     <dependency>
@@ -40,10 +45,12 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
