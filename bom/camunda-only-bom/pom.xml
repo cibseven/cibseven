@@ -268,6 +268,12 @@
         <artifactId>cibseven-external-task-client</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <!-- deprecated Jackson 2 variant of cibseven-external-task-client, removed in 3.1.0; never use both -->
+      <dependency>
+        <groupId>org.cibseven.bpm</groupId>
+        <artifactId>cibseven-external-task-client-jackson2</artifactId>
+        <version>${project.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-external-task-client-spring</artifactId>
