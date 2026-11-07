@@ -13,6 +13,11 @@
 
   <name>CIB seven - Quarkus Extension - Engine - Deployment</name>
 
+  <properties>
+    <!-- Build-time only: upstream quarkus-*-deployment brings JUnit and Testcontainers at compile scope -->
+    <cibseven.enforcer.allowTestLibraries>true</cibseven.enforcer.allowTestLibraries>
+  </properties>
+
   <dependencies>
 
     <!-- CIB seven dependencies -->

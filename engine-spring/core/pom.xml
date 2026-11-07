@@ -55,20 +55,6 @@
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-engine</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.junit.jupiter</groupId>
-          <artifactId>junit-jupiter-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.junit.jupiter</groupId>
-          <artifactId>junit-jupiter-params</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.junit.jupiter</groupId>
-          <artifactId>junit-jupiter-engine</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -107,14 +93,6 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <!-- Jakarta EL implementation (reference impl) required at runtime by the JUEL script engine.
-         Only the jakarta.el-api is provided by the Jakarta EE BOM; the impl (com.sun.el.ExpressionFactoryImpl) is missing. -->
-    <dependency>
-      <groupId>org.glassfish.expressly</groupId>
-      <artifactId>expressly</artifactId>
-      <version>${version.expressly}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
