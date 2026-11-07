@@ -75,8 +75,9 @@ class names, as an escape hatch for applications that cannot move to Jackson 3 y
 
 Jackson 3 mappers are immutable: a `DataFormatConfigurator` replaces the mapper instead of changing it,
 for example `format.setObjectMapper(format.getObjectMapper().rebuild().addModule(module).build())`.
-The default mapper is built with `JsonMapper.builderWithJackson2Defaults()`, so JSON written by
-CIB seven 2.x is read and written unchanged.
+The default mapper (`JacksonJsonDataFormat.createDefaultObjectMapper()`) uses the Jackson 2 defaults of
+Jackson 3 (`JsonMapper.builderWithJackson2Defaults()`) and Jackson 2's nesting depth limit of 1000
+(Jackson 3: 500), so JSON written by CIB seven 2.x is read and written unchanged.
 
 
 # FAQ

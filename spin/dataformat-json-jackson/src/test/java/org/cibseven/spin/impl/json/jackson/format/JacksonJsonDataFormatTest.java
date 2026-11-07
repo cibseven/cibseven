@@ -19,6 +19,10 @@ package org.cibseven.spin.impl.json.jackson.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.util.List;
+
 import org.cibseven.spin.impl.json.jackson.JacksonJsonNode;
 import org.cibseven.spin.json.SpinJsonDataFormatException;
 import org.cibseven.spin.json.SpinJsonException;
@@ -97,6 +101,37 @@ public class JacksonJsonDataFormatTest {
 
     // then: JsonPath parses with the new mapper
     assertThat(json.jsonPath("$.count").numberValue()).isInstanceOf(Long.class);
+  }
+
+  @Test
+  public void shouldReadAndWriteJsonNestedDeeperThanJackson3Default() {
+    // given: 700 levels, above Jackson 3's default limit of 500, below Jackson 2's limit of 1000
+    String depth700 = "[".repeat(700) + "1" + "]".repeat(700);
+    JacksonJsonDataFormat format = new JacksonJsonDataFormat("test");
+    assertThatThrownBy(() -> JsonMapper.builder().build().readTree(depth700))
+        .hasMessageContaining("exceeds the maximum allowed (500");
+
+    // when: read, write, map to Java and back
+    Object node = format.getReader().readInput(new StringReader(depth700));
+    StringWriter written = new StringWriter();
+    format.getWriter().writeToWriter(written, node);
+    Object javaValue = format.getMapper().mapInternalToJava(node, List.class);
+    Object nodeAgain = format.getMapper().mapJavaToInternal(javaValue);
+
+    // then
+    assertThat(written.toString()).isEqualTo(depth700);
+    assertThat(nodeAgain).isEqualTo(node);
+    assertThat(JacksonJsonDataFormat.MAX_NESTING_DEPTH).isEqualTo(1000);
+  }
+
+  @Test
+  public void shouldRejectJsonNestedDeeperThanJackson2Limit() {
+    String depth1001 = "[".repeat(1001) + "]".repeat(1001);
+    JacksonJsonDataFormat format = new JacksonJsonDataFormat("test");
+
+    assertThatThrownBy(() -> format.getReader().readInput(new StringReader(depth1001)))
+        .isInstanceOf(SpinJsonDataFormatException.class)
+        .hasStackTraceContaining("exceeds the maximum allowed (1000");
   }
 
   @Test
