@@ -195,6 +195,7 @@
               !spinjar*,
               !org.junit*,
               !org.slf4j.impl,
+              !tools.jackson*,
               !com.fasterxml*,
               !com.jayway,
               !net.minidev.json*,
