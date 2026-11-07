@@ -202,12 +202,41 @@ public class JsonGoldenFilesTest {
 
   @Test
   public void shouldWriteSlashAndNonAsciiUnescaped() {
-    Item item = new Item("a/b é €", 1);
+    Item item = new Item("a/b \u00E9 \u20AC", 1);
 
     String json = write(format.getMapper().mapJavaToInternal(item));
 
-    assertThat(json).isEqualTo("{\"sku\":\"a/b é €\",\"qty\":1}");
+    assertThat(json).isEqualTo("{\"sku\":\"a/b \u00E9 \u20AC\",\"qty\":1}");
   }
+
+  /**
+   * Characters outside the Basic Multilingual Plane (emoji), a lone surrogate, non-ASCII, control characters and a
+   * quote. Spin writes through a character based generator (the engine too: an OutputStreamWriter), so Jackson 2 and
+   * Jackson 3 both write emoji as raw characters, not as {@code \}{@code uXXXX} escapes. The same expected text is
+   * pinned in the tests of cibseven-spin-dataformat-json-jackson2 (the Spin 2.x code on Jackson 2).
+   */
+  @Test
+  public void shouldWriteSpecialCharactersLikeSpinOnJackson2() {
+    Item item = new Item(SPECIAL_CHARACTERS, 1);
+
+    String json = write(format.getMapper().mapJavaToInternal(item));
+    String rewritten = write(format.getReader().readInput(new StringReader(json)));
+    String rewrittenFromEscapes = write(format.getReader().readInput(new StringReader(SPECIAL_CHARACTERS_ESCAPED_JSON)));
+
+    assertThat(json).isEqualTo(SPECIAL_CHARACTERS_JSON);
+    assertThat(rewritten).isEqualTo(SPECIAL_CHARACTERS_JSON);
+    assertThat(rewrittenFromEscapes).isEqualTo(SPECIAL_CHARACTERS_JSON);
+  }
+
+  /** Emoji (surrogate pair), euro sign, e acute, slash, control character U+0001, tab, quote, lone surrogate. */
+  static final String SPECIAL_CHARACTERS =
+      "smile \uD83D\uDE00 euro \u20AC \u00E9 slash / ctrl \u0001 tab \t quote \" lone \uD800 end";
+  /** As written by Spin on Jackson 2 and Jackson 3: only the control characters and the quote are escaped. */
+  static final String SPECIAL_CHARACTERS_JSON =
+      "{\"sku\":\"smile \uD83D\uDE00 euro \u20AC \u00E9 slash / ctrl \\u0001 tab \\t quote \\\" lone \uD800 end\",\"qty\":1}";
+  /** The same value with every non-ASCII character escaped in the input. */
+  static final String SPECIAL_CHARACTERS_ESCAPED_JSON =
+      "{\"sku\":\"smile \\uD83D\\uDE00 euro \\u20AC \\u00E9 slash \\/ ctrl \\u0001 tab \\t quote \\\" lone \\uD800 end\",\"qty\":1}";
 
   // helpers ////////////////////////////////////////////////////////////
 

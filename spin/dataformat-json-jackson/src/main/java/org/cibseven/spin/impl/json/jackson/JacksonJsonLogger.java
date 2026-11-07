@@ -23,8 +23,10 @@ import org.cibseven.spin.json.SpinJsonException;
 import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.json.SpinJsonPathException;
 import org.cibseven.spin.json.SpinJsonPropertyException;
+import org.cibseven.spin.impl.json.jackson.format.JacksonJsonDataFormat;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.JsonNodeType;
 
 /**
@@ -66,7 +68,26 @@ public class JacksonJsonLogger extends SpinLogger {
   public SpinJsonException unableToDeserialize(JsonNode jsonNode, JavaType type, Exception cause) {
     return new SpinJsonException(
         exceptionMessage("006", "Cannot deserialize '{}...' to java type '{}'",
-            jsonNode.toString().substring(0, 10), type), cause);
+            preview(jsonNode, 10), type), cause);
+  }
+
+  /**
+   * The first characters of the node as JSON, for error messages. Written with the default mapper of the data
+   * format: Jackson 3's {@code JsonNode.toString()} uses an internal mapper that stops at nesting depth 500.
+   */
+  protected static String preview(JsonNode jsonNode, int length) {
+    String json;
+    try {
+      json = PreviewMapper.INSTANCE.writeValueAsString(jsonNode);
+    } catch (RuntimeException e) {
+      json = String.valueOf(jsonNode.getNodeType());
+    }
+    return json.length() > length ? json.substring(0, length) : json;
+  }
+
+  /** Lazy holder: the data format class itself uses this logger. */
+  private static final class PreviewMapper {
+    static final ObjectMapper INSTANCE = JacksonJsonDataFormat.createDefaultObjectMapper();
   }
 
   public SpinJsonDataFormatException unableToConstructJavaType(String fromString, Exception cause) {
