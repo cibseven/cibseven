@@ -1,0 +1,51 @@
+task 5bd518b8-bd2c-11f0-9a3b-0242ac120002
+  activityId=ServiceTask_Invoice
+  activityInstanceId=ServiceTask_Invoice:5bd4f1a7-bd2c-11f0-9a3b-0242ac120002
+  errorMessage=null
+  errorDetails=null
+  executionId=5bd4f1a6-bd2c-11f0-9a3b-0242ac120002
+  lockExpirationTime=1794051296789 (2026-11-07T11:34:56.789Z)
+  createTime=1794042000000 (2026-11-07T09:00:00Z)
+  processDefinitionId=invoice:1:4711
+  processDefinitionKey=invoice
+  processDefinitionVersionTag=v1
+  processInstanceId=5bd4f1a5-bd2c-11f0-9a3b-0242ac120002
+  retries=null
+  workerId=fixture-worker
+  topicName=invoice
+  tenantId=tenant-a
+  priority=9007199254740993
+  businessKey=bk-1
+  extensionProperties={alpha=two, zeta=1}
+  variable amount type=integer raw=Integer(100) valueInfo={} value=Integer(100)
+  variable attributes type=object raw=String({"count":3,"label":"x","nested":["a","b"],"price":19.99}) valueInfo={objectTypeName=java.util.HashMap<java.lang.Object,java.lang.Object>, serializationDataFormat=application/json} value=HashMap({price=19.99, count=3, label=x, nested=[a, b]})
+  variable big type=long raw=Long(9007199254740993) valueInfo={} value=Long(9007199254740993)
+  variable bytes type=bytes raw=String(YmlueQ==) valueInfo={} value=byte[](biny)
+  variable flag type=boolean raw=Boolean(true) valueInfo={} value=Boolean(true)
+  variable json type=json raw=String({"a":[1,2]}) valueInfo={} value=String({"a":[1,2]})
+  variable name type=string raw=String(Müller / "quoted") valueInfo={} value=String(Müller / "quoted")
+  variable nothing type=null raw=null valueInfo={} value=null
+  variable order type=object raw=String({"sku":"A-1","qty":2}) valueInfo={objectTypeName=org.cibseven.bpm.client.variable.json.fixture.FixtureItem, serializationDataFormat=application/json} value=FixtureItem(FixtureItem[A-1,2])
+  variable orders type=object raw=String([{"sku":"A-1","qty":2},{"sku":"B-7","qty":1}]) valueInfo={objectTypeName=java.util.ArrayList<org.cibseven.bpm.client.variable.json.fixture.FixtureItem>, serializationDataFormat=application/json} value=ArrayList([FixtureItem[A-1,2], FixtureItem[B-7,1]])
+  variable ratio type=double raw=Double(0.1) valueInfo={} value=Double(0.1)
+  variable short type=short raw=Integer(7) valueInfo={} value=Short(7)
+  variable when type=date raw=String(2026-11-07T12:00:00.000+0100) valueInfo={} value=Date(1794049200000 (2026-11-07T11:00:00Z))
+task minimal-task
+  activityId=ServiceTask_Minimal
+  activityInstanceId=null
+  errorMessage=null
+  errorDetails=null
+  executionId=null
+  lockExpirationTime=1794095999999 (2026-11-07T23:59:59.999Z)
+  createTime=null
+  processDefinitionId=null
+  processDefinitionKey=null
+  processDefinitionVersionTag=null
+  processInstanceId=null
+  retries=3
+  workerId=null
+  topicName=invoice
+  tenantId=null
+  priority=0
+  businessKey=null
+  extensionProperties={}

@@ -36,9 +36,9 @@
         <type>pom</type>
       </dependency>
       <dependency>
-        <groupId>com.fasterxml.jackson</groupId>
+        <groupId>tools.jackson</groupId>
         <artifactId>jackson-bom</artifactId>
-        <version>${version.jackson}</version>
+        <version>${version.jackson3}</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -98,8 +98,9 @@
       <version>${version.httpclient5}</version>
     </dependency>
 
+    <!-- Jackson 3; the Jackson 2 variant of the client is cibseven-external-task-client-jackson2 -->
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
+      <groupId>tools.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
     </dependency>
 
@@ -115,9 +116,10 @@
       <version>${version.jjwt}</version>
       <optional>true</optional>
     </dependency>
+    <!-- jjwt has no Jackson 3 serializer (jjwt-jackson is Jackson 2 only), so the optional JWT support uses Gson -->
     <dependency>
       <groupId>io.jsonwebtoken</groupId>
-      <artifactId>jjwt-jackson</artifactId> <!-- or jjwt-gson if Gson is preferred -->
+      <artifactId>jjwt-gson</artifactId>
       <version>${version.jjwt}</version>
       <optional>true</optional>
     </dependency>
