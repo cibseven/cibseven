@@ -21,9 +21,11 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 
 import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.RuntimeService;
+import org.cibseven.bpm.spring.boot.starter.spin.CamundaJackson3FormatConfiguratorParameterNames;
 import org.cibseven.bpm.spring.boot.starter.spin.CamundaJacksonFormatConfiguratorJSR310;
 import org.cibseven.bpm.spring.boot.starter.spin.CamundaJacksonFormatConfiguratorJdk8;
 import org.cibseven.bpm.spring.boot.starter.spin.CamundaJacksonFormatConfiguratorParameterNames;
+import org.cibseven.spin.Spin;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,5 +72,17 @@ public class SpinApplicationTestIT {
     assertThat(applicationContext.getBeanNamesForType(CamundaJacksonFormatConfiguratorJSR310.class)).isEmpty();
     assertThat(applicationContext.getBeanNamesForType(CamundaJacksonFormatConfiguratorJdk8.class)).isEmpty();
     assertThat(applicationContext.getBeanNamesForType(CamundaJacksonFormatConfiguratorParameterNames.class)).isEmpty();
+  }
+
+  @Test
+  public void shouldUseConstructorParameterNames() {
+    // the starter turns parameter names on again for Jackson 3 (Spin's Jackson 2 defaults turn them off);
+    // with Jackson 2, the ParameterNames module did this
+    assertThat(applicationContext.getBeanNamesForType(CamundaJackson3FormatConfiguratorParameterNames.class)).hasSize(1);
+
+    SpinConstructorDto dto = Spin.JSON("{\"name\":\"order\",\"amount\":3}").mapTo(SpinConstructorDto.class);
+
+    assertThat(dto.getName()).isEqualTo("order");
+    assertThat(dto.getAmount()).isEqualTo(3);
   }
 }

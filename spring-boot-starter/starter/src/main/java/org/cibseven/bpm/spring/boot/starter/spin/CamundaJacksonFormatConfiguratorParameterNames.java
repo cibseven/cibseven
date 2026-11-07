@@ -22,8 +22,8 @@ import org.cibseven.spin.spi.DataFormatConfigurator;
 
 /**
  * Registers the Jackson 2 {@link ParameterNamesModule} with the deprecated Jackson 2 variant of Spin
- * ({@code cibseven-spin-dataformat-json-jackson2}). Jackson 3, used by
- * {@code cibseven-spin-dataformat-json-jackson}, supports this out of the box.
+ * ({@code cibseven-spin-dataformat-json-jackson2}). For Jackson 3, used by
+ * {@code cibseven-spin-dataformat-json-jackson}, see {@link CamundaJackson3FormatConfiguratorParameterNames}.
  *
  * @deprecated together with the Jackson 2 variant of Spin, removed in CIB seven 3.1.0
  */

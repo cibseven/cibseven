@@ -40,6 +40,9 @@ public class SpringBootSpinProcessEnginePlugin extends SpinProcessEnginePlugin {
   @Autowired
   protected Optional<CamundaJacksonFormatConfiguratorJdk8> dataFormatConfiguratorJdk8;
 
+  @Autowired
+  protected Optional<CamundaJackson3FormatConfiguratorParameterNames> dataFormatConfiguratorJackson3ParameterNames;
+
   @Override
   public void preInit(ProcessEngineConfigurationImpl processEngineConfiguration) {
     ClassLoader classloader = ClassLoaderUtil.getClassloader(SpringBootSpinProcessEnginePlugin.class);
@@ -53,6 +56,8 @@ public class SpringBootSpinProcessEnginePlugin extends SpinProcessEnginePlugin {
     dataFormatConfiguratorJsr310.ifPresent(configurator -> configurators.add(configurator));
     dataFormatConfiguratorParameterNames.ifPresent(configurator -> configurators.add(configurator));
     dataFormatConfiguratorJdk8.ifPresent(configurator -> configurators.add(configurator));
+    // parameter names for the Jackson 3 variant of Spin (not with the shaded cibseven-spin-dataformat-all)
+    dataFormatConfiguratorJackson3ParameterNames.ifPresent(configurator -> configurators.add(configurator));
 
     // next, add any configurators defined in the spring.factories file
     configurators.addAll(SpringFactoriesLoader.loadFactories(DataFormatConfigurator.class, classloader));
