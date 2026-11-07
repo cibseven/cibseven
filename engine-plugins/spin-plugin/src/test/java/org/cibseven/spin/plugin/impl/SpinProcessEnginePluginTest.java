@@ -29,6 +29,7 @@ import org.cibseven.spin.DataFormats;
 import org.cibseven.spin.plugin.variable.type.JsonValueType;
 import org.cibseven.spin.plugin.variable.type.XmlValueType;
 import org.mockito.Mockito;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Ronny Bräunlich
@@ -36,6 +37,7 @@ import org.mockito.Mockito;
  */
 public class SpinProcessEnginePluginTest extends PluggableProcessEngineTestCase {
 
+  @Test
   public void testPluginDoesNotRegisterXmlSerializerIfNotPresentInClasspath() throws IOException {
     ClassLoader mockClassloader = Mockito.mock(ClassLoader.class);
     Mockito.when(mockClassloader.getResources(Mockito.anyString())).thenReturn(Collections.enumeration(Collections.<URL>emptyList()));
@@ -48,6 +50,7 @@ public class SpinProcessEnginePluginTest extends PluggableProcessEngineTestCase 
     assertTrue(serializers.getSerializerByName(XmlValueType.TYPE_NAME) == null);
   }
 
+  @Test
   public void testPluginDoesNotRegisterJsonSerializerIfNotPresentInClasspath() throws IOException {
     ClassLoader mockClassloader = Mockito.mock(ClassLoader.class);
     Mockito.when(mockClassloader.getResources(Mockito.anyString())).thenReturn(Collections.enumeration(Collections.<URL>emptyList()));
@@ -60,6 +63,7 @@ public class SpinProcessEnginePluginTest extends PluggableProcessEngineTestCase 
     assertTrue(serializers.getSerializerByName(JsonValueType.TYPE_NAME) == null);
   }
 
+  @Test
   public void testPluginRegistersXmlSerializerIfPresentInClasspath(){
     DataFormats.loadDataFormats(null);
     ProcessEngineConfigurationImpl mockConfig = Mockito.mock(ProcessEngineConfigurationImpl.class);
@@ -69,6 +73,7 @@ public class SpinProcessEnginePluginTest extends PluggableProcessEngineTestCase 
     assertTrue(processEngineConfiguration.getVariableSerializers().getSerializerByName(XmlValueType.TYPE_NAME) instanceof XmlValueSerializer);
   }
 
+  @Test
   public void testPluginRegistersJsonSerializerIfPresentInClasspath(){
     DataFormats.loadDataFormats(null);
     ProcessEngineConfigurationImpl mockConfig = Mockito.mock(ProcessEngineConfigurationImpl.class);

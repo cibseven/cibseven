@@ -24,9 +24,7 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.json.JSONException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 import org.cibseven.bpm.engine.impl.test.PluggableProcessEngineTestCase;
 
 import static org.assertj.core.api.Assertions.fail;
@@ -44,11 +42,6 @@ public class JavaSerializationTest extends PluggableProcessEngineTestCase{
 
   protected static final String ONE_TASK_PROCESS = "org/cibseven/spin/plugin/oneTaskProcess.bpmn20.xml";
 
-  @BeforeEach
-  public void setUpAbstractProcessEngineTestCase(TestInfo testInfo) {
-    super.setUpAbstractProcessEngineTestCase(testInfo);
-  }
-  
   @Test
   @Deployment(resources = ONE_TASK_PROCESS)
   public void testSerializationAsJava() throws JSONException {
