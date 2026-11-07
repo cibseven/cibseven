@@ -59,6 +59,25 @@
         <type>pom</type>
       </dependency>
 
+      <!-- json-path of the Spin JSON data format: Spring Boot 4.1 manages json-path 2.10.0, which has
+           no Jackson 3 provider (Jackson3JsonProvider, json-path 3.0.0 or later). Declared before the
+           spring-boot-dependencies import, so this version wins. -->
+      <dependency>
+        <groupId>com.jayway.jsonpath</groupId>
+        <artifactId>json-path</artifactId>
+        <version>${version.json-path}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.minidev</groupId>
+        <artifactId>json-smart</artifactId>
+        <version>${version.json-smart}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.minidev</groupId>
+        <artifactId>accessors-smart</artifactId>
+        <version>${version.accessors-smart}</version>
+      </dependency>
+
       <dependency>
         <!-- Import dependency management from Spring Boot -->
         <groupId>org.springframework.boot</groupId>

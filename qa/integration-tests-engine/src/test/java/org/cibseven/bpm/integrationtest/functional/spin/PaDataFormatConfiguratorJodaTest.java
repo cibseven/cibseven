@@ -16,9 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.spin;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.application.ProcessApplicationContext;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.variable.Variables;
@@ -70,7 +69,7 @@ public class PaDataFormatConfiguratorJodaTest extends AbstractFoxPlatformIntegra
   }
 
   @Test
-  public void testPaLocalJodaConfiguration() throws JsonProcessingException, IOException {
+  public void testPaLocalJodaConfiguration() throws IOException {
     // given a process instance
     final ProcessInstance pi = runtimeService.startProcessInstanceByKey("testProcess");
 

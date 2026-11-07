@@ -23,11 +23,11 @@ import org.cibseven.spin.json.SpinJsonException;
 import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.json.SpinJsonPathException;
 import org.cibseven.spin.json.SpinJsonPropertyException;
-
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
-import com.jayway.jsonpath.PathNotFoundException;
+import org.cibseven.spin.impl.json.jackson.format.JacksonJsonDataFormat;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.JsonNodeType;
 
 /**
  * @author Thorben Lindhauer
@@ -68,7 +68,26 @@ public class JacksonJsonLogger extends SpinLogger {
   public SpinJsonException unableToDeserialize(JsonNode jsonNode, JavaType type, Exception cause) {
     return new SpinJsonException(
         exceptionMessage("006", "Cannot deserialize '{}...' to java type '{}'",
-            jsonNode.toString().substring(0, 10), type), cause);
+            preview(jsonNode, 10), type), cause);
+  }
+
+  /**
+   * The first characters of the node as JSON, for error messages. Written with the default mapper of the data
+   * format: Jackson 3's {@code JsonNode.toString()} uses an internal mapper that stops at nesting depth 500.
+   */
+  protected static String preview(JsonNode jsonNode, int length) {
+    String json;
+    try {
+      json = PreviewMapper.INSTANCE.writeValueAsString(jsonNode);
+    } catch (RuntimeException e) {
+      json = String.valueOf(jsonNode.getNodeType());
+    }
+    return json.length() > length ? json.substring(0, length) : json;
+  }
+
+  /** Lazy holder: the data format class itself uses this logger. */
+  private static final class PreviewMapper {
+    static final ObjectMapper INSTANCE = JacksonJsonDataFormat.createDefaultObjectMapper();
   }
 
   public SpinJsonDataFormatException unableToConstructJavaType(String fromString, Exception cause) {
@@ -114,5 +133,12 @@ public class JacksonJsonLogger extends SpinLogger {
   public SpinJsonPathException invalidJsonPath(Class<?> castClass, Exception cause) {
     return new SpinJsonPathException(
             exceptionMessage("017", "Invalid json path to '{}'", castClass.getName()), cause);
+  }
+
+  public SpinJsonDataFormatException jsonPathWithoutJackson3Support(Throwable cause) {
+    return new SpinJsonDataFormatException(exceptionMessage("018",
+        "The JSON data format needs com.jayway.jsonpath:json-path 3.0.0 or later (Jackson 3 support), "
+        + "but an older json-path is on the classpath. Spring Boot 4.1 manages json-path 2.10.0: "
+        + "import the cibseven-bom before spring-boot-dependencies or set the json-path.version property."), cause);
   }
 }
