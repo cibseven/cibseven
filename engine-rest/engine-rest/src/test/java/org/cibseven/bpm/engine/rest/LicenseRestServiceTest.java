@@ -25,9 +25,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.restassured.http.ContentType;
+import java.lang.reflect.Field;
 import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.ManagementService;
+import org.cibseven.bpm.engine.rest.security.auth.impl.jwt.Configuration;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -68,13 +70,56 @@ public class LicenseRestServiceTest extends AbstractRestServiceTest {
       .body("{\"licenseKey\":\"{\\\"customer\\\":\\\"ACME\\\",\\\"signature\\\":\\\"not-a-jwe\\\"}\"}")
     .then()
       .expect()
-        .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+        .statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode())
         .body("message", containsString("Failed to decrypt license signature"))
         .body("message", containsString("same JWT secret"))
     .when()
       .post(LICENSE_URL);
 
     verify(managementServiceMock, never()).setLicenseKey(anyString());
+  }
+
+  @Test
+  public void testSetLicenseWithoutJwtSecretIsUnavailableAndStoresNothing() throws Exception {
+    withJwtSecret("", () ->
+      given()
+        .contentType(ContentType.JSON)
+        .body("{\"licenseKey\":\"{\\\"customer\\\":\\\"ACME\\\",\\\"signature\\\":\\\"x\\\"}\"}")
+      .then()
+        .expect()
+          .statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode())
+          .body("message", containsString("JWT secret is not configured"))
+      .when()
+        .post(LICENSE_URL));
+
+    verify(managementServiceMock, never()).setLicenseKey(anyString());
+  }
+
+  @Test
+  public void testGetLicenseWithoutJwtSecretIsUnavailable() throws Exception {
+    when(managementServiceMock.getLicenseKey()).thenReturn("{\"customer\":\"ACME\",\"signature\":\"s\"}");
+    withJwtSecret(null, () ->
+      given()
+      .then()
+        .expect()
+          .statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode())
+          .body("message", containsString("JWT secret is not configured"))
+      .when()
+        .get(LICENSE_URL + "/key"));
+  }
+
+  /** Runs the request with a temporarily replaced JWT secret of the shared configuration. */
+  private static void withJwtSecret(String secret, Runnable request) throws Exception {
+    Field field = Configuration.class.getDeclaredField("secret");
+    field.setAccessible(true);
+    Configuration configuration = Configuration.getInstance();
+    Object original = field.get(configuration);
+    field.set(configuration, secret);
+    try {
+      request.run();
+    } finally {
+      field.set(configuration, original);
+    }
   }
 
   @Test
