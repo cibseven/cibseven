@@ -39,12 +39,12 @@ public class TaskListenerSpringTest extends SpringProcessEngineTestCase {
     // Completing first task will set variable on process instance
     Task task = taskService.createTaskQuery().singleResult();
     taskService.complete(task.getId());
-    assertEquals(runtimeService.getVariable(processInstance.getId(), "calledInExpression"), "task1-complete");
+    assertEquals("task1-complete", runtimeService.getVariable(processInstance.getId(), "calledInExpression"));
     
     // Completing second task will set variable on process instance
     task = taskService.createTaskQuery().singleResult();
     taskService.complete(task.getId());
-    assertEquals(runtimeService.getVariable(processInstance.getId(), "calledThroughNotify"), "task2-notify");
+    assertEquals("task2-notify", runtimeService.getVariable(processInstance.getId(), "calledThroughNotify"));
   }
 
 }

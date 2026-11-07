@@ -132,6 +132,10 @@
     <camunda.osgi.remove.headers>Ignore-Package,Include-Resource,Private-Package,Bundle-DocURL</camunda.osgi.remove.headers>
     <camunda.osgi.include.resource>{maven-resources}</camunda.osgi.include.resource>
     <camunda.osgi.embed />
+    <!-- Skips enforce-no-test-libraries-in-compile-scope. Only test helper and QA modules set it to true.
+         The default follows enforcer.skip, so that -Denforcer.skip=true still skips every rule. -->
+    <enforcer.skip>false</enforcer.skip>
+    <cibseven.enforcer.allowTestLibraries>${enforcer.skip}</cibseven.enforcer.allowTestLibraries>
     <plugin.version.maven-bundle>5.1.9</plugin.version.maven-bundle> <!-- compatible with JDK 17 -->
     <!-- Define the maximum number of JVM processes that Surefire will spawn concurrently to execute the tests. 1C equals to number of available CPU cores in system. -->
     <surefire.forkCount>1</surefire.forkCount>
@@ -451,6 +455,62 @@
                     The Expression Language API must be 6.0 or later, the CDI API 4.1 or later and the
                     Servlet API 6.1 or later. Remove the pinned version, import the Jakarta EE BOM,
                     or exclude the old API at the dependency that brings it in.
+                  </message>
+                </bannedDependencies>
+              </rules>
+            </configuration>
+          </execution>
+          <!-- Keeps test libraries out of the compile and runtime classpath of the published artifacts.
+               The JUnit 5 migration (#461) declared junit-jupiter-api and AssertJ without a scope, and the
+               dependencyManagement entries carry no scope either, so they leaked into 29 published modules
+               and into the distributions (CIB7-2586). Test and provided scope stay allowed. Modules that
+               ship test helpers opt out with the property cibseven.enforcer.allowTestLibraries. -->
+          <execution>
+            <id>enforce-no-test-libraries-in-compile-scope</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <skip>${cibseven.enforcer.allowTestLibraries}</skip>
+              <fail>true</fail>
+              <rules>
+                <bannedDependencies>
+                  <searchTransitive>true</searchTransitive>
+                  <excludes>
+                    <exclude>junit:junit:*:*:compile</exclude>
+                    <exclude>junit:junit:*:*:runtime</exclude>
+                    <exclude>org.junit.jupiter:*:*:*:compile</exclude>
+                    <exclude>org.junit.jupiter:*:*:*:runtime</exclude>
+                    <exclude>org.junit.platform:*:*:*:compile</exclude>
+                    <exclude>org.junit.platform:*:*:*:runtime</exclude>
+                    <exclude>org.junit.vintage:*:*:*:compile</exclude>
+                    <exclude>org.junit.vintage:*:*:*:runtime</exclude>
+                    <exclude>org.opentest4j:*:*:*:compile</exclude>
+                    <exclude>org.opentest4j:*:*:*:runtime</exclude>
+                    <!-- comes only with JUnit; Netty, the only other user, excludes it -->
+                    <exclude>org.apiguardian:*:*:*:compile</exclude>
+                    <exclude>org.apiguardian:*:*:*:runtime</exclude>
+                    <exclude>org.assertj:*:*:*:compile</exclude>
+                    <exclude>org.assertj:*:*:*:runtime</exclude>
+                    <exclude>org.mockito:*:*:*:compile</exclude>
+                    <exclude>org.mockito:*:*:*:runtime</exclude>
+                    <exclude>org.hamcrest:*:*:*:compile</exclude>
+                    <exclude>org.hamcrest:*:*:*:runtime</exclude>
+                    <exclude>uk.org.webcompere:system-stubs*:*:*:compile</exclude>
+                    <exclude>uk.org.webcompere:system-stubs*:*:*:runtime</exclude>
+                    <exclude>org.jboss.arquillian*:*:*:*:compile</exclude>
+                    <exclude>org.jboss.arquillian*:*:*:*:runtime</exclude>
+                    <exclude>org.testcontainers:*:*:*:compile</exclude>
+                    <exclude>org.testcontainers:*:*:*:runtime</exclude>
+                  </excludes>
+                  <message>
+                    Test libraries (JUnit, AssertJ, Mockito, Hamcrest, System Stubs, Arquillian,
+                    Testcontainers) must not be on the compile or runtime classpath: they would end
+                    up in the published POMs and in the distributions. Declare them with
+                    &lt;scope&gt;test&lt;/scope&gt; (or provided), or exclude them at the dependency that
+                    brings them in. Only a module that ships test helpers may opt out, with
+                    &lt;cibseven.enforcer.allowTestLibraries&gt;true&lt;/cibseven.enforcer.allowTestLibraries&gt;.
                   </message>
                 </bannedDependencies>
               </rules>

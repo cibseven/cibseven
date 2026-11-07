@@ -85,8 +85,10 @@ import org.opentest4j.AssertionFailedError;
  * in the tear down.
  * </p>
  *
- * <p>Test methods annotated with {@link RequiredHistoryLevel} are skipped (JUnit 5 assumption)
- * if the history level of the process engine is too low.</p>
+ * <p>Test methods annotated with {@link RequiredHistoryLevel} or
+ * {@link org.cibseven.bpm.engine.impl.test.RequiredDatabase RequiredDatabase} are skipped (JUnit 5
+ * assumption) if the history level of the process engine is too low or the database does not
+ * match.</p>
  *
  * <p>This class also lets you {@link #setCurrentTime(Date) set the current time used by the
  * process engine}. This can be handy to control the exact time that is used by the engine
@@ -152,9 +154,11 @@ public class ProcessEngineTestCase implements BeforeEachCallback, AfterEachCallb
     }
 
     boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine, testClass, testMethod.getName(), testMethod.getParameterTypes());
-    // ignore test case when current history level is too low
-    skipTest = !hasRequiredHistoryLevel;
+    boolean runsWithRequiredDatabase = TestHelper.annotationRequiredDatabaseCheck(processEngine, testClass, testMethod.getName(), testMethod.getParameterTypes());
+    // skip test case when current history level is too low or database doesn't match
+    skipTest = !hasRequiredHistoryLevel || !runsWithRequiredDatabase;
     Assumptions.assumeTrue(hasRequiredHistoryLevel, "ignored because the current history level is too low");
+    Assumptions.assumeTrue(runsWithRequiredDatabase, "ignored because the database doesn't match the required ones");
 
     deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, testClass, testMethod.getName(), testMethod.getParameterTypes());
   }

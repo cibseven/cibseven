@@ -26,10 +26,7 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.engine.impl.test.PluggableProcessEngineTestCase;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 
 /**
  * @author Thorben Lindhauer
@@ -38,16 +35,6 @@ import org.junit.jupiter.api.TestInfo;
 public class FallbackSerializationTest extends PluggableProcessEngineTestCase {
 
   protected static final String ONE_TASK_PROCESS = "org/cibseven/spin/plugin/oneTaskProcess.bpmn20.xml";
-  
-  @BeforeEach
-  public void setUpAbstractProcessEngineTestCase(TestInfo testInfo) {
-    super.setUpAbstractProcessEngineTestCase(testInfo);
-  }
-  
-  @AfterEach
-  public void tearDownAbstractProcessEngineTestCase() {
-    super.tearDownAbstractProcessEngineTestCase();
-  }
 
   @Deployment(resources = ONE_TASK_PROCESS)
   @Test
