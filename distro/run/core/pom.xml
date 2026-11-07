@@ -43,6 +43,18 @@
     <dependency>
       <groupId>org.cibseven.bpm.identity</groupId>
       <artifactId>cibseven-identity-scim</artifactId>
+      <!-- the plugin jar shades Jackson 2 (scimplugin.*); its dependency-reduced pom drops it, but
+           not inside a reactor build, where enforce-no-jackson2-in-rest would see Jackson 2 -->
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
