@@ -27,6 +27,14 @@
         <include>org.cibseven.bpm:cibseven-engine-rest-core:jar</include>
         <include>org.glassfish.jersey.containers:jersey-container-servlet:*</include>
         <include>org.glassfish.jersey.inject:jersey-hk2:*</include>
+        <!-- Jakarta APIs, listed explicitly: weblogic.xml prefers the application's jakarta.ws.rs,
+             and RESTEasy (Tomcat war) and Jersey share these APIs, so with transitive filtering
+             they would otherwise depend on the order of the declarations in the pom -->
+        <include>jakarta.ws.rs:jakarta.ws.rs-api:jar</include>
+        <include>jakarta.annotation:jakarta.annotation-api:jar</include>
+        <include>jakarta.validation:jakarta.validation-api:jar</include>
+        <include>jakarta.xml.bind:jakarta.xml.bind-api:jar</include>
+        <include>jakarta.activation:jakarta.activation-api:jar</include>
       </includes>
       <excludes>
         <exclude>org.cibseven.bpm:cibseven-engine-rest-core:jar:tests</exclude>
