@@ -32,6 +32,7 @@ import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.plugin.script.TestVariableScope;
 import org.cibseven.spin.xml.SpinXmlElement;
+import org.junit.jupiter.api.Test;
 
 /**
  * <p>Testcase ensuring integration of camunda Spin into Process Engine expression language.</p>
@@ -56,6 +57,7 @@ public class SpinFunctionsTest extends PluggableProcessEngineTestCase {
       .execute(commandContext -> compiledExpression.getValue(varScope));
   }
 
+  @Test
   public void testSpin_S_Available() {
 
     SpinXmlElement spinXmlEl = executeExpression("${ S('" + xmlString + "') }");
@@ -63,6 +65,7 @@ public class SpinFunctionsTest extends PluggableProcessEngineTestCase {
     assertEquals("elementName", spinXmlEl.name());
   }
 
+  @Test
   public void testSpin_XML_Available() {
 
     SpinXmlElement spinXmlEl = executeExpression("${ XML('" + xmlString + "') }");
@@ -70,6 +73,7 @@ public class SpinFunctionsTest extends PluggableProcessEngineTestCase {
     assertEquals("elementName", spinXmlEl.name());
   }
 
+  @Test
   public void testSpin_JSON_Available() {
 
     SpinJsonNode spinJsonEl = executeExpression("${ JSON('" + jsonString + "') }");
@@ -77,6 +81,7 @@ public class SpinFunctionsTest extends PluggableProcessEngineTestCase {
     assertEquals("bar", spinJsonEl.prop("foo").stringValue());
   }
 
+  @Test
   public void testSpin_XPath_Available() {
 
     String elName = executeExpression("${ S('" + xmlString + "').xPath('/elementName').element().name() }");
@@ -84,6 +89,7 @@ public class SpinFunctionsTest extends PluggableProcessEngineTestCase {
     assertEquals("elementName", elName);
   }
 
+  @Test
   public void testSpin_JsonPath_Available() {
 
     String property = executeExpression("${ S('" + jsonString + "').jsonPath('$.foo').stringValue() }");
@@ -91,6 +97,7 @@ public class SpinFunctionsTest extends PluggableProcessEngineTestCase {
     assertEquals("bar", property);
   }
 
+  @Test
   public void testSpinAvailableInBpmn() {
 
     BpmnModelInstance bpmnModelInstance = Bpmn.createExecutableProcess("testProcess")
