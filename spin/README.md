@@ -57,6 +57,28 @@ XML( xmlInput ).xPath("/customers/customer[@id='0002']").element();
 ```
 
 
+# JSON: Jackson 3 and the deprecated Jackson 2 variant
+
+Since CIB seven 3.0.0 the JSON data format is built on Jackson 3 (`tools.jackson`):
+
+| Artifact | Jackson | Status |
+|---|---|---|
+| `cibseven-spin-dataformat-json-jackson` | 3 | current |
+| `cibseven-spin-dataformat-all` (shaded, Jackson relocated to `spinjar.*`) | 3 | current |
+| `cibseven-spin-dataformat-json-jackson2` | 2 | deprecated, removed in 3.1.0 |
+| `cibseven-spin-dataformat-all-jackson2` (shaded) | 2 | deprecated, removed in 3.1.0 |
+
+The `-jackson2` artifacts keep the Jackson 2 implementation of CIB seven 2.x with the same packages and
+class names, as an escape hatch for applications that cannot move to Jackson 3 yet. Never put a
+`-jackson2` artifact and its unsuffixed counterpart on one classpath. The class
+`org.cibseven.spin.impl.json.jackson.Jackson2Variant` exists only in the Jackson 2 variant.
+
+Jackson 3 mappers are immutable: a `DataFormatConfigurator` replaces the mapper instead of changing it,
+for example `format.setObjectMapper(format.getObjectMapper().rebuild().addModule(module).build())`.
+The default mapper is built with `JsonMapper.builderWithJackson2Defaults()`, so JSON written by
+CIB seven 2.x is read and written unchanged.
+
+
 # FAQ
 
 ## Why should I use Spin instead of the Java DOM API?

@@ -1,0 +1,264 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.cibseven.spin</groupId>
+    <artifactId>cibseven-spin-root</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
+  </parent>
+
+  <!-- Deprecated: the Jackson 2 variant of cibseven-spin-dataformat-all (which bundles the Jackson 3
+       JSON data format since CIB seven 3.0.0). Never put both on one classpath. Will be removed in
+       CIB seven 3.1.0. -->
+  <artifactId>cibseven-spin-dataformat-all-jackson2</artifactId>
+  <name>CIB seven Spin - all dataformats in one, Jackson 2 (deprecated)</name>
+
+  <properties>
+    <!-- uses the Jackson 2 variant on purpose: ban the Jackson 3 artifacts instead (see cibseven-parent) -->
+    <spin.json.banned.json-jackson>org.cibseven.spin:cibseven-spin-dataformat-json-jackson</spin.json.banned.json-jackson>
+    <spin.json.banned.all>org.cibseven.spin:cibseven-spin-dataformat-all</spin.json.banned.all>
+  </properties>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>org.cibseven.spin</groupId>
+      <artifactId>cibseven-spin-dataformat-json-jackson2</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.cibseven.spin</groupId>
+      <artifactId>cibseven-spin-dataformat-xml-dom</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.xml.bind</groupId>
+      <artifactId>jakarta.xml.bind-api</artifactId>
+    </dependency>
+
+    <!-- the Jakarta XML Binding 4 implementation of cibseven-spin-dataformat-xml-dom;
+         com.sun.xml.bind:jaxb-impl 2.3.x implements the javax.xml.bind API of the 2.x line -->
+    <dependency>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+      <version>${version.xml.jaxb-impl4}</version>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>true</createDependencyReducedPom>
+              <createSourcesJar>true</createSourcesJar>
+              <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
+              <artifactSet>
+                <excludes>
+                  <exclude>org.cibseven.commons:*</exclude>
+                  <exclude>org.cibseven.spin:camunda-spin-core</exclude>
+                  <exclude>org.slf4j:*</exclude>
+                  <!-- test libraries never belong into the runtime jar -->
+                  <exclude>org.junit.jupiter:*</exclude>
+                  <exclude>org.junit.platform:*</exclude>
+                  <exclude>org.opentest4j:*</exclude>
+                  <exclude>org.apiguardian:*</exclude>
+                </excludes>
+              </artifactSet>
+              <relocations>
+                <relocation>
+                  <pattern>com.fasterxml</pattern>
+                  <shadedPattern>spinjar.com.fasterxml</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.jayway</pattern>
+                  <shadedPattern>spinjar.com.jayway</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>net.minidev</pattern>
+                  <shadedPattern>spinjar.com.minidev</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.objectweb</pattern>
+                  <shadedPattern>spinjar.com.objectweb</shadedPattern>
+                </relocation>
+
+                <!-- JAXB API + implementation and the Jakarta Activation API + implementation
+                     they need, relocated like the javax.xml.bind JAXB of 2.x: the jar lives in
+                     shared classloaders (Tomcat lib/) and must not expose a JAXB or Activation
+                     API to every web application. The ServicesResourceTransformer below
+                     relocates their META-INF/services entries along with them. -->
+                <relocation>
+                  <pattern>jakarta.xml.bind</pattern>
+                  <shadedPattern>spinjar.jakarta.xml.bind</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.glassfish.jaxb</pattern>
+                  <shadedPattern>spinjar.org.glassfish.jaxb</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.sun.istack</pattern>
+                  <shadedPattern>spinjar.com.sun.istack</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.sun.xml.txw2</pattern>
+                  <shadedPattern>spinjar.com.sun.xml.txw2</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>jakarta.activation</pattern>
+                  <shadedPattern>spinjar.jakarta.activation</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.eclipse.angus</pattern>
+                  <shadedPattern>spinjar.org.eclipse.angus</shadedPattern>
+                </relocation>
+              </relocations>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+              </transformers>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>module-info.class</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- The shaded jar may only carry Spin's own classes and libraries relocated to spinjar.*:
+           it sits in shared classloaders (Tomcat lib/), where an unrelocated library (JAXB,
+           Jakarta Activation, JUnit, ...) is exposed to every web application. Bound to verify,
+           after the shade plugin has replaced the jar in the package phase. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>verify-only-relocated-classes-in-shaded-jar</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <fail message="${project.build.finalName}.jar bundles classes outside org/cibseven/spin and spinjar (e.g. jakarta.*, javax.*, org.junit.*). Relocate every shaded library to spinjar.* or exclude it from the maven-shade-plugin artifactSet.">
+                  <condition>
+                    <resourcecount when="greater" count="0">
+                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="**/*.class" excludes="org/cibseven/spin/**,spinjar/**,META-INF/**" />
+                    </resourcecount>
+                  </condition>
+                </fail>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <!-- make sure javadocs are generated for spin-all -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <includeDependencySources>true</includeDependencySources>
+          <includeTransitiveDependencySources>true</includeTransitiveDependencySources>
+          <dependencySourceIncludes><include>org.cibseven.spin:*</include></dependencySourceIncludes>
+          <additionalDependencies>
+           <additionalDependency>
+             <groupId>org.junit.jupiter</groupId>
+             <artifactId>junit-jupiter-api</artifactId>
+             <version>${version.junit5}</version>
+           </additionalDependency>
+          </additionalDependencies>
+          <notimestamp>true</notimestamp>
+        </configuration>
+      </plugin>
+       <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <configuration>
+          <unpackBundle>false</unpackBundle>
+          <instructions>
+            <Export-Package>
+              ${project.groupId}*
+            </Export-Package>
+            <Import-Package>
+              !spinjar*,
+              !org.junit*,
+              !org.slf4j.impl,
+              !com.fasterxml*,
+              !com.jayway,
+              !net.minidev.json*,
+              !org.codehaus.jackson*,
+              org.slf4j,
+              org.cibseven.commons.utils,
+              org.cibseven.commons.logging,
+              *
+            </Import-Package>
+            <Bundle-ClassPath>.</Bundle-ClassPath>
+            <Embed-Dependency>*;inline=true</Embed-Dependency>
+            <Embed-Transitive>true</Embed-Transitive>
+          </instructions>
+        </configuration>
+        <executions>
+          <execution>
+            <id>bundle-manifest</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  <description>
+    Deprecated Jackson 2 variant of cibseven-spin-dataformat-all (which bundles the Jackson 3 JSON data
+    format since 3.0.0). Never put both on one classpath. Will be removed in CIB seven 3.1.0.
+  </description>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
+
+</project>
