@@ -16,8 +16,6 @@
  */
 package org.cibseven.spin.impl.json.jackson.format;
 
-import com.fasterxml.jackson.databind.type.TypeFactory;
-
 public class DefaultJsonJacksonTypeDetector extends AbstractJacksonJsonTypeDetector {
 
   public boolean canHandle(Object object) {
@@ -26,7 +24,7 @@ public class DefaultJsonJacksonTypeDetector extends AbstractJacksonJsonTypeDetec
 
   public String detectType(Object object) {
     Class<?> type = object.getClass();
-    return TypeFactory.defaultInstance().constructType(type).toCanonical();
+    return getTypeFactory().constructType(type).toCanonical();
   }
 
 }
