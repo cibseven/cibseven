@@ -604,7 +604,7 @@
             </goals>
             <configuration>
               <target>
-                <fail message="${project.build.finalName}.jar bundles unrelocated jakarta.* or javax.* classes or an EL implementation. Jakarta EE APIs must come from the container or the application classpath: declare them provided, or exclude them from the maven-shade-plugin artifactSet (see the jakarta.enterprise.cdi-api and jakarta.activation entries).">
+                <fail message="${project.build.finalName}.jar bundles unrelocated jakarta.* or javax.* classes or an EL implementation. Jakarta EE APIs must come from the container or the application classpath: declare them provided (see jakarta.enterprise.cdi-api), and never add them to the maven-shade-plugin artifactSet includes, which list only the libraries shaded into the engine jar (Gson, cron-utils).">
                   <condition>
                     <resourcecount when="greater" count="0">
                       <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="jakarta/**,javax/**,org/glassfish/expressly/**,com/sun/el/**" />
