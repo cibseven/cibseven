@@ -444,7 +444,8 @@ public class JacksonJsonNode extends SpinJsonNode {
 
   public List<String> fieldNames() {
     if(jsonNode.isContainer()) {
-      return List.copyOf(jsonNode.propertyNames());
+      // a new mutable list, as in Spin 2.x (callers may sort or edit it)
+      return new ArrayList<>(jsonNode.propertyNames());
     } else {
       throw LOG.unableToParseValue("Array/Object", jsonNode.getNodeType());
     }
