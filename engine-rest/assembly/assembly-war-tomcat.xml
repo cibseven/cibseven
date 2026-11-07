@@ -20,6 +20,14 @@
         <include>org.cibseven.bpm:cibseven-engine-rest-core:jar</include>
         <!-- RESTEasy, as in 2.2 and as the Tomcat web applications and WildFly (CIB7-2618) -->
         <include>org.jboss.resteasy:resteasy-core:jar:*</include>
+        <!-- Jakarta APIs, listed explicitly as in 2.2: Tomcat provides none of them, and with
+             transitive filtering they would otherwise depend on the order of the declarations
+             in the pom (RESTEasy and Jersey share them) -->
+        <include>jakarta.ws.rs:jakarta.ws.rs-api:jar</include>
+        <include>jakarta.annotation:jakarta.annotation-api:jar</include>
+        <include>jakarta.validation:jakarta.validation-api:jar</include>
+        <include>jakarta.xml.bind:jakarta.xml.bind-api:jar</include>
+        <include>jakarta.activation:jakarta.activation-api:jar</include>
       </includes>
       <excludes>
         <exclude>org.cibseven.bpm:cibseven-engine-rest-core:jar:tests</exclude>

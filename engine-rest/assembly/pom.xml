@@ -13,8 +13,8 @@
 
   <dependencyManagement>
     <dependencies>
-      <!-- Jackson's jakarta-xmlbind module still asks for the EE 9 API 3.0.1; with Jersey the war
-           got 4.0.x through jersey-common. Keep the Jakarta EE 10/11 API in WEB-INF/lib. -->
+      <!-- RESTEasy 7.0.5 (resteasy-dependencies) still manages the EE 9 API 3.0.1; keep the
+           Jakarta EE 10/11 API in WEB-INF/lib (with Jersey it came in through jersey-hk2). -->
       <dependency>
         <groupId>jakarta.xml.bind</groupId>
         <artifactId>jakarta.xml.bind-api</artifactId>
@@ -58,6 +58,15 @@
         <exclusion>
           <groupId>jakarta.servlet</groupId>
           <artifactId>jakarta.servlet-api</artifactId>
+        </exclusion>
+        <!-- The Tomcat distribution ships angus-activation in lib/ (CIB7-2615). A second copy in
+             WEB-INF/lib is loaded child-first and breaks the MIME type detection of lib/ code
+             (Variables.fileValue) on REST request threads: the ServiceLoader then finds an Angus
+             provider that implements the war's copy of the Activation API. The war keeps only the
+             API, as before CIB7-2618. -->
+        <exclusion>
+          <groupId>org.eclipse.angus</groupId>
+          <artifactId>angus-activation</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
