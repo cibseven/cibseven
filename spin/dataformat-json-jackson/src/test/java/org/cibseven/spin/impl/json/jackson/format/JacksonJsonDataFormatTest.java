@@ -125,6 +125,43 @@ public class JacksonJsonDataFormatTest {
   }
 
   @Test
+  public void shouldWriteDeepJsonInToStringAndJsonPath() {
+    // given: 700 levels; Jackson 3's JsonNode.toString() stops at 500
+    String depth700 = "[".repeat(700) + "1" + "]".repeat(700);
+    JacksonJsonDataFormat format = new JacksonJsonDataFormat("test");
+    SpinJsonNode json = format.createWrapperInstance(format.getReader().readInput(new StringReader(depth700)));
+
+    // when / then: SpinJsonNode#toString() (scripts, JsonPath queries) writes with the configured mapper
+    assertThat(json.toString()).isEqualTo(depth700);
+    assertThat(json.jsonPath("$").element().toString()).isEqualTo(depth700);
+  }
+
+  @Test
+  public void shouldPreviewDeepJsonInDeserializationError() {
+    // given
+    String depth700 = "[".repeat(700) + "1" + "]".repeat(700);
+    JacksonJsonDataFormat format = new JacksonJsonDataFormat("test");
+    Object node = format.getReader().readInput(new StringReader(depth700));
+
+    // when / then: the error names the input instead of failing on Jackson 3's JsonNode.toString()
+    assertThatThrownBy(() -> format.getMapper().mapInternalToJava(node, Integer.class))
+        .isInstanceOf(SpinJsonException.class)
+        .hasMessageContaining("SPIN/JACKSON-JSON-01006 Cannot deserialize '[[[[[[[[[[...'");
+  }
+
+  @Test
+  public void shouldPreviewShortJsonInDeserializationError() {
+    // given: JSON shorter than the 10 characters of the preview
+    JacksonJsonDataFormat format = new JacksonJsonDataFormat("test");
+    Object node = format.getReader().readInput(new StringReader("[\"abc\"]"));
+
+    // when / then
+    assertThatThrownBy(() -> format.getMapper().mapInternalToJava(node, Integer.class))
+        .isInstanceOf(SpinJsonException.class)
+        .hasMessageContaining("Cannot deserialize '[\"abc\"]...'");
+  }
+
+  @Test
   public void shouldRejectJsonNestedDeeperThanJackson2Limit() {
     String depth1001 = "[".repeat(1001) + "]".repeat(1001);
     JacksonJsonDataFormat format = new JacksonJsonDataFormat("test");
