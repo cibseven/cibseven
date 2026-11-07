@@ -18,7 +18,7 @@ package org.cibseven.spin.impl.json.jackson.format;
 
 public class DefaultJsonJacksonTypeDetector extends AbstractJacksonJsonTypeDetector {
 
-    public boolean canHandle(Object object) {
+  public boolean canHandle(Object object) {
     return true;
   }
 

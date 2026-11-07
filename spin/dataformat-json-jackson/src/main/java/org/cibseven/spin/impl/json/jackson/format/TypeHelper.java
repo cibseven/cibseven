@@ -32,7 +32,7 @@ public class TypeHelper {
 
   private static final TypeFactory typeFactory = TypeFactory.createDefaultInstance();
 
-    /**
+  /**
    * Checks if the erased type has the correct number of type bindings.
    *
    * @param erasedType                  class of the type.

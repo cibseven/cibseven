@@ -77,12 +77,7 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
   }
 
   public JacksonJsonDataFormat(String name, ObjectMapper objectMapper) {
-
-    this(name, objectMapper,
-        new ConfigurationBuilder()
-          .jsonProvider(new Jackson3JsonProvider(objectMapper))
-          .mappingProvider(new Jackson3MappingProvider(objectMapper))
-          .build());
+    this(name, objectMapper, createDefaultJsonPathConfiguration(objectMapper));
   }
 
   public JacksonJsonDataFormat(String name, ObjectMapper objectMapper, Configuration jsonPathConfiguration) {
@@ -209,8 +204,50 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
     return objectMapper;
   }
 
+  /**
+   * Replaces the {@link ObjectMapper} of this data format.
+   *
+   * <p>Jackson 3 mappers are immutable, so a {@link org.cibseven.spin.spi.DataFormatConfigurator}
+   * customizes the mapper with {@code setObjectMapper(getObjectMapper().rebuild()...build())}.
+   * If the JsonPath configuration is still the default one built from the previous mapper,
+   * it is rebuilt from the new mapper so that JsonPath queries see the same customizations.
+   * A configuration set with {@link #setJsonPathConfiguration(Configuration)} is kept.</p>
+   *
+   * @param objectMapper the new object mapper
+   */
   public void setObjectMapper(ObjectMapper objectMapper) {
+    ObjectMapper previousObjectMapper = this.objectMapper;
     this.objectMapper = objectMapper;
+    if (isDefaultJsonPathConfiguration(jsonPathConfiguration, previousObjectMapper)) {
+      this.jsonPathConfiguration = createDefaultJsonPathConfiguration(objectMapper);
+    }
+  }
+
+  /**
+   * Builds the JsonPath {@link Configuration} this data format uses by default:
+   * JSON and mapping provider backed by the given object mapper.
+   *
+   * @param objectMapper the object mapper of the data format
+   * @return the default JsonPath configuration
+   */
+  protected static Configuration createDefaultJsonPathConfiguration(ObjectMapper objectMapper) {
+    return new ConfigurationBuilder()
+        .jsonProvider(new Jackson3JsonProvider(objectMapper))
+        .mappingProvider(new Jackson3MappingProvider(objectMapper))
+        .build();
+  }
+
+  /**
+   * @return true if the configuration is the one {@link #createDefaultJsonPathConfiguration(ObjectMapper)}
+   * builds for the given object mapper (no options, no evaluation listeners)
+   */
+  protected static boolean isDefaultJsonPathConfiguration(Configuration configuration, ObjectMapper objectMapper) {
+    return configuration != null
+        && configuration.jsonProvider() instanceof Jackson3JsonProvider
+        && ((Jackson3JsonProvider) configuration.jsonProvider()).getObjectMapper() == objectMapper
+        && configuration.mappingProvider() instanceof Jackson3MappingProvider
+        && configuration.getOptions().isEmpty()
+        && configuration.getEvaluationListeners().isEmpty();
   }
 
   // helper functions //////////////////////////////////////////
