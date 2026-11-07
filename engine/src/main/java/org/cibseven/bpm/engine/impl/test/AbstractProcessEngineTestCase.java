@@ -504,7 +504,8 @@ public abstract class AbstractProcessEngineTestCase extends PvmTestCase {
         processEngineConfiguration.setTenantCheckEnabled(true);
         deleteDeployments();
         deleteHistoryCleanupJobs();
-        // only fail if no test failure was recorded
+        // only fail if the set up did not fail; a failing test method is not recorded in 'exception',
+        // JUnit adds the "database not clean" error to the test failure as a suppressed exception
         TestHelper.assertAndEnsureCleanDbAndCache(processEngine, exception == null);
         TestHelper.resetIdGenerator(processEngineConfiguration);
       }

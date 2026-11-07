@@ -43,7 +43,7 @@ public class BoundaryErrorEventSpringTest extends SpringProcessEngineTestCase {
     // which is caught on the service task boundary
     assertEquals(1, taskService.createTaskQuery().count(), "No tasks found in task list.");
     Task task = taskService.createTaskQuery().singleResult();
-    assertEquals(task.getName(), "Escalated Task");
+    assertEquals("Escalated Task", task.getName());
 
     // Completing the task will end the process instance
     taskService.complete(task.getId());

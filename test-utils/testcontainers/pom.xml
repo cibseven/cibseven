@@ -12,6 +12,11 @@
   <name>CIB seven Test Utils - Testcontainers</name>
   <packaging>jar</packaging>
 
+  <properties>
+    <!-- Test helper: Testcontainers database setup for the QA and test builds -->
+    <cibseven.enforcer.allowTestLibraries>true</cibseven.enforcer.allowTestLibraries>
+  </properties>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
