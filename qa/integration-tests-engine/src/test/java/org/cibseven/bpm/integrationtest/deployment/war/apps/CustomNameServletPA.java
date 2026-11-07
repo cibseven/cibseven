@@ -17,14 +17,20 @@
 package org.cibseven.bpm.integrationtest.deployment.war.apps;
 
 import org.cibseven.bpm.application.ProcessApplication;
+import org.cibseven.bpm.application.impl.ServletProcessApplication;
 
 /**
+ * Extends the deprecated {@link ServletProcessApplication} on purpose: this is the only
+ * test process application that still does, so {@code TestWarDeploymentCustomPAName}
+ * checks that the WildFly subsystem ({@code ProcessApplicationProcessor}) still detects
+ * subclasses of the deprecated class. Keep it until that class is removed.
+ *
  * @author Thorben Lindhauer
  *
  */
+@SuppressWarnings("deprecation")
 @ProcessApplication(name = CustomNameServletPA.NAME)
-// Using fully-qualified class name instead of import statement to allow for automatic Jakarta transformation
-public class CustomNameServletPA extends org.cibseven.bpm.application.impl.ServletProcessApplication {
+public class CustomNameServletPA extends ServletProcessApplication {
 
   public static final String NAME = "fooooooooooooo";
 }
