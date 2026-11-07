@@ -52,7 +52,8 @@ public class JacksonJsonDataFormatMapper implements DataFormatMapper {
     ObjectMapper mapper = format.getObjectMapper();
     try {
       return mapper.valueToTree(parameter);
-    } catch (IllegalArgumentException e) {
+    } catch (IllegalArgumentException | JacksonException e) {
+      // Jackson 3 throws JacksonException (unchecked) where Jackson 2 wrapped the cause in an IllegalArgumentException
       throw LOG.unableToMapInput(parameter, e);
     }
   }

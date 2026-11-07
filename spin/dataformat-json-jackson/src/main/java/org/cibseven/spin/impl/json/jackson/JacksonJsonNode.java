@@ -124,12 +124,21 @@ public class JacksonJsonNode extends SpinJsonNode {
     return -1;
   }
 
+  /**
+   * Text of a search node for error messages, as Jackson 2's {@code JsonNode.asText()} returned it:
+   * the value of a scalar, {@code "null"} for a JSON null, an empty string for an object or array.
+   * Jackson 3's {@code asString("")} returns an empty string for a JSON null as well.
+   */
+  protected static String asText(JsonNode node) {
+    return node.isNull() ? "null" : node.asString("");
+  }
+
   public Integer indexOf(Object searchObject) {
     ensureNotNull("searchObject", searchObject);
     JsonNode node = dataFormat.createJsonNode(searchObject);
     int res = lookupArray(node, 1);
     if(res == -1){
-      throw LOG.unableToFindProperty(node.asString(""));
+      throw LOG.unableToFindProperty(asText(node));
     }
     return res;
   }
@@ -139,7 +148,7 @@ public class JacksonJsonNode extends SpinJsonNode {
     JsonNode node = dataFormat.createJsonNode(searchObject);
     int res = lookupArray(node, -1);
     if(res == -1){
-      throw LOG.unableToFindProperty(node.asString(""));
+      throw LOG.unableToFindProperty(asText(node));
     }
     return res;
   }
@@ -375,12 +384,12 @@ public class JacksonJsonNode extends SpinJsonNode {
   }
 
   public Boolean isString() {
-    return jsonNode.isTextual();
+    return jsonNode.isString();
   }
 
   public String stringValue() {
-    if(jsonNode.isTextual()) {
-      return jsonNode.textValue();
+    if(jsonNode.isString()) {
+      return jsonNode.stringValue();
     } else {
       throw LOG.unableToParseValue(String.class.getSimpleName(), jsonNode.getNodeType());
     }
@@ -403,8 +412,8 @@ public class JacksonJsonNode extends SpinJsonNode {
       return jsonNode.numberValue();
     }
 
-    if(jsonNode.isTextual()) {
-      return jsonNode.textValue();
+    if(jsonNode.isString()) {
+      return jsonNode.stringValue();
     }
 
     if (jsonNode.isNull()) {
