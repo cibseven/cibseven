@@ -12,7 +12,7 @@
   <artifactId>cibseven-jboss</artifactId>
   <packaging>pom</packaging>
 
-  <name>CIB seven - JBoss</name>
+  <name>CIB seven - JBoss EAP</name>
 
   <dependencyManagement>
     <dependencies>
@@ -38,7 +38,7 @@
     </profile>
   </profiles>
   <description>
-    Description of CIB seven - JBoss
+    Distribution parts for JBoss EAP 8.1 (Jakarta EE 10)
   </description>
 
   <licenses>
