@@ -152,6 +152,15 @@
         <scope>import</scope>
       </dependency>
 
+      <!-- Jackson 3 (tools.jackson.*), used by engine-rest, the webapps and Spin JSON -->
+      <dependency>
+        <groupId>tools.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson3}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
       <!-- Override common transitive dependencies to ensure consistent versions -->
       <dependency>
         <groupId>org.apache.commons</groupId>

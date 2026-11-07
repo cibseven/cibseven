@@ -12,15 +12,13 @@ import org.cibseven.bpm.engine.rest.dto.ModificationDto;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.StreamReadConstraints;
-import com.fasterxml.jackson.core.exc.StreamConstraintsException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.StreamReadConstraints;
+import tools.jackson.core.exc.StreamConstraintsException;
+import tools.jackson.databind.ObjectMapper;
 
 public class JacksonConfiguratorTest {
 
-	final static int DEFAULT_LIMIT = StreamReadConstraints.DEFAULT_MAX_STRING_LEN;
+	final static int DEFAULT_LIMIT = JacksonConfigurator.DEFAULT_MAX_STRING_LENGTH;
 	final static int HIGHER_LIMIT = 50_000_000;
 
 	TimeZone previousTimeZone;
@@ -39,34 +37,34 @@ public class JacksonConfiguratorTest {
 	}
 
 	@Test
-	public void testMaxStringLengthBelow() throws JsonProcessingException {
+	public void testMaxStringLengthBelow() {
 		test(HIGHER_LIMIT - 1);
 	}
 
 	@Test
-	public void testMaxStringLengthExactly() throws JsonProcessingException {
+	public void testMaxStringLengthExactly() {
 		test(HIGHER_LIMIT);
 	}
 
 	@Test
-	public void testMaxStringLengthAbove() throws JsonProcessingException {
+	public void testMaxStringLengthAbove() {
 		assertThrows(StreamConstraintsException.class, () -> {
 			test(HIGHER_LIMIT + 1);
     	});
 	}
 
 	@Test
-	public void testStdStringLengthBelow() throws JsonProcessingException {
+	public void testStdStringLengthBelow() {
 		test(DEFAULT_LIMIT - 1);
 	}
 
 	@Test
-	public void testStdStringLengthExactly() throws JsonProcessingException {
+	public void testStdStringLengthExactly() {
 		test(DEFAULT_LIMIT);
 	}
 
 	@Test
-	public void testStdStringLengthAbove() throws JsonProcessingException {
+	public void testStdStringLengthAbove() {
 		test(DEFAULT_LIMIT + 1);
 	}
 
@@ -114,12 +112,12 @@ public class JacksonConfiguratorTest {
 		return new JacksonConfigurator().getContext(Object.class);
 	}
 
-	public void test(final int dataLength) throws JsonProcessingException {
+	public void test(final int dataLength) {
 
 		JacksonConfigurator configurator = new JacksonConfigurator();
 		ObjectMapper objectMapper = configurator.getContext(ObjectMapper.class);
 
-		StreamReadConstraints constraints = objectMapper.getFactory().streamReadConstraints();
+		StreamReadConstraints constraints = objectMapper.tokenStreamFactory().streamReadConstraints();
 		assertEquals(HIGHER_LIMIT, constraints.getMaxStringLength());
 
 		String longString = new String(new char[dataLength]).replace('\0', 'x');

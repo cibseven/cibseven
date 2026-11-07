@@ -31,7 +31,7 @@ import org.cibseven.bpm.engine.runtime.ConditionEvaluationBuilder;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.variable.VariableMap;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class ConditionRestServiceImpl extends AbstractRestProcessEngineAware implements ConditionRestService {
 

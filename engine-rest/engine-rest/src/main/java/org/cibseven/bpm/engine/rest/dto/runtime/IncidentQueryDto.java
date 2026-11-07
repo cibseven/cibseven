@@ -31,7 +31,7 @@ import org.cibseven.bpm.engine.rest.dto.converter.StringArrayConverter;
 import org.cibseven.bpm.engine.rest.dto.converter.StringListConverter;
 import org.cibseven.bpm.engine.runtime.IncidentQuery;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * @author Roman Smirnov

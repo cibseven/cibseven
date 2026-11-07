@@ -30,7 +30,7 @@ import org.cibseven.bpm.engine.rest.dto.ResourceOptionsDto;
 import org.cibseven.bpm.engine.rest.sub.identity.TenantGroupMembersResource;
 import org.cibseven.bpm.engine.rest.util.PathUtil;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class TenantGroupMembersResourceImpl extends AbstractIdentityResource implements TenantGroupMembersResource {
 

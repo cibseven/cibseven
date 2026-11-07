@@ -40,7 +40,7 @@ import org.cibseven.bpm.engine.rest.dto.converter.StringSetConverter;
 import org.cibseven.bpm.engine.rest.dto.converter.VariableListConverter;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class HistoricProcessInstanceQueryDto extends AbstractQueryDto<HistoricProcessInstanceQuery> {
 

@@ -33,7 +33,7 @@ import org.cibseven.bpm.engine.rest.dto.history.HistoricActivityStatisticsPostQu
 import org.cibseven.bpm.engine.rest.history.HistoricProcessDefinitionRestService;
 import org.cibseven.bpm.engine.rest.impl.AbstractRestProcessEngineAware;
 import org.cibseven.bpm.engine.rest.util.QueryUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class HistoricProcessDefinitionRestServiceImpl extends AbstractRestProcessEngineAware implements HistoricProcessDefinitionRestService {
 

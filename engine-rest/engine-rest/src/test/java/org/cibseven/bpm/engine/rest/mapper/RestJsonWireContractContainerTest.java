@@ -205,7 +205,7 @@ public class RestJsonWireContractContainerTest extends AbstractRestServiceTest {
         "{\"instructions\":[{\"type\":\"unknownType\",\"activityId\":\"a\"}]}"));
     assertResponse("container/request-wrong-type.json", post(MODIFICATION_URL, "processInstanceId",
         "{\"instructions\":{\"type\":\"cancel\"}}"));
-    // the nesting depth limit of Jackson 2 is 1000
+    // the nesting depth limit of Jackson 2 (1000) is kept, Jackson 3 has 500
     assertResponse("container/request-nesting-depth-700.json", given()
         .contentType(ContentType.JSON)
         .body(("{\"value\":" + RestJsonWireContractTest.nestedArrays(700) + "}").getBytes(StandardCharsets.UTF_8))

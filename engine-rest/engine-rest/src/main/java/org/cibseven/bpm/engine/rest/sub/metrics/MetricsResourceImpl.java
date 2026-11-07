@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.sub.metrics;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import java.util.Date;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.UriInfo;

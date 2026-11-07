@@ -117,8 +117,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Pins the JSON wire format of the REST API on the level of the object mapper that
@@ -682,7 +682,7 @@ public class RestJsonWireContractTest {
 
   @Test
   public void readAndWriteDeepNesting() throws Exception {
-    // the nesting depth limit of Jackson 2 is 1000 for reading and writing
+    // the nesting depth limit of Jackson 2 (1000, reading and writing) is kept, Jackson 3 has 500
     assertRead("deserialize/nesting-depth-700.json", StartProcessInstanceDto.class,
         "{\"variables\":{\"deep\":{\"value\":" + nestedArrays(700) + "}}}");
     assertRead("deserialize/nesting-depth-1100.json", StartProcessInstanceDto.class,
@@ -825,8 +825,9 @@ public class RestJsonWireContractTest {
   }
 
   /**
-   * Object variable value with {@link Optional}. No JDK 8 module is registered for the REST
-   * mapper, so Jackson 2 refuses to write it.
+   * Object variable value with {@link Optional}. The only intended change of the move to
+   * Jackson 3: Jackson 2 (without the JDK 8 module) refused to write it, so the REST API
+   * answered 400; Jackson 3 supports {@link Optional} out of the box and writes the value.
    */
   public static class OptionalHolder {
     public Optional<String> present = Optional.of("value");
