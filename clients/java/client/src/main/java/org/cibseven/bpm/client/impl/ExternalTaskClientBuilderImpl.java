@@ -47,6 +47,7 @@ import org.cibseven.bpm.client.topic.impl.TopicSubscriptionManager;
 import org.cibseven.bpm.client.variable.impl.DefaultValueMappers;
 import org.cibseven.bpm.client.variable.impl.TypedValues;
 import org.cibseven.bpm.client.variable.impl.ValueMappers;
+import org.cibseven.bpm.client.variable.impl.format.json.JacksonJsonDataFormat;
 import org.cibseven.bpm.client.variable.impl.mapper.BooleanValueMapper;
 import org.cibseven.bpm.client.variable.impl.mapper.ByteArrayValueMapper;
 import org.cibseven.bpm.client.variable.impl.mapper.DateValueMapper;
@@ -65,7 +66,6 @@ import org.cibseven.bpm.engine.variable.Variables;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.cfg.DateTimeFeature;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Tassilo Weidner
@@ -275,7 +275,8 @@ public class ExternalTaskClientBuilderImpl implements ExternalTaskClientBuilder 
   protected void initObjectMapper() {
     SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
 
-    objectMapper = JsonMapper.builderWithJackson2Defaults()
+    // the Jackson 2 defaults and limits of the variable data format (nesting depth 1000, not Jackson 3's 500)
+    objectMapper = JacksonJsonDataFormat.createDefaultObjectMapper().rebuild()
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .disable(DeserializationFeature.FAIL_ON_UNRESOLVED_OBJECT_IDS)
         .disable(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE)
