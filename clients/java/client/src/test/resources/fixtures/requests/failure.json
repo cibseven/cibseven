@@ -1,0 +1,1 @@
+{"workerId":"fixture-worker","errorMessage":"Something went wrong: \"quoted\"","errorDetails":"java.lang.IllegalStateException: boom\n\tat a.b.C.d(C.java:1)","retries":3,"retryTimeout":5000,"variables":{"attempt":{"value":2,"type":"Integer","valueInfo":{}}},"localVariables":{"reason":{"value":"timeout","type":"String","valueInfo":{}}}}

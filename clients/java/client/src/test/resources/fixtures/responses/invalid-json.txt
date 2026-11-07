@@ -1,0 +1,3 @@
+htmlError: EngineClientException: TASK/CLIENT-02004 Exception while parsing json object to response dto class 'class org.cibseven.bpm.client.impl.EngineRestExceptionDto'
+wrongType: EngineClientException: TASK/CLIENT-02005 Exception while mapping json object to response dto class 'class [Lorg.cibseven.bpm.client.task.impl.ExternalTaskImpl;'
+noArray: EngineClientException: TASK/CLIENT-02005 Exception while mapping json object to response dto class 'class [Lorg.cibseven.bpm.client.task.impl.ExternalTaskImpl;'
