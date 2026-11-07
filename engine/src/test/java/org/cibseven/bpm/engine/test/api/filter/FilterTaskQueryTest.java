@@ -541,6 +541,28 @@ public class FilterTaskQueryTest extends PluggableProcessEngineTest {
     assertTrue(e.getMessage().contains("task query criteria"));
   }
 
+  @Test
+  public void testSaveFilterWithTheDateExpressionsTheProductItselfSuggests() {
+    // CIB7-2247: the dialog offers the first two as examples for every date criterion, the third is
+    // seeded by InvoiceDemoDataGenerator. The reported symptom was a BadUserRequestException raised
+    // right here, on save.
+    processEngineConfiguration.setEnableFilterExpressionWhitelist(true);
+
+    TaskQueryImpl query = (TaskQueryImpl) taskService.createTaskQuery()
+      .dueAfterExpression("${ dateTime() }")
+      .dueBeforeExpression("${ dateTime().plusWeeks(2) }")
+      .followUpBeforeExpression("${dateTime().plusDays(4).withTimeAtStartOfDay()}");
+
+    Filter filter = filterService.newTaskFilter("aFilterName");
+    filter.setQuery(query);
+
+    // when
+    filterService.saveFilter(filter);
+
+    // then
+    assertNotNull(filter.getId());
+  }
+
   protected void createDeploymentWithBusinessKey(String aBusinessKey) {
     BpmnModelInstance modelInstance = Bpmn.createExecutableProcess("aProcessDefinition")
         .camundaHistoryTimeToLive(180)

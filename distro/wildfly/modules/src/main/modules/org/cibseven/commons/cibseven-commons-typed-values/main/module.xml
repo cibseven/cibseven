@@ -8,7 +8,9 @@
     <module name="java.compiler" />
     <module name="java.desktop" />
     <module name="java.logging"/>
-    
+    <!-- Variables.fileValue(File) uses jakarta.activation.MimetypesFileTypeMap -->
+    <module name="jakarta.activation.api" />
+
     <module name="org.cibseven.commons.cibseven-commons-utils" />
     
   </dependencies>

@@ -16,16 +16,23 @@
  */
 package org.cibseven.bpm.spring.boot.starter;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.cibseven.bpm.spring.boot.starter.test.nonpa.TestApplication;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = { TestApplication.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureTestRestTemplate
 public class CamundaBpmActuatorConfigurationIT extends AbstractCamundaAutoConfigurationIT{
 
   @Autowired
@@ -34,13 +41,16 @@ public class CamundaBpmActuatorConfigurationIT extends AbstractCamundaAutoConfig
   @Test
   public void jobExecutorHealthIndicatorTest() {
     final String body = getHealthBody();
-    assertThat("wrong body " + body). contains("jobExecutor\":{\"status\":\"UP\"");
+    assertTrue(body.contains("\"jobExecutor\":{\"details\":{\"jobExecutor\":{")
+        && body.contains("\"processEngineNames\":[\"testEngine\"],\"waitTimeInMillis\":5000}},\"status\":\"UP\"}"),
+        "wrong body " + body);
   }
 
   @Test
   public void processEngineHealthIndicatorTest() {
     final String body = getHealthBody();
-    assertThat("wrong body " + body).contains("processEngine\":{\"status\":\"UP\",\"details\":{\"name\":\"testEngine\"}}");
+    assertTrue(body.contains("\"processEngine\":{\"details\":{\"name\":\"testEngine\"},\"status\":\"UP\"}"),
+        "wrong body " + body);
   }
 
   private String getHealthBody() {

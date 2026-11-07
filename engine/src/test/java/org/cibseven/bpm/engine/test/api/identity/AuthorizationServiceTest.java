@@ -757,6 +757,33 @@ public class AuthorizationServiceTest extends PluggableProcessEngineTest {
   }
 
   @Test
+  public void testDeprecatedResourceAuthorizationsCanBeReadAndDeleted() {
+    for (Resource resource : Arrays.asList(REPORT, DASHBOARD)) {
+      // given an authorization that was created before the resource was deprecated
+      Authorization authorization = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
+      authorization.setUserId(userId);
+      authorization.addPermission(READ);
+      authorization.addPermission(DELETE);
+      authorization.setResource(resource);
+      authorization.setResourceId(ANY);
+      authorizationService.saveAuthorization(authorization);
+
+      // then it can still be read, including its permissions
+      Authorization stored = authorizationService.createAuthorizationQuery()
+          .resourceType(resource)
+          .singleResult();
+      assertEquals(resource.resourceType(), stored.getResourceType());
+      assertTrue(stored.isPermissionGranted(READ));
+      assertTrue(stored.isPermissionGranted(DELETE));
+      assertFalse(stored.isPermissionGranted(UPDATE));
+
+      // and deleted
+      authorizationService.deleteAuthorization(stored.getId());
+      assertEquals(0, authorizationService.createAuthorizationQuery().resourceType(resource).count());
+    }
+  }
+
+  @Test
   public void testIsPermissionGrantedAccess() {
     // given
     Authorization authorization = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);

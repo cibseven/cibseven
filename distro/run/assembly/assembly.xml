@@ -136,7 +136,9 @@
     <!-- ai-agent ships into a dedicated userlib-ai/ folder (NOT the always-on
          userlib/). run.sh adds it to the loader path only when the AI agent is
          enabled: on by default in default/dev mode, off in production mode unless
-         the ai/agent flag or the AI_AGENT_ENABLED env var is set (CIB7-1447). -->
+         the ai/agent flag or the AI_AGENT_ENABLED env var is set (CIB7-1447).
+         Agentic ad hoc sub processes go with it: their engine plugin is in the same
+         jar and is found on the same loader path (CIB7-2145). -->
     <fileSet>
       <directory>../modules/ai-agent/target/dependency/</directory>
       <outputDirectory>configuration/userlib-ai/</outputDirectory>

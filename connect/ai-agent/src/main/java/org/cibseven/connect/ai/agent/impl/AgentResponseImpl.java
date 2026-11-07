@@ -22,6 +22,7 @@ import java.util.Map;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.connect.ai.agent.AgentConnector;
 import org.cibseven.connect.ai.agent.AgentResponse;
+import org.cibseven.connect.ai.agent.agentic.AgenticTurnRunner;
 import org.cibseven.connect.impl.AbstractConnectorResponse;
 
 /**
@@ -40,6 +41,12 @@ public class AgentResponseImpl extends AbstractConnectorResponse implements Agen
   private final String memoryId;
   private final Map<String, Object> outputAiMeta;
 
+  /**
+   * Set in a step of an agentic turn whose model called tools instead of answering (CIB7-2148):
+   * the tools ran, and the turn goes on in a further step. Never set for a service task.
+   */
+  private final boolean stepCalledTools;
+
   public AgentResponseImpl(String output) {
     this(output, "", null);
   }
@@ -49,6 +56,12 @@ public class AgentResponseImpl extends AbstractConnectorResponse implements Agen
   }
 
   public AgentResponseImpl(String output, String memoryId, Map<String, Object> outputAiMeta) {
+    this(output, memoryId, outputAiMeta, false);
+  }
+
+  public AgentResponseImpl(String output, String memoryId, Map<String, Object> outputAiMeta,
+      boolean stepCalledTools) {
+    this.stepCalledTools = stepCalledTools;
     this.output = output;
     this.memoryId = memoryId;
     this.outputAiMeta = (outputAiMeta == null) ? null
@@ -71,6 +84,11 @@ public class AgentResponseImpl extends AbstractConnectorResponse implements Agen
     // so BPMN output mappings such as <camunda:outputParameter name="memoryId">${memoryId}</camunda:outputParameter>
     // resolve cleanly to null instead of failing with PropertyNotFoundException.
     responseParameters.put(AgentConnector.PARAM_NAME_MEMORY_ID, memoryId);
+
+    // Only in a step of an agentic turn, for the turn runner: there is no answer yet.
+    if (stepCalledTools) {
+      responseParameters.put(AgenticTurnRunner.STEP_CALLED_TOOLS, Boolean.TRUE);
+    }
 
     // EU AI Act Art. 50(2) marker. Always present in the parameter map so the
     // BPMN ${outputAiMeta} expression resolves cleanly (to null when no model

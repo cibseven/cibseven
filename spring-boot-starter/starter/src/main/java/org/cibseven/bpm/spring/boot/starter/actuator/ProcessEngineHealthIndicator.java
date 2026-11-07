@@ -17,8 +17,8 @@
 package org.cibseven.bpm.spring.boot.starter.actuator;
 
 import org.cibseven.bpm.engine.ProcessEngine;
-import org.springframework.boot.actuate.health.AbstractHealthIndicator;
-import org.springframework.boot.actuate.health.Health.Builder;
+import org.springframework.boot.health.contributor.AbstractHealthIndicator;
+import org.springframework.boot.health.contributor.Health.Builder;
 import org.springframework.util.Assert;
 
 public class ProcessEngineHealthIndicator extends AbstractHealthIndicator {
