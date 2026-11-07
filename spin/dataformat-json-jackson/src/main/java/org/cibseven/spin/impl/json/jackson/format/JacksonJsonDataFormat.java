@@ -34,6 +34,9 @@ import org.cibseven.spin.spi.TypeDetector;
 
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.Configuration.ConfigurationBuilder;
+import tools.jackson.core.StreamReadConstraints;
+import tools.jackson.core.StreamWriteConstraints;
+import tools.jackson.core.json.JsonFactory;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -56,6 +59,12 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
 
   public static final String DATA_FORMAT_NAME = DataFormats.JSON_DATAFORMAT_NAME;
 
+  /**
+   * Maximum nesting depth of JSON the default mapper reads and writes: the limit of Jackson 2
+   * (Jackson 3 defaults to 500), so that JSON accepted by CIB seven 2.x is still accepted.
+   */
+  public static final int MAX_NESTING_DEPTH = 1000;
+
   private static final JacksonJsonLogger LOG = JacksonJsonLogger.JSON_TREE_LOGGER;
 
   /** The Jackson Object Mapper used by this dataformat */
@@ -73,7 +82,7 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
   protected final String name;
 
   public JacksonJsonDataFormat(String name) {
-    this(name, JsonMapper.builderWithJackson2Defaults().build());
+    this(name, createDefaultObjectMapper());
   }
 
   public JacksonJsonDataFormat(String name, ObjectMapper objectMapper) {
@@ -221,6 +230,25 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
     if (isDefaultJsonPathConfiguration(jsonPathConfiguration, previousObjectMapper)) {
       this.jsonPathConfiguration = createDefaultJsonPathConfiguration(objectMapper);
     }
+  }
+
+  /**
+   * Creates the default mapper of this data format: the Jackson 2 defaults of Jackson 3
+   * ({@link JsonMapper#builderWithJackson2Defaults()}: dates as timestamps, no alphabetical property order,
+   * enums by name, null for primitives accepted, unknown properties rejected, "/" not escaped, ...) and the
+   * nesting depth limit of Jackson 2 ({@link #MAX_NESTING_DEPTH}) for reading and writing. JSON written by
+   * CIB seven 2.x on Jackson 2 is read and written unchanged.
+   *
+   * @return a new default object mapper
+   */
+  public static JsonMapper createDefaultObjectMapper() {
+    JsonFactory jsonFactory = JsonFactory.builderWithJackson2Defaults()
+        .streamReadConstraints(StreamReadConstraints.builder().maxNestingDepth(MAX_NESTING_DEPTH).build())
+        .streamWriteConstraints(StreamWriteConstraints.builder().maxNestingDepth(MAX_NESTING_DEPTH).build())
+        .build();
+    return JsonMapper.builder(jsonFactory)
+        .configureForJackson2()
+        .build();
   }
 
   /**
