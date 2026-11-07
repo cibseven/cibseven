@@ -18,7 +18,6 @@ package org.cibseven.bpm.engine.test.junit5;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,6 +61,7 @@ import org.junit.jupiter.api.extension.TestInstancePostProcessor;
 import org.junit.jupiter.api.extension.TestWatcher;
 import org.junit.platform.commons.support.AnnotationSupport;
 import org.junit.platform.commons.support.HierarchyTraversalMode;
+import org.junit.platform.commons.support.ReflectionSupport;
 import org.slf4j.Logger;
 
 /**
@@ -240,13 +240,25 @@ public class ProcessEngineExtension implements TestWatcher,
    ClockUtil.reset();
    PlatformDiagnosticsRegistry.clear();
 
+   Throwable failure = null;
    if (invokeBeforeAndAfterEachMethods) {
-     context.getTestInstance().ifPresent(this::invokeAfterEachMethods);
+     try {
+       context.getTestInstance().ifPresent(this::invokeAfterEachMethods);
+     } catch (Throwable t) {
+       failure = t;
+     }
    }
 
-   // finally clear database and fail test if database is dirty
+   // finally clear database and fail test if database is dirty, also after a failing @AfterEach method
    if (ensureCleanAfterTest) {
-     TestHelper.assertAndEnsureCleanDbAndCache(processEngine);
+     try {
+       TestHelper.assertAndEnsureCleanDbAndCache(processEngine);
+     } catch (Throwable t) {
+       failure = addSuppressed(failure, t);
+     }
+   }
+   if (failure != null) {
+     rethrow(failure);
    }
   }
 
@@ -271,7 +283,7 @@ public class ProcessEngineExtension implements TestWatcher,
    * {@link #invokeBeforeAndAfterEachMethods(boolean)} is enabled.
    */
   protected void invokeBeforeEachMethods(Object testInstance) {
-    invokeAnnotatedMethods(testInstance, BeforeEach.class, HierarchyTraversalMode.TOP_DOWN);
+    invokeAnnotatedMethods(testInstance, BeforeEach.class, HierarchyTraversalMode.TOP_DOWN, false);
   }
 
   /**
@@ -280,24 +292,51 @@ public class ProcessEngineExtension implements TestWatcher,
    * {@link #invokeBeforeAndAfterEachMethods(boolean)} is enabled.
    */
   protected void invokeAfterEachMethods(Object testInstance) {
-    invokeAnnotatedMethods(testInstance, AfterEach.class, HierarchyTraversalMode.BOTTOM_UP);
+    invokeAnnotatedMethods(testInstance, AfterEach.class, HierarchyTraversalMode.BOTTOM_UP, true);
   }
 
+  /**
+   * Invokes the annotated methods like JUnit Jupiter does: exceptions are passed
+   * on unchanged, so a failed assumption aborts the test instead of failing it.
+   * The first failing {@code @BeforeEach} method stops the remaining ones; all
+   * {@code @AfterEach} methods run, and further failures are added as suppressed
+   * exceptions to the first one.
+   */
   private void invokeAnnotatedMethods(Object testInstance, Class<? extends Annotation> annotation,
-      HierarchyTraversalMode traversalMode) {
+      HierarchyTraversalMode traversalMode, boolean continueAfterFailure) {
     String annotationLabel = "@" + annotation.getSimpleName();
+    Throwable failure = null;
     for (Method method : AnnotationSupport.findAnnotatedMethods(testInstance.getClass(), annotation, traversalMode)) {
-      method.setAccessible(true);
+      if (method.getParameterCount() != 0) {
+        LOG.warn("{} method '{}' has parameters and will not be invoked automatically.", annotationLabel, method.getName());
+        continue;
+      }
       try {
-        if (method.getParameterCount() == 0) {
-          method.invoke(testInstance);
-        } else {
-          LOG.warn("{} method '{}' has parameters and will not be invoked automatically.", annotationLabel, method.getName());
+        ReflectionSupport.invokeMethod(method, testInstance);
+      } catch (Throwable t) {
+        if (!continueAfterFailure) {
+          throw t;
         }
-      } catch (IllegalAccessException | InvocationTargetException e) {
-        throw new RuntimeException("Failed to invoke " + annotationLabel + " method: " + method.getName(), e);
+        failure = addSuppressed(failure, t);
       }
     }
+    if (failure != null) {
+      rethrow(failure);
+    }
+  }
+
+  private static Throwable addSuppressed(Throwable first, Throwable next) {
+    if (first == null) {
+      return next;
+    }
+    first.addSuppressed(next);
+    return first;
+  }
+
+  /** Throws the throwable unchanged, also a checked one (as JUnit Jupiter's own lifecycle method invocation does). */
+  @SuppressWarnings("unchecked")
+  private static <T extends Throwable> void rethrow(Throwable throwable) throws T {
+    throw (T) throwable;
   }
 
   // FLUENT BUILDER
