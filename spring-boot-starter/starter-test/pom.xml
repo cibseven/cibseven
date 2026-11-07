@@ -12,6 +12,11 @@
   <artifactId>cibseven-bpm-spring-boot-starter-test</artifactId>
   <name>CIB seven - Spring Boot Starter - Test</name>
 
+  <properties>
+    <!-- Test starter: brings spring-boot-starter-test (JUnit, AssertJ, Mockito) on purpose -->
+    <cibseven.enforcer.allowTestLibraries>true</cibseven.enforcer.allowTestLibraries>
+  </properties>
+
   <dependencies>
 
     <dependency>

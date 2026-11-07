@@ -20,7 +20,12 @@ import org.cibseven.bpm.dmn.engine.DmnEngine;
 import org.cibseven.bpm.dmn.engine.DmnEngineConfiguration;
 
 /**
- * JUnit rule for {@link DmnEngine} initialization.
+ * Test helper for {@link DmnEngine} initialization.
+ * <p>
+ * This is a plain object, not a JUnit rule or extension: the DMN engine is built
+ * in the constructor, so a field is enough and no {@code @Rule} or
+ * {@code @RegisterExtension} annotation is needed.
+ * </p>
  * <p>
  * Usage:
  * </p>
@@ -28,10 +33,16 @@ import org.cibseven.bpm.dmn.engine.DmnEngineConfiguration;
  * <pre>
  * public class YourDmnTest {
  *
- *   &#64;Rule
- *   public DmnEngineRule dmnEngineRule = new DmnEngineRule();
+ *   protected DmnEngineRule dmnEngineRule = new DmnEngineRule();
  *
- *   ...
+ *   // or with a custom configuration
+ *   protected DmnEngineRule customDmnEngineRule = new DmnEngineRule(yourDmnEngineConfiguration);
+ *
+ *   &#64;Test
+ *   public void shouldEvaluateDecision() {
+ *     DmnEngine dmnEngine = dmnEngineRule.getDmnEngine();
+ *     ...
+ *   }
  * }
  * </pre>
  *
