@@ -113,4 +113,11 @@ public class JacksonJsonLogger extends SpinLogger {
     return new SpinJsonPathException(
             exceptionMessage("017", "Invalid json path to '{}'", castClass.getName()), cause);
   }
+
+  public SpinJsonDataFormatException jsonPathWithoutJackson3Support(Throwable cause) {
+    return new SpinJsonDataFormatException(exceptionMessage("018",
+        "The JSON data format needs com.jayway.jsonpath:json-path 3.0.0 or later (Jackson 3 support), "
+        + "but an older json-path is on the classpath. Spring Boot 4.1 manages json-path 2.10.0: "
+        + "import the cibseven-bom before spring-boot-dependencies or set the json-path.version property."), cause);
+  }
 }
