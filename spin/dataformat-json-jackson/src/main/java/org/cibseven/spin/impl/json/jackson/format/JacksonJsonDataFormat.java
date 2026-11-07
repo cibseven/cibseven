@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
-import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+import com.jayway.jsonpath.spi.json.Jackson3JsonProvider;
+import com.jayway.jsonpath.spi.mapper.Jackson3MappingProvider;
 import org.cibseven.spin.DataFormats;
 import org.cibseven.spin.impl.json.jackson.JacksonJsonLogger;
 import org.cibseven.spin.impl.json.jackson.JacksonJsonNode;
@@ -32,14 +32,18 @@ import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.spi.DataFormat;
 import org.cibseven.spin.spi.TypeDetector;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.Configuration.ConfigurationBuilder;
+import tools.jackson.core.StreamReadConstraints;
+import tools.jackson.core.StreamWriteConstraints;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.type.TypeFactory;
 
 /**
  * Spin data format that can wrap Json content and uses
@@ -54,6 +58,12 @@ import com.jayway.jsonpath.Configuration.ConfigurationBuilder;
 public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
 
   public static final String DATA_FORMAT_NAME = DataFormats.JSON_DATAFORMAT_NAME;
+
+  /**
+   * Maximum nesting depth of JSON the default mapper reads and writes: the limit of Jackson 2
+   * (Jackson 3 defaults to 500), so that JSON accepted by CIB seven 2.x is still accepted.
+   */
+  public static final int MAX_NESTING_DEPTH = 1000;
 
   private static final JacksonJsonLogger LOG = JacksonJsonLogger.JSON_TREE_LOGGER;
 
@@ -72,16 +82,11 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
   protected final String name;
 
   public JacksonJsonDataFormat(String name) {
-    this(name, new ObjectMapper());
+    this(name, createDefaultObjectMapper());
   }
 
   public JacksonJsonDataFormat(String name, ObjectMapper objectMapper) {
-
-    this(name, objectMapper,
-        new ConfigurationBuilder()
-          .jsonProvider(new JacksonJsonProvider(objectMapper))
-          .mappingProvider(new JacksonMappingProvider(objectMapper))
-          .build());
+    this(name, objectMapper, createDefaultJsonPathConfiguration(objectMapper));
   }
 
   public JacksonJsonDataFormat(String name, ObjectMapper objectMapper, Configuration jsonPathConfiguration) {
@@ -162,7 +167,7 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
    */
   public JavaType constructJavaTypeFromCanonicalString(String canonicalString) {
     try {
-      return TypeFactory.defaultInstance().constructFromCanonical(canonicalString);
+      return getObjectMapper().getTypeFactory().constructFromCanonical(canonicalString);
     } catch (IllegalArgumentException e) {
       throw LOG.unableToConstructJavaType(canonicalString, e);
     }
@@ -208,8 +213,74 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
     return objectMapper;
   }
 
+  /**
+   * Replaces the {@link ObjectMapper} of this data format.
+   *
+   * <p>Jackson 3 mappers are immutable, so a {@link org.cibseven.spin.spi.DataFormatConfigurator}
+   * customizes the mapper with {@code setObjectMapper(getObjectMapper().rebuild()...build())}.
+   * If the JsonPath configuration is still the default one built from the previous mapper,
+   * it is rebuilt from the new mapper so that JsonPath queries see the same customizations.
+   * A configuration set with {@link #setJsonPathConfiguration(Configuration)} is kept.</p>
+   *
+   * @param objectMapper the new object mapper
+   */
   public void setObjectMapper(ObjectMapper objectMapper) {
+    ObjectMapper previousObjectMapper = this.objectMapper;
     this.objectMapper = objectMapper;
+    if (isDefaultJsonPathConfiguration(jsonPathConfiguration, previousObjectMapper)) {
+      this.jsonPathConfiguration = createDefaultJsonPathConfiguration(objectMapper);
+    }
+  }
+
+  /**
+   * Creates the default mapper of this data format: the Jackson 2 defaults of Jackson 3
+   * ({@link JsonMapper#builderWithJackson2Defaults()}: dates as timestamps, no alphabetical property order,
+   * enums by name, null for primitives accepted, unknown properties rejected, "/" not escaped, ...) and the
+   * nesting depth limit of Jackson 2 ({@link #MAX_NESTING_DEPTH}) for reading and writing. JSON written by
+   * CIB seven 2.x on Jackson 2 is read and written unchanged.
+   *
+   * @return a new default object mapper
+   */
+  public static JsonMapper createDefaultObjectMapper() {
+    JsonFactory jsonFactory = JsonFactory.builderWithJackson2Defaults()
+        .streamReadConstraints(StreamReadConstraints.builder().maxNestingDepth(MAX_NESTING_DEPTH).build())
+        .streamWriteConstraints(StreamWriteConstraints.builder().maxNestingDepth(MAX_NESTING_DEPTH).build())
+        .build();
+    return JsonMapper.builder(jsonFactory)
+        .configureForJackson2()
+        .build();
+  }
+
+  /**
+   * Builds the JsonPath {@link Configuration} this data format uses by default:
+   * JSON and mapping provider backed by the given object mapper.
+   *
+   * @param objectMapper the object mapper of the data format
+   * @return the default JsonPath configuration
+   */
+  protected static Configuration createDefaultJsonPathConfiguration(ObjectMapper objectMapper) {
+    try {
+      return new ConfigurationBuilder()
+          .jsonProvider(new Jackson3JsonProvider(objectMapper))
+          .mappingProvider(new Jackson3MappingProvider(objectMapper))
+          .build();
+    } catch (NoClassDefFoundError e) {
+      // json-path before 3.0.0 has no Jackson 3 providers, e.g. the version Spring Boot manages
+      throw LOG.jsonPathWithoutJackson3Support(e);
+    }
+  }
+
+  /**
+   * @return true if the configuration is the one {@link #createDefaultJsonPathConfiguration(ObjectMapper)}
+   * builds for the given object mapper (no options, no evaluation listeners)
+   */
+  protected static boolean isDefaultJsonPathConfiguration(Configuration configuration, ObjectMapper objectMapper) {
+    return configuration != null
+        && configuration.jsonProvider() instanceof Jackson3JsonProvider
+        && ((Jackson3JsonProvider) configuration.jsonProvider()).getObjectMapper() == objectMapper
+        && configuration.mappingProvider() instanceof Jackson3MappingProvider
+        && configuration.getOptions().isEmpty()
+        && configuration.getEvaluationListeners().isEmpty();
   }
 
   // helper functions //////////////////////////////////////////

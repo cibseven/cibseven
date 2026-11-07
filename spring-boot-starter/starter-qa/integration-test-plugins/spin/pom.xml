@@ -17,6 +17,8 @@
   <modules>
     <module>spin-dataformat-json-jackson</module>
     <module>spin-dataformat-all</module>
+    <!-- deprecated Jackson 2 variant of Spin, removed in 3.1.0 -->
+    <module>spin-dataformat-json-jackson2</module>
   </modules>
 
   <description>

@@ -32,6 +32,11 @@
     <version.mybatis>3.5.15</version.mybatis>
     <version.joda-time>2.12.5</version.joda-time>
     <version.uuid-generator>4.3.0</version.uuid-generator>
+    <!-- json-path 3.0.0 is the first release with the Jackson 3 providers Spin JSON uses
+         (Jackson3JsonProvider); json-smart and accessors-smart are runtime dependencies of json-path -->
+    <version.json-path>3.0.0</version.json-path>
+    <version.json-smart>2.6.0</version.json-smart>
+    <version.accessors-smart>2.6.0</version.accessors-smart>
     <version.feel-scala>1.19.3</version.feel-scala>
     <version.license-maven-plugin>2.4.0</version.license-maven-plugin>
     <!-- Version for cibseven-webclient-web -->
