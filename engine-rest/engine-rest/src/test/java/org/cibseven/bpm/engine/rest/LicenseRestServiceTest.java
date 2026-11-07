@@ -17,13 +17,20 @@
 package org.cibseven.bpm.engine.rest;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.restassured.http.ContentType;
 import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.ManagementService;
+import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 
 public class LicenseRestServiceTest extends AbstractRestServiceTest {
@@ -31,6 +38,11 @@ public class LicenseRestServiceTest extends AbstractRestServiceTest {
   protected ManagementService managementServiceMock;
 
   protected static final String LICENSE_KEY = "{}";
+
+  protected static final String LICENSE_URL = TEST_RESOURCE_ROOT_PATH + LicenseRestService.PATH;
+
+  @RegisterExtension
+  public static TestContainerRule rule = new TestContainerRule();
 
   @BeforeEach
   public void setupMocks() {
@@ -46,6 +58,23 @@ public class LicenseRestServiceTest extends AbstractRestServiceTest {
       .expect()
         .statusCode(Status.OK.getStatusCode());
     
+  }
+
+  @Test
+  public void testSetLicenseWithSignatureFromAnotherSecretNamesTheSecretMismatch() {
+    // CIB7-2493: the webclient maps this message to "different JWT secrets"
+    given()
+      .contentType(ContentType.JSON)
+      .body("{\"licenseKey\":\"{\\\"customer\\\":\\\"ACME\\\",\\\"signature\\\":\\\"not-a-jwe\\\"}\"}")
+    .then()
+      .expect()
+        .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+        .body("message", containsString("Failed to decrypt license signature"))
+        .body("message", containsString("same JWT secret"))
+    .when()
+      .post(LICENSE_URL);
+
+    verify(managementServiceMock, never()).setLicenseKey(anyString());
   }
 
   @Test
