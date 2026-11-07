@@ -28,6 +28,7 @@ import org.cibseven.spin.spi.DataFormatConfigurator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.support.SpringFactoriesLoader;
 
+@SuppressWarnings("removal") // the Jackson 2 configurators of the deprecated Jackson 2 variant of Spin
 public class SpringBootSpinProcessEnginePlugin extends SpinProcessEnginePlugin {
 
   @Autowired
@@ -48,7 +49,7 @@ public class SpringBootSpinProcessEnginePlugin extends SpinProcessEnginePlugin {
   protected void loadSpringBootDataFormats(ClassLoader classloader) {
     List<DataFormatConfigurator> configurators = new ArrayList<>();
 
-    // add the auto-config Jackson Java 8 module configurators
+    // add the auto-config Jackson 2 Java 8 module configurators (only with the Jackson 2 variant of Spin)
     dataFormatConfiguratorJsr310.ifPresent(configurator -> configurators.add(configurator));
     dataFormatConfiguratorParameterNames.ifPresent(configurator -> configurators.add(configurator));
     dataFormatConfiguratorJdk8.ifPresent(configurator -> configurators.add(configurator));
