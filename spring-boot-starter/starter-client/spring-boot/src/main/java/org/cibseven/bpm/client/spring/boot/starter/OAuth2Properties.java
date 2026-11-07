@@ -201,7 +201,7 @@ public class OAuth2Properties {
        * (RS256 for RSA, ES256 for EC P-256).
        * Requires {@code key-location} to point to a PEM-encoded private key.
        * Requires {@code io.jsonwebtoken:jjwt-api} at compile time and
-       * {@code io.jsonwebtoken:jjwt-impl} at runtime.
+       * {@code io.jsonwebtoken:jjwt-impl} and {@code io.jsonwebtoken:jjwt-gson} at runtime.
        */
       JJWT,
 

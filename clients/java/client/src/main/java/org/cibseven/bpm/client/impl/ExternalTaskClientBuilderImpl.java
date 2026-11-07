@@ -20,9 +20,6 @@ import static org.cibseven.bpm.client.task.OrderingConfig.Direction.ASC;
 import static org.cibseven.bpm.client.task.OrderingConfig.Direction.DESC;
 import static org.cibseven.bpm.client.task.OrderingConfig.SortingField.CREATE_TIME;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
@@ -64,6 +61,11 @@ import org.cibseven.bpm.client.variable.impl.mapper.ShortValueMapper;
 import org.cibseven.bpm.client.variable.impl.mapper.StringValueMapper;
 import org.cibseven.bpm.client.variable.impl.mapper.XmlValueMapper;
 import org.cibseven.bpm.engine.variable.Variables;
+
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Tassilo Weidner
@@ -204,6 +206,8 @@ public class ExternalTaskClientBuilderImpl implements ExternalTaskClientBuilder 
   }
 
   public ExternalTaskClient build() {
+    JacksonVariantCheck.ensureSingleVariant(ExternalTaskClientBuilderImpl.class.getClassLoader());
+
     if (maxTasks <= 0) {
       throw LOG.maxTasksNotGreaterThanZeroException(maxTasks);
     }
@@ -264,15 +268,20 @@ public class ExternalTaskClientBuilderImpl implements ExternalTaskClientBuilder 
     });
   }
 
+  /**
+   * Creates the mapper of the REST requests and responses: the Jackson 2 defaults of Jackson 3, lenient towards
+   * unknown properties, dates in {@link #dateFormat}.
+   */
   protected void initObjectMapper() {
-    objectMapper = new ObjectMapper();
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNRESOLVED_OBJECT_IDS, false);
-    objectMapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
-
     SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
-    objectMapper.setDateFormat(sdf);
-    objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+
+    objectMapper = JsonMapper.builderWithJackson2Defaults()
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .disable(DeserializationFeature.FAIL_ON_UNRESOLVED_OBJECT_IDS)
+        .disable(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE)
+        .defaultDateFormat(sdf)
+        .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .build();
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
