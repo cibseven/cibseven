@@ -24,6 +24,7 @@ import org.cibseven.bpm.engine.spring.test.SpringProcessEngineTestCase;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Philipp Ossler
@@ -38,6 +39,7 @@ public class JavaBasedProcessEngineConfigTest extends SpringProcessEngineTestCas
   protected RuntimeService runtimeService;
 
   @Deployment
+  @Test
   public void testDelegateExpression() {
     runtimeService.startProcessInstanceByKey("SpringProcess");
 
@@ -45,6 +47,7 @@ public class JavaBasedProcessEngineConfigTest extends SpringProcessEngineTestCas
   }
 
   @Deployment
+  @Test
   public void testExpression() {
     runtimeService.startProcessInstanceByKey("SpringProcess");
 
@@ -52,6 +55,7 @@ public class JavaBasedProcessEngineConfigTest extends SpringProcessEngineTestCas
   }
 
   @Deployment
+  @Test
   public void testDelegateExpressionWithProcessServices() {
     String processInstanceId = runtimeService.startProcessInstanceByKey("SpringProcess").getId();
 

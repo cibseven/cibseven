@@ -12,6 +12,8 @@
 
   <properties>
     <arquillian.version>1.7.0.Final</arquillian.version>
+    <!-- QA module: test code, not published -->
+    <cibseven.enforcer.allowTestLibraries>true</cibseven.enforcer.allowTestLibraries>
   </properties>
 
   <dependencyManagement>

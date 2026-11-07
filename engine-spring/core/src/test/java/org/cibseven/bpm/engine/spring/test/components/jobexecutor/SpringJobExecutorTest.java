@@ -24,6 +24,7 @@ import org.cibseven.bpm.engine.spring.test.SpringProcessEngineTestCase;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.springframework.test.context.ContextConfiguration;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -34,6 +35,7 @@ public class SpringJobExecutorTest extends SpringProcessEngineTestCase {
 
   @Deployment(resources={"org/cibseven/bpm/engine/spring/test/components/SpringTimersProcess.bpmn20.xml",
           "org/cibseven/bpm/engine/spring/test/components/SpringJobExecutorRollBack.bpmn20.xml"})
+	@Test
 	public void testHappyJobExecutorPath()throws Exception {
 
 		ProcessInstance instance = runtimeService.startProcessInstanceByKey("process1");
@@ -48,6 +50,7 @@ public class SpringJobExecutorTest extends SpringProcessEngineTestCase {
 
   @Deployment(resources={"org/cibseven/bpm/engine/spring/test/components/SpringTimersProcess.bpmn20.xml",
   "org/cibseven/bpm/engine/spring/test/components/SpringJobExecutorRollBack.bpmn20.xml"})
+  @Test
   public void testRollbackJobExecutorPath()throws Exception {
 
     // shutdown job executor first, otherwise waitForJobExecutorToProcessAllJobs will not actually start it....

@@ -21,6 +21,7 @@ import org.cibseven.bpm.engine.impl.util.CollectionUtil;
 import org.cibseven.bpm.engine.spring.test.SpringProcessEngineTestCase;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.springframework.test.context.ContextConfiguration;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -30,12 +31,14 @@ import org.springframework.test.context.ContextConfiguration;
 public class CustomTaskAssignmentTest extends SpringProcessEngineTestCase {
   
   @Deployment
+  @Test
   public void testSetAssigneeThroughSpringService() {
     runtimeService.startProcessInstanceByKey("assigneeThroughSpringService", CollectionUtil.singletonMap("emp", "fozzie"));
     assertEquals(1, taskService.createTaskQuery().taskAssignee("Kermit The Frog").count());
   }
   
   @Deployment
+  @Test
   public void testSetCandidateUsersThroughSpringService() {
     runtimeService.startProcessInstanceByKey("candidateUsersThroughSpringService", CollectionUtil.singletonMap("emp", "fozzie"));
     assertEquals(1, taskService.createTaskQuery().taskCandidateUser("kermit").count());
@@ -46,6 +49,7 @@ public class CustomTaskAssignmentTest extends SpringProcessEngineTestCase {
   
   
   @Deployment
+  @Test
   public void testSetCandidateGroupsThroughSpringService() {
     runtimeService.startProcessInstanceByKey("candidateUsersThroughSpringService", CollectionUtil.singletonMap("emp", "fozzie"));
     assertEquals(1, taskService.createTaskQuery().taskCandidateGroup("management").count());
