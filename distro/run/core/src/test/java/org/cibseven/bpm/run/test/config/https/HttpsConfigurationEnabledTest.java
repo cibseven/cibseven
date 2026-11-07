@@ -49,7 +49,7 @@ public class HttpsConfigurationEnabledTest extends AbstractRestTest {
     String url = "https://localhost:" + localPort + CONTEXT_PATH + "/task";
 
     // when
-    ResponseEntity<List> response = testRestTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(null), List.class);
+    ResponseEntity<List> response = testRestTemplate.exchange(url, HttpMethod.GET, HttpEntity.EMPTY, List.class);
 
     // then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -66,7 +66,7 @@ public class HttpsConfigurationEnabledTest extends AbstractRestTest {
     // a 2xx (served content) or 3xx (redirect) would be a failure.
     try {
       ResponseEntity<String> response =
-          testRestTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(null), String.class);
+          testRestTemplate.exchange(url, HttpMethod.GET, HttpEntity.EMPTY, String.class);
 
       assertThat(response.getStatusCode().is3xxRedirection())
           .as("Server must not redirect plain HTTP to HTTPS")

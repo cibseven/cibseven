@@ -17,13 +17,14 @@
 package org.cibseven.bpm.integrationtest.util;
 
 import org.cibseven.bpm.application.ProcessApplication;
+import org.cibseven.bpm.application.impl.JakartaServletProcessApplication;
+
 
 /**
  * @author meyerd
  *
  */
 @ProcessApplication
-// Using fully-qualified class name instead of import statement to allow for automatic Jakarta transformation
-public class TestProcessApplication extends org.cibseven.bpm.application.impl.ServletProcessApplication {
+public class TestProcessApplication extends JakartaServletProcessApplication {
 
 }

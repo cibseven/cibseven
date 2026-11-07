@@ -17,8 +17,8 @@
 package org.cibseven.bpm.run.qa.webapps;
 
 import org.cibseven.bpm.run.qa.util.SpringBootManagedContainer;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriverException;
@@ -29,7 +29,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.stream.Stream;
 
 import static org.openqa.selenium.support.ui.ExpectedConditions.textToBePresentInElementLocated;
@@ -39,54 +38,41 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElem
  * NOTE:
  * copied from
  * <a href="https://github.com/cibseven/cibseven/blob/main/qa/integration-tests-webapps/integration-tests/src/main/java/org/cibseven/bpm/LoginIT.java">platform</a>
- * then added <code>@BeforeEach</code> and <code>@AfterEach</code> methods for container setup
- * and <code>@MethodSource</code> for different setups, might be removed with https://jira.camunda.com/browse/CAM-11379
+ * then added container setup and different setups via {@link ParameterizedTest},
+ * might be removed with https://jira.camunda.com/browse/CAM-11379
  */
 public class LoginIT extends AbstractWebappUiIT {
 
-  protected static SpringBootManagedContainer container;
-  protected WebDriverWait wait;
-
-  public static Stream<String[]> commands() {
+  static Stream<Arguments> commands() {
     return Stream.of(
-      new String[0],
-      new String[]{"--rest", "--webapps"},
-      new String[]{"--webapps"}
+      Arguments.of((Object) new String[0]),
+      Arguments.of((Object) new String[]{"--rest", "--webapps"}),
+      Arguments.of((Object) new String[]{"--webapps"})
     );
   }
 
-  @AfterEach
-  public void tearDownContainer() {
-    // Stop container after each parameterized test invocation
+  protected static SpringBootManagedContainer container;
+
+  protected WebDriverWait wait;
+
+  public static void runStartScript(String[] commands) {
+    container = new SpringBootManagedContainer(commands);
+    try {
+      container.start();
+    } catch (Exception e) {
+      throw new RuntimeException("Cannot start managed Spring Boot application!", e);
+    }
+  }
+
+  public static void stopApp() {
     try {
       if (container != null) {
         container.stop();
       }
     } catch (Exception e) {
-      // Log but don't fail the test due to cleanup issues
-      System.err.println("Warning: Failed to stop container: " + e.getMessage());
+      throw new RuntimeException("Cannot stop managed Spring Boot application!", e);
     } finally {
       container = null;
-    }
-  }
-
-  // Method to setup container for parameterized tests
-  private void setupContainerForCommands(String[] commands) {
-    // Stop existing container if running
-    if (container != null) {
-      try {
-        container.stop();
-      } catch (Exception e) {
-        // Ignore shutdown errors
-      }
-    }
-
-    container = new SpringBootManagedContainer(commands);
-    try {
-      container.start();
-    } catch (Exception e) {
-      throw new RuntimeException("Cannot start managed Spring Boot application with commands: " +
-          String.join(" ", commands), e);
     }
   }
 
@@ -116,11 +102,15 @@ public class LoginIT extends AbstractWebappUiIT {
   @ParameterizedTest
   @MethodSource("commands")
   public void shouldLoginToCockpit(String[] commands) throws URISyntaxException {
-    setupContainerForCommands(commands);
     try {
-      loginToCockpit();
-    } catch (WebDriverException e) {
-      loginToCockpit();
+      runStartScript(commands);
+      try {
+        loginToCockpit();
+      } catch (WebDriverException e) {
+        loginToCockpit();
+      }
+    } finally {
+      stopApp();
     }
   }
 
@@ -138,11 +128,15 @@ public class LoginIT extends AbstractWebappUiIT {
   @ParameterizedTest
   @MethodSource("commands")
   public void shouldLoginToTasklist(String[] commands) {
-    setupContainerForCommands(commands);
     try {
-      loginToTasklist();
-    } catch (WebDriverException e) {
-      loginToTasklist();
+      runStartScript(commands);
+      try {
+        loginToTasklist();
+      } catch (WebDriverException e) {
+        loginToTasklist();
+      }
+    } finally {
+      stopApp();
     }
   }
 
@@ -160,11 +154,15 @@ public class LoginIT extends AbstractWebappUiIT {
   @ParameterizedTest
   @MethodSource("commands")
   public void shouldLoginToAdmin(String[] commands) throws URISyntaxException {
-    setupContainerForCommands(commands);
     try {
-      loginToAdmin();
-    } catch (WebDriverException e) {
-      loginToAdmin();
+      runStartScript(commands);
+      try {
+        loginToAdmin();
+      } catch (WebDriverException e) {
+        loginToAdmin();
+      }
+    } finally {
+      stopApp();
     }
   }
 
@@ -182,11 +180,15 @@ public class LoginIT extends AbstractWebappUiIT {
   @ParameterizedTest
   @MethodSource("commands")
   public void shouldLoginToWelcome(String[] commands) throws URISyntaxException {
-    setupContainerForCommands(commands);
     try {
-      loginToWelcome();
-    } catch (WebDriverException e) {
-      loginToWelcome();
+      runStartScript(commands);
+      try {
+        loginToWelcome();
+      } catch (WebDriverException e) {
+        loginToWelcome();
+      }
+    } finally {
+      stopApp();
     }
   }
 

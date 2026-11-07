@@ -35,6 +35,9 @@ public class LockExternalTaskCmd extends HandleExternalTaskCmd {
   @Override
   protected void execute(ExternalTaskEntity externalTask) {
     externalTask.lock(workerId, lockDuration);
+    // safe to fire right away: a concurrent modification is not ignored here,
+    // it rolls back the whole transaction including the history event
+    externalTask.produceHistoricExternalTaskFetchedEvent();
   }
 
   @Override

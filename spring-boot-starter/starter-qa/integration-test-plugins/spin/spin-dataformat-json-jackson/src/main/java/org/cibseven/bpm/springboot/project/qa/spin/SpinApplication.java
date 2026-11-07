@@ -37,7 +37,7 @@ public class SpinApplication {
   public JavaDelegate spinJava8DeserializerDelegate() {
     return delegateExecution -> {
       SpinJsonNode jsonNode = S("{\"dateTime\": \"2019-12-12T22:22:22\"}");
-      Object         key      = jsonNode.mapTo(SpinJava8Dto.class);
+      Object key = jsonNode.mapTo(SpinJava8Dto.class);
     };
   }
 
@@ -47,10 +47,9 @@ public class SpinApplication {
       SpinJsonNode jsonNode = S("{\"dateTime\": \"2019-12-12T22:22:22\"}");
       Object key = jsonNode.mapTo(SpinDto.class);
       delegateExecution.setVariables(Variables.createVariables().putValueTyped("dateTime",
-          Variables
-           .objectValue(key)
-           .serializationDataFormat(DataFormats.JSON_DATAFORMAT_NAME)
-           .create()));
+          Variables.objectValue(key)
+            .serializationDataFormat(DataFormats.JSON_DATAFORMAT_NAME)
+            .create()));
     };
   }
 }

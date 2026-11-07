@@ -5,7 +5,7 @@
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-database-settings</artifactId>
     <relativePath>../database</relativePath>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cibseven-engine-rest-root</artifactId>
@@ -25,6 +25,14 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- Jakarta EE 11 platform APIs (JAX-RS 4.0, Activation, ...) -->
+      <dependency>
+        <groupId>jakarta.platform</groupId>
+        <artifactId>jakarta.jakartaee-bom</artifactId>
+        <version>${version.jakarta-ee-spec}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <!-- explicitly declare groovy dependencies, so it prevents our groovy version
             from overriding the groovy version from rest-assured -->
       <dependency>

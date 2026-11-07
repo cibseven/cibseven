@@ -23,7 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.tuple;
 @SpringBootTest
 public class ClientAutoConfigurationIT {
 
-  @MockBean(answer = Answers.RETURNS_DEEP_STUBS)
+  @MockitoBean(answers = Answers.RETURNS_DEEP_STUBS)
   protected ExternalTaskClient externalTaskClient;
 
   @Autowired

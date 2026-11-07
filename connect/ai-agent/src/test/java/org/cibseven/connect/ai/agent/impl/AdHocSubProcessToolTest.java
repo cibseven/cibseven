@@ -1,0 +1,3091 @@
+/*
+ * Copyright CIB software GmbH and/or licensed to CIB software GmbH
+ * under one or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information regarding copyright
+ * ownership. CIB software licenses this file to you under the Apache License,
+ * Version 2.0; you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+package org.cibseven.connect.ai.agent.impl;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.nio.charset.StandardCharsets;
+import java.sql.Time;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.apache.ibatis.executor.Executor;
+import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.plugin.Interceptor;
+import org.apache.ibatis.plugin.Intercepts;
+import org.apache.ibatis.plugin.Invocation;
+import org.apache.ibatis.plugin.Signature;
+import org.apache.ibatis.session.ResultHandler;
+import org.apache.ibatis.session.RowBounds;
+import org.cibseven.bpm.engine.ProcessEngine;
+import org.cibseven.bpm.engine.ProcessEngineConfiguration;
+import org.cibseven.bpm.engine.delegate.DelegateExecution;
+import org.cibseven.bpm.engine.delegate.JavaDelegate;
+import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
+import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.cibseven.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
+import org.cibseven.bpm.engine.impl.variable.serializer.AbstractObjectValueSerializer;
+import org.cibseven.bpm.engine.impl.variable.serializer.ValueFields;
+import org.cibseven.bpm.engine.impl.variable.serializer.VariableSerializers;
+import org.cibseven.bpm.engine.variable.value.ObjectValue;
+import org.cibseven.bpm.engine.history.HistoricDetail;
+import org.cibseven.bpm.engine.history.HistoricVariableUpdate;
+import org.cibseven.bpm.engine.runtime.Job;
+import org.cibseven.bpm.engine.runtime.ProcessInstance;
+import org.cibseven.bpm.engine.runtime.VariableInstance;
+import org.cibseven.bpm.engine.task.Task;
+import org.cibseven.bpm.engine.variable.Variables;
+import org.cibseven.bpm.engine.variable.impl.value.ObjectValueImpl;
+import org.cibseven.bpm.engine.variable.value.SerializableValue;
+import org.cibseven.bpm.engine.variable.type.SerializableValueType;
+import org.cibseven.bpm.engine.variable.type.ValueType;
+import org.cibseven.bpm.engine.variable.value.TypedValue;
+import org.cibseven.connect.ScriptedAgent;
+import org.cibseven.connect.ai.agent.agentic.AdHocAgentState;
+import org.cibseven.connect.ai.agent.agentic.AdHocConversation;
+import org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+
+/**
+ * {@link AdHocSubProcessTool} — the three tools the model calls to see, start and
+ * end the activities of the ad hoc sub process it runs in.
+ *
+ * <h3>Why there is no language model here</h3>
+ * The tool methods are ordinary Java methods that take their context from two
+ * thread locals: the BPMN execution from {@code Context.getBpmnExecutionContext()}
+ * and the engine from {@link ProcessStarterToolContext}. Nothing about them needs
+ * a model to decide anything, so the decision a model would make is scripted through
+ * {@link ScriptedAgent} instead. A stub model would exercise LangChain4j's tool
+ * dispatch — someone else's code — rather than these methods.
+ *
+ * <p>What that costs: these tests do not show that the tool <em>descriptions</em>
+ * lead a real model to call the tools in a sensible order. That needs an
+ * end-to-end run against a model and is not covered here.
+ *
+ * <h3>Why the turns are real jobs</h3>
+ * The agent is configuration on the ad hoc sub process, and a turn is a job on that
+ * scope's execution. {@code requireAdHocScope} walks the execution tree and identifies
+ * the scope by its behaviour, so the tools are called from a real turn on a real parked
+ * scope rather than against a fabricated execution. Only the model is scripted.
+ */
+public class AdHocSubProcessToolTest {
+
+  private static final ProcessEngine ENGINE = buildInMemoryEngine();
+
+
+  private static ProcessEngine buildInMemoryEngine() {
+    StandaloneInMemProcessEngineConfiguration configuration =
+        new StandaloneInMemProcessEngineConfiguration();
+    configuration.setJdbcUrl("jdbc:h2:mem:adhoc-tool-test;DB_CLOSE_DELAY=-1");
+    configuration.setJobExecutorActivate(false);
+    configuration.setHistoryTimeToLive("P30D");
+    // 'full' is what records a variable update per activity instance, which is
+    // the source describeFinished asks first.
+    configuration.setHistory(ProcessEngineConfiguration.HISTORY_FULL);
+    // Brings the parse listener that parks an agentic scope and the handler that runs a turn.
+    configuration.setProcessEnginePlugins(
+        Collections.<ProcessEnginePlugin>singletonList(new ConnectProcessEnginePlugin()));
+    return configuration.buildProcessEngine();
+  }
+
+  // --- the scripted agent ----------------------------------------------------
+
+  /** What the agent does in one turn. */
+  interface Turn {
+    Object run(AdHocSubProcessTool tool);
+  }
+
+  /**
+   * Counts the engine's reads of stored byte arrays, the statement a file's, bytes' or an object's
+   * value is loaded with: what a declared value shown by its type alone must not cost. Installed
+   * once into the engine's MyBatis configuration; a plugin cannot be removed, so it stays and counts.
+   */
+  @Intercepts({@Signature(
+      type = Executor.class, method = "query",
+      args = {MappedStatement.class, Object.class,
+          RowBounds.class, ResultHandler.class})})
+  static final class ByteArrayReads implements Interceptor {
+    /**
+     * The ids of the byte arrays read since the last {@code clear()}; the engine reads every one of a
+     * process when it ends, to delete it, so a test looks at the set while the step still runs.
+     */
+    static final Set<String> READ_IDS =
+        Collections.synchronizedSet(new LinkedHashSet<>());
+    private static boolean installed;
+
+    static synchronized void install(ProcessEngine engine) {
+      if (!installed) {
+        ((ProcessEngineConfigurationImpl) engine.getProcessEngineConfiguration())
+            .getSqlSessionFactory().getConfiguration().addInterceptor(new ByteArrayReads());
+        installed = true;
+      }
+    }
+
+    @Override
+    public Object intercept(Invocation invocation) throws Throwable {
+      MappedStatement statement = (MappedStatement) invocation.getArgs()[0];
+      if (statement.getId().contains("selectByteArray")) {
+        READ_IDS.add(String.valueOf(invocation.getArgs()[1]));
+      }
+      return invocation.proceed();
+    }
+  }
+
+  /**
+   * An object serializer of a format the agent never sees, which refuses to read a value when
+   * told to: a stand-in for the cost of reading a file's or an object's bytes on every step.
+   */
+  static final class BlobSerializer extends AbstractObjectValueSerializer {
+    volatile boolean failReads;
+
+    BlobSerializer() {
+      super("application/x-test-blob");
+    }
+
+    @Override
+    public String getName() {
+      return "blob-test";
+    }
+
+    @Override
+    protected boolean isSerializationTextBased() {
+      return false;
+    }
+
+    @Override
+    protected String getTypeNameForDeserialized(Object deserializedObject) {
+      return deserializedObject.getClass().getName();
+    }
+
+    @Override
+    protected byte[] serializeToByteArray(Object deserializedObject) {
+      return String.valueOf(deserializedObject).getBytes(StandardCharsets.UTF_8);
+    }
+
+    @Override
+    protected Object deserializeFromByteArray(byte[] bytes, String objectTypeName) {
+      return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    @Override
+    protected boolean canSerializeValue(Object value) {
+      return value instanceof Map;
+    }
+
+    @Override
+    public ObjectValue readValue(ValueFields valueFields, boolean deserializeValue,
+        boolean asTransientValue) {
+      if (failReads) {
+        throw new IllegalStateException("the value was read");
+      }
+      return super.readValue(valueFields, deserializeValue, asTransientValue);
+    }
+  }
+
+  /**
+   * A JSON serializer for the engine of these tests, which has no Spin: Jackson over a Map, so
+   * that an object stored as JSON can be read deserialized and changed in a step.
+   */
+  static final class JsonMapSerializer extends AbstractObjectValueSerializer {
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private final String name;
+    /** Writes the keys in upper case: another serializer of the same format writes otherwise. */
+    private final boolean upperCaseKeys;
+    /** How many of the next writes fail, as a serializer that cannot write an object would. */
+    volatile int failNextWrites;
+
+    JsonMapSerializer() {
+      this("json-map-test", false);
+    }
+
+    JsonMapSerializer(String name, boolean upperCaseKeys) {
+      super("application/json");
+      this.name = name;
+      this.upperCaseKeys = upperCaseKeys;
+    }
+
+    @Override
+    public String getName() {
+      return name;
+    }
+
+    @Override
+    protected boolean isSerializationTextBased() {
+      return true;
+    }
+
+    @Override
+    protected String getTypeNameForDeserialized(Object deserializedObject) {
+      return deserializedObject.getClass().getName();
+    }
+
+    @Override
+    protected byte[] serializeToByteArray(Object deserializedObject) throws Exception {
+      if (failNextWrites > 0) {
+        failNextWrites--;
+        // As a serializer may: the message names the object, as the engine's own messages do.
+        throw new IllegalStateException("cannot write " + deserializedObject);
+      }
+      Object written = deserializedObject;
+      if (upperCaseKeys) {
+        Map<String, Object> upper = new LinkedHashMap<>();
+        for (Map.Entry<?, ?> entry : ((Map<?, ?>) deserializedObject).entrySet()) {
+          upper.put(String.valueOf(entry.getKey()).toUpperCase(), entry.getValue());
+        }
+        written = upper;
+      }
+      return MAPPER.writeValueAsBytes(written);
+    }
+
+    @Override
+    protected Object deserializeFromByteArray(byte[] bytes, String objectTypeName) throws Exception {
+      return MAPPER.readValue(bytes, LinkedHashMap.class);
+    }
+
+    @Override
+    protected boolean canSerializeValue(Object value) {
+      return value instanceof Map;
+    }
+  }
+
+  /** What the scripted turns returned and what they ran into. */
+  static final class Agent {
+
+    static final List<Object> RESULTS = new ArrayList<>();
+    static final List<RuntimeException> FAILURES = new ArrayList<>();
+
+    private Agent() {
+    }
+
+    static void clear() {
+      RESULTS.clear();
+      FAILURES.clear();
+    }
+  }
+
+  /**
+   * One scripted turn.
+   *
+   * <p>A refusal is caught rather than propagated: several tests assert on one, and a
+   * propagated exception would roll the turn back and hide the state the assertion is
+   * about. {@link TurnFailure} is the exception, for the tests whose subject IS the
+   * rollback.
+   */
+  private static ScriptedAgent.Turn agent(Turn turn) {
+    return parameters -> {
+      try {
+        Agent.RESULTS.add(turn.run(new AdHocSubProcessTool()));
+      } catch (TurnFailure e) {
+        throw e;
+      } catch (RuntimeException e) {
+        Agent.FAILURES.add(e);
+      }
+      return "done";
+    };
+  }
+
+  /** Thrown by a scripted turn that is meant to fail the job and roll its work back. */
+  static final class TurnFailure extends RuntimeException {
+    TurnFailure(String message) {
+      super(message);
+    }
+  }
+
+  /**
+   * Writes enough long values that their total exceeds
+   * {@link AdHocSubProcessTool#MAX_RESULT_BLOCK_CHARS}, so the per-turn budget has
+   * to cut the block off. Each single value is over the per-value cap too, so every
+   * one of them costs the truncated length.
+   */
+  public static class WritesManyLongTexts implements JavaDelegate {
+
+    static final int COUNT =
+        (AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS / AdHocSubProcessTool.MAX_RESULT_VALUE_CHARS) + 2;
+
+    static String names() {
+      StringBuilder names = new StringBuilder();
+      for (int i = 0; i < COUNT; i++) {
+        names.append(i == 0 ? "" : ",").append("block").append(i);
+      }
+      return names.toString();
+    }
+
+    @Override
+    public void execute(DelegateExecution execution) {
+      StringBuilder text = new StringBuilder();
+      for (int i = 0; i < AdHocSubProcessTool.MAX_RESULT_VALUE_CHARS + 100; i++) {
+        text.append('y');
+      }
+      for (int i = 0; i < COUNT; i++) {
+        execution.setVariable("block" + i, text.toString());
+      }
+    }
+  }
+
+  /** Writes a string longer than {@link AdHocSubProcessTool#MAX_RESULT_VALUE_CHARS}. */
+  public static class WritesLongText implements JavaDelegate {
+
+    static final int LENGTH = AdHocSubProcessTool.MAX_RESULT_VALUE_CHARS + 500;
+
+    @Override
+    public void execute(DelegateExecution execution) {
+      StringBuilder text = new StringBuilder(LENGTH);
+      for (int i = 0; i < LENGTH; i++) {
+        text.append('x');
+      }
+      execution.setVariable("report", text.toString());
+    }
+  }
+
+  /** Writes a value whose type is not primitive, so it must not reach the prompt. */
+  public static class WritesObject implements JavaDelegate {
+
+    @Override
+    public void execute(DelegateExecution execution) {
+      execution.setVariable("payload",
+          Variables.objectValue(new ArrayList<>(Arrays.asList("a", "b"))).create());
+    }
+  }
+
+  /**
+   * Writes the values the engine counts as primitive that must still not reach a prompt
+   * (CIB7-2233): a byte array large enough that its Base64 alone would exceed the per-turn
+   * budget, a file, and a date. Next to them a string, which is to pass unchanged.
+   */
+  public static class WritesDocument implements JavaDelegate {
+
+    static final String NAMES = "title,doc,scan,issuedOn";
+    static final byte[] BYTES = new byte[AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS * 2];
+
+    static {
+      Arrays.fill(BYTES, (byte) 'p');
+    }
+
+    @Override
+    public void execute(DelegateExecution execution) {
+      execution.setVariable("title", "Rechnung 7");
+      execution.setVariable("doc", Variables.byteArrayValue(BYTES));
+      execution.setVariable("scan", Variables.fileValue("rechnung-7.pdf")
+          .file(BYTES).mimeType("application/pdf").create());
+      execution.setVariable("issuedOn", new Date(0L));
+    }
+  }
+
+  /**
+   * Writes more values than fit the per-turn budget, each of them quotes only, so that each
+   * takes twice its length in the tool result as written: JSON escapes every quote.
+   */
+  public static class WritesManyQuotedTexts implements JavaDelegate {
+
+    static final int COUNT =
+        (AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS / AdHocSubProcessTool.MAX_RESULT_VALUE_CHARS) + 2;
+
+    static String names() {
+      StringBuilder names = new StringBuilder();
+      for (int i = 0; i < COUNT; i++) {
+        names.append(i == 0 ? "" : ",").append("quoted").append(i);
+      }
+      return names.toString();
+    }
+
+    @Override
+    public void execute(DelegateExecution execution) {
+      char[] quotes = new char[AdHocSubProcessTool.MAX_RESULT_VALUE_CHARS];
+      Arrays.fill(quotes, '"');
+      for (int i = 0; i < COUNT; i++) {
+        execution.setVariable("quoted" + i, new String(quotes));
+      }
+    }
+  }
+
+  /**
+   * Writes three values of quotes, each as long as one value may be, for the state block's
+   * budget: one entry takes about 6000 characters as text and twice that as written.
+   */
+  public static class WritesThreeQuotedTexts implements JavaDelegate {
+
+    @Override
+    public void execute(DelegateExecution execution) {
+      char[] quotes = new char[AdHocSubProcessTool.MAX_RESULT_VALUE_CHARS];
+      Arrays.fill(quotes, '"');
+      for (int i = 0; i < 3; i++) {
+        execution.setVariable("q" + i, new String(quotes));
+      }
+    }
+  }
+
+  @BeforeEach
+  public void setUp() {
+    Agent.clear();
+    ScriptedAgent.reset();
+    ProcessStarterToolContext.setEngine(ENGINE);
+  }
+
+  @AfterEach
+  public void tearDown() {
+    ProcessStarterToolContext.clear();
+    ScriptedAgent.uninstall();
+    Agent.clear();
+  }
+
+  // --- models ----------------------------------------------------------------
+
+  private static final String LONG_TEXT = WritesLongText.class.getName();
+  private static final String OBJECT = WritesObject.class.getName();
+  private static final String DOCUMENT = WritesDocument.class.getName();
+
+  /**
+   * An agentic scope. The agent is configuration on the element, so the children below are
+   * the tools and nothing else; the parse listener parks the scope and hangs the first turn
+   * on entering it.
+   *
+   * <p>{@code quick} finishes inside the activation call and declares its result
+   * through {@code camunda:resultVariable}; {@code waits} is a user task;
+   * {@code bigText} and {@code object} name their result with
+   * {@code adHocResultVariables}, because a class delegate has no result variable
+   * attribute to derive from.
+   */
+  private static String model(String processId, String extraScopeProperties) {
+    // The connector's inputs among them go to the connector, the rest stays a property.
+    StringBuilder inputs = new StringBuilder();
+    Matcher input = Pattern.compile("<camunda:inputParameter .*?</camunda:inputParameter>")
+        .matcher(extraScopeProperties);
+    while (input.find()) {
+      inputs.append(input.group());
+    }
+    extraScopeProperties = input.replaceAll("");
+    return "<?xml version='1.0' encoding='UTF-8'?>"
+        + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
+        + " xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
+        + " targetNamespace='http://cibseven.org/adhoc-tool'>"
+        + "<process id='" + processId + "' isExecutable='true'>"
+        + "  <startEvent id='start' />"
+        + "  <sequenceFlow id='f1' sourceRef='start' targetRef='adHoc' />"
+        + "  <adHocSubProcess id='adHoc'>"
+        + "    <extensionElements><camunda:properties>"
+        + extraScopeProperties
+        + "    </camunda:properties>"
+        + "    <camunda:connector>"
+        + "      <camunda:connectorId>cibseven-ai-agent</camunda:connectorId>"
+        + "      <camunda:inputOutput>"
+        + "        <camunda:inputParameter name='message'>Do the work.</camunda:inputParameter>"
+        + inputs
+        + "      </camunda:inputOutput>"
+        + "    </camunda:connector></extensionElements>"
+        + "    <userTask id='waits' name='Waits for a person'>"
+        + "      <documentation>Someone has to look at this.</documentation>"
+        + "      <extensionElements><camunda:formData>"
+        // Declares 'decision' and nothing else. A person completing the task can set
+        // any variable they like, which is what aDeclaringActivityReportsOnlyWhatItDeclares
+        // is about.
+        + "        <camunda:formField id='decision' label='Decision' type='string' />"
+        + "      </camunda:formData></extensionElements>"
+        + "    </userTask>"
+        + "    <serviceTask id='quick' name='Quick'"
+        + "        camunda:expression='${200}' camunda:resultVariable='amount' />"
+        + "    <serviceTask id='bigText' name='Big text' camunda:class='" + LONG_TEXT + "'>"
+        + "      <extensionElements><camunda:properties>"
+        + "        <camunda:property name='adHocResultVariables' value='report' />"
+        + "      </camunda:properties></extensionElements>"
+        + "    </serviceTask>"
+        + "    <serviceTask id='gated' name='Gated' camunda:expression='${1}'>"
+        + "      <extensionElements><camunda:properties>"
+        + "        <camunda:property name='adHocBlockedWhileOthersRun' value='true' />"
+        + "      </camunda:properties></extensionElements>"
+        + "    </serviceTask>"
+        + "    <serviceTask id='asyncChild' name='Async child' camunda:asyncBefore='true'"
+        + "        camunda:expression='${1}' camunda:resultVariable='asyncDone' />"
+        + "    <userTask id='multi' name='Multi'>"
+        + "      <multiInstanceLoopCharacteristics isSequential='false'>"
+        + "        <loopCardinality>3</loopCardinality>"
+        + "      </multiInstanceLoopCharacteristics>"
+        + "    </userTask>"
+        + "    <userTask id='chatty' name='" + longText(200) + "'>"
+        + "      <documentation>" + longText(1200) + "</documentation>"
+        + "    </userTask>"
+        + "    <serviceTask id='bigBlock' name='Big block' camunda:class='"
+        + WritesManyLongTexts.class.getName() + "'>"
+        + "      <extensionElements><camunda:properties>"
+        + "        <camunda:property name='adHocResultVariables' value='"
+        + WritesManyLongTexts.names() + "' />"
+        + "      </camunda:properties></extensionElements>"
+        + "    </serviceTask>"
+        + "    <serviceTask id='object' name='Object' camunda:class='" + OBJECT + "'>"
+        + "      <extensionElements><camunda:properties>"
+        + "        <camunda:property name='adHocResultVariables' value='payload' />"
+        + "      </camunda:properties></extensionElements>"
+        + "    </serviceTask>"
+        + "    <serviceTask id='document' name='Document' camunda:class='" + DOCUMENT + "'>"
+        + "      <extensionElements><camunda:properties>"
+        + "        <camunda:property name='adHocResultVariables' value='" + WritesDocument.NAMES + "' />"
+        + "      </camunda:properties></extensionElements>"
+        + "    </serviceTask>"
+        + "    <serviceTask id='documentLater' name='Document later' camunda:asyncBefore='true'"
+        + "        camunda:class='" + DOCUMENT + "'>"
+        + "      <extensionElements><camunda:properties>"
+        + "        <camunda:property name='adHocResultVariables' value='" + WritesDocument.NAMES + "' />"
+        + "      </camunda:properties></extensionElements>"
+        + "    </serviceTask>"
+        + "    <serviceTask id='quotedLater' name='Quoted later' camunda:asyncBefore='true'"
+        + "        camunda:class='" + WritesThreeQuotedTexts.class.getName() + "'>"
+        + "      <extensionElements><camunda:properties>"
+        + "        <camunda:property name='adHocResultVariables' value='q0,q1,q2' />"
+        + "      </camunda:properties></extensionElements>"
+        + "    </serviceTask>"
+        + "    <serviceTask id='quotedBlock' name='Quoted block' camunda:class='"
+        + WritesManyQuotedTexts.class.getName() + "'>"
+        + "      <extensionElements><camunda:properties>"
+        + "        <camunda:property name='adHocResultVariables' value='"
+        + WritesManyQuotedTexts.names() + "' />"
+        + "      </camunda:properties></extensionElements>"
+        + "    </serviceTask>"
+        + "  </adHocSubProcess>"
+        + "  <sequenceFlow id='f2' sourceRef='adHoc' targetRef='end' />"
+        + "  <endEvent id='end' />"
+        + "</process></definitions>";
+  }
+
+  /**
+   * A service task outside any ad hoc sub process, for the refusal that says so.
+   *
+   * <p>The agent itself is never modelled this way any more, but nothing stops someone
+   * naming {@link AdHocSubProcessTool} among the tool classes of an ordinary agent task,
+   * and that mistake has to produce a sentence rather than a silent no-op.
+   */
+  private static String modelWithoutScope() {
+    return "<?xml version='1.0' encoding='UTF-8'?>"
+        + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
+        + " xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
+        + " targetNamespace='http://cibseven.org/adhoc-tool'>"
+        + "<process id='noScope' isExecutable='true'>"
+        + "  <startEvent id='start' />"
+        + "  <sequenceFlow id='f1' sourceRef='start' targetRef='agent' />"
+        + "  <serviceTask id='agent' name='Agent' camunda:class='"
+        + CallsTheToolOutsideAScope.class.getName() + "' />"
+        + "  <sequenceFlow id='f2' sourceRef='agent' targetRef='end' />"
+        + "  <endEvent id='end' />"
+        + "</process></definitions>";
+  }
+
+  /** Calls the listing from a plain service task and records the refusal. */
+  public static class CallsTheToolOutsideAScope implements JavaDelegate {
+
+    @Override
+    public void execute(DelegateExecution execution) {
+      try {
+        Agent.RESULTS.add(new AdHocSubProcessTool().turnReport());
+      } catch (RuntimeException e) {
+        Agent.FAILURES.add(e);
+      }
+    }
+  }
+
+  // --- helpers ---------------------------------------------------------------
+
+  /** Deploys, starts, and takes the first turn. */
+  private ProcessInstance start(String processId, String extraScopeProperties, Turn... script) {
+    ProcessInstance instance = startWithoutTurn(processId, extraScopeProperties, script);
+    runPendingTurn(instance);
+    return instance;
+  }
+
+  private ProcessInstance start(String processId, Turn... script) {
+    return start(processId, "", script);
+  }
+
+  /** Filler for the over-long name and documentation of the 'chatty' child. */
+  private static String longText(int length) {
+    StringBuilder text = new StringBuilder(length);
+    while (text.length() < length) {
+      text.append("lorem ipsum ");
+    }
+    return text.substring(0, length);
+  }
+
+  /**
+   * Same, but leaves the first turn waiting as a job.
+   *
+   * <p>For the tests that are about the job itself — what it does when it fails, how often
+   * it is retried — and for those that have to look at the instance before the agent has
+   * seen it.
+   */
+  private ProcessInstance startWithoutTurn(String processId, Turn... script) {
+    return startWithoutTurn(processId, "", script);
+  }
+
+  private ProcessInstance startWithoutTurn(String processId, String extraScopeProperties,
+                                           Turn... script) {
+    ScriptedAgent.Turn[] turns = new ScriptedAgent.Turn[script.length];
+    for (int i = 0; i < script.length; i++) {
+      turns[i] = agent(script[i]);
+    }
+    ScriptedAgent.install(turns);
+    ENGINE.getRepositoryService().createDeployment()
+        .addString(processId + ".bpmn20.xml", model(processId, extraScopeProperties))
+        .deploy();
+    return ENGINE.getRuntimeService().startProcessInstanceByKey(processId);
+  }
+
+  /** Runs the pending turn job, which is one turn. */
+  private void runPendingTurn(ProcessInstance instance) {
+    List<Job> jobs = ENGINE.getManagementService().createJobQuery()
+        .processInstanceId(instance.getId()).list();
+    assertThat(jobs).as("a turn waiting as a job").hasSize(1);
+    ENGINE.getManagementService().executeJob(jobs.get(0).getId());
+  }
+
+  /**
+   * Runs the turn job on the scope execution itself, leaving any other job -- a queued
+   * {@code asyncBefore} child's own, in particular -- untouched. {@link #runPendingTurn}
+   * cannot be used here: it demands exactly one job in the whole instance, and the turn
+   * job coexists with such a child's own job between the child's activation and its own
+   * execution, independent of the turn.
+   */
+  private void runPendingAgenticTurn(ProcessInstance instance) {
+    String scopeExecutionId = ENGINE.getRuntimeService().createExecutionQuery()
+        .processInstanceId(instance.getId()).activityId("adHoc").singleResult().getId();
+    List<Job> jobs = ENGINE.getManagementService().createJobQuery()
+        .executionId(scopeExecutionId).list();
+    assertThat(jobs).as("a turn waiting as a job on the scope execution").hasSize(1);
+    ENGINE.getManagementService().executeJob(jobs.get(0).getId());
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Map<String, Object> result(int index) {
+    assertThat(Agent.RESULTS.size()).as("turns recorded").isGreaterThan(index);
+    return (Map<String, Object>) Agent.RESULTS.get(index);
+  }
+
+  /**
+   * A tool result's list value as {@code List<Object>}. The raw value is a
+   * wildcard collection, and AssertJ's varargs assertions cannot be applied to
+   * one.
+   */
+  private static List<Object> list(Object raw) {
+    return new ArrayList<Object>((Collection<?>) raw);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static List<Map<String, Object>> activities(Map<String, Object> listing) {
+    return (List<Map<String, Object>>) listing.get("activities");
+  }
+
+  @SuppressWarnings("unchecked")
+  private static List<Map<String, Object>> finished(Map<String, Object> listing) {
+    return (List<Map<String, Object>>) listing.get("finishedSinceLastTurn");
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Map<String, Object> results(Map<String, Object> block) {
+    return (Map<String, Object>) block.get("results");
+  }
+
+  private static List<String> ids(List<Map<String, Object>> items) {
+    List<String> ids = new ArrayList<>();
+    for (Map<String, Object> item : items) {
+      ids.add(String.valueOf(item.get("id")));
+    }
+    return ids;
+  }
+
+  private Task task(ProcessInstance instance, String key) {
+    return ENGINE.getTaskService().createTaskQuery()
+        .processInstanceId(instance.getId()).taskDefinitionKey(key).singleResult();
+  }
+
+  private boolean scopeStillThere(ProcessInstance instance) {
+    return ENGINE.getRuntimeService().createExecutionQuery()
+        .processInstanceId(instance.getId()).activityId("adHoc").count() > 0
+        || ENGINE.getRuntimeService().createProcessInstanceQuery()
+            .processInstanceId(instance.getId()).count() > 0;
+  }
+
+  // --- listAvailableActivities ----------------------------------------------
+
+  @Test
+  public void theReportCarriesNoCatalogue() {
+    start("listing", tool -> tool.turnReport());
+
+    Map<String, Object> listing = result(0);
+    assertThat(listing.get("adHocActivityId")).isEqualTo("adHoc");
+    // The activities are the tools themselves now; repeating them in the report
+    // would be the same model data twice in one prompt.
+    assertThat(listing).doesNotContainKey("activities");
+    assertThat(listing).containsKeys("finishedSinceLastTurn", "stillRunning", "turn");
+  }
+
+  @Test
+  public void theListingCountsTheTurnAndReportsTheLimit() {
+    start("counts", tool -> tool.turnReport());
+
+    Map<String, Object> listing = result(0);
+    assertThat(listing.get("turn")).isEqualTo(1);
+    assertThat(listing.get("maxTurns")).isEqualTo(AdHocSubProcessTool.DEFAULT_MAX_TURNS);
+  }
+
+  /**
+   * With nothing running, ending the turn without starting something that waits
+   * and without completing the scope ends the scope: a further turn is only ever
+   * scheduled by a child ending, so there would be nothing to bring one. The listing
+   * says so rather than leaving the model to work it out.
+   */
+  @Test
+  public void theListingWarnsWhenNothingItStartedIsRunning() {
+    start("warns", tool -> tool.turnReport());
+
+    assertThat(result(0)).containsKey("note");
+    assertThat(String.valueOf(result(0).get("note")))
+        .contains("the ad hoc sub process ends here");
+  }
+
+  @Test
+  public void theListingReportsWhatIsStillRunning() {
+    start("running", tool -> {
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      return tool.turnReport();
+    });
+
+    Map<String, Object> listing = result(0);
+    assertThat(list(listing.get("stillRunning"))).containsExactly("waits");
+    // The note itself is always there — it carries the statement that names and
+    // documentation are model data. What must not appear while something is running
+    // is the idle warning.
+    assertThat(String.valueOf(listing.get("note")))
+        .doesNotContain("nothing will wake it");
+  }
+
+  // --- the process variables the agent sees (CIB7-2179) ----------------------
+
+  private static final String NOT_SENT = AdHocSubProcessTool.CONTENT_NOT_SENT;
+
+  @Test
+  public void theReportCarriesTheDeclaredProcessVariablesWithTheirCurrentValues() {
+    ProcessInstance instance = startWithoutTurn("processData",
+        processVariables("kunde, prioritaet, eilig, offen", "offen"), tool -> tool.turnReport());
+    Map<String, Object> variables = new LinkedHashMap<>();
+    variables.put("kunde", "Müller GmbH");
+    variables.put("prioritaet", 2);
+    variables.put("eilig", true);
+    variables.put("offen", null);
+    ENGINE.getRuntimeService().setVariables(instance.getId(), variables);
+
+    runPendingTurn(instance);
+
+    Map<String, Object> report = result(0);
+    assertThat(processData(report)).as("in the order declared, an optional one set to null as null")
+        .containsExactly(entry("kunde", (Object) "Müller GmbH"), entry("prioritaet", (Object) 2),
+            entry("eilig", (Object) true), entry("offen", null));
+    assertThat(report).doesNotContainKeys("processDataNotSet", "processDataNote");
+    assertThat(String.valueOf(report.get("note")))
+        .contains("The values in processData are the current values of process variables");
+  }
+
+  /** The variables the model does not declare, and the agent's own state, stay out. */
+  @Test
+  public void anUndeclaredVariableNeverReachesTheReport() {
+    ProcessInstance instance = startWithoutTurn("processDataUndeclared",
+        processVariables("kunde"), tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "geheim", "Kennwort-4711");
+
+    runPendingTurn(instance);
+
+    String report = AdHocToolProvider.toJson(result(0));
+    assertThat(processData(result(0))).containsOnlyKeys("kunde");
+    assertThat(report).doesNotContain("geheim").doesNotContain("Kennwort-4711")
+        .doesNotContain(AdHocAgentState.STATE_MARKER);
+  }
+
+  @Test
+  public void aScopeThatDeclaresNoProcessVariablesReportsNone() {
+    ProcessInstance instance = startWithoutTurn("processDataNone", tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
+
+    runPendingTurn(instance);
+
+    assertThat(result(0)).doesNotContainKeys("processData", "processDataNotSet",
+        "processDataNote");
+    assertThat(String.valueOf(result(0).get("note"))).doesNotContain("processData");
+  }
+
+  /** For an optional one, not set is not an error: the agent is told which ones it lacks. */
+  @Test
+  public void anOptionalVariableThatIsNotSetIsNamedAndFailsNothing() {
+    ProcessInstance instance = startWithoutTurn("processDataNotSet",
+        processVariables("kunde, fehlt", "fehlt"), tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(processData(result(0))).containsOnlyKeys("kunde");
+    assertThat(list(result(0).get("processDataNotSet"))).containsExactly("fehlt");
+    // The model is told what the key means, and that a null in processData is not this.
+    assertThat(String.valueOf(result(0).get("note")))
+        .contains("processDataNotSet names the declared variables the process has not set"
+            + " (a null in processData is set to null); processDataNote says which were left out"
+            + " for size.");
+    assertThat(ENGINE.getRuntimeService().createIncidentQuery()
+        .processInstanceId(instance.getId()).count()).isZero();
+    assertThat(ENGINE.getHistoryService().createHistoricIncidentQuery()
+        .processInstanceId(instance.getId()).count()).isZero();
+  }
+
+  /**
+   * A required one must reach the agent: set, not to null, and seen whole. Every one that does not
+   * is named with why, beside those that were read, and the agent gets no block. A typed null is
+   * null too, not a placeholder of its type.
+   */
+  @Test
+  public void aRequiredVariableThatDoesNotReachTheAgentFailsTheStep() {
+    ProcessInstance instance = startWithoutTurn("processDataRequired",
+        processVariables("kunde, fehlt, leer, roh, auftrag"), tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "leer", null);
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "roh", Variables.byteArrayValue(null));
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+        Variables.objectValue(new ArrayList<>(Arrays.asList("a", "b"))).create());
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.RESULTS).as("no block for the agent").isEmpty();
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class)
+        .hasMessage("Ad hoc sub process 'adHoc': required process variables did not reach the"
+            + " agent: fehlt (not set), leer (null), roh (null); the model was not called."
+            + " Set the variable on the process instance and retry the job, or change the model:"
+            + " make it optional (optionalContextVariables) or leave it out of"
+            + " contextVariables. Reached the agent: kunde, auftrag.");
+  }
+
+  /**
+   * A developer used to {@code ${order.customer}} lists a path into a JSON value; a dot is legal in
+   * a name, so the deployment cannot refuse it, and the refusal says what was meant instead.
+   */
+  @Test
+  public void aNotSetNameWithADotHintsAtTheVariableItself() {
+    ProcessInstance instance = startWithoutTurn("processDataPath",
+        processVariables("auftrag.kunde"), tool -> tool.turnReport());
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0)).hasMessageContaining("did not reach the agent: auftrag.kunde"
+        + " (not set; a path into a variable? declare the variable itself, 'auftrag', and the agent"
+        + " sees all of it); the model was not called.");
+  }
+
+  /**
+   * A required file, bytes or Java object reaches the agent described, by its name and type, never
+   * its content: the description is all the agent is given of it, so it reaches the agent whole,
+   * as on the AI agent task (CIB7-1843).
+   */
+  @Test
+  public void aRequiredFileReachesTheAgentDescribed() {
+    ProcessInstance instance = startWithoutTurn("processDataRequiredFile",
+        processVariables("scan, roh"), tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "scan",
+        Variables.fileValue("auftrag.pdf").file(WritesDocument.BYTES)
+            .mimeType("application/pdf").create());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "roh", new byte[] {1, 2, 3});
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(processData(result(0)))
+        .containsEntry("scan", "(file \"auftrag.pdf\", \"application/pdf\", " + NOT_SENT + ")")
+        .containsEntry("roh", "(bytes, " + NOT_SENT + ")");
+  }
+
+  /**
+   * What the incident keeps, 666 characters, says what to do whatever the ids: a scope id of 200
+   * characters and a first variable whose name and reason alone pass the room are cut there; the
+   * whole of both follows at the end, which the job's exception details keep.
+   */
+  @Test
+  public void theIncidentPartOfTheRefusalFitsWhateverTheIdsAndReasons() {
+    String scope = new String(new char[200]).replace('\0', 's');
+    String first = new String(new char[255]).replace('\0', 'a') + " (an object in"
+        + " application/json that its serializer could not write again, so the agent cannot read it"
+        + " as it is now)";
+    String second = new String(new char[255]).replace('\0', 'b') + " (not set)";
+
+    String message = AdHocSubProcessTool.notReachedMessage(scope, Arrays.asList(first, second),
+        Collections.<String>emptyList());
+
+    String incident = message.substring(0, AdHocSubProcessTool.INCIDENT_MESSAGE_CHARS);
+    assertThat(incident).contains("the model was not called")
+        .contains(", and 1 more, named at the end of this message")
+        .contains("make it optional (optionalContextVariables) or leave it out"
+            + " of contextVariables.");
+    assertThat(message).endsWith("In ad hoc sub process '" + scope + "', all that did not reach"
+        + " the agent: " + first + ", " + second + ".");
+  }
+
+  /**
+   * A variable set to null is set, whatever its type: an optional one set to null bytes reaches the
+   * agent as null, not as a placeholder of its type, and is not named as not set.
+   */
+  @Test
+  public void anOptionalVariableSetToATypedNullReachesTheAgentAsNull() {
+    ProcessInstance instance = startWithoutTurn("processDataTypedNull",
+        processVariables("kunde, roh", "roh"), tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "roh", Variables.byteArrayValue(null));
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(processData(result(0))).containsEntry("roh", null);
+  }
+
+  /**
+   * An object deserialized in the command to null, from the JSON literal null, keeps that text
+   * beside it: it is null all the same, so a required one fails as a null does and is never sent
+   * as the word "null" (the second model's review of 14637f31c5). One never deserialized shows
+   * the text it was stored with, as the AI agent task does.
+   */
+  @Test
+  public void anObjectDeserializedToNullIsNullWhateverTextItKept() {
+    AdHocSubProcessTool.ProcessValue deserialized = AdHocSubProcessTool.processValue(
+        new ObjectValueImpl(null, "null", "application/json", "java.util.LinkedHashMap", true));
+    assertThat(deserialized.shown).isNull();
+    assertThat(deserialized.notWhole).isNull();
+    assertThat(AdHocSubProcessTool.processValue(Variables.serializedObjectValue("null")
+        .serializationDataFormat("application/json").objectTypeName("java.util.LinkedHashMap")
+        .create()).shown).as("never deserialized: its text").isEqualTo("null");
+  }
+
+  /**
+   * A value read already in the same command comes from the variable's cache, deserialized. An
+   * object whose value is null there is null; a Spin value deserialized there gave up its text,
+   * and is shown by the text its node writes, never as null.
+   */
+  @Test
+  public void aValueDeserializedInTheCommandIsNeverTakenForNullForWantOfItsText() {
+    AdHocSubProcessTool.ProcessValue cachedNull =
+        AdHocSubProcessTool.processValue(Variables.objectValue(null).create());
+    String json = "{\"auftrag\":\"A-1047\"}";
+    Object node = new Object() {
+      @Override
+      public String toString() {
+        return json;
+      }
+    };
+    SerializableValue spin = mock(SerializableValue.class);
+    SerializableValueType jsonType = mock(SerializableValueType.class);
+    when(jsonType.getName()).thenReturn("json");
+    when(spin.getType()).thenReturn(jsonType);
+    when(spin.getSerializationDataFormat()).thenReturn("application/json");
+    when(spin.isDeserialized()).thenReturn(true);
+    when(spin.getValueSerialized()).thenReturn(null);
+    when(spin.getValue()).thenReturn(node);
+
+    AdHocSubProcessTool.ProcessValue shownSpin = AdHocSubProcessTool.processValue(spin);
+
+    assertThat(cachedNull.shown).isNull();
+    assertThat(cachedNull.notWhole).isNull();
+    assertThat(shownSpin.shown).isEqualTo(json);
+    assertThat(shownSpin.notWhole).isNull();
+  }
+
+  /**
+   * A Spin value deserialized in the command keeps the text it was read with; an expression of the
+   * step may have changed its node since. The agent is shown the node as it is now.
+   */
+  @Test
+  public void aDeserializedSpinValueIsShownAsItsNodeIsNow() {
+    String now = "{\"status\":\"freigegeben\"}";
+    Object node = new Object() {
+      @Override
+      public String toString() {
+        return now;
+      }
+    };
+    SerializableValue spin = mock(SerializableValue.class);
+    SerializableValueType jsonType = mock(SerializableValueType.class);
+    when(jsonType.getName()).thenReturn("json");
+    when(spin.getType()).thenReturn(jsonType);
+    when(spin.getSerializationDataFormat()).thenReturn("application/json");
+    when(spin.isDeserialized()).thenReturn(true);
+    when(spin.getValueSerialized()).thenReturn("{\"status\":\"offen\"}");
+    when(spin.getValue()).thenReturn(node);
+
+    assertThat(AdHocSubProcessTool.processValue(spin).shown).isEqualTo(now);
+  }
+
+  /**
+   * The required ones take the budget first: six optional values of 3000 declared before a
+   * required one would fill it, and the required one would fail the step for want of room.
+   */
+  @Test
+  public void theRequiredOnesTakeTheBudgetFirst() {
+    List<String> optional = new ArrayList<>();
+    for (int i = 0; i < 6; i++) {
+      optional.add("wert" + i);
+    }
+    ProcessInstance instance = startWithoutTurn("processDataRequiredFirst",
+        processVariables(String.join(",", optional) + ", pflicht", String.join(",", optional)),
+        tool -> tool.turnReport());
+    for (String name : optional) {
+      ENGINE.getRuntimeService().setVariable(instance.getId(), name, longText(3000));
+    }
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "pflicht", longText(3000));
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(new ArrayList<>(processData(result(0)).keySet())).as("in the order declared")
+        .containsExactly("wert0", "wert1", "wert2", "wert3", "wert4", "pflicht");
+    assertThat(String.valueOf(result(0).get("processDataNote"))).endsWith(": wert5.");
+  }
+
+  /** A required value the budget has no room for left fails the step, never a silent gap. */
+  @Test
+  public void aRequiredValueThatDoesNotFitTheBudgetFailsTheStep() {
+    List<String> names = new ArrayList<>();
+    for (int i = 0; i < 7; i++) {
+      names.add("wert" + i);
+    }
+    ProcessInstance instance = startWithoutTurn("processDataRequiredBudget",
+        processVariables(String.join(",", names)), tool -> tool.turnReport());
+    for (String name : names) {
+      ENGINE.getRuntimeService().setVariable(instance.getId(), name, longText(3000));
+    }
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0)).hasMessageContaining("did not reach the agent: wert6"
+        + " (3002 characters as written, more than is left of the 20000 for all process"
+        + " variables); the model was not called. Set")
+        .hasMessageEndingWith(" Reached the agent: wert0, wert1, wert2, wert3, wert4, wert5.");
+  }
+
+  /**
+   * 4000 characters are the most a string variable holds: the engine refuses a longer one. Such
+   * a value reaches the agent whole.
+   */
+  @Test
+  public void aValueAsLongAsAStringVariableHoldsGoesWhole() {
+    String text = longText(4000);
+    ProcessInstance instance = startWithoutTurn("processDataLong", processVariables("bericht"),
+        tool -> {
+          tool.startActivity("waits", Collections.<String, Object>emptyMap());
+          return tool.turnReport();
+        });
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "bericht", text);
+
+    runPendingTurn(instance);
+
+    assertThat(processData(result(0))).containsEntry("bericht", text);
+  }
+
+  /**
+   * A date in ISO 8601, in UTC. An object in Java serialization, a file and bytes are described:
+   * the agent cannot read them, and nothing is deserialized.
+   */
+  @Test
+  public void aDateIsShownInIsoAndAJavaObjectAFileOrBytesAreDescribed() {
+    ProcessInstance instance = startWithoutTurn("processDataPlaceholders",
+        processVariables("faellig, auftrag, scan, roh", "auftrag, scan, roh"),
+        tool -> tool.turnReport());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "faellig", new Date(0L));
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+        Variables.objectValue(new ArrayList<>(Arrays.asList("a", "b"))).create());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "scan",
+        Variables.fileValue("auftrag.pdf").file(WritesDocument.BYTES)
+            .mimeType("application/pdf").create());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "roh", new byte[] {1, 2, 3});
+
+    runPendingTurn(instance);
+
+    assertThat(processData(result(0)))
+        .containsEntry("faellig", "1970-01-01T00:00:00Z")
+        .containsEntry("auftrag", "(object \"java.util.ArrayList\","
+            + " \"application/x-java-serialized-object\", " + NOT_SENT + ")")
+        .containsEntry("scan", "(file \"auftrag.pdf\", \"application/pdf\", " + NOT_SENT + ")")
+        .containsEntry("roh", "(bytes, " + NOT_SENT + ")");
+  }
+
+  /**
+   * A value set in the step itself is described from the value, as it was given: a file without a
+   * media type has an unknown one, and a quote in a file's name cannot close the quote around it
+   * and go on to describe a file that is not there.
+   */
+  @Test
+  public void aValueGivenInTheStepIsDescribedFromItself() {
+    assertThat(AdHocSubProcessTool.processValue(Variables.fileValue("a\", sent \"b.pdf")
+        .file(WritesDocument.BYTES).create()).shown)
+        .isEqualTo("(file \"a\\\", sent \\\"b.pdf\", \"unknown\", " + NOT_SENT + ")");
+    assertThat(AdHocSubProcessTool.processValue(Variables.byteArrayValue(new byte[] {1})).shown)
+        .isEqualTo("(bytes, " + NOT_SENT + ")");
+    AdHocSubProcessTool.ProcessValue order = AdHocSubProcessTool.processValue(
+        Variables.serializedObjectValue("rO0AB")
+            .serializationDataFormat("application/x-java-serialized-object")
+            .objectTypeName("com.acme.Order").create());
+    assertThat(order.shown).isEqualTo("(object \"com.acme.Order\","
+        + " \"application/x-java-serialized-object\", " + NOT_SENT + ")");
+    assertThat(order.notWhole).as("all the agent is given of it").isNull();
+  }
+
+  /**
+   * An object stored as JSON that an expression or a listener of the same step changes is shown
+   * as it is now, written again by its serializer, not by the text it was read with (Copilot's
+   * review of PR 532). Read deserialized and changed inside the turn, as such an expression would;
+   * the engine of these tests has no JSON serializer, so one over a Map stands in for the step.
+   */
+  @Test
+  public void aDeserializedJsonObjectChangedInTheStepIsShownAsItIsNow() {
+    VariableSerializers serializers = ((ProcessEngineConfigurationImpl)
+        ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
+    JsonMapSerializer json = new JsonMapSerializer();
+    serializers.addSerializer(json, 0);
+    try {
+      ProcessInstance instance = startWithoutTurn("processDataJsonChanged",
+          processVariables("auftrag"), tool -> {
+            ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> auftrag =
+                (Map<String, Object>) scope.getVariableTyped("auftrag").getValue();
+            auftrag.put("positionen", 4);
+            return tool.turnReport();
+          });
+      Map<String, Object> auftrag = new LinkedHashMap<>();
+      auftrag.put("nummer", "A-1047");
+      auftrag.put("positionen", 3);
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+          Variables.objectValue(auftrag).serializationDataFormat("application/json").create());
+
+      runPendingTurn(instance);
+
+      assertThat(Agent.FAILURES).isEmpty();
+      assertThat(processData(result(0)))
+          .containsEntry("auftrag", "{\"nummer\":\"A-1047\",\"positionen\":4}");
+    } finally {
+      serializers.removeSerializer(json);
+    }
+  }
+
+  /**
+   * The serializer that read the variable writes it again, not the first the engine finds for its
+   * format: another serializer of the same format, a process application's for instance, would
+   * write the object otherwise (second model, 2026-11-03).
+   */
+  @Test
+  public void anObjectIsWrittenAgainByTheSerializerThatReadIt() {
+    VariableSerializers serializers = ((ProcessEngineConfigurationImpl)
+        ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
+    JsonMapSerializer own = new JsonMapSerializer();
+    JsonMapSerializer other = new JsonMapSerializer("json-map-other", true);
+    serializers.addSerializer(own, 0);
+    try {
+      ProcessInstance instance = startWithoutTurn("processDataOwnSerializer",
+          processVariables("auftrag"), tool -> {
+            ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> auftrag =
+                (Map<String, Object>) scope.getVariableTyped("auftrag").getValue();
+            auftrag.put("positionen", 4);
+            return tool.turnReport();
+          });
+      Map<String, Object> auftrag = new LinkedHashMap<>();
+      auftrag.put("nummer", "A-1047");
+      auftrag.put("positionen", 3);
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+          Variables.objectValue(auftrag).serializationDataFormat("application/json").create());
+      // From now on the engine would pick the other one for a new value of this format.
+      serializers.addSerializer(other, 0);
+
+      runPendingTurn(instance);
+
+      assertThat(Agent.FAILURES).isEmpty();
+      assertThat(processData(result(0))).as("written by the serializer that read it")
+          .containsEntry("auftrag", "{\"nummer\":\"A-1047\",\"positionen\":4}");
+    } finally {
+      serializers.removeSerializer(other);
+      serializers.removeSerializer(own);
+    }
+  }
+
+  /**
+   * A write that fails leaves an optional object as a placeholder, never as the stored text, which
+   * would show the object before a change of this step as if it were current (Copilot's review of
+   * PR 532); and the log says only that the write failed: a serializer's message may name the
+   * object, and the log holds no process data (second model, 2026-11-03).
+   */
+  @Test
+  public void aFailedWriteIsAPlaceholderForAnOptionalAndLogsNoValue() {
+    VariableSerializers serializers = ((ProcessEngineConfigurationImpl)
+        ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
+    JsonMapSerializer json = new JsonMapSerializer();
+    serializers.addSerializer(json, 0);
+    Logger logger = (Logger)
+        LoggerFactory.getLogger(AdHocSubProcessTool.class);
+    Level level = logger.getLevel();
+    ListAppender<ILoggingEvent> appender =
+        new ListAppender<>();
+    appender.start();
+    logger.addAppender(appender);
+    logger.setLevel(Level.DEBUG);
+    try {
+      ProcessInstance instance = startWithoutTurn("processDataFailedWrite",
+          processVariables("auftrag", "auftrag"), tool -> {
+            ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> auftrag =
+                (Map<String, Object>) scope.getVariableTyped("auftrag").getValue();
+            auftrag.put("positionen", 4);
+            return tool.turnReport();
+          });
+      Map<String, Object> auftrag = new LinkedHashMap<>();
+      auftrag.put("nummer", "A-1047-GEHEIM");
+      auftrag.put("positionen", 3);
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+          Variables.objectValue(auftrag).serializationDataFormat("application/json").create());
+      // The step's write fails; the engine's own write when the command closes goes through.
+      json.failNextWrites = 1;
+
+      runPendingTurn(instance);
+
+      assertThat(Agent.FAILURES).isEmpty();
+      assertThat(processData(result(0))).as("a placeholder, not the stored text")
+          .containsEntry("auftrag",
+              "<object value (java.util.LinkedHashMap, application/json), not shown>");
+      assertThat(appender.list).extracting(e -> e.getFormattedMessage())
+          .noneSatisfy(line -> assertThat(line).contains("A-1047-GEHEIM"))
+          .anySatisfy(line -> assertThat(line).contains("could not be written again"));
+    } finally {
+      logger.detachAppender(appender);
+      logger.setLevel(level);
+      appender.stop();
+      serializers.removeSerializer(json);
+    }
+  }
+
+  /**
+   * A required object whose write fails stops the step before the model is called: the stored
+   * text could be the object before a change of this step, and a required value reaches the agent
+   * whole or not at all (Copilot's review of PR 532).
+   */
+  @Test
+  public void aRequiredObjectWhoseWriteFailsStopsTheStep() {
+    VariableSerializers serializers = ((ProcessEngineConfigurationImpl)
+        ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
+    JsonMapSerializer json = new JsonMapSerializer();
+    serializers.addSerializer(json, 0);
+    try {
+      ProcessInstance instance = startWithoutTurn("processDataRequiredFailedWrite",
+          processVariables("auftrag"), tool -> {
+            ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> auftrag =
+                (Map<String, Object>) scope.getVariableTyped("auftrag").getValue();
+            auftrag.put("positionen", 4);
+            return tool.turnReport();
+          });
+      Map<String, Object> auftrag = new LinkedHashMap<>();
+      auftrag.put("nummer", "A-1047");
+      auftrag.put("positionen", 3);
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+          Variables.objectValue(auftrag).serializationDataFormat("application/json").create());
+      json.failNextWrites = 1;
+
+      runPendingTurn(instance);
+
+      assertThat(Agent.RESULTS).as("no block for the agent").isEmpty();
+      assertThat(Agent.FAILURES).hasSize(1);
+      assertThat(Agent.FAILURES.get(0)).hasMessageContaining("did not reach the agent: auftrag (an"
+          + " object in application/json that its serializer could not write again, so the agent"
+          + " cannot read it as it is now); the model was not called.");
+    } finally {
+      serializers.removeSerializer(json);
+    }
+  }
+
+  /**
+   * A date set in the same step as a {@code java.sql.Date}, by a listener or a script, is cached as
+   * it was given and refuses {@code toInstant()}: it is shown in ISO 8601 all the same, by its
+   * milliseconds, as a date read from the database is (Copilot's review of PR 532).
+   */
+  @Test
+  public void aDateSetInTheStepAsASqlDateIsShownInIso() {
+    ProcessInstance instance = startWithoutTurn("processDataSqlDate",
+        processVariables("faellig, uhrzeit", "uhrzeit"), tool -> {
+          ExecutionEntity scope = Context.getBpmnExecutionContext().getExecution();
+          scope.setVariable("faellig", new java.sql.Date(0L));
+          scope.setVariable("uhrzeit", new Time(60_000L));
+          return tool.turnReport();
+        });
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(processData(result(0)))
+        .containsEntry("faellig", "1970-01-01T00:00:00Z")
+        .containsEntry("uhrzeit", "1970-01-01T00:01:00Z");
+  }
+
+  /**
+   * A declared file, bytes or object outside JSON and XML is described without its value being
+   * read: the description comes from what the variable instance holds besides the value, so
+   * a declared file is not read from the database on every step (CIB7-2513, here for the declared
+   * variables). A serializer that refuses to read stands in for that cost on the object; for the
+   * file and the bytes, which come first, the byte arrays the engine read while the step built its
+   * report are looked at: none of theirs is among them.
+   */
+  @Test
+  public void aHiddenValueIsDescribedWithoutBeingRead() {
+    VariableSerializers serializers = ((ProcessEngineConfigurationImpl)
+        ENGINE.getProcessEngineConfiguration()).getVariableSerializers();
+    BlobSerializer blob = new BlobSerializer();
+    serializers.addSerializer(blob, 0);
+    ByteArrayReads.install(ENGINE);
+    try {
+      List<String> readByTheReport = new ArrayList<>();
+      ProcessInstance instance = startWithoutTurn("processDataNotRead",
+          processVariables("scan, roh, auftrag", "scan, roh, auftrag"), tool -> {
+            Object report = tool.turnReport();
+            // Before the process ends: the engine reads every byte array of it then, to delete it.
+            readByTheReport.addAll(ByteArrayReads.READ_IDS);
+            return report;
+          });
+      Map<String, Object> auftrag = new LinkedHashMap<>();
+      auftrag.put("nummer", "A-1047");
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "auftrag",
+          Variables.objectValue(auftrag).serializationDataFormat("application/x-test-blob").create());
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "scan",
+          Variables.fileValue("auftrag.pdf").file(WritesDocument.BYTES)
+              .mimeType("application/pdf").create());
+      ENGINE.getRuntimeService().setVariable(instance.getId(), "roh", new byte[] {1, 2, 3});
+      blob.failReads = true;
+      List<String> theirBytes = new ArrayList<>();
+      for (String name : Arrays.asList("scan", "roh")) {
+        theirBytes.add(((VariableInstanceEntity)
+            ENGINE.getRuntimeService().createVariableInstanceQuery()
+                .processInstanceIdIn(instance.getId()).variableName(name).singleResult())
+            .getByteArrayValueId());
+      }
+      assertThat(theirBytes).doesNotContainNull();
+      ByteArrayReads.READ_IDS.clear();
+
+      runPendingTurn(instance);
+
+      assertThat(readByTheReport).as("the file's and the bytes' byte arrays read for the report")
+          .doesNotContainAnyElementsOf(theirBytes);
+      assertThat(Agent.FAILURES).isEmpty();
+      assertThat(processData(result(0)))
+          .containsEntry("auftrag", "(object \"java.util.LinkedHashMap\","
+              + " \"application/x-test-blob\", " + NOT_SENT + ")")
+          .containsEntry("scan", "(file \"auftrag.pdf\", \"application/pdf\", " + NOT_SENT + ")")
+          .containsEntry("roh", "(bytes, " + NOT_SENT + ")");
+    } finally {
+      serializers.removeSerializer(blob);
+    }
+  }
+
+  /**
+   * An object serialized as JSON or XML, as a Spin value is, is shown as its text, read without
+   * deserializing it, and cut past the limit of one value. Shown on the value itself: this engine
+   * has no serializer for JSON.
+   */
+  @Test
+  public void aJsonOrXmlObjectIsShownAsItsTextAndCutPastTheLimit() {
+    String json = "{\"auftrag\":\"A-1047\",\"positionen\":3}";
+    String xml = "<auftrag nummer=\"A-1047\"/>";
+    String longJson = "[\"" + longText(4996) + "\"]";
+
+    AdHocSubProcessTool.ProcessValue shownJson = AdHocSubProcessTool.processValue(
+        Variables.serializedObjectValue(json).serializationDataFormat("application/json")
+            .objectTypeName("java.util.HashMap").create());
+    AdHocSubProcessTool.ProcessValue shownXml = AdHocSubProcessTool.processValue(
+        Variables.serializedObjectValue(xml).serializationDataFormat("application/xml")
+            .objectTypeName("org.example.Auftrag").create());
+    AdHocSubProcessTool.ProcessValue cut = AdHocSubProcessTool.processValue(
+        Variables.serializedObjectValue(longJson).serializationDataFormat("application/json")
+            .create());
+
+    assertThat(shownJson.shown).isEqualTo(json);
+    assertThat(shownJson.notWhole).isNull();
+    assertThat(shownXml.shown).isEqualTo(xml);
+    assertThat(cut.shown).isEqualTo(longJson.substring(0,
+        AdHocSubProcessTool.MAX_PROCESS_VALUE_CHARS) + "… (truncated, 5000 characters total)");
+    assertThat(cut.notWhole).isEqualTo("5000 characters, over the limit of 4000");
+  }
+
+  /**
+   * The 4000 are characters as the database counts them, not Java chars: 3995 letters and five
+   * emoji are a string the database holds, and reach the agent whole; a longer value is cut after
+   * a whole character, never between the two halves of an emoji (the review of CIB7-1843).
+   */
+  @Test
+  public void theLimitCountsCharactersAndCutsAfterAWholeOne() {
+    String emoji = new String(Character.toChars(0x1F600));
+    StringBuilder fits = new StringBuilder(longText(3995));
+    for (int i = 0; i < 5; i++) {
+      fits.append(emoji);
+    }
+    String over = longText(3999) + emoji + "bbbbbbbbbb";
+
+    AdHocSubProcessTool.ProcessValue whole =
+        AdHocSubProcessTool.processValue(Variables.stringValue(fits.toString()));
+    AdHocSubProcessTool.ProcessValue cut =
+        AdHocSubProcessTool.processValue(Variables.stringValue(over));
+
+    assertThat(fits.length()).as("Java chars").isEqualTo(4005);
+    assertThat(whole.notWhole).isNull();
+    assertThat(whole.shown).isEqualTo(fits.toString());
+    assertThat(cut.shown).isEqualTo(longText(3999) + emoji + "… (truncated, 4010 characters total)");
+    assertThat(cut.notWhole).isEqualTo("4010 characters, over the limit of 4000");
+  }
+
+  /** Values past the budget of their own are left out and named, in the order declared. */
+  @Test
+  public void theProcessDataStaysWithinItsOwnBudget() {
+    List<String> names = new ArrayList<>();
+    for (int i = 0; i < 12; i++) {
+      names.add("wert" + i);
+    }
+    ProcessInstance instance = startWithoutTurn("processDataBudget",
+        processVariables(String.join(",", names), String.join(",", names)),
+        tool -> tool.turnReport());
+    for (String name : names) {
+      ENGINE.getRuntimeService().setVariable(instance.getId(), name, longText(3000));
+    }
+
+    runPendingTurn(instance);
+
+    Map<String, Object> shown = processData(result(0));
+    List<String> leftOut = names.subList(shown.size(), names.size());
+    assertThat(shown).as("as many as fit, each taking what it takes as written").hasSize(
+        AdHocSubProcessTool.MAX_PROCESS_DATA_CHARS / AdHocToolProvider.writtenLength(shown.get("wert0")));
+    assertThat(new ArrayList<>(shown.keySet())).as("the first ones, in their order")
+        .containsExactlyElementsOf(names.subList(0, shown.size()));
+    assertThat(leftOut).isNotEmpty();
+    assertThat(String.valueOf(result(0).get("processDataNote")))
+        .isEqualTo("Left out because the size limit of "
+            + AdHocSubProcessTool.MAX_PROCESS_DATA_CHARS
+            + " characters for processData was reached: " + String.join(", ", leftOut) + ".");
+    assertThat(writtenLength(shown)).as("never over the budget")
+        .isLessThanOrEqualTo(AdHocSubProcessTool.MAX_PROCESS_DATA_CHARS);
+  }
+
+  /**
+   * The budget counts a value as JSON writes it, and admits it only whole: 2000 control
+   * characters take 12002 as written, so a second such value does not fit, and a short one
+   * after it still does.
+   */
+  @Test
+  public void aValueThatDoesNotFitIsLeftOutAndASmallerOneAfterItStillFits() {
+    ProcessInstance instance = startWithoutTurn("processDataEscaped",
+        processVariables("erste, zweite, kurz", "erste, zweite, kurz"),
+        tool -> tool.turnReport());
+    StringBuilder controls = new StringBuilder();
+    for (int i = 0; i < AdHocSubProcessTool.MAX_RESULT_VALUE_CHARS; i++) {
+      controls.append('\u0001');
+    }
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "erste", controls.toString());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "zweite", controls.toString());
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kurz", "ok");
+
+    runPendingTurn(instance);
+
+    Map<String, Object> shown = processData(result(0));
+    assertThat(new ArrayList<>(shown.keySet())).containsExactly("erste", "kurz");
+    assertThat(String.valueOf(result(0).get("processDataNote"))).endsWith(": zweite.");
+    assertThat(writtenLength(shown))
+        .isLessThanOrEqualTo(AdHocSubProcessTool.MAX_PROCESS_DATA_CHARS);
+  }
+
+  /**
+   * The process data has a budget of its own: the results reported in the same block do not take
+   * from it. A tool that waits reports three values of 2000 quotes, about 12000 characters as
+   * written, in the next turn's block, beside nine values of process data that fill their own 20000.
+   */
+  @Test
+  public void theProcessDataHasABudgetOfItsOwnBesideTheResults() {
+    List<String> names = new ArrayList<>();
+    for (int i = 0; i < 9; i++) {
+      names.add("wert" + i);
+    }
+    ProcessInstance instance = start("processDataOwnBudget",
+        processVariables(String.join(",", names)),
+        tool -> tool.startActivity("quotedLater", Collections.<String, Object>emptyMap()),
+        tool -> tool.turnReport());
+    for (String name : names) {
+      ENGINE.getRuntimeService().setVariable(instance.getId(), name, longText(2000));
+    }
+
+    // The tool's own job, then the turn its end scheduled.
+    runPendingTurn(instance);
+    runPendingTurn(instance);
+
+    Map<String, Object> report = result(1);
+    assertThat(writtenLength(results(finished(report).get(0))))
+        .as("the results in the same block").isGreaterThan(12000);
+    assertThat(processData(report)).as("all nine fit their own budget").hasSize(9);
+    assertThat(report).doesNotContainKey("processDataNote");
+  }
+
+  /**
+   * Within a turn too: a tool the agent calls changes a declared variable, and the next step's
+   * block has the new value, read again rather than kept from the step before.
+   */
+  @Test
+  public void aValueATurnChangesIsReadAgainInItsNextStep() {
+    ProcessInstance instance = startWithoutTurn("processDataWithinATurn",
+        processVariables("amount"),
+        tool -> {
+          Map<String, Object> before = tool.turnReport();
+          Agent.RESULTS.add(before);
+          tool.startActivity("quick", Collections.<String, Object>emptyMap());
+          return tool.turnReport();
+        });
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "amount", 100);
+
+    runPendingTurn(instance);
+
+    assertThat(processData(result(0))).containsEntry("amount", 100);
+    assertThat(processData(result(1))).as("after the tool set it")
+        .containsEntry("amount", Long.valueOf(200));
+  }
+
+  private static int writtenLength(Map<String, Object> values) {
+    int written = 0;
+    for (Object value : values.values()) {
+      written += AdHocToolProvider.writtenLength(value);
+    }
+    return written;
+  }
+
+  /**
+   * Read on every step with what the process holds then; a result is reported once. A person
+   * changes the variable between two turns, and the next turn sees the new value.
+   */
+  @Test
+  public void theProcessDataComesWithEveryStepAndTheResultsOnce() {
+    ProcessInstance instance = startWithoutTurn("processDataEveryStep",
+        processVariables("kunde"),
+        tool -> {
+          tool.startActivity("waits", Collections.<String, Object>emptyMap());
+          return tool.turnReport();
+        },
+        tool -> {
+          Map<String, Object> first = tool.turnReport();
+          Agent.RESULTS.add(first);
+          return tool.turnReport();
+        });
+    ENGINE.getRuntimeService().setVariable(instance.getId(), "kunde", "Müller GmbH");
+    runPendingTurn(instance);
+    assertThat(processData(result(0))).containsEntry("kunde", "Müller GmbH");
+
+    Map<String, Object> answer = new LinkedHashMap<>();
+    answer.put("kunde", "Schmidt AG");
+    ENGINE.getTaskService().complete(task(instance, "waits").getId(), answer);
+    runPendingTurn(instance);
+
+    Map<String, Object> firstStep = result(1);
+    Map<String, Object> furtherStep = result(2);
+    assertThat(processData(firstStep)).containsEntry("kunde", "Schmidt AG");
+    assertThat(finished(firstStep)).hasSize(1);
+    assertThat(processData(furtherStep)).as("again, in a further step")
+        .containsEntry("kunde", "Schmidt AG");
+    assertThat(finished(furtherStep)).as("the result only once").isEmpty();
+  }
+
+  /** The connector's input contextVariables (CIB7-2179); {@link #model} puts it on the connector. */
+  private static String processVariables(String names) {
+    return "<camunda:inputParameter name='contextVariables'>" + names + "</camunda:inputParameter>";
+  }
+
+  private static String processVariables(String names, String optional) {
+    return processVariables(names) + "<camunda:inputParameter name='optionalContextVariables'>"
+        + optional + "</camunda:inputParameter>";
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Map<String, Object> processData(Map<String, Object> report) {
+    assertThat(report).containsKey("processData");
+    return (Map<String, Object>) report.get("processData");
+  }
+
+  // --- startActivity ---------------------------------------------------------
+
+  @Test
+  public void startingAChildThatWaitsReportsWaitingAndNoValues() {
+    start("waiting", tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()));
+
+    Map<String, Object> started = result(0);
+    assertThat(started.get("activityId")).isEqualTo("waits");
+    assertThat(started.get("activityInstanceId")).isNotNull();
+    assertThat(started.get("status")).isEqualTo("waiting");
+    assertThat(results(started)).isEmpty();
+    assertThat(String.valueOf(started.get("resultsNote"))).contains("another turn");
+  }
+
+  /**
+   * The case that made this method report values at all. A child that runs without
+   * waiting has already finished inside the activation call, and this is the only
+   * turn in which the agent can see what it wrote: a child that ends inside the turn
+   * that started it schedules no further one.
+   */
+  @Test
+  public void startingAChildThatFinishesReportsItsValuesImmediately() {
+    start("finishes", tool -> tool.startActivity("quick", Collections.<String, Object>emptyMap()));
+
+    Map<String, Object> started = result(0);
+    assertThat(started.get("status")).isEqualTo("finished");
+    assertThat(started.get("resultsFrom")).isEqualTo("model declaration");
+    // Long, not Integer: a JUEL expression yields the widest numeric type, so
+    // ${200} is 200L. What matters here is that the value arrives at all and is
+    // passed through as a primitive rather than described.
+    assertThat(results(started)).containsEntry("amount", Long.valueOf(200));
+  }
+
+  @Test
+  public void aVariablePassedToTheChildIsSeenByIt() {
+    start("perActivity", tool -> tool.startActivity("waits",
+        Collections.<String, Object>singletonMap("case", "invoice-7")));
+
+    ProcessInstance instance = ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processDefinitionKey("perActivity").singleResult();
+    Task waiting = task(instance, "waits");
+    assertThat(ENGINE.getTaskService().getVariable(waiting.getId(), "case"))
+        .isEqualTo("invoice-7");
+  }
+
+  @Test
+  public void aLongValueIsTruncatedAndSaysSo() {
+    start("longValue",
+        tool -> tool.startActivity("bigText", Collections.<String, Object>emptyMap()));
+
+    String report = String.valueOf(results(result(0)).get("report"));
+    assertThat(report.length()).isLessThan(WritesLongText.LENGTH);
+    assertThat(report).contains("(truncated, " + WritesLongText.LENGTH + " characters total)");
+  }
+
+  /**
+   * The per-turn budget cuts the block off and says so.
+   *
+   * <p>The per-value cap is not enough on its own: an activity declaring many long
+   * variables stays under it for each one and still sends an unbounded prompt. This
+   * is the second limit, and until now no test touched it.
+   */
+  @Test
+  public void tooManyValuesInOneTurnAreCutOffWithANote() {
+    start("blockBudget",
+        tool -> tool.startActivity("bigBlock", Collections.<String, Object>emptyMap()));
+
+    assertThat(Agent.FAILURES).isEmpty();
+    Map<String, Object> answer = result(0);
+    assertThat(answer.get("status")).isEqualTo("finished");
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> values = (Map<String, Object>) answer.get("results");
+    assertThat(values.size())
+        .as("fewer than the " + WritesManyLongTexts.COUNT + " declared values fit the budget")
+        .isLessThan(WritesManyLongTexts.COUNT);
+    // A lower bound as well, because "fewer than declared" alone would also hold if
+    // the block collapsed after one value — which is a different defect with the
+    // same symptom. What is asserted is that the budget was spent before the cut.
+    assertThat(values.size()).as("the block must not collapse early").isGreaterThan(1);
+    int chars = 0;
+    for (Object value : values.values()) {
+      chars += String.valueOf(value).length();
+    }
+    assertThat(chars)
+        .as("most of the " + AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS + " character budget is used")
+        .isGreaterThan(AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS / 2);
+    assertThat(String.valueOf(answer.get("resultsNote")))
+        .contains("size limit of " + AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS);
+  }
+
+  /**
+   * A non-primitive value is replaced by a descriptor naming its type. Read
+   * without deserializing, so a customer class absent from this classloader does
+   * not fail the turn, and so a file or a serialized object never reaches the
+   * prompt.
+   */
+  @Test
+  public void aNonPrimitiveValueIsDescribedRatherThanSerialized() {
+    start("objectValue",
+        tool -> tool.startActivity("object", Collections.<String, Object>emptyMap()));
+
+    Object payload = results(result(0)).get("payload");
+    assertThat(String.valueOf(payload)).isEqualTo("<object value, not shown>");
+    // The list's own contents, not the letters "a" and "b" — the descriptor
+    // contains an 'a' in "value", so a substring check on single letters would
+    // assert nothing.
+    assertThat(String.valueOf(payload)).doesNotContain("[a, b]");
+  }
+
+  /**
+   * A declared bytes, file or date result of a tool that ends within its call reads as a
+   * placeholder named by its type (CIB7-2233). Reported from the entry the observer gathered
+   * for the call; the fallback from the scope is
+   * {@link #theFallbackFromTheScopeShowsAFileBytesOrDateAsAPlaceholder}.
+   */
+  @Test
+  public void aFileBytesOrDateResultWithinTheCallIsAPlaceholder() {
+    start("documentInCall",
+        tool -> tool.startActivity("document", Collections.<String, Object>emptyMap()));
+
+    assertThat(Agent.FAILURES).isEmpty();
+    Map<String, Object> answer = result(0);
+    assertThat(answer.get("status")).isEqualTo("finished");
+    assertDocumentPlaceholders(results(answer));
+    // The tool result as the model gets it: written at all, and without the document.
+    assertThat(AdHocToolProvider.toJson(answer))
+        .doesNotContain(Base64.getEncoder().encodeToString(Arrays.copyOf(WritesDocument.BYTES, 30)));
+  }
+
+  /** The same values from a tool that waits read the same: one function for both paths. */
+  @Test
+  public void aFileBytesOrDateResultOfAToolThatWaitedIsTheSamePlaceholder() {
+    ProcessInstance instance = start("documentWaits",
+        tool -> tool.startActivity("documentLater", Collections.<String, Object>emptyMap()),
+        tool -> tool.turnReport());
+    assertThat(result(0).get("status")).isEqualTo("waiting");
+
+    // The child's own job, then the turn its end scheduled.
+    runPendingTurn(instance);
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    Map<String, Object> listing = result(1);
+    assertThat(finished(listing)).hasSize(1);
+    assertDocumentPlaceholders(results(finished(listing).get(0)));
+    assertThat(AdHocToolProvider.toJson(listing))
+        .doesNotContain(Base64.getEncoder().encodeToString(Arrays.copyOf(WritesDocument.BYTES, 30)));
+  }
+
+  private static void assertDocumentPlaceholders(Map<String, Object> values) {
+    assertThat(values)
+        .containsEntry("title", "Rechnung 7")
+        .containsEntry("doc", "<bytes value, not shown>")
+        .containsEntry("scan", "<file value, not shown>")
+        .containsEntry("issuedOn", "<date value, not shown>");
+  }
+
+  /**
+   * The fallback of a tool result: the values read from the scope when the observer gathered
+   * nothing for the call (CIB7-2233). No model was found that reaches it within a call: a chain
+   * that goes on to an activity that is no tool is gathered too, under the tool the agent called.
+   * So it is read here directly, in a command on a parked scope, from the typed values the
+   * engine stored. Read the old way, the bytes went into the tool result as Base64 and the
+   * file's stream failed {@code toJson}.
+   */
+  @Test
+  public void theFallbackFromTheScopeShowsAFileBytesOrDateAsAPlaceholder() {
+    ProcessInstance instance = startWithoutTurn("fallbackRead");
+    String scopeId = ENGINE.getRuntimeService().createExecutionQuery()
+        .processInstanceId(instance.getId()).activityId("adHoc").singleResult().getId();
+    Map<String, Object> stored = new LinkedHashMap<>();
+    stored.put("title", "Rechnung 7");
+    stored.put("doc", Variables.byteArrayValue(WritesDocument.BYTES));
+    stored.put("scan", Variables.fileValue("rechnung-7.pdf")
+        .file(WritesDocument.BYTES).mimeType("application/pdf").create());
+    stored.put("issuedOn", new Date(0L));
+    ENGINE.getRuntimeService().setVariablesLocal(scopeId, stored);
+
+    Map<String, Object> read = ((ProcessEngineConfigurationImpl) ENGINE.getProcessEngineConfiguration())
+        .getCommandExecutorTxRequired().execute(commandContext -> {
+          ExecutionEntity scope = commandContext.getExecutionManager().findExecutionById(scopeId);
+          Map<String, Object> values = new LinkedHashMap<>();
+          for (String name : WritesDocument.NAMES.split(",")) {
+            values.put(name, AdHocSubProcessTool.readResult(scope, name));
+          }
+          return values;
+        });
+
+    // First what the step depends on: the tool result can be written at all.
+    String written = AdHocToolProvider.toJson(Collections.<String, Object>singletonMap("results", read));
+    assertThat(written)
+        .doesNotContain(Base64.getEncoder().encodeToString(Arrays.copyOf(WritesDocument.BYTES, 30)));
+    assertDocumentPlaceholders(read);
+  }
+
+  /**
+   * The function both paths use, with typed values straight from the engine: which types are
+   * shown and how the others are named.
+   */
+  @Test
+  public void onlyAStringANumberOrABooleanIsShown() {
+    assertThat(AdHocResults.safe(Variables.byteArrayValue(new byte[] {1, 2, 3})))
+        .isEqualTo("<bytes value, not shown>");
+    assertThat(AdHocResults.safe(Variables.fileValue("a.pdf").file(new byte[] {1}).create()))
+        .isEqualTo("<file value, not shown>");
+    assertThat(AdHocResults.safe(Variables.dateValue(new Date(0L))))
+        .isEqualTo("<date value, not shown>");
+    assertThat(AdHocResults.safe(Variables.objectValue(new ArrayList<String>()).create()))
+        .isEqualTo("<object value, not shown>");
+
+    assertThat(AdHocResults.safe(Variables.stringValue("ja"))).isEqualTo("ja");
+    assertThat(AdHocResults.safe(Variables.integerValue(7))).isEqualTo(7);
+    assertThat(AdHocResults.safe(Variables.longValue(7L))).isEqualTo(7L);
+    assertThat(AdHocResults.safe(Variables.doubleValue(1.5))).isEqualTo(1.5);
+    assertThat(AdHocResults.safe(Variables.booleanValue(true))).isEqualTo(true);
+    assertThat(AdHocResults.safe(Variables.untypedNullValue())).isNull();
+    assertThat(AdHocResults.safe(null)).isNull();
+  }
+
+  /**
+   * A typed value is decided by its type: the value of a file or bytes is never taken, so it is
+   * not turned into a stream or an array only to be replaced.
+   */
+  @Test
+  public void aHiddenTypeIsDecidedWithoutTakingItsValue() {
+    for (ValueType type : Arrays.asList(ValueType.FILE, ValueType.BYTES, ValueType.DATE)) {
+      TypedValue untouchable = new TypedValue() {
+        @Override
+        public Object getValue() {
+          throw new AssertionError("the value of a " + type.getName() + " was taken");
+        }
+
+        @Override
+        public ValueType getType() {
+          return type;
+        }
+
+        @Override
+        public boolean isTransient() {
+          return false;
+        }
+      };
+      assertThat(AdHocResults.safe(untouchable))
+          .isEqualTo("<" + type.getName() + " value, not shown>");
+    }
+  }
+
+  /**
+   * The per-turn budget counts what a value takes in the tool result as written, not its
+   * {@code toString} (CIB7-2233): a value of quotes takes twice its length once JSON escapes
+   * them, and counting the shorter form let twice the budget through.
+   */
+  @Test
+  public void theBudgetCountsTheValuesAsWritten() throws Exception {
+    start("quotedBudget",
+        tool -> tool.startActivity("quotedBlock", Collections.<String, Object>emptyMap()));
+
+    assertThat(Agent.FAILURES).isEmpty();
+    Map<String, Object> answer = result(0);
+    Map<String, Object> values = results(answer);
+    assertThat(values.size()).as("the budget cut the block").isLessThan(WritesManyQuotedTexts.COUNT);
+    ObjectMapper json = new ObjectMapper();
+    int written = 0;
+    int last = 0;
+    for (Object value : values.values()) {
+      last = json.writeValueAsString(value).length();
+      written += last;
+    }
+    assertThat(written - last)
+        .as("what was written before the last value stays within the budget")
+        .isLessThan(AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS);
+    assertThat(String.valueOf(answer.get("resultsNote")))
+        .contains("size limit of " + AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS);
+  }
+
+  /**
+   * The state block's budget counts the entries as written too (CIB7-2233). Five performances
+   * of a tool that waits, each about 6000 characters as text and twice that as written: counted
+   * as text, four of them passed a budget that two fill.
+   */
+  @Test
+  public void theStateBlockBudgetCountsTheValuesAsWritten() throws Exception {
+    ProcessInstance instance = start("quotedStateBudget", tool -> {
+      for (int i = 0; i < 5; i++) {
+        tool.startActivity("quotedLater", Collections.<String, Object>emptyMap());
+      }
+      return null;
+    }, tool -> tool.turnReport());
+    String scopeId = ENGINE.getRuntimeService().createExecutionQuery()
+        .processInstanceId(instance.getId()).activityId("adHoc").singleResult().getId();
+    // Each child's own job; the turn the first end schedules waits on the scope execution.
+    for (Job job : ENGINE.getManagementService().createJobQuery()
+        .processInstanceId(instance.getId()).list()) {
+      if (!scopeId.equals(job.getExecutionId())) {
+        ENGINE.getManagementService().executeJob(job.getId());
+      }
+    }
+    runPendingAgenticTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    List<Map<String, Object>> finished = finished(result(1));
+    ObjectMapper json = new ObjectMapper();
+    int entries = 0;
+    int written = 0;
+    int last = 0;
+    String note = null;
+    for (Map<String, Object> entry : finished) {
+      if (entry.containsKey("note")) {
+        note = String.valueOf(entry.get("note"));
+        continue;
+      }
+      entries++;
+      last = json.writeValueAsString(entry.get("results")).length();
+      written += last;
+    }
+    // Two: the first takes about 12000 of the 20000 as written, the second the rest and more.
+    // Counted as text, four passed.
+    assertThat(entries).as("the budget cut the block after the second entry").isEqualTo(2);
+    assertThat(written - last)
+        .as("what was written before the last entry stays within the budget")
+        .isLessThan(AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS);
+    assertThat(note).contains("size limit of " + AdHocSubProcessTool.MAX_RESULT_BLOCK_CHARS);
+  }
+
+  // --- the value of a child that finished in an earlier turn ----------------
+
+  /**
+   * End to end across a turn boundary: a person completes a user task with a value,
+   * that end schedules the next turn, and its listing carries the value.
+   *
+   * <p>The value arrives because the task's form declares the field. This used to
+   * work without any declaration, from the history — see
+   * {@link #anActivityReportsOnlyWhatTheModelDeclares} for why that was wrong and was
+   * turned around.
+   *
+   * <p>The next turn is a job, so it runs in its own transaction rather than inside the
+   * one that completed the task — which is what makes the value readable from history.
+   */
+  @Test
+  public void aChildThatFinishedBetweenTurnsIsReportedWithItsValues() {
+    ProcessInstance instance = startWithoutTurn("history",
+        tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()),
+        tool -> tool.turnReport());
+
+    runPendingTurn(instance);
+
+    ENGINE.getTaskService().complete(task(instance, "waits").getId(),
+        Collections.<String, Object>singletonMap("decision", "approved"));
+
+    runPendingTurn(instance);
+
+    Map<String, Object> listing = result(1);
+    assertThat(finished(listing)).hasSize(1);
+    Map<String, Object> block = finished(listing).get(0);
+    assertThat(block.get("activityId")).isEqualTo("waits");
+    assertThat(block.get("resultsFrom")).isEqualTo("model declaration");
+    assertThat(results(block)).containsEntry("decision", "approved");
+    assertThat(list(listing.get("stillRunning"))).isEmpty();
+  }
+
+  /**
+   * What an activity declares is what the agent sees — nothing else.
+   *
+   * <p>A person completing a task sets whatever the form and the client send, and a
+   * delegate writes whatever it likes. Deriving the report from the HISTORY meant
+   * every one of those values reached the prompt: the salary next to the decision,
+   * the correlation id next to the amount. That silently defeated
+   * {@code adHocResultVariables}, whose whole purpose is to say what the agent may
+   * see, because history was asked first and the declaration only used as a fallback.
+   *
+   * <p>The declaration now leads. History is no longer a source of NAMES.
+   */
+  @Test
+  public void anActivityReportsOnlyWhatTheModelDeclares() {
+    ProcessInstance instance = startWithoutTurn("declaredOnly",
+        tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()),
+        tool -> tool.turnReport());
+
+    runPendingTurn(instance);
+
+    Map<String, Object> entered = new java.util.LinkedHashMap<>();
+    entered.put("decision", "approved");
+    entered.put("salary", 125000);
+    entered.put("ldapToken", "s3cr3t");
+    ENGINE.getTaskService().complete(task(instance, "waits").getId(), entered);
+
+    runPendingTurn(instance);
+
+    Map<String, Object> block = finished(result(1)).get(0);
+    assertThat(results(block))
+        .as("the declared field is reported")
+        .containsEntry("decision", "approved");
+    assertThat(results(block).keySet())
+        .as("nothing the model did not declare may reach the prompt")
+        .containsExactly("decision");
+  }
+
+  // --- completeScope ---------------------------------------------------------
+
+  /**
+   * The refusal that keeps the agent from cancelling a task a person is working
+   * on: ending the scope cancels everything inside it.
+   */
+  @Test
+  public void endingTheScopeIsRefusedWhileSomethingItStartedIsRunning() {
+    ProcessInstance instance = start("refused", tool -> {
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      return tool.completeScope();
+    });
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class);
+    assertThat(Agent.FAILURES.get(0).getMessage())
+        .contains("waits")
+        .contains("a person may be working on");
+    assertThat(task(instance, "waits")).isNotNull();
+    assertThat(scopeStillThere(instance)).isTrue();
+  }
+
+  /**
+   * The call records the request; the engine ends the scope once the turn is over.
+   * {@code completionRequested} rather than {@code completed}, because the scope is
+   * still there when the call returns and a field called "completed" would say
+   * something untrue.
+   */
+  @Test
+  public void endingTheScopeLetsTheProcessContinue() {
+    ProcessInstance instance = start("ends", tool -> tool.completeScope());
+
+    assertThat(result(0).get("completionRequested")).isEqualTo(Boolean.TRUE);
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processInstanceId(instance.getId()).count()).isZero();
+  }
+
+  /**
+   * An entry whose child finished during this same turn does not block the scope:
+   * completeScope reconciles before it refuses.
+   */
+  @Test
+  public void endingTheScopeIsAllowedAfterASynchronousChildFinished() {
+    ProcessInstance instance = start("syncThenEnd", tool -> {
+      tool.startActivity("quick", Collections.<String, Object>emptyMap());
+      return tool.completeScope();
+    });
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processInstanceId(instance.getId()).count()).isZero();
+  }
+
+  /**
+   * A name and a documentation from the model are capped before they reach the model.
+   *
+   * <p>These strings are process data: a modeller, an import or a deployment supplies
+   * them, and they land verbatim in the prompt. Two things follow. Their size is
+   * unbounded, so one element can dominate the context and its cost — which is the
+   * same argument that capped result values, only this side was overlooked. And they
+   * are a place to attempt prompt injection through tool metadata, which a cap makes
+   * smaller but does not close; the listing therefore also says plainly that these
+   * fields are data, not instructions.
+   */
+  @Test
+  public void aLongNameAndDocumentationAreCappedBeforeTheyReachTheModel() {
+    // Without the turn: a turn that starts nothing ends the scope, and the scope
+    // execution is what the provider reads the description through.
+    ProcessInstance instance = startWithoutTurn("chattyModel", tool -> tool.turnReport());
+
+    // Name and documentation reach the model as the tool's description now.
+    org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity scope =
+        (org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity)
+            ENGINE.getRuntimeService().createExecutionQuery()
+                .processInstanceId(instance.getId()).activityId("adHoc").list().get(0);
+    String description = null;
+    for (org.cibseven.connect.ai.agent.agentic.AdHocToolDescriptor descriptor
+        : catalogOf(instance)) {
+      if ("chatty".equals(descriptor.getActivityId())) {
+        description = new AdHocToolProvider(scope).description(descriptor);
+      }
+    }
+    assertThat(description).isNotNull();
+    assertThat(description.length())
+        .as("one element must not dominate the prompt")
+        .isLessThanOrEqualTo(AdHocSubProcessTool.MAX_NAME_CHARS
+            + AdHocSubProcessTool.MAX_DOCUMENTATION_CHARS + 500);
+    assertThat(description).contains("truncated");
+
+    runPendingTurn(instance);
+    assertThat(String.valueOf(result(0).get("note")))
+        .as("the model is told these fields are data, not instructions")
+        .contains("not instructions");
+  }
+
+  /** The parse-time catalogue of the deployed scope, read the way the provider does. */
+  private java.util.List<org.cibseven.connect.ai.agent.agentic.AdHocToolDescriptor>
+      catalogOf(ProcessInstance instance) {
+    final String definitionId = ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processInstanceId(instance.getId()).singleResult().getProcessDefinitionId();
+    return ((org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl)
+        ENGINE.getProcessEngineConfiguration()).getCommandExecutorTxRequired().execute(
+            commandContext -> commandContext.getProcessEngineConfiguration()
+                .getDeploymentCache().findDeployedProcessDefinitionById(definitionId)
+                .findActivity("adHoc").getProperties()
+                .get(org.cibseven.connect.ai.agent.agentic.AdHocToolDescriptor.CATALOG));
+  }
+
+  // --- a multi-instance child ------------------------------------------------
+
+  /**
+   * A parallel multi-instance child is one entry in the pending list, and the scope
+   * cannot end until every one of its instances has finished.
+   *
+   * <p>The review asked whether tracking only {@code activityInstanceIds.get(0)}
+   * loses the other instances. It does not, and the reason is worth pinning: the
+   * activation command returns one id per <em>requested activity</em>, not per
+   * instance, and for a multi-instance child that id is the loop body. The body is
+   * alive as long as any instance is, so one handle covers all of them — which is
+   * exactly what the pending list needs.
+   *
+   * <p>If that ever changes, this test fails rather than the agent silently ending a
+   * scope over unfinished work.
+   */
+  /**
+   * A parallel multi-instance child is one entry in the pending list, and the scope
+   * cannot end until every one of its instances has finished.
+   *
+   * <p>The review asked whether tracking only {@code activityInstanceIds.get(0)}
+   * loses the other instances. It does not, and the reason is worth pinning: the
+   * activation command returns one id per <em>requested activity</em>, not per
+   * instance, and for a multi-instance child that id is the loop body. The body is
+   * alive as long as any instance is, so one handle covers all of them — which is
+   * exactly what the pending list needs.
+   *
+   * <p>If that ever changes, this test fails rather than the agent silently ending a
+   * scope over unfinished work.
+   */
+  @Test
+  public void aMultiInstanceChildHoldsTheScopeUntilEveryInstanceIsDone() {
+    ProcessInstance instance = startWithoutTurn("multiInstance",
+        tool -> tool.startActivity("multi", Collections.<String, Object>emptyMap()),
+        tool -> tool.completeScope());
+
+    runPendingTurn(instance);
+
+    assertThat(result(0).get("status")).isEqualTo("waiting");
+    List<Task> open = ENGINE.getTaskService().createTaskQuery()
+        .processInstanceId(instance.getId()).taskDefinitionKey("multi").list();
+    assertThat(open).as("three instances were created").hasSize(3);
+
+    // Two of three done. The scope's child is the loop body, and that has not ended,
+    // so there is no further turn yet — and above all the instances are still there.
+    ENGINE.getTaskService().complete(open.get(0).getId());
+    ENGINE.getTaskService().complete(open.get(1).getId());
+
+    assertThat(ENGINE.getManagementService().createJobQuery()
+        .processInstanceId(instance.getId()).count())
+        .as("a partly finished loop schedules no turn").isZero();
+    assertThat(ENGINE.getTaskService().createTaskQuery()
+        .processInstanceId(instance.getId()).taskDefinitionKey("multi").count())
+        .as("the remaining instance must still be there — this is what was cancelled before")
+        .isOne();
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processInstanceId(instance.getId()).count()).isOne();
+
+    // The last instance ends the body, which is the scope's child, so a turn is scheduled.
+    ENGINE.getTaskService().complete(ENGINE.getTaskService().createTaskQuery()
+        .processInstanceId(instance.getId()).taskDefinitionKey("multi").singleResult().getId());
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processInstanceId(instance.getId()).count())
+        .as("the scope ends once every instance is done").isZero();
+  }
+
+  // --- a turn that fails, and its retry --------------------------------------
+
+  /**
+   * A turn that fails after asking to end the scope leaves no trace, and the retry
+   * decides again.
+   *
+   * <p>The completion is a recorded request, honoured at the end of the turn. That is a
+   * chain — tool, state flag, end of turn, completion — and the question this pins is
+   * whether the flag is part of the turn's transaction or a side channel around it. If it survived a rollback,
+   * a turn that crashed after calling completeScope would leave a scope that ends
+   * itself on the next child that finishes, with no agent having decided so.
+   *
+   * <p>It is also the honest form of the optimistic-locking worry: a lock conflict is
+   * one of several ways a turn is rolled back and retried, and what matters is that
+   * nothing of the failed attempt is left behind.
+   */
+  @Test
+  public void aTurnThatFailsAfterAskingToEndLeavesNothingBehind() {
+    ProcessInstance instance = startWithoutTurn("retried",
+        tool -> {
+          tool.completeScope();
+          throw new TurnFailure("the model call died after completeScope");
+        },
+        tool -> tool.completeScope());
+
+    List<Job> jobs = ENGINE.getManagementService().createJobQuery()
+        .processInstanceId(instance.getId()).list();
+    assertThat(jobs).hasSize(1);
+    String jobId = jobs.get(0).getId();
+
+    RuntimeException failure = null;
+    try {
+      ENGINE.getManagementService().executeJob(jobId);
+    } catch (RuntimeException e) {
+      failure = e;
+    }
+    assertThat(failure).as("the turn must fail, or this test proves nothing").isNotNull();
+
+    assertThat(completionRequested(instance))
+        .as("the request must have rolled back with the turn")
+        .isNull();
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processInstanceId(instance.getId()).count())
+        .as("and the scope must still be there").isOne();
+    assertThat(ENGINE.getManagementService().createJobQuery().jobId(jobId).singleResult()
+        .getRetries()).as("one retry was spent").isEqualTo(2);
+
+    // The retry runs the next scripted turn, which decides the same thing again.
+    ENGINE.getManagementService().executeJob(jobId);
+
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processInstanceId(instance.getId()).count())
+        .as("the retry ended the scope").isZero();
+  }
+
+  /** The failed attempt and its retry are one turn, not two. */
+  @Test
+  public void aRetriedTurnIsCountedOnce() {
+    ProcessInstance instance = startWithoutTurn("retriedCount",
+        tool -> {
+          tool.turnReport();
+          throw new TurnFailure("died mid-turn");
+        },
+        tool -> tool.turnReport());
+
+    String jobId = ENGINE.getManagementService().createJobQuery()
+        .processInstanceId(instance.getId()).singleResult().getId();
+    try {
+      ENGINE.getManagementService().executeJob(jobId);
+    } catch (RuntimeException expected) {
+      // the turn was meant to fail
+    }
+    ENGINE.getManagementService().executeJob(jobId);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(result(0).get("turn"))
+        .as("the same job ran twice; that is one turn")
+        .isEqualTo(1);
+  }
+
+  /** The completion flag of {@code instance}, or null when it was never recorded. */
+  private Object completionRequested(ProcessInstance instance) {
+    VariableInstance variable = ENGINE.getRuntimeService().createVariableInstanceQuery()
+        .processInstanceIdIn(instance.getId())
+        .variableName(AdHocAgentState.STATE_MARKER)
+        .singleResult();
+    return (variable == null) ? null : ((Map<?, ?>) variable.getValue()).get("completionRequested");
+  }
+
+  // --- the turn cap ----------------------------------------------------------
+
+  /**
+   * A turn is one job, not one tool call.
+   *
+   * <p>The count used to be incremented inside {@code listAvailableActivities}, so a
+   * model that looked at the catalogue twice — entirely legitimate, and the tool
+   * description even invites a look before deciding — spent two of its turns on one.
+   * With {@code cibseven.agentic.maxTurns} at its default of ten that quietly halves the budget,
+   * and how far it goes depends on the model, on tool retries and on whatever
+   * middleware sits in between.
+   */
+  @Test
+  public void severalToolCallsInOneTurnCountAsOneTurn() {
+    start("oneTurn", tool -> {
+      List<Object> seen = new ArrayList<>();
+      seen.add(tool.turnReport().get("turn"));
+      seen.add(tool.turnReport().get("turn"));
+      seen.add(tool.startActivity("quick", Collections.<String, Object>emptyMap()));
+      seen.add(tool.turnReport().get("turn"));
+      return seen;
+    });
+
+    assertThat(Agent.FAILURES).isEmpty();
+    @SuppressWarnings("unchecked")
+    List<Object> seen = (List<Object>) Agent.RESULTS.get(0);
+    assertThat(seen.get(0)).as("first listing of the turn").isEqualTo(1);
+    assertThat(seen.get(1)).as("a second look is the same turn").isEqualTo(1);
+    assertThat(seen.get(3)).as("and so is a look after starting something").isEqualTo(1);
+  }
+
+  /** The next job is the next turn. */
+  @Test
+  public void theNextJobIsTheNextTurn() {
+    ProcessInstance instance = startWithoutTurn("twoTurns",
+        tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()),
+        tool -> tool.turnReport());
+
+    runPendingTurn(instance);
+    ENGINE.getTaskService().complete(task(instance, "waits").getId());
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(result(1).get("turn")).as("the turn a child's end scheduled is turn 2")
+        .isEqualTo(2);
+  }
+
+  /**
+   * A cap of one allows the first turn; the second ends the scope without a model call.
+   *
+   * <p>The runner checks the cap before the agent costs anything: a loop that plainly
+   * is not converging gets a readable answer written and the scope completed, rather
+   * than another model call whose refusal it may ignore.
+   */
+  @Test
+  public void theTurnCapStopsFurtherActivities() {
+    ProcessInstance instance = startWithoutTurn("capped",
+        "<camunda:property name='cibseven.agentic.maxTurns' value='1' />",
+        tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()),
+        tool -> tool.startActivity("quick", Collections.<String, Object>emptyMap()));
+
+    runPendingTurn(instance);
+    assertThat(Agent.FAILURES).as("the first turn is within the cap").isEmpty();
+
+    ENGINE.getTaskService().complete(task(instance, "waits").getId());
+    runPendingTurn(instance);
+
+    assertThat(ScriptedAgent.turnsTaken())
+        .as("the second turn must not reach the model").isOne();
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processInstanceId(instance.getId()).count())
+        .as("the scope was ended instead").isZero();
+    assertThat(String.valueOf(ENGINE.getHistoryService()
+        .createHistoricVariableInstanceQuery().processInstanceId(instance.getId())
+        .variableName("agentOutput").singleResult().getValue()))
+        .contains("turn limit of 1");
+  }
+
+  /**
+   * The cap stops the agent from thinking further. It does not throw away work already
+   * handed out.
+   *
+   * <p>A child of an agentic scope is a tool, and a tool can be a task a person is
+   * halfway through. Ending the scope over one cancels it — which is why
+   * {@code completeScope} refuses while something runs and why {@code endOfTurn} waits.
+   * The cap is the third exit of a turn and has to keep the same rule.
+   *
+   * <p>So over the cap the request is recorded rather than acted on, and every further
+   * wake-up leaves through the pending-request branch: no model call, no answer
+   * rewritten. The scope ends when the last child is done.
+   */
+  @Test
+  public void theTurnCapWaitsForWorkThatIsStillRunning() {
+    theTurnCapWaitsForWorkThatIsStillRunning(false);
+  }
+
+  @Test
+  public void theTotalTurnCapWaitsForWorkThatIsStillRunning() {
+    theTurnCapWaitsForWorkThatIsStillRunning(true);
+  }
+
+  private String turnCapProperties(boolean total) {
+    return total
+        ? "<camunda:property name='cibseven.agentic.conversation' value='perActivity' />"
+            + "<camunda:property name='cibseven.agentic.maxTurnsTotal' value='1' />"
+        : "<camunda:property name='cibseven.agentic.maxTurns' value='1' />";
+  }
+
+  private void assertCappedCounts(ProcessInstance instance, boolean total) {
+    Map<?, ?> state = (Map<?, ?>) ENGINE.getRuntimeService().createVariableInstanceQuery()
+        .processInstanceIdIn(instance.getId()).variableName(AdHocAgentState.STATE_MARKER)
+        .singleResult().getValue();
+    assertThat(state.get("turns")).isEqualTo(2);
+    assertThat(state.get("modelCalls")).isEqualTo(0);
+    if (total) {
+      Map<?, ?> holder = (Map<?, ?>) ENGINE.getRuntimeService().createVariableInstanceQuery()
+          .processInstanceIdIn(instance.getId()).variableName(AdHocConversation.HOLDER_MARKER)
+          .singleResult().getValue();
+      assertThat(holder.get(AdHocConversation.TURNS_TOTAL)).isEqualTo(2);
+    }
+  }
+
+  private void theTurnCapWaitsForWorkThatIsStillRunning(boolean total) {
+    ProcessInstance instance = startWithoutTurn("cappedWithWork",
+        turnCapProperties(total),
+        tool -> {
+          tool.startActivity("waits", Collections.<String, Object>emptyMap());
+          tool.startActivity("multi", Collections.<String, Object>emptyMap());
+          return tool.turnReport();
+        });
+
+    runPendingTurn(instance);
+    assertThat(Agent.FAILURES).as("the first turn is within the cap").isEmpty();
+
+    // The turn this schedules is over the cap, and three multi instances are still open.
+    ENGINE.getTaskService().complete(task(instance, "waits").getId());
+    runPendingTurn(instance);
+
+    assertThat(ScriptedAgent.turnsTaken())
+        .as("the turn over the cap must not reach the model").isOne();
+    assertThat(scopeStillThere(instance))
+        .as("and must not end the scope over running work").isTrue();
+    assertThat(ENGINE.getTaskService().createTaskQuery()
+        .processInstanceId(instance.getId()).taskDefinitionKey("multi").count())
+        .as("the three open tasks are untouched").isEqualTo(3);
+    assertCappedCounts(instance, total);
+
+    String scopeId = ENGINE.getRuntimeService().createExecutionQuery()
+        .processInstanceId(instance.getId()).activityId("adHoc").singleResult().getId();
+    ENGINE.getRuntimeService().createAdHocSubProcessActivation(scopeId).startActivity("quick")
+        .execute();
+    runPendingTurn(instance);
+    assertCappedCounts(instance, total);
+    assertThat(ScriptedAgent.turnsTaken()).isOne();
+    assertThat(writesContaining(instance, "agentOutput", "turn limit of")).isOne();
+
+    for (Task open : ENGINE.getTaskService().createTaskQuery()
+        .processInstanceId(instance.getId()).taskDefinitionKey("multi").list()) {
+      ENGINE.getTaskService().complete(open.getId());
+    }
+    runPendingTurn(instance);
+
+    assertThat(ScriptedAgent.turnsTaken())
+        .as("still no model call: the scope was already asked to end").isOne();
+    assertThat(scopeStillThere(instance))
+        .as("with nothing left running the scope ends").isFalse();
+    assertThat(String.valueOf(ENGINE.getHistoryService()
+        .createHistoricVariableInstanceQuery().processInstanceId(instance.getId())
+        .variableName("agentOutput").singleResult().getValue()))
+        .contains("turn limit of 1");
+
+    // The cap is a state of the agent, not something that happens again at every child's
+    // end. After the cap there are two wake-ups: the capped turn, and one when the
+    // multi-instance body ends -- the three completions above dedupe into that single
+    // job, asserted a few lines up. The answer was written in exactly one of the two: the
+    // request is recorded in the first, and the branch that reads it sits above both the
+    // counter and the cap check, so the second never reaches either.
+    assertThat(writesContaining(instance, "agentOutput", "turn limit of"))
+        .as("the limit answer is written once, not once per remaining child").isOne();
+  }
+
+  /**
+   * How often a variable was set to a value containing {@code marker}.
+   *
+   * <p>Counting every write of the variable would count the answer of the turn before the
+   * cap as well, which is a normal one. What must not repeat is the cap's own message.
+   */
+  private long writesContaining(ProcessInstance instance, String name, String marker) {
+    long writes = 0;
+    for (HistoricDetail detail : ENGINE.getHistoryService().createHistoricDetailQuery()
+        .processInstanceId(instance.getId()).variableUpdates().list()) {
+      HistoricVariableUpdate update = (HistoricVariableUpdate) detail;
+      if (name.equals(update.getVariableName())
+          && String.valueOf(update.getValue()).contains(marker)) {
+        writes++;
+      }
+    }
+    return writes;
+  }
+
+  /**
+   * The cap waits for a queued job as it waits for a person.
+   *
+   * <p>A synchronous service task is never "still running" — it finishes inside the tool
+   * call. What can outlive a turn besides a task is a job, so the mixed shape is the one
+   * worth pinning: a user task and an {@code asyncBefore} child, ending in either order.
+   *
+   * <p>It also shows what the fix now leans on. The scope ends only because each child's
+   * end schedules a turn. A child whose end does not — CIB7-2139, CIB7-2140 — would leave
+   * the scope standing. That dependency is not new, {@code endOfTurn} and
+   * {@code completeScope} have always had it; the cap used to be the one exit without it,
+   * by cancelling the work instead.
+   */
+  @Test
+  public void theTurnCapWaitsForAQueuedJobToo() {
+    theTurnCapWaitsForAQueuedJobToo(false);
+  }
+
+  @Test
+  public void theTotalTurnCapWaitsForAQueuedJobToo() {
+    theTurnCapWaitsForAQueuedJobToo(true);
+  }
+
+  private void theTurnCapWaitsForAQueuedJobToo(boolean total) {
+    ProcessInstance instance = startWithoutTurn("cappedWithJob",
+        turnCapProperties(total),
+        tool -> {
+          tool.startActivity("waits", Collections.<String, Object>emptyMap());
+          tool.startActivity("asyncChild", Collections.<String, Object>emptyMap());
+          return tool.turnReport();
+        });
+
+    runPendingTurn(instance);
+    assertThat(Agent.FAILURES).as("the first turn is within the cap").isEmpty();
+
+    // The child's own job first; its end schedules the turn that is over the cap.
+    runPendingTurn(instance);
+    runPendingTurn(instance);
+
+    assertThat(ScriptedAgent.turnsTaken())
+        .as("the turn over the cap must not reach the model").isOne();
+    assertThat(scopeStillThere(instance))
+        .as("the user task is still open, so the scope stands").isTrue();
+
+    ENGINE.getTaskService().complete(task(instance, "waits").getId());
+    runPendingTurn(instance);
+
+    assertThat(ScriptedAgent.turnsTaken()).as("and still no model call").isOne();
+    assertThat(scopeStillThere(instance))
+        .as("the last child is done, so the scope ends").isFalse();
+    assertThat(writesContaining(instance, "agentOutput", "turn limit of"))
+        .as("one limit answer, whichever order the children end in").isOne();
+  }
+
+  /**
+   * The reverse order of {@link #theTurnCapWaitsForAQueuedJobToo}: the user task ends
+   * first, while the {@code asyncBefore} child's own continuation job is still queued,
+   * unexecuted. {@code hasChildren} has to count that queued execution as still running
+   * on its own -- it carries a job but no activity instance (the suite's case 15 is the
+   * same shape) -- not only once a job of its own has run at least once.
+   */
+  @Test
+  public void theTurnCapWaitsForAQueuedJobEvenWhenTheUserTaskEndsFirst() {
+    theTurnCapWaitsForAQueuedJobEvenWhenTheUserTaskEndsFirst(false);
+  }
+
+  @Test
+  public void theTotalTurnCapWaitsForAQueuedJobEvenWhenTheUserTaskEndsFirst() {
+    theTurnCapWaitsForAQueuedJobEvenWhenTheUserTaskEndsFirst(true);
+  }
+
+  private void theTurnCapWaitsForAQueuedJobEvenWhenTheUserTaskEndsFirst(boolean total) {
+    ProcessInstance instance = startWithoutTurn("cappedWithJobReverse",
+        turnCapProperties(total),
+        tool -> {
+          tool.startActivity("waits", Collections.<String, Object>emptyMap());
+          tool.startActivity("asyncChild", Collections.<String, Object>emptyMap());
+          return tool.turnReport();
+        });
+
+    runPendingTurn(instance);
+    assertThat(Agent.FAILURES).as("the first turn is within the cap").isEmpty();
+
+    // "waits" ends first; asyncChild's own job is still queued, never run. Both jobs
+    // coexist now, so only the scope's own turn job may be run here.
+    ENGINE.getTaskService().complete(task(instance, "waits").getId());
+    runPendingAgenticTurn(instance);
+
+    assertThat(ScriptedAgent.turnsTaken())
+        .as("the turn over the cap must not reach the model").isOne();
+    assertThat(scopeStillThere(instance))
+        .as("the queued job is still running, so the scope stands").isTrue();
+
+    // asyncChild's own jobs run now -- the same two steps the forward-order test takes to
+    // finish it, see the comment there -- and it is the last child to end.
+    runPendingTurn(instance);
+    runPendingTurn(instance);
+
+    assertThat(ScriptedAgent.turnsTaken()).as("and still no model call").isOne();
+    assertThat(scopeStillThere(instance))
+        .as("the last child is done, so the scope ends").isFalse();
+    assertThat(writesContaining(instance, "agentOutput", "turn limit of"))
+        .as("one limit answer here too").isOne();
+  }
+
+  @Test
+  public void theCapCanBeRaisedFromTheModel() {
+    start("raised", "<camunda:property name='cibseven.agentic.maxTurns' value='42' />",
+        tool -> tool.turnReport());
+
+    assertThat(result(0).get("maxTurns")).isEqualTo(42);
+  }
+
+  /**
+   * An unparseable cap falls back to the default rather than failing the turn: the
+   * value is a modelling mistake, and refusing to run would turn it into an
+   * outage.
+   */
+  /**
+   * A loop inside one turn is stopped too, and the process continues.
+   *
+   * <p>The turn cap cannot see this one: starting synchronous children never ends the
+   * turn, so no further turn is ever counted. Case 09 of the suite is exactly that
+   * loop, and once turns were counted per turn rather than per call it ran 300 model
+   * calls in a distribution until LangChain4j's own brake at 100 round trips failed the
+   * job and left an incident — the very thing the turn cap was made to avoid.
+   */
+  @Test
+  public void aLoopInsideOneTurnIsStoppedAndTheProcessContinues() {
+    ProcessInstance instance = start("callLoop",
+        "<camunda:property name='cibseven.agentic.maxModelCalls' value='3' />",
+        tool -> {
+          for (int i = 0; i < 10; i++) {
+            tool.startActivity("quick", Collections.<String, Object>emptyMap());
+          }
+          return "never reached";
+        });
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage())
+        .contains("over the limit of 3")
+        .contains("Ask for fewer at once");
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processInstanceId(instance.getId()).count())
+        .as("refused, not failed: the scope ends and the process runs on").isZero();
+  }
+
+  /** The next turn starts with a fresh call budget. */
+  @Test
+  public void theCallBudgetIsPerTurn() {
+    ProcessInstance instance = startWithoutTurn("callBudget",
+        "<camunda:property name='cibseven.agentic.maxModelCalls' value='3' />",
+        tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()),
+        tool -> tool.startActivity("quick", Collections.<String, Object>emptyMap()));
+
+    runPendingTurn(instance);
+    ENGINE.getTaskService().complete(task(instance, "waits").getId());
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).as("the second turn starts counting again").isEmpty();
+    assertThat(results(result(1))).containsKey("amount");
+  }
+
+  /**
+   * A cap of zero or less is not a cap, and falls back like any unusable value.
+   *
+   * <p>Both parse fine, so the NumberFormatException guard never saw them. Zero refused
+   * the first startActivity of the first turn — the agent looked broken rather than the
+   * model wrong. Not a deployment error, for the same reason the property is not
+   * validated at parse time: a wrong cap still ends the loop.
+   */
+  @Test
+  public void aCapOfZeroOrLessFallsBackToTheDefault() {
+    start("zeroCap", "<camunda:property name='cibseven.agentic.maxTurns' value='0' />",
+        tool -> tool.turnReport());
+    assertThat(result(0).get("maxTurns")).isEqualTo(AdHocSubProcessTool.DEFAULT_MAX_TURNS);
+
+    Agent.clear();
+
+    start("negativeCap", "<camunda:property name='cibseven.agentic.maxTurns' value='-10' />",
+        tool -> tool.turnReport());
+    assertThat(result(0).get("maxTurns")).isEqualTo(AdHocSubProcessTool.DEFAULT_MAX_TURNS);
+  }
+
+  @Test
+  public void anUnparseableCapFallsBackToTheDefault() {
+    start("badCap", "<camunda:property name='cibseven.agentic.maxTurns' value='soon' />",
+        tool -> tool.turnReport());
+
+    assertThat(result(0).get("maxTurns")).isEqualTo(AdHocSubProcessTool.DEFAULT_MAX_TURNS);
+  }
+
+  // --- configuration errors --------------------------------------------------
+
+  /**
+   * Outside an ad hoc sub process the tool refuses instead of doing nothing, so
+   * the mistake surfaces as a message naming the activity rather than as a model
+   * inventing an explanation for a silent no-op.
+   */
+  @Test
+  public void theToolRefusesWhenTheAgentIsNotInsideAnAdHocSubProcess() {
+    ENGINE.getRepositoryService().createDeployment()
+        .addString("noScope.bpmn20.xml", modelWithoutScope())
+        .deploy();
+
+    ENGINE.getRuntimeService().startProcessInstanceByKey("noScope");
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class);
+    assertThat(Agent.FAILURES.get(0).getMessage())
+        .contains("not inside an ad hoc sub process")
+        .contains("agent");
+  }
+
+  @Test
+  public void theToolRefusesWithoutAnEngineOnTheThread() {
+    start("noEngine", tool -> {
+      ProcessStarterToolContext.clear();
+      return tool.turnReport();
+    });
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0)).isInstanceOf(AgentConnectorException.class);
+    assertThat(Agent.FAILURES.get(0).getMessage()).contains("No ProcessEngine available");
+  }
+
+  @Test
+  public void startingAnUnknownActivityIsRefusedByTheEngine() {
+    start("unknown",
+        tool -> tool.startActivity("nosuch", Collections.<String, Object>emptyMap()));
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage()).contains("nosuch");
+  }
+
+  // --- an asyncBefore child, the groundwork the blocking rule stands on -----
+
+  /**
+   * A queued {@code asyncBefore} child holds a marked activity back.
+   *
+   * <p>The premise of the blocking rule, and the reason it reads the execution
+   * tree: with {@code asyncBefore} the child's work has not started yet, a job is
+   * waiting to be picked up, and it has no activity instance. Asked of the
+   * activity instance tree the child looks absent, and dependent work would start
+   * while queued work had not run.
+   */
+  /**
+   * What {@code startActivity} tells the model about a child whose asyncBefore job
+   * is still queued.
+   *
+   * <p>The status is decided against the activity instance tree, where a queued
+   * asyncBefore child does not appear — the same fact the blocking rule two methods
+   * away reads the execution tree to avoid. If that decides "not running", the model
+   * is told the work is <em>finished</em> before it has started, with whatever its
+   * declared result variables happen to hold, and the child never enters the pending
+   * list either, so no later turn reports it.
+   *
+   * <p>The existing {@link #aQueuedAsyncBeforeChildHoldsAMarkedActivityBack} starts
+   * the same child but only asserts what happens next, which is how this slipped
+   * through: nothing pinned the answer itself.
+   */
+  @Test
+  public void aQueuedAsyncBeforeChildIsReportedAsWaitingNotFinished() {
+    start("asyncStatus",
+        tool -> tool.startActivity("asyncChild", Collections.<String, Object>emptyMap()));
+
+    assertThat(Agent.FAILURES).isEmpty();
+    Map<String, Object> answer = result(0);
+    assertThat(answer.get("status"))
+        .as("a queued job has not run, so the model must not be told it finished")
+        .isEqualTo("waiting");
+    assertThat(answer.get("results")).as("nothing can be known yet")
+        .isEqualTo(Collections.emptyMap());
+  }
+
+  /**
+   * Two performances of one tool are two entries, not one.
+   *
+   * <p>This is what the result collection is for. The report used to read the declared
+   * process variables at the start of a turn, and two runs of one activity leave one
+   * set of them — the agent saw the second twice and the first never. The engine now
+   * gathers each performance as its child ends, while its values are still the
+   * current ones, and the report is fed from that.
+   */
+  @Test
+  public void twoPerformancesOfOneToolAreReportedSeparately() {
+    start("twoRuns", tool -> {
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      return null;
+    });
+
+    for (Task task : ENGINE.getTaskService().createTaskQuery()
+        .taskDefinitionKey("waits").list()) {
+      ENGINE.getTaskService().complete(task.getId(),
+          Collections.<String, Object>singletonMap("decision", "for-" + task.getId()));
+    }
+
+    // The end of the second one schedules the turn that reports both.
+    ScriptedAgent.install(agent(tool -> tool.turnReport()));
+    runPendingTurn(instance("twoRuns"));
+
+    List<Map<String, Object>> finished = finished(result(1));
+    assertThat(finished).as("both performances, not one").hasSize(2);
+    assertThat(ids2(finished, "activityId")).containsExactly("waits", "waits");
+    assertThat(ids2(finished, "activityInstanceId"))
+        .as("each entry names the performance it came from").doesNotHaveDuplicates();
+    List<Object> decisions = new ArrayList<>();
+    for (Map<String, Object> entry : finished) {
+      decisions.add(results(entry).get("decision"));
+    }
+    assertThat(decisions).as("each carries its own value").doesNotHaveDuplicates();
+  }
+
+  /** The running instance of {@code processId}. */
+  private ProcessInstance instance(String processId) {
+    return ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processDefinitionKey(processId).singleResult();
+  }
+
+  private static List<Object> ids2(List<Map<String, Object>> items, String key) {
+    List<Object> values = new ArrayList<>();
+    for (Map<String, Object> item : items) {
+      values.add(item.get(key));
+    }
+    return values;
+  }
+
+  /**
+   * The whole way for a queued asyncBefore child: waiting now, reported with its
+   * value in the turn after the job ran.
+   *
+   * <p>Both halves matter and the first alone would have been a half fix. Reporting
+   * "waiting" without tracking the child would leave the agent waiting for a result
+   * that never arrives, and would let completeScope end the scope over it.
+   */
+  @Test
+  public void aQueuedAsyncBeforeChildIsReportedWhenItsJobHasRun() {
+    ProcessInstance instance = start("asyncWholeWay",
+        tool -> tool.startActivity("asyncChild", Collections.<String, Object>emptyMap()),
+        tool -> tool.turnReport());
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(result(0).get("status")).as("the job is still queued").isEqualTo("waiting");
+
+    // The child's own job, then the turn its end scheduled.
+    runPendingTurn(instance);
+    runPendingTurn(instance);
+
+    Map<String, Object> listing = result(1);
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> finished =
+        (List<Map<String, Object>>) listing.get("finishedSinceLastTurn");
+    // 'activityId', not 'id': a finished entry names the activity it belongs to.
+    List<String> reported = new ArrayList<>();
+    for (Map<String, Object> candidate : finished) {
+      reported.add(String.valueOf(candidate.get("activityId")));
+    }
+    assertThat(reported).as("the child must be reported once its job has run")
+        .contains("asyncChild");
+
+    Map<String, Object> entry = null;
+    for (Map<String, Object> candidate : finished) {
+      if ("asyncChild".equals(candidate.get("activityId"))) {
+        entry = candidate;
+      }
+    }
+    assertThat(entry).isNotNull();
+    @SuppressWarnings("unchecked")
+    Map<String, Object> values = (Map<String, Object>) entry.get("results");
+    // Long, not Integer: the expression ${1} is evaluated by JUEL.
+    assertThat(values).as("its declared result variable carries the value")
+        .containsEntry("asyncDone", Long.valueOf(1));
+  }
+
+  @Test
+  public void aQueuedAsyncBeforeChildHoldsAMarkedActivityBack() {
+    start("asyncKid", tool -> {
+      tool.startActivity("asyncChild", Collections.<String, Object>emptyMap());
+      return tool.startActivity("gated", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage())
+        .contains("Cannot start 'gated'")
+        .contains("asyncChild");
+  }
+
+  // --- the blocking marking -------------------------------------------------
+
+  /**
+   * A marked activity is refused while anything else in the scope is running.
+   * This is the guarantee: work that depends on a decision someone else has to
+   * make does not start before that decision is in.
+   */
+  @Test
+  public void aMarkedActivityIsRefusedWhileSomethingElseRuns() {
+    start("gatedRefused", tool -> {
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      return tool.startActivity("gated", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage())
+        .contains("Cannot start 'gated'")
+        .contains("waits")
+        .contains("end your turn");
+  }
+
+  /**
+   * And is startable when nothing else runs — including while the agent itself is
+   * running, which it always is when it asks. Without excluding the caller a
+   * marked activity would be blocked in every turn for ever.
+   */
+  @Test
+  public void aMarkedActivityIsStartableWhenNothingElseRuns() {
+    start("gatedAllowed",
+        tool -> tool.startActivity("gated", Collections.<String, Object>emptyMap()));
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(result(0).get("status")).isEqualTo("finished");
+  }
+
+  /** An unmarked activity is unaffected: the default is unchanged behaviour. */
+  @Test
+  public void anUnmarkedActivityIsNotAffectedByWhatIsRunning() {
+    start("unmarked", tool -> {
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      return tool.startActivity("quick", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(result(0).get("status")).isEqualTo("finished");
+  }
+
+  @Test
+  public void theReportSaysWhichActivityIsNotStartableAndWhy() {
+    start("gatedListing", tool -> {
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      return tool.turnReport();
+    });
+
+    assertThat(list(result(0).get("blockedNow"))).containsExactly("gated");
+    assertThat(String.valueOf(result(0).get("blockedBecause"))).contains("waits");
+  }
+
+  /** Nothing running, nothing said — the ordinary case costs no prompt. */
+  @Test
+  public void theReportIsSilentAboutBlockingWhenNothingRuns() {
+    start("gatedSilent", tool -> tool.turnReport());
+
+    assertThat(result(0)).doesNotContainKey("blockedNow");
+    assertThat(result(0)).doesNotContainKey("blockedBecause");
+  }
+
+  /**
+   * Once the other work finishes, the marked activity becomes startable in the
+   * turn the engine gives the agent for it.
+   */
+  @Test
+  public void aMarkedActivityIsStartableInTheTurnAfterTheOtherWorkFinished() {
+    ProcessInstance instance = startWithoutTurn("gatedLater",
+        tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()),
+        tool -> tool.startActivity("gated", Collections.<String, Object>emptyMap()));
+
+    runPendingTurn(instance);
+    ENGINE.getTaskService().complete(task(instance, "waits").getId());
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(result(1).get("status")).isEqualTo("finished");
+  }
+
+  // --- what happens after the scope has been ended --------------------------
+
+  /**
+   * Ending the scope is a request, and the turn carries on.
+   *
+   * <p>This is the failure a running distribution showed on every model. The agent
+   * is a child of the scope, so completing it inside the turn deleted the very
+   * execution the call was running on: the next tool call could not find its scope,
+   * and the engine could not finish its bookkeeping for the activity — an
+   * optimistic-locking failure here, a null parent in the error-propagation walk
+   * there. No test saw it because every test returned from its turn immediately
+   * after completing. A real conversation does not: LangChain4j asks the model
+   * again after every tool result.
+   */
+  @Test
+  public void endingTheScopeIsRecordedAndTheTurnCarriesOn() {
+    start("afterComplete", tool -> {
+      Map<String, Object> ended = tool.completeScope();
+      assertThat(ended.get("completionRequested")).isEqualTo(Boolean.TRUE);
+      // The scope is still there, so this must simply work.
+      return tool.turnReport();
+    });
+
+    assertThat(Agent.FAILURES).as("nothing may fail after completeScope").isEmpty();
+    assertThat(result(0)).containsKey("finishedSinceLastTurn");
+  }
+
+  /** But starting something after asking to end is refused, and says why. */
+  @Test
+  public void startingAnActivityAfterAskingToEndIsRefused() {
+    start("afterCompleteStart", tool -> {
+      tool.completeScope();
+      return tool.startActivity("waits", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage())
+        .contains("already asked")
+        .doesNotContain("is not inside an ad hoc sub process");
+  }
+
+  /** And the scope really does end once the turn is over. */
+  @Test
+  public void theScopeEndsAfterTheTurnThatAskedForIt() {
+    ProcessInstance instance = start("completesAfterTurn", tool -> tool.completeScope());
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processInstanceId(instance.getId()).count())
+        .as("the process should have continued past the scope").isZero();
+  }
+
+  /** Set before the turn runs, so a turn can act on the instance it is part of. */
+  static volatile String deferredScopeExecutionId;
+
+  /**
+   * A completion request waits for work that started after it was made.
+   *
+   * <p>The tool refuses to start anything once completion is asked for, but a
+   * person can still activate a child over the REST API — and cancelling a task
+   * someone is working on is exactly what the refusal in {@code completeScope}
+   * exists to prevent. The engine therefore keeps the request pending and acts on
+   * it when that child ends, rather than completing over the top of it.
+   *
+   * <p>The first turn is left waiting so the instance exists before it runs, which is what
+   * lets the turn activate a child the way an outside caller would.
+   *
+   * <p>This branch came in with the fix for the completion defect, so it had no
+   * test until now.
+   */
+  @Test
+  public void aPendingCompletionWaitsForWorkStartedAfterTheRequest() {
+    ProcessInstance instance = startWithoutTurn("deferred", tool -> {
+      Map<String, Object> ended = tool.completeScope();
+      // Someone else activates a child, the way a human client would.
+      ENGINE.getRuntimeService().activateAdHocSubProcessActivities(
+          deferredScopeExecutionId, Collections.singletonList("waits"), null);
+      return ended;
+    });
+    deferredScopeExecutionId = ENGINE.getRuntimeService().createExecutionQuery()
+        .processInstanceId(instance.getId()).activityId("adHoc").list().get(0).getId();
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    Task waiting = task(instance, "waits");
+    assertThat(waiting).as("the task started after the request must survive").isNotNull();
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processInstanceId(instance.getId()).count())
+        .as("the scope must not have completed over a live task").isEqualTo(1);
+
+    ENGINE.getTaskService().complete(waiting.getId());
+    // The end of that task schedules a turn, and that turn acts on the pending request
+    // without asking the model again.
+    runPendingTurn(instance);
+
+    assertThat(ScriptedAgent.turnsTaken()).as("no second model call was needed").isOne();
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processInstanceId(instance.getId()).count())
+        .as("once that task ends, the pending request takes effect").isZero();
+  }
+}

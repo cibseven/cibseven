@@ -17,6 +17,7 @@
 package org.cibseven.bpm.integrationtest.functional.event.beans;
 
 import org.cibseven.bpm.application.ProcessApplication;
+import org.cibseven.bpm.application.impl.JakartaServletProcessApplication;
 import org.cibseven.bpm.engine.cdi.impl.event.CdiEventListener;
 import org.cibseven.bpm.engine.delegate.ExecutionListener;
 import org.cibseven.bpm.engine.delegate.TaskListener;
@@ -26,8 +27,7 @@ import org.cibseven.bpm.engine.delegate.TaskListener;
  *
  */
 @ProcessApplication
-// Using fully-qualified class name instead of import statement to allow for automatic Jakarta transformation
-public class CdiEventSupportProcessApplication extends org.cibseven.bpm.application.impl.ServletProcessApplication {
+public class CdiEventSupportProcessApplication extends JakartaServletProcessApplication {
 
   public static final String LISTENER_INVOCATION_COUNT = "listenerInvocationCount";
 

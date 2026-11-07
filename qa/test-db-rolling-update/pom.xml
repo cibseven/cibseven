@@ -10,15 +10,18 @@
   <parent>
     <groupId>org.cibseven.bpm.qa</groupId>
     <artifactId>cibseven-qa</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <!-- centralized previous version for old-engine BOMs; update only on release or override via -Dcibseven.version.previous -->
   <properties>
     <cibseven.version.previous>2.2.0</cibseven.version.previous>
-    <!-- Skip enforcer rules: this module tests rolling updates across versions,
-         which intentionally use mismatched dependency versions between old and new engines -->
-    <enforcer.skip>true</enforcer.skip>
+    <!-- Skip the dependency-alignment rules: this module tests rolling updates across versions,
+         which intentionally use mismatched dependency versions between old and new engines.
+         The JDK version check (requireJavaVersion) still applies. -->
+    <enforcer.skipRules>bannedDependencies</enforcer.skipRules>
+    <!-- with bannedDependencies skipped, the dependency-alignment executions have no rule left -->
+    <enforcer.failIfNoRules>false</enforcer.failIfNoRules>
   </properties>
 
   <modules>

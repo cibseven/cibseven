@@ -106,6 +106,9 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   /** CIB7-1892. Evaluated once per completed child; its value is what gets appended. */
   protected Expression outputElement;
 
+  /** Told of every child that ends or is removed. Added at parse time, read-only afterwards. */
+  protected List<AdHocSubProcessObserver> observers = new ArrayList<AdHocSubProcessObserver>();
+
   @Override
   public void execute(ActivityExecution execution) throws Exception {
     // Entering an ad-hoc scope starts nothing, and deliberately records nothing: writing the flag
@@ -403,6 +406,9 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   @Override
   public void destroyInnerInstance(ActivityExecution concurrentExecution) {
     ActivityExecution scopeExecution = concurrentExecution.getParent();
+    for (AdHocSubProcessObserver observer : observers) {
+      observer.childRemoved(scopeExecution, concurrentExecution);
+    }
     concurrentExecution.remove();
     scopeExecution.forceUpdate();
   }
@@ -410,6 +416,9 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
   @Override
   public void concurrentChildExecutionEnded(ActivityExecution scopeExecution, ActivityExecution endedExecution) {
     gatherResult(scopeExecution, endedExecution);
+    for (AdHocSubProcessObserver observer : observers) {
+      observer.childEnded(scopeExecution, endedExecution);
+    }
 
     // Decide before disposing of anything: a completion condition normally reads a variable the
     // ended child just wrote, and completeScope needs the ended execution's activity to find the
@@ -908,6 +917,18 @@ public class AdHocSubProcessActivityBehavior extends AbstractBpmnActivityBehavio
 
   public void setOutputElement(Expression outputElement) {
     this.outputElement = outputElement;
+  }
+
+  /**
+   * Adds an observer of the scope's children. For a parse listener: the behaviour belongs to the
+   * deployed definition and is shared by every instance of it.
+   */
+  public void addObserver(AdHocSubProcessObserver observer) {
+    observers.add(observer);
+  }
+
+  public List<AdHocSubProcessObserver> getObservers() {
+    return Collections.unmodifiableList(observers);
   }
 
   public void setCancelRemainingInstances(boolean cancelRemainingInstances) {

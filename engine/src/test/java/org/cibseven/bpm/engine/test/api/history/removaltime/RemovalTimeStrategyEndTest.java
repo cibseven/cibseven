@@ -1045,7 +1045,9 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
       .execute()
       .get(0);
 
-    HistoricExternalTaskLog externalTaskLog = historyService.createHistoricExternalTaskLogQuery().singleResult();
+    HistoricExternalTaskLog externalTaskLog = historyService.createHistoricExternalTaskLogQuery()
+        .creationLog()
+        .singleResult();
 
     // assume
     assertThat(externalTaskLog.getRemovalTime()).isNull();
@@ -1060,8 +1062,10 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
     List<HistoricExternalTaskLog> externalTaskLogs = historyService.createHistoricExternalTaskLogQuery().list();
 
     // then
-    assertThat(externalTaskLogs.get(0).getRemovalTime()).isEqualTo(removalTime);
-    assertThat(externalTaskLogs.get(1).getRemovalTime()).isEqualTo(removalTime);
+    assertThat(externalTaskLogs)
+    .hasSize(3)
+    .extracting(HistoricExternalTaskLog::getRemovalTime)
+    .containsOnly(removalTime);
   }
 
   /**

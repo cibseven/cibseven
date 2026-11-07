@@ -11,7 +11,7 @@
 
   <groupId>org.cibseven.bpm</groupId>
   <artifactId>cibseven-root</artifactId>
-  <version>2.3.0-SNAPSHOT</version>
+  <version>3.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>CIB seven - Root Pom</name>
   <inceptionYear>2024</inceptionYear>
@@ -22,6 +22,10 @@
   </description>
 
   <properties>
+    <!-- release-parent compiles for Java 11 (<source>, <target> and <release> read version.java).
+         CIB seven 3.x is built for Java 17: Jakarta EE 11 and Spring Framework 7 require it.
+         Overridden here rather than in release-parent so that the 2.x lines keep Java 11. -->
+    <version.java>17</version.java>
     <license.includeTransitiveDependencies>false</license.includeTransitiveDependencies>
 
     <!-- These properties are used in both the BOM as well as camunda-parent and subprojects -->
@@ -40,6 +44,29 @@
 
   <build>
     <plugins>
+      <!-- Fails fast on a JDK older than the bytecode level, for every module of the build -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>enforce-java</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>[${version.java},)</version>
+                  <message>CIB seven requires JDK ${version.java} or later to build (Jakarta EE 11, Spring Framework 7).</message>
+                </requireJavaVersion>
+              </rules>
+              <failFast>true</failFast>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>license-maven-plugin</artifactId>
