@@ -62,6 +62,7 @@ import org.junit.jupiter.api.extension.TestWatcher;
 import org.junit.platform.commons.support.AnnotationSupport;
 import org.junit.platform.commons.support.HierarchyTraversalMode;
 import org.junit.platform.commons.support.ReflectionSupport;
+import org.opentest4j.TestAbortedException;
 import org.slf4j.Logger;
 
 /**
@@ -300,7 +301,7 @@ public class ProcessEngineExtension implements TestWatcher,
    * on unchanged, so a failed assumption aborts the test instead of failing it.
    * The first failing {@code @BeforeEach} method stops the remaining ones; all
    * {@code @AfterEach} methods run, and further failures are added as suppressed
-   * exceptions to the first one.
+   * exceptions to the first real failure (see {@link #addSuppressed(Throwable, Throwable)}).
    */
   private void invokeAnnotatedMethods(Object testInstance, Class<? extends Annotation> annotation,
       HierarchyTraversalMode traversalMode, boolean continueAfterFailure) {
@@ -325,8 +326,19 @@ public class ProcessEngineExtension implements TestWatcher,
     }
   }
 
+  /**
+   * Combines two throwables the way JUnit Jupiter's own throwable collection does:
+   * a real failure takes precedence over an aborted assumption, so the test is
+   * reported as failed and not as aborted; the same instance thrown twice is kept
+   * once, because {@link Throwable#addSuppressed(Throwable)} rejects
+   * self-suppression.
+   */
   private static Throwable addSuppressed(Throwable first, Throwable next) {
-    if (first == null) {
+    if (first == null || first == next) {
+      return first == null ? next : first;
+    }
+    if (first instanceof TestAbortedException && !(next instanceof TestAbortedException)) {
+      next.addSuppressed(first);
       return next;
     }
     first.addSuppressed(next);

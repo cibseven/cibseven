@@ -157,6 +157,38 @@ public class ProcessEngineExtensionLifecycleMethodsTest {
         "test2", "failingAfterEach", "otherAfterEach");
   }
 
+  @Test
+  public void shouldReportTheTeardownFailureAndNotTheEarlierAbortWhenEnabled() {
+    // when the subclass @AfterEach aborts through an assumption and the superclass @AfterEach then fails
+    EngineTestKit.engine("junit-jupiter")
+        .selectors(selectClass(AbortThenFailingAfterEachTestCase.class))
+        .execute()
+        .testEvents()
+        // then the test fails with the real failure, as with JUnit Jupiter itself
+        .assertStatistics(stats -> stats.started(2).failed(2).aborted(0))
+        .failed()
+        .assertThatEvents()
+        .haveExactly(2, finishedWithFailure(instanceOf(IllegalStateException.class), message("teardown failed")));
+  }
+
+  @Test
+  public void shouldKeepTheFailureAndRunAllAfterEachMethodsWhenTheSameExceptionIsThrownTwiceAndEnabled() {
+    // when two @AfterEach methods throw the same exception instance
+    EngineTestKit.engine("junit-jupiter")
+        .selectors(selectClass(SameExceptionTwiceAfterEachTestCase.class))
+        .execute()
+        .testEvents()
+        // then the original failure is reported, not an IllegalArgumentException for self-suppression
+        .assertStatistics(stats -> stats.started(2).failed(2))
+        .failed()
+        .assertThatEvents()
+        .haveExactly(2, finishedWithFailure(instanceOf(IllegalStateException.class), message("shared failure")));
+    // and the remaining @AfterEach method still runs
+    assertThat(CALLS).containsExactly(
+        "test1", "subAfterEach", "midAfterEach", "baseAfterEach",
+        "test2", "subAfterEach", "midAfterEach", "baseAfterEach");
+  }
+
   protected static void executeAndAssertSuccess(Class<?> testClass) {
     EngineTestKit.engine("junit-jupiter")
         .selectors(selectClass(testClass))
@@ -336,6 +368,88 @@ public class ProcessEngineExtensionLifecycleMethodsTest {
     @Test
     public void test2() {
       CALLS.add("test2");
+    }
+  }
+
+  @ExtendWith(SkipBeforeAndAfterEachMethods.class)
+  @TestMethodOrder(MethodOrderer.MethodName.class)
+  public abstract static class FailingAfterEachBaseTestCase {
+
+    @RegisterExtension
+    ProcessEngineExtension extension = ProcessEngineExtension.builder()
+        .invokeBeforeAndAfterEachMethods(true)
+        .build();
+
+    @AfterEach
+    public void failingBaseAfterEach() {
+      throw new IllegalStateException("teardown failed");
+    }
+
+    @Test
+    public void test1() {
+      CALLS.add("test1");
+    }
+
+    @Test
+    public void test2() {
+      CALLS.add("test2");
+    }
+  }
+
+  /** Subclass {@code @AfterEach} methods run first, so the abort comes before the failure. */
+  @EnabledIf(ENABLED)
+  public static class AbortThenFailingAfterEachTestCase extends FailingAfterEachBaseTestCase {
+
+    @AfterEach
+    public void abortingAfterEach() {
+      Assumptions.assumeTrue(false, "not on this setup");
+    }
+  }
+
+  private static final IllegalStateException SHARED_FAILURE = new IllegalStateException("shared failure");
+
+  @ExtendWith(SkipBeforeAndAfterEachMethods.class)
+  @TestMethodOrder(MethodOrderer.MethodName.class)
+  public abstract static class SharedFailureBaseTestCase {
+
+    @RegisterExtension
+    ProcessEngineExtension extension = ProcessEngineExtension.builder()
+        .invokeBeforeAndAfterEachMethods(true)
+        .build();
+
+    @AfterEach
+    public void baseAfterEach() {
+      CALLS.add("baseAfterEach");
+    }
+
+    @Test
+    public void test1() {
+      CALLS.add("test1");
+    }
+
+    @Test
+    public void test2() {
+      CALLS.add("test2");
+    }
+  }
+
+  public abstract static class SharedFailureMidTestCase extends SharedFailureBaseTestCase {
+
+    @AfterEach
+    public void midAfterEach() {
+      CALLS.add("midAfterEach");
+      throw SHARED_FAILURE;
+    }
+  }
+
+  /** {@code @AfterEach} order: sub, mid, base (subclass methods first). */
+  @EnabledIf(ENABLED)
+  public static class SameExceptionTwiceAfterEachTestCase extends SharedFailureMidTestCase {
+
+    @AfterEach
+    public void subAfterEach() {
+      CALLS.add("subAfterEach");
+      throw SHARED_FAILURE;
     }
   }
 
