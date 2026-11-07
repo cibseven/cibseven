@@ -33,6 +33,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 
 public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware implements LicenseRestService {
@@ -57,18 +58,20 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
   
   /**
    * Resolves the JWT secret before any encryption, so a missing secret is reported as such and
-   * not as a failed encryption or decryption.
+   * not as a failed encryption or decryption. A missing or mismatching secret is a configuration
+   * problem of the server, not of the request: the license function is unavailable (503) until
+   * an administrator configures the same JWT secret for the engine and the webclient.
    */
-  private String getSecret() {
+  String getSecret() {
     String secret;
     try {
       secret = Configuration.getInstance().getSecret();
     } catch (IllegalStateException e) {
-      throw new InvalidRequestException(Status.INTERNAL_SERVER_ERROR, e,
+      throw new InvalidRequestException(Status.SERVICE_UNAVAILABLE, e,
           "JWT secret is not configured. Cannot encrypt/decrypt license signature. " + e.getMessage());
     }
     if (secret == null || secret.isEmpty()) {
-      throw new InvalidRequestException(Status.INTERNAL_SERVER_ERROR,
+      throw new InvalidRequestException(Status.SERVICE_UNAVAILABLE,
           "JWT secret is not configured. Cannot encrypt/decrypt license signature.");
     }
     return secret;
@@ -124,10 +127,13 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
       return objectMapper.writeValueAsString(map);
     } catch (JsonProcessingException e) {
       throw new InvalidRequestException(Status.BAD_REQUEST, e, "Invalid license key JSON format");
-    } catch (Exception e) {
-      throw new InvalidRequestException(Status.INTERNAL_SERVER_ERROR, e,
+    } catch (JwtException e) {
+      // the signature was encrypted with another JWT secret than this engine's
+      throw new InvalidRequestException(Status.SERVICE_UNAVAILABLE, e,
           "Failed to decrypt license signature. The webclient and the engine must use the same JWT secret;"
           + " it may have been rotated.");
+    } catch (Exception e) {
+      throw new InvalidRequestException(Status.INTERNAL_SERVER_ERROR, e, "Failed to decrypt license signature");
     }
   }
 
