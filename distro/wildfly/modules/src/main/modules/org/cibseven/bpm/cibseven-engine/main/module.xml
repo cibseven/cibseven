@@ -42,6 +42,10 @@
     <module name="org.cibseven.commons.cibseven-commons-logging" />
     <module name="org.cibseven.commons.cibseven-commons-utils" />
     <module name="org.cibseven.commons.cibseven-commons-typed-values" export="true" />
+    <!-- Variables.fileValue(File) finds the Angus provider of MimetypesFileTypeMap through the
+         context class loader, which can be this module (CIB7-2605). The services of Angus
+         are not visible through the typed-values module. -->
+    <module name="org.eclipse.angus.activation" services="import" />
     <module name="org.cibseven.template-engines.cibseven-template-engines-freemarker" services="import" />
     <module name="org.cibseven.spin.cibseven-spin-core" services="import"/>
 

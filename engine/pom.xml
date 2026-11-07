@@ -535,6 +535,11 @@
                    jakarta.activation.MimetypesFileTypeMap. It stays a regular dependency instead
                    of an unrelocated copy inside the engine jar (CIB7-2582). -->
               <exclude>jakarta.activation:*</exclude>
+              <!-- Jakarta Activation implementation, a runtime dependency of
+                   cibseven-commons-typed-values (CIB7-2605). It must stay a regular dependency:
+                   a copy inside the engine jar would be a second Angus next to the one of the
+                   application or the container. -->
+              <exclude>org.eclipse.angus:*</exclude>
               <!-- EL implementation, a runtime dependency of cibseven-engine-dmn (CIB7-2609).
                    It must stay a regular dependency so that applications and containers can
                    replace or exclude it. -->
@@ -605,10 +610,10 @@
             </goals>
             <configuration>
               <target>
-                <fail message="${project.build.finalName}.jar bundles unrelocated jakarta.* or javax.* classes or an EL implementation. Jakarta EE APIs must come from the container or the application classpath: declare them provided, or exclude them from the maven-shade-plugin artifactSet (see the jakarta.enterprise.cdi-api and jakarta.activation entries).">
+                <fail message="${project.build.finalName}.jar bundles unrelocated jakarta.* or javax.* classes, an EL implementation or a Jakarta Activation implementation. Jakarta EE APIs must come from the container or the application classpath: declare them provided, or exclude them from the maven-shade-plugin artifactSet (see the jakarta.enterprise.cdi-api, jakarta.activation and org.eclipse.angus entries).">
                   <condition>
                     <resourcecount when="greater" count="0">
-                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="jakarta/**,javax/**,org/glassfish/expressly/**,com/sun/el/**" />
+                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="jakarta/**,javax/**,org/glassfish/expressly/**,com/sun/el/**,org/eclipse/angus/**" />
                     </resourcecount>
                   </condition>
                 </fail>
