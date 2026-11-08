@@ -488,6 +488,49 @@
             <dependency>org.cibseven.bpm:cibseven-bpm-archunit</dependency>
           </dependenciesToScan>
         </configuration>
+        <executions>
+          <!-- JUEL method calls and argument conversion behave as in 2.2 on the EL APIs of the
+               servers too (CIB7-2609): run the EL tests again with Tomcat's EL API (tomcat-el-api
+               comes with tomcat-catalina) and with the one of WildFly instead of the upstream
+               jakarta.el-api. Expressly stays the global EL implementation. -->
+          <execution>
+            <id>el-api-tomcat</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <test>ExpressionManagerTest,JuelScriptEngineTest,ProcessEngineElContextTest,DmnExpressionLanguageTest</test>
+              <dependenciesToScan combine.self="override" />
+              <reportsDirectory>${project.build.directory}/surefire-reports-el-api-tomcat</reportsDirectory>
+              <classpathDependencyExcludes>
+                <classpathDependencyExclude>jakarta.el:jakarta.el-api</classpathDependencyExclude>
+              </classpathDependencyExcludes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>el-api-wildfly</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <test>ExpressionManagerTest,JuelScriptEngineTest,ProcessEngineElContextTest,DmnExpressionLanguageTest</test>
+              <dependenciesToScan combine.self="override" />
+              <reportsDirectory>${project.build.directory}/surefire-reports-el-api-wildfly</reportsDirectory>
+              <classpathDependencyExcludes>
+                <classpathDependencyExclude>jakarta.el:jakarta.el-api</classpathDependencyExclude>
+                <classpathDependencyExclude>org.apache.tomcat:tomcat-el-api</classpathDependencyExclude>
+              </classpathDependencyExcludes>
+              <additionalClasspathDependencies>
+                <!-- the EL API of WildFly 42 -->
+                <additionalClasspathDependency>
+                  <groupId>org.jboss.spec.jakarta.el</groupId>
+                  <artifactId>jakarta.el-api</artifactId>
+                  <version>6.0.2.Final</version>
+                </additionalClasspathDependency>
+              </additionalClasspathDependencies>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.felix</groupId>
