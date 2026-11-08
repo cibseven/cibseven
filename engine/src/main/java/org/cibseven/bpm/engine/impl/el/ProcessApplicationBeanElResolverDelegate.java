@@ -21,6 +21,7 @@ import org.cibseven.bpm.application.ProcessApplicationReference;
 import org.cibseven.bpm.application.ProcessApplicationUnavailableException;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.impl.juel.JuelBeanELResolver;
 
 import jakarta.el.BeanELResolver;
 import jakarta.el.ELResolver;
@@ -52,7 +53,7 @@ public class ProcessApplicationBeanElResolverDelegate extends AbstractElResolver
       }
 
     } else {
-      return new BeanELResolver();
+      return new JuelBeanELResolver();
     }
 
   }

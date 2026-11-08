@@ -634,6 +634,16 @@ public class ExpressionManagerTest extends PluggableProcessEngineTest {
     assertMethodExpressionResult(expression, expectedOutput);
   }
 
+  @Test
+  public void shouldPassAnArrayToAVarArgsParameter() {
+    // given: the array itself is passed, as in 2.2; Tomcat's EL API would wrap it into a new array (CIB7-2609)
+    String expression = "myBean.methodWithStringVarArgs(strings)";
+    String expectedOutput = "x, y";
+    Mocks.register("strings", new String[] { "x", "y" });
+    // when & then
+    assertMethodExpressionResult(expression, expectedOutput);
+  }
+
   protected void assertMethodExpressionResult(String expression, Object result) {
     BpmnModelInstance process = Bpmn.createExecutableProcess("testProcess")
         .startEvent()
@@ -727,6 +737,10 @@ public class ExpressionManagerTest extends PluggableProcessEngineTest {
 
     public String methodWithVarArgs2(I1 i1, I1AndI2Impl... i2) {
       return "I1, I1AndI2Impl...";
+    }
+
+    public String methodWithStringVarArgs(String... values) {
+      return String.join(", ", values);
     }
 
     public boolean myMethod(String v, String w, String x, String y, String z) {
