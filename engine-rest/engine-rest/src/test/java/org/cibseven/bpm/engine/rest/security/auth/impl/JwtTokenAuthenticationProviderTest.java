@@ -82,4 +82,20 @@ public class JwtTokenAuthenticationProviderTest {
     return new JsonMapper().writeValueAsString(user);
   }
 
+  /**
+   * Minted by the 2.2 webclient (jjwt-jackson, Jackson 2 user JSON) with a secret of 64 zero bytes,
+   * valid until 2126. The 3.0 webclient writes the same JSON apart from the times. The user JSON
+   * carries more than {@link JwtUser} knows.
+   */
+  private static final String WEBCLIENT_2_2_TOKEN =
+      "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJkZW1vIiwiZXhwIjo0OTQ3NzU3MjY4LCJpYXQiOjE3OTQxNTcyNjgsInByb2xvbmdhYmxlIjp0cnVlLCJ2ZXJpZnkiOmZhbHNlLCJ1c2VyIjoie1widHlwZVwiOlwib3JnLmNpYnNldmVuLndlYmFwcC5hdXRoLkNJQlVzZXJcIixcInVzZXJJRFwiOlwiZGVtb1wiLFwiZGlzcGxheU5hbWVcIjpcIkTDq21vIDxVc2VyPiAmIFxcXCJDb1xcXCIgPVwiLFwiZW5naW5lXCI6XCJodHRwOi8vb3RoZXJ8L2VuZ2luZS1yZXN0fHJlbW90ZVwifSJ9.gcDRbTjH_31NO-J8Lngq2uPnuzYn8o7xhgz6h-cDb1gLQ9K6S8s7LFmPBaxjm0IzIa_4qaqFn4Y65-kwyO3DXg";
+
+  @Test
+  public void readsATokenMintedByThe22Webclient() {
+    JwtUser user = new JwtTokenAuthenticationProvider().parse(
+        JwtTokenAuthenticationProvider.BEARER_PREFIX + WEBCLIENT_2_2_TOKEN, Base64.getEncoder().encodeToString(new byte[64]));
+
+    Assertions.assertEquals("demo", user.getUserID());
+  }
+
 }
