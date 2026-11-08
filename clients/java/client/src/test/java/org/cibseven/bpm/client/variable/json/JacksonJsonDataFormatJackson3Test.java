@@ -43,10 +43,16 @@ import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.introspect.DefaultAccessorNamingStrategy;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.ser.jdk.JDKStringLikeSerializer;
+import tools.jackson.databind.util.StdDateFormat;
 
 /**
  * Behaviour of the Jackson 3 based data format that is not shared with the deprecated Jackson 2 variant
@@ -168,5 +174,25 @@ public class JacksonJsonDataFormatJackson3Test {
 
     // then
     assertThat(value.value).isEqualTo(Locale.US);
+  }
+
+  @Test
+  public void shouldSwitchToJackson3StandardsInAConfigurator() {
+    // given: the switches of the update guide, as a DataFormatConfigurator would apply them
+    dataFormat.setObjectMapper(dataFormat.getObjectMapper().rebuild()
+        .accessorNaming(new DefaultAccessorNamingStrategy.Provider())
+        .enable(MapperFeature.ALLOW_VOID_VALUED_PROPERTIES)
+        .addModule(new SimpleModule("jackson3-standards").addSerializer(JDKStringLikeSerializer.find(Locale.class)))
+        .defaultDateFormat(new StdDateFormat())
+        .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .build());
+
+    // when / then: Jackson 3's own output
+    assertThat(dataFormat.readValue(dataFormat.writeValue(new Jackson2CompatibilityTest.Accessors()), Map.class))
+        .containsOnlyKeys("x", "a1", "URL", "URLValue", "XCoordinate", "OK", "IBAN");
+    assertThat(dataFormat.writeValue(new Jackson2CompatibilityTest.VoidGetter())).isEqualTo("{\"value\":1,\"nothing\":null}");
+    assertThat(dataFormat.writeValue(Locale.US)).isEqualTo("\"en-US\"");
+    assertThat(dataFormat.writeValue(new Jackson2CompatibilityTest.FormattedDates()))
+        .isEqualTo("{\"date\":\"1970-01-01T00:00:00.000Z\",\"calendar\":\"1970-01-01T00:00:00.000Z\"}");
   }
 }
