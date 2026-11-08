@@ -16,11 +16,10 @@
  */
 package org.cibseven.spin.impl.json.jackson.format;
 
+import tools.jackson.databind.JavaType;
+
 import java.lang.reflect.TypeVariable;
 import java.util.List;
-
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 
 public class ListJacksonJsonTypeDetector extends AbstractJacksonJsonTypeDetector {
 
@@ -37,20 +36,19 @@ public class ListJacksonJsonTypeDetector extends AbstractJacksonJsonTypeDetector
    * element type {@code Object}, like an empty list.
    */
   protected JavaType constructType(Object object) {
-    TypeFactory typeFactory = TypeFactory.defaultInstance();
 
     if (object == null) {
-      return typeFactory.constructType(Object.class);
+      return getTypeFactory().constructType(Object.class);
     }
 
     if (object instanceof List && !((List<?>) object).isEmpty()) {
       List<?> list = (List<?>) object;
       if (bindingsArePresent(list.getClass())) {
         final JavaType elementType = constructType(firstNonNullElement(list));
-        return typeFactory.constructCollectionType(list.getClass(), elementType);
+        return getTypeFactory().constructCollectionType(list.getClass(), elementType);
       }
     }
-    return typeFactory.constructType(object.getClass());
+    return getTypeFactory().constructType(object.getClass());
   }
 
   protected Object firstNonNullElement(List<?> list) {
