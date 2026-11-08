@@ -8,5 +8,9 @@
     <module name="java.management" />
     <module name="jdk.unsupported" />
     <module name="org.graalvm.truffle.truffle-api" services="export" export="true" />
+    <module name="org.graalvm.truffle.truffle-compiler" />
+    <module name="org.graalvm.sdk.jniutils" />
+    <!-- in the boot layer only with -XX:+EnableJVMCI (or on a GraalVM JDK); otherwise Truffle falls back to its interpreter -->
+    <module name="jdk.internal.vm.ci" optional="true" />
   </dependencies>
 </module>
