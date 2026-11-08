@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.impl.scripting.engine;
 
+import static org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines.GRAAL_JS_NASHORN_COMPAT_ECMASCRIPT_VERSION;
 import static org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines.GRAAL_JS_SCRIPT_ENGINE_NAME;
 import static org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines.GROOVY_SCRIPTING_LANGUAGE;
 import static org.cibseven.bpm.engine.impl.util.ReflectUtil.CAMUNDA_NAMESPACE;
@@ -218,7 +219,7 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
       if (config.isEnableScriptEngineNashornCompatibility()) {
         // enable Nashorn compatibility mode
         builder = optionMethod.invoke(builder, JS_NASHORN_COMPAT_OPTION, "true");
-        builder = optionMethod.invoke(builder, JS_ECMASCRIPT_VERSION_OPTION, "2022");
+        builder = optionMethod.invoke(builder, JS_ECMASCRIPT_VERSION_OPTION, GRAAL_JS_NASHORN_COMPAT_ECMASCRIPT_VERSION);
         var allowAllAccess = builderClass.getMethod("allowAllAccess", boolean.class);
         builder = allowAllAccess.invoke(builder, true);
       }
