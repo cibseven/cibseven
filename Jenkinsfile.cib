@@ -294,10 +294,7 @@ pipeline {
                     when { expression { params.QA_ENG_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script {
-                            stage('engine-IT tomcat') { mvnWithTestReports("-f qa/pom.xml -Dengine-integration clean install -Ptomcat,h2,engine-integration", 'qa/integration-tests-engine') }
-                            stage('engine-IT tomcat10') { mvnWithTestReports("-f qa/pom.xml -Dengine-integration clean install -Ptomcat10,h2,engine-integration", 'qa/integration-tests-engine') }
-                            stage('engine-IT wildfly') { mvnWithTestReports("-f qa/pom.xml -Dengine-integration clean install -Pwildfly,h2,engine-integration", 'qa/integration-tests-engine') }
-                            stage('engine-IT wildfly-domain') { mvnWithTestReports("-f qa/pom.xml -Dengine-integration clean install -Pwildfly-domain,h2,engine-integration", 'qa/integration-tests-engine') }
+                            // train-only rerun: the engine-IT stages before wildfly-servlet passed in #2
                             stage('engine-IT wildfly-servlet') { mvnWithTestReports("-f qa/pom.xml -Dengine-integration clean install -Pwildfly,wildfly-servlet,h2,engine-integration", 'qa/integration-tests-engine') }
                         }
                     }
