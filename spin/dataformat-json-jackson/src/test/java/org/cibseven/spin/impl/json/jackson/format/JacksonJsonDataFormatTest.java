@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.List;
+import java.util.Locale;
 
 import org.cibseven.spin.impl.json.jackson.JacksonJsonNode;
 import org.cibseven.spin.json.SpinJsonDataFormatException;
@@ -30,6 +31,7 @@ import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.json.mapping.EmptyBean;
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.Jackson3JsonProvider;
@@ -37,6 +39,7 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import tools.jackson.databind.node.JsonNodeFactory;
 
 public class JacksonJsonDataFormatTest {
@@ -214,6 +217,40 @@ public class JacksonJsonDataFormatTest {
         .isInstanceOf(SpinJsonDataFormatException.class)
         .hasMessageContaining("SPIN/JACKSON-JSON-01009")
         .hasCauseInstanceOf(JacksonException.class);
+  }
+
+  /** A property whose class comes from the JSON. */
+  public static class ClassIdValue {
+    @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
+    public Object value;
+  }
+
+  @Test
+  public void shouldNotReadClassIdsForTooGenericPropertyTypes() {
+    // Jackson 3's default PolymorphicTypeValidator, kept on purpose: no class from the JSON for a property of type
+    // Object, Serializable, Comparable, ... (Jackson 2 read it, see the -jackson2 module)
+    JacksonJsonDataFormat format = new JacksonJsonDataFormat("test");
+    Object node = format.getReader().readInput(new StringReader("{\"value\":[\"java.util.Locale\",\"en_US\"]}"));
+
+    assertThatThrownBy(() -> format.getMapper().mapInternalToJava(node, ClassIdValue.class))
+        .isInstanceOf(SpinJsonException.class)
+        .hasStackTraceContaining("PolymorphicTypeValidator");
+  }
+
+  @Test
+  public void shouldReadClassIdsAllowedByAPolymorphicTypeValidator() {
+    // given: a configurator allows the classes of the application
+    JacksonJsonDataFormat format = new JacksonJsonDataFormat("test");
+    format.setObjectMapper(format.getObjectMapper().rebuild()
+        .polymorphicTypeValidator(BasicPolymorphicTypeValidator.builder().allowIfSubType("java.util.").build())
+        .build());
+    Object node = format.getReader().readInput(new StringReader("{\"value\":[\"java.util.Locale\",\"en_US\"]}"));
+
+    // when
+    ClassIdValue value = format.getMapper().mapInternalToJava(node, ClassIdValue.class);
+
+    // then
+    assertThat(value.value).isEqualTo(Locale.US);
   }
 
   @Test
