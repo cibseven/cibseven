@@ -272,4 +272,28 @@ public class JsonJacksonTreeTypeDetectionTest {
     assertThat(canonicalTypeString).isEqualTo("java.util.HashSet<java.lang.Object>");
   }
 
+  /** A list subclass that fixes its element type, so the type name needs no element detection. */
+  public static class RegularCustomerList extends ArrayList<RegularCustomer> {
+    private static final long serialVersionUID = 1L;
+  }
+
+  @Test
+  public void shouldNameListSubclassWithFixedElementTypeAndNullFirst() {
+    // given
+    RegularCustomerList customers = new RegularCustomerList();
+    customers.add(null);
+    customers.add(new RegularCustomer());
+
+    // when
+    String typeName = json().getMapper().getCanonicalTypeName(customers);
+    String serialized = json().createWrapperInstance(json().getMapper().mapJavaToInternal(customers)).toString();
+    List<RegularCustomer> deserialized = json().getMapper()
+        .mapInternalToJava(json().getReader().readInput(new StringReader(serialized)), typeName);
+
+    // then
+    assertThat(typeName).isEqualTo(RegularCustomerList.class.getName());
+    assertThat(deserialized).isInstanceOf(RegularCustomerList.class).hasSize(2);
+    assertThat(deserialized.get(0)).isNull();
+    assertThat(deserialized.get(1)).isInstanceOf(RegularCustomer.class);
+  }
 }
