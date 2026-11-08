@@ -25,6 +25,7 @@ import org.cibseven.bpm.engine.impl.test.ResourceProcessEngineTestCase;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.variable.Variables;
+import org.junit.jupiter.api.Test;
 
 /**
  * The test is copied from the engine to check how JSON serialization will behave with DMN result object.
@@ -44,6 +45,7 @@ public class DmnBusinessRuleTaskResultMappingTest extends ResourceProcessEngineT
   }
 
   @Deployment(resources = {STORE_DECISION_RESULT_BPMN, TEST_DECISION })
+  @Test
   public void testStoreDecisionResult() {
     ProcessInstance processInstance = startTestProcess("multiple entries");
 
@@ -52,6 +54,7 @@ public class DmnBusinessRuleTaskResultMappingTest extends ResourceProcessEngineT
   }
 
   @Deployment(resources = {CUSTOM_MAPPING_BPMN, TEST_DECISION })
+  @Test
   public void testCustomOutputMapping() {
     ProcessInstance processInstance = startTestProcess("multiple entries");
 
@@ -63,6 +66,7 @@ public class DmnBusinessRuleTaskResultMappingTest extends ResourceProcessEngineT
   }
 
   @Deployment(resources = { SINGLE_ENTRY_BPMN, TEST_DECISION})
+  @Test
   public void testSingleEntryMapping() {
     ProcessInstance processInstance = startTestProcess("single entry");
 
@@ -71,6 +75,7 @@ public class DmnBusinessRuleTaskResultMappingTest extends ResourceProcessEngineT
   }
 
   @Deployment(resources = { DEFAULT_MAPPING_BPMN, TEST_DECISION })
+  @Test
   public void testTransientDecisionResult() {
     // when a decision is evaluated and the result is stored in a transient variable "decisionResult"
     ProcessInstance processInstance = startTestProcess("single entry");

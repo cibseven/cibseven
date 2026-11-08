@@ -168,6 +168,13 @@
           <artifactId>cibseven-spin-dataformat-all</artifactId>
         </dependency>
 
+        <!-- the implementation of the jakarta.activation-api in lib/, see distro/tomcat/assembly -->
+        <dependency>
+          <groupId>org.eclipse.angus</groupId>
+          <artifactId>angus-activation</artifactId>
+          <version>${version.angus-activation}</version>
+        </dependency>
+
         <dependency>
           <groupId>org.cibseven.connect</groupId>
           <artifactId>cibseven-connect-core</artifactId>

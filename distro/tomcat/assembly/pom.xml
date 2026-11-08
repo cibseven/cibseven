@@ -143,6 +143,15 @@
       <artifactId>cibseven-spin-dataformat-all</artifactId>
     </dependency>
 
+    <!-- the implementation of the jakarta.activation-api in lib/: Variables.fileValue(File)
+         detects the MIME type with jakarta.activation.MimetypesFileTypeMap, which needs a
+         provider; cibseven-spin-dataformat-all keeps its own copy relocated to spinjar.* -->
+    <dependency>
+      <groupId>org.eclipse.angus</groupId>
+      <artifactId>angus-activation</artifactId>
+      <version>${version.angus-activation}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.cibseven.connect</groupId>
       <artifactId>cibseven-connect-core</artifactId>

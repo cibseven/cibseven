@@ -824,8 +824,9 @@ public class MixedConditionalEventTest extends AbstractConditionalEventTestCase 
     assertEquals(3, conditionEventSubscriptionQuery.count());
   }
 
-  @Disabled
+  @Disabled("Missing 1 task")
   @Deployment
+  @Test
   public void testCompensationWithConditionalEvents() {
     //given process with compensation and conditional events
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(CONDITIONAL_EVENT_PROCESS_KEY);

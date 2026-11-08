@@ -137,6 +137,22 @@
     <dependency>
       <groupId>jakarta.enterprise</groupId>
       <artifactId>jakarta.enterprise.cdi-api</artifactId>
+      <!-- Provided, like every other Jakarta EE API of the engine: the engine only uses the
+           @Dependent annotation on RepositoryService, which the JVM ignores when CDI is absent.
+           A compile-scope cdi-api is shaded into the engine jar together with its transitive
+           APIs (jakarta.inject, jakarta.annotation, jakarta.interceptor, the CDI lang-model),
+           and the Jakarta EE 11 BOM no longer manages it with a wildcard exclusion as the
+           Jakarta EE 10 BOM did. On WildFly the engine module is a dependency of every process
+           application, and a second copy of jakarta.inject.Named made Weld drop the bean names
+           of EJB-module process applications (CIB7-2582). The container or the application
+           classpath provides the CDI API. -->
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -372,13 +388,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.glassfish</groupId>
-      <artifactId>jakarta.el</artifactId>
-      <version>4.0.2</version>
-      <scope>test</scope>
-    </dependency>
-    
-    <dependency>
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest</artifactId>
         <version>${version.hamcrest}</version>
@@ -530,6 +539,19 @@
               <exclude>org.slf4j:*</exclude>
               <exclude>com.sun.mail:*</exclude>
               <exclude>javax.activation:*</exclude>
+              <!-- Transitive compile dependency of cibseven-commons-typed-values, which uses
+                   jakarta.activation.MimetypesFileTypeMap. It stays a regular dependency instead
+                   of an unrelocated copy inside the engine jar (CIB7-2582). -->
+              <exclude>jakarta.activation:*</exclude>
+              <!-- Jakarta Activation implementation, a runtime dependency of
+                   cibseven-commons-typed-values (CIB7-2605). It must stay a regular dependency:
+                   a copy inside the engine jar would be a second Angus next to the one of the
+                   application or the container. -->
+              <exclude>org.eclipse.angus:*</exclude>
+              <!-- EL implementation, a runtime dependency of cibseven-engine-dmn (CIB7-2609).
+                   It must stay a regular dependency so that applications and containers can
+                   replace or exclude it. -->
+              <exclude>org.glassfish.expressly:*</exclude>
               <exclude>org.mybatis:mybatis:*</exclude>
               <exclude>joda-time:*</exclude>
 
@@ -580,6 +602,29 @@
                   <fileset dir="target/classes/org/cibseven/bpm/engine/db/upgrade" excludes="*_6.*_*,*_7.0_*,*_7.1_*,*_7.2_*,*_7.3_*,*_7.4_*,*_7.5_*,*_7.6_*,*_7.7_*, *_7.8_*,*_7.9_*,*_7.10_*,*_7.11_*,*_7.12_*,*_7.13_*,*_7.14_*,*_7.15_*" />
                 </copy>
 
+              </target>
+            </configuration>
+          </execution>
+          <!-- The shaded engine jar must not carry its own copy of any Jakarta EE / Java EE API
+               (jakarta.*, javax.*): the container or the application classpath provides these
+               APIs, a second copy breaks class identity (CIB7-2582). No exceptions; a library
+               that needs such an API inside the jar must be relocated. Bound to verify, after
+               the shade plugin has replaced the jar in the package phase. -->
+          <execution>
+            <id>verify-no-jakarta-api-in-shaded-jar</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <fail message="${project.build.finalName}.jar bundles unrelocated jakarta.* or javax.* classes, an EL implementation or a Jakarta Activation implementation. Jakarta EE APIs must come from the container or the application classpath: declare them provided, or exclude them from the maven-shade-plugin artifactSet (see the jakarta.enterprise.cdi-api, jakarta.activation and org.eclipse.angus entries).">
+                  <condition>
+                    <resourcecount when="greater" count="0">
+                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="jakarta/**,javax/**,org/glassfish/expressly/**,com/sun/el/**,org/eclipse/angus/**" />
+                    </resourcecount>
+                  </condition>
+                </fail>
               </target>
             </configuration>
           </execution>
@@ -937,28 +982,6 @@
       </build>
     </profile>
 
-    <profile>
-     <id>exclude-post-jdk15-tests</id>
-      <activation>
-        <jdk>[15,)</jdk>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <configuration>
-                <!-- Nashorn is not part of the JDK anymore in Java 15+ -->
-                <excludes combine.children="append">
-                  <exclude>**/*NashornTest.java</exclude>
-                </excludes>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
-
     <!-- test profiles -->
     <profile>
      <id>testBpmn</id>
@@ -1007,24 +1030,6 @@
      <properties>
       <test.excludes>bpmn|cmmn</test.excludes>
      </properties>
-    </profile>
-
-    <profile>
-      <id>java11</id>
-      <activation>
-        <jdk>11</jdk>
-      </activation>
-      <dependencyManagement>
-        <dependencies>
-          <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-framework-bom</artifactId>
-            <version>${version.spring.framework}</version>
-            <type>pom</type>
-            <scope>import</scope>
-          </dependency>
-        </dependencies>
-      </dependencyManagement>
     </profile>
 
   </profiles>

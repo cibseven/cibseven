@@ -132,6 +132,7 @@ public class HistoricIdentityLinkLogTestByXml extends PluggableProcessEngineTest
     assertEquals(query.userId(XML_USER).count(), 1);
   }
   @Deployment(resources = { "org/cibseven/bpm/engine/test/api/runtime/OneTaskProcessWithCandidateStarterGroups.bpmn20.xml" })
+  @Test
   public void testShouldAddProcessCandidateStarterGroupforAddIdentityLinkUsingXml() {
 
     // Pre test - Historical identity link is added as part of deployment

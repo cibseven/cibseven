@@ -17,10 +17,21 @@
 package org.cibseven.connect.ai.agent.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.startsWith;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,10 +41,14 @@ import java.util.Map;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.identity.Authentication;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
@@ -346,7 +361,7 @@ public class AgentChatListenerTest {
         (List<Map<String, Object>>) listener.events().get(0).get("messages");
     String json = (String) messages.get(0).get("content");
     @SuppressWarnings("unchecked")
-    Map<String, Object> decoded = new com.fasterxml.jackson.databind.ObjectMapper()
+    Map<String, Object> decoded = new ObjectMapper()
         .readValue(json, Map.class);
     assertThat(decoded)
         .containsEntry("text", "final answer")
@@ -388,12 +403,260 @@ public class AgentChatListenerTest {
     ChatRequest request = ChatRequest.builder()
         .messages(Collections.singletonList(UserMessage.from("hi"))).build();
     listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    // The request waits for the response that ends its model call (CIB7-2156).
+    verify(execution, never())
+        .setVariable(startsWith(expectedVar + "~"), any());
+    listener.onResponse(new ChatModelResponseContext(
+        ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
+        request, null, new HashMap<>()));
 
     // The chat-log variable AND the connector-flag variable must both be written on
     // the first persistEvents() call.
-    verify(execution).setVariable(org.mockito.Matchers.eq(expectedVar), org.mockito.Matchers.any());
+    verify(execution).setVariable(startsWith(expectedVar + "~"), any());
     verify(execution).setVariable(
         AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
+  }
+
+  /**
+   * A retrieval is written with the response of the model call it grounds; one that failed ends
+   * that call, so it is written at once (CIB7-2156).
+   */
+  @Test
+  public void shouldWriteAFailedRetrievalAtOnceAndASuccessfulOneWithTheResponse() {
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "ragTask";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("ragTask");
+    when(execution.getVariable(varName)).thenReturn(null);
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener();
+    Map<String, Object> retrieval = new HashMap<>();
+    retrieval.put("resultCount", 2);
+    listener.recordRetrievalEvent(retrieval);
+    verify(execution, never())
+        .setVariable(startsWith(varName + "~"), any());
+
+    Map<String, Object> failed = new HashMap<>();
+    failed.put("errorClass", RuntimeException.class.getName());
+    listener.recordRetrievalEvent(failed);
+    verify(execution, times(1))
+        .setVariable(startsWith(varName + "~"), any());
+    assertThat(listener.events()).hasSize(2);
+  }
+
+  /**
+   * What no response or error wrote, because the invocation failed before the model call, is
+   * written when the invocation ends; what was written already is not written again (CIB7-2156).
+   */
+  @Test
+  public void shouldFlushWhatNoModelCallsEndWrote() {
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "ragTask";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("ragTask");
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener();
+    Map<String, Object> retrieval = new HashMap<>();
+    retrieval.put("resultCount", 2);
+    listener.recordRetrievalEvent(retrieval);
+    listener.flush();
+    verify(execution).setVariable(eq(varName + "~0000000000"), any());
+
+    listener.flush();
+    verify(execution, times(1))
+        .setVariable(startsWith(varName + "~"), any());
+  }
+
+  /** After a model call that ended, everything is written, and a flush writes nothing more. */
+  @Test
+  public void shouldFlushNothingAfterAModelCallThatEnded() {
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("agentTask");
+    pushExecution(execution);
+
+    AgentChatListener listener = new AgentChatListener();
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    listener.onResponse(new ChatModelResponseContext(
+        ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
+        request, null, new HashMap<>()));
+    listener.flush();
+
+    verify(execution, times(1))
+        .setVariable(startsWith(varName + "~"), any());
+  }
+
+  /**
+   * A chunk name is the activity's chat-log name plus the separator and the eventSeq of its
+   * first event, padded to ten digits. Whether it fits into the 255 bytes (UTF-8) of a variable
+   * name is checked against the name actually written: a chunk that does not fit is skipped with
+   * a warning, rather than failing in the database (CIB7-2156).
+   */
+  @Test
+  public void shouldNotPersistAChunkWhoseNameIsTooLongForAVariable() {
+    int longest = 255 - AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX.length() - 11;
+    String fits = repeat('a', longest);
+    verify(afterOneFailedCall(fits)).setVariable(
+        eq(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + fits + "~0000000000"),
+        any());
+    ExecutionEntity tooLong = afterOneFailedCall(repeat('b', longest + 1));
+    verify(tooLong, never()).setVariable(
+        startsWith(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX),
+        any());
+    verify(tooLong, never()).setVariable(
+        eq(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME),
+        any());
+  }
+
+  /**
+   * The name is measured in UTF-8 bytes, so it also fits a column that counts bytes (DB2): an id
+   * of non-ASCII characters that fits in characters but not in bytes is not persisted.
+   */
+  @Test
+  public void shouldMeasureTheChunkNameInBytes() {
+    int longest = 255 - AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX.length() - 11;
+    ExecutionEntity execution = afterOneFailedCall(repeat('\u00e4', longest));
+    verify(execution, never()).setVariable(
+        startsWith(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX),
+        any());
+  }
+
+  /**
+   * An id of up to 218 ASCII characters leaves room for every int eventSeq: every chunk name has
+   * the same length, from the first to the last (CIB7-2156).
+   */
+  @Test
+  public void shouldPersistTheChatLogOfTheLongestIdThatFitsEveryEventSeq() {
+    int longest = 255 - AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX.length() - 11;
+    assertThat(longest).isEqualTo(218);
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn(repeat('c', longest));
+    pushExecution(execution);
+    AgentChatListener listener = new AgentChatListener(null, null, Boolean.TRUE);
+    assertThat(listener.chunkName(0)).hasSize(255);
+    assertThat(listener.chunkName(Integer.MAX_VALUE)).hasSize(255);
+  }
+
+  /**
+   * The eventSeq in a chunk name is padded with zeros to ten digits, so that sorting the names as
+   * text, as REST, the database and the webclient do, puts the chunks in their order (CIB7-2156).
+   */
+  /**
+   * Chunk and result-entry names are ASCII whatever the default locale: one whose numbers have other
+   * digits, such as Arabic-Indic, would take more bytes and give one position two names (CIB7-2156).
+   */
+  @Test
+  public void shouldNameChunksAndResultsInAsciiWhateverTheDefaultLocale() {
+    java.util.Locale previous = java.util.Locale.getDefault();
+    java.util.Locale.setDefault(java.util.Locale.forLanguageTag("ar-EG-u-nu-arab"));
+    try {
+      ExecutionEntity execution = mock(ExecutionEntity.class);
+      when(execution.getActivityId()).thenReturn("agentTask");
+      pushExecution(execution);
+      AgentChatListener listener = new AgentChatListener(null, null, Boolean.TRUE);
+
+      assertThat(String.format("%d", 4)).as("the locale does format other digits").isNotEqualTo("4");
+      assertThat(listener.chunkName(4)).isEqualTo(
+          AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask~0000000004");
+      assertThat(AdHocResults.entryName(4)).isEqualTo("adHocAgentResults~0000000004");
+    } finally {
+      java.util.Locale.setDefault(previous);
+    }
+  }
+
+  @Test
+  public void shouldContinueNumberingOnlyAfterChunksNumberedInAsciiDigits() {
+    assertThat(AgentChatListener.isAsciiNumber("0000000012")).isTrue();
+    assertThat(AgentChatListener.isAsciiNumber("١٢")).isFalse();
+    assertThat(AgentChatListener.isAsciiNumber("+12")).isFalse();
+    assertThat(AgentChatListener.isAsciiNumber("")).isFalse();
+  }
+
+  @Test
+  public void shouldNameChunksSoThatTheirOrderAsTextIsTheirNumericOrder() {
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("agentTask");
+    pushExecution(execution);
+    AgentChatListener listener = new AgentChatListener(null, null, Boolean.TRUE);
+
+    assertThat(listener.chunkName(4)).isEqualTo(
+        AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask~0000000004");
+    List<String> names = new java.util.ArrayList<>(Arrays.asList(listener.chunkName(10),
+        listener.chunkName(2), listener.chunkName(Integer.MAX_VALUE), listener.chunkName(0)));
+    Collections.sort(names);
+    assertThat(names).containsExactly(listener.chunkName(0), listener.chunkName(2),
+        listener.chunkName(10), listener.chunkName(Integer.MAX_VALUE));
+  }
+
+  /** The execution of an activity {@code activityId}, after one model call of it failed. */
+  private ExecutionEntity afterOneFailedCall(String activityId) {
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn(activityId);
+    pushExecution(execution);
+    try {
+      AgentChatListener listener = new AgentChatListener(null, null, Boolean.TRUE);
+      ChatRequest request = ChatRequest.builder()
+          .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+      listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+      listener.onError(new ChatModelErrorContext(
+          new RuntimeException("failure"), request, null, new HashMap<>()));
+      return execution;
+    } finally {
+      Context.removeExecutionContext();
+      pushedExecution = false;
+    }
+  }
+
+  private static String repeat(char c, int times) {
+    StringBuilder sb = new StringBuilder(times);
+    for (int i = 0; i < times; i++) {
+      sb.append(c);
+    }
+    return sb.toString();
+  }
+
+  @Test
+  public void shouldRetryEventsAfterAChunkWriteFails() {
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("agentTask");
+    pushExecution(execution);
+
+    doThrow(new IllegalStateException("write failed")).doNothing()
+        .when(execution).setVariable(
+            startsWith(varName + AgentConnectorConstants.AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR), any());
+
+    AgentChatListener listener = new AgentChatListener();
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    assertThatThrownBy(() -> listener.onResponse(
+        new ChatModelResponseContext(
+            ChatResponse.builder().aiMessage(AiMessage.from("first")).build(),
+            request, null, new HashMap<>())))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessage("write failed");
+
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    listener.onResponse(new ChatModelResponseContext(
+        ChatResponse.builder().aiMessage(AiMessage.from("second")).build(),
+        request, null, new HashMap<>()));
+
+    ArgumentCaptor<Object> value = ArgumentCaptor.forClass(Object.class);
+    verify(execution, times(2)).setVariable(
+        startsWith(varName + AgentConnectorConstants.AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR), value.capture());
+    String json = (String) ((ObjectValue)
+        value.getValue()).getValue();
+    try {
+      List<Map<String, Object>> events =
+          new ObjectMapper().readValue(json, List.class);
+      assertThat(events).extracting(event -> event.get("type"))
+          .containsExactly("request", "response", "request", "response");
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
   }
 
   @Test
@@ -408,62 +671,141 @@ public class AgentChatListenerTest {
 
     ChatRequest request = ChatRequest.builder()
         .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    // Two model calls: one answered, one that failed.
     listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
     listener.onResponse(new ChatModelResponseContext(
         ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
         request, null, new HashMap<>()));
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
     listener.onError(new ChatModelErrorContext(
         new RuntimeException("late failure"), request, null, new HashMap<>()));
 
-    // 3 events → chat-log variable written 3 times; flag exactly once.
-    verify(execution, org.mockito.Mockito.times(3))
-        .setVariable(org.mockito.Matchers.eq(
+    // Two chunks, one per model call, each written once and named after its first
+    // event (CIB7-2156); the variable without a suffix is never written; flag once.
+    assertThat(chunk(execution, "agentTask~0000000000")).extracting(event -> event.get("type"))
+        .containsExactly("request", "response");
+    assertThat(chunk(execution, "agentTask~0000000002")).extracting(event -> event.get("type"))
+        .containsExactly("request", "error");
+    assertThat(chunk(execution, "agentTask~0000000002")).extracting(event -> event.get("eventSeq"))
+        .containsExactly(2, 3);
+    verify(execution, never())
+        .setVariable(eq(
             AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "agentTask"),
-            org.mockito.Matchers.any());
-    verify(execution, org.mockito.Mockito.times(1))
+            any());
+    verify(execution, times(1))
         .setVariable(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
   }
 
-  // ── loadExistingEvents: prior log resumed on construction ────────────────
-
+  /**
+   * A model call that fails is one chunk too: its request waits for the error that ends it
+   * (CIB7-2156).
+   */
   @Test
-  public void shouldResumeFromExistingLogVariableOnConstruction() {
-    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "resumable";
-    String priorJson = "[{\"type\":\"request\",\"timestamp\":\"2026-05-15T10:00:00Z\"}]";
+  public void shouldWriteARequestAndItsErrorAsOneChunk() {
     ExecutionEntity execution = mock(ExecutionEntity.class);
-    when(execution.getActivityId()).thenReturn("resumable");
-    when(execution.getVariable(varName)).thenReturn(priorJson);
+    when(execution.getActivityId()).thenReturn("agentTask");
     pushExecution(execution);
 
     AgentChatListener listener = new AgentChatListener();
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    listener.onError(new ChatModelErrorContext(
+        new RuntimeException("model down"), request, null, new HashMap<>()));
 
-    assertThat(listener.events()).hasSize(1);
-    assertThat(listener.events().get(0)).containsEntry("type", "request");
+    List<Map<String, Object>> events = chunk(execution, "agentTask~0000000000");
+    assertThat(events).extracting(event -> event.get("type")).containsExactly("request", "error");
+    assertThat(events.get(1)).containsEntry("message", "model down");
+  }
+
+  /** The events of the chunk {@code name} (after the prefix), as written exactly once. */
+  @SuppressWarnings("unchecked")
+  private static List<Map<String, Object>> chunk(ExecutionEntity execution, String name) {
+    ArgumentCaptor<Object> value = ArgumentCaptor.forClass(Object.class);
+    verify(execution, times(1)).setVariable(
+        eq(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + name),
+        value.capture());
+    String json = (String) ((ObjectValue) value.getValue())
+        .getValue();
+    try {
+      return new ObjectMapper().readValue(json, List.class);
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  // ── continueNumbering: a prior log is continued, not reloaded (CIB7-2156) ──
+
+  /** The eventSeq of the first event a new listener on {@code execution} emits. */
+  private Object firstSeq(ExecutionEntity execution) {
+    pushExecution(execution);
+    AgentChatListener listener = new AgentChatListener();
+    assertThat(listener.events()).as("the prior log is not loaded").isEmpty();
+    ChatRequest request = ChatRequest.builder()
+        .messages(Collections.singletonList(UserMessage.from("hi"))).build();
+    listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    return listener.events().get(0).get("eventSeq");
   }
 
   @Test
-  public void shouldStartWithEmptyEventsWhenExistingVariableIsEmptyString() {
+  public void shouldContinueNumberingAfterALogFromBeforeChunking() {
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "resumable";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("resumable");
+    when(execution.getVariable(varName)).thenReturn(
+        "[{\"type\":\"request\",\"eventSeq\":0},{\"type\":\"response\",\"eventSeq\":1}]");
+
+    assertThat(firstSeq(execution)).isEqualTo(2);
+  }
+
+  @Test
+  public void shouldContinueNumberingAfterTheNewestChunk() {
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "resumable";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("resumable");
+    when(execution.getVariableNames()).thenReturn(new java.util.HashSet<>(Arrays.asList(
+        varName, varName + "~0000000002", varName + "~0000000010", varName + "~0000000004",
+        varName + "~x", varName + "Other~0000000099", "unrelated")));
+    when(execution.getVariable(varName + "~0000000010")).thenReturn(
+        "[{\"type\":\"request\",\"eventSeq\":10},{\"type\":\"response\",\"eventSeq\":11}]");
+
+    assertThat(firstSeq(execution)).as("numerically newest chunk, of this activity only")
+        .isEqualTo(12);
+    verify(execution, never()).getVariable(varName + "~0000000002");
+  }
+
+  @Test
+  public void shouldNumberPastAnUndecodableChunk() {
+    String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "resumable";
+    ExecutionEntity execution = mock(ExecutionEntity.class);
+    when(execution.getActivityId()).thenReturn("resumable");
+    when(execution.getVariableNames())
+        .thenReturn(new java.util.HashSet<>(Arrays.asList(varName + "~0000000006")));
+    when(execution.getVariable(varName + "~0000000006")).thenReturn("not-json {{{");
+
+    assertThat(firstSeq(execution)).as("past the chunk, so no name collides with it")
+        .isEqualTo(7);
+  }
+
+  @Test
+  public void shouldStartNumberingAtZeroWhenExistingVariableIsEmptyString() {
     String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "blank";
     ExecutionEntity execution = mock(ExecutionEntity.class);
     when(execution.getActivityId()).thenReturn("blank");
     when(execution.getVariable(varName)).thenReturn("");
-    pushExecution(execution);
 
-    AgentChatListener listener = new AgentChatListener();
-    assertThat(listener.events()).isEmpty();
+    assertThat(firstSeq(execution)).isEqualTo(0);
   }
 
   @Test
-  public void shouldStartWithEmptyEventsWhenExistingLogIsMalformed() {
+  public void shouldStartNumberingAtZeroWhenExistingLogIsMalformed() {
     String varName = AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "bad";
     ExecutionEntity execution = mock(ExecutionEntity.class);
     when(execution.getActivityId()).thenReturn("bad");
     when(execution.getVariable(varName)).thenReturn("not-json {{{");
-    pushExecution(execution);
 
-    AgentChatListener listener = new AgentChatListener();
-    // Malformed JSON is logged and silently swallowed — the listener proceeds with an empty log.
-    assertThat(listener.events()).isEmpty();
+    // Malformed JSON is logged and swallowed — the listener numbers as if the log were empty.
+    assertThat(firstSeq(execution)).isEqualTo(0);
   }
 
   // ── chatLogVariable.enabled=false opt-out (DB-bloat control, CIB7-1395) ──
@@ -486,11 +828,11 @@ public class AgentChatListenerTest {
         request, null, new HashMap<>()));
 
     // Chat-log variable must NOT be written for any of the events.
-    verify(execution, org.mockito.Mockito.never())
-        .setVariable(org.mockito.Matchers.eq(varName), org.mockito.Matchers.any());
+    verify(execution, never())
+        .setVariable(startsWith(varName + "~"), any());
     // The connector flag variable is suppressed too — it points at the chat-log
     // timeline and would be misleading without it.
-    verify(execution, org.mockito.Mockito.never())
+    verify(execution, never())
         .setVariable(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
     // The in-memory event timeline must still be built so an external sink
     // (Kafka/JMS/SAP) can consume it.
@@ -509,10 +851,10 @@ public class AgentChatListenerTest {
 
     AgentChatListener listener = new AgentChatListener();
 
-    // The opt-out short-circuits loadExistingEvents() — prior events are not
-    // restored from the engine variable.
+    // The opt-out short-circuits continueNumbering(): the engine variable is not
+    // read, and the listener holds no events.
     assertThat(listener.events()).isEmpty();
-    verify(execution, org.mockito.Mockito.never()).getVariable(varName);
+    verify(execution, never()).getVariable(varName);
   }
 
   @Test
@@ -530,8 +872,11 @@ public class AgentChatListenerTest {
     ChatRequest request = ChatRequest.builder()
         .messages(Collections.singletonList(UserMessage.from("hi"))).build();
     listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    listener.onResponse(new ChatModelResponseContext(
+        ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
+        request, null, new HashMap<>()));
 
-    verify(execution).setVariable(org.mockito.Matchers.eq(varName), org.mockito.Matchers.any());
+    verify(execution).setVariable(startsWith(varName + "~"), any());
     verify(execution).setVariable(
         AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
   }
@@ -573,12 +918,15 @@ public class AgentChatListenerTest {
     ChatRequest request = ChatRequest.builder()
         .messages(Collections.singletonList(UserMessage.from("hi"))).build();
     listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    listener.onResponse(new ChatModelResponseContext(
+        ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
+        request, null, new HashMap<>()));
 
-    verify(execution, org.mockito.Mockito.never())
-        .setVariable(org.mockito.Matchers.eq(varName), org.mockito.Matchers.any());
-    verify(execution, org.mockito.Mockito.never())
+    verify(execution, never())
+        .setVariable(startsWith(varName + "~"), any());
+    verify(execution, never())
         .setVariable(AgentConnectorConstants.AGENT_CONNECTOR_FLAG_VARIABLE_NAME, true);
-    assertThat(listener.events()).hasSize(1);
+    assertThat(listener.events()).hasSize(2);
   }
 
   @Test
@@ -596,8 +944,11 @@ public class AgentChatListenerTest {
     ChatRequest request = ChatRequest.builder()
         .messages(Collections.singletonList(UserMessage.from("hi"))).build();
     listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    listener.onResponse(new ChatModelResponseContext(
+        ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
+        request, null, new HashMap<>()));
 
-    verify(execution).setVariable(org.mockito.Matchers.eq(varName), org.mockito.Matchers.any());
+    verify(execution).setVariable(startsWith(varName + "~"), any());
   }
 
   @Test
@@ -615,9 +966,12 @@ public class AgentChatListenerTest {
     ChatRequest request = ChatRequest.builder()
         .messages(Collections.singletonList(UserMessage.from("hi"))).build();
     listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
+    listener.onResponse(new ChatModelResponseContext(
+        ChatResponse.builder().aiMessage(AiMessage.from("ok")).build(),
+        request, null, new HashMap<>()));
 
-    verify(execution, org.mockito.Mockito.never())
-        .setVariable(org.mockito.Matchers.eq(varName), org.mockito.Matchers.any());
+    verify(execution, never())
+        .setVariable(startsWith(varName + "~"), any());
   }
 
   // ── redactContent env-var fallback (normalised in the same pass) ────────
@@ -663,10 +1017,10 @@ public class AgentChatListenerTest {
     ChatRequest request = ChatRequest.builder()
         .messages(Collections.singletonList(UserMessage.from("hi"))).build();
     listener.onRequest(new ChatModelRequestContext(request, null, new HashMap<>()));
-    verify(execution, org.mockito.Mockito.never())
-        .setVariable(org.mockito.Matchers.anyString(), org.mockito.Matchers.any());
-    verify(execution, org.mockito.Mockito.never())
-        .setVariable(org.mockito.Matchers.anyString(), org.mockito.Matchers.anyBoolean());
+    verify(execution, never())
+        .setVariable(anyString(), any());
+    verify(execution, never())
+        .setVariable(anyString(), anyBoolean());
   }
 
   // ── Audit envelope (EU AI Act Art. 12 record-keeping) ────────────────────
@@ -890,7 +1244,7 @@ public class AgentChatListenerTest {
         (List<Map<String, Object>>) listener.events().get(0).get("messages");
     String content = (String) messages.get(0).get("content");
     @SuppressWarnings("unchecked")
-    Map<String, Object> decoded = new com.fasterxml.jackson.databind.ObjectMapper()
+    Map<String, Object> decoded = new ObjectMapper()
         .readValue(content, Map.class);
     assertThat(decoded).containsEntry("redacted", true)
         .containsEntry("length", "sensitive PII".length());

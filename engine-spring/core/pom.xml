@@ -36,7 +36,7 @@
       <dependency>
         <groupId>jakarta.platform</groupId>
         <artifactId>jakarta.jakartaee-bom</artifactId>
-        <version>${version.jakarta-ee11-spec}</version>
+        <version>${version.jakarta-ee-spec}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -55,20 +55,6 @@
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-engine</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.junit.jupiter</groupId>
-          <artifactId>junit-jupiter-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.junit.jupiter</groupId>
-          <artifactId>junit-jupiter-params</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.junit.jupiter</groupId>
-          <artifactId>junit-jupiter-engine</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -107,14 +93,6 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <!-- Jakarta EL implementation (reference impl) required at runtime by the JUEL script engine.
-         Only the jakarta.el-api is provided by the Jakarta EE BOM; the impl (com.sun.el.ExpressionFactoryImpl) is missing. -->
-    <dependency>
-      <groupId>org.glassfish</groupId>
-      <artifactId>jakarta.el</artifactId>
-      <version>4.0.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -260,53 +238,8 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>enforce-java</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireJavaVersion>
-                  <version>[17,)</version>
-                  <message>You must use at least JDK 17 to build the Process Engine Spring integration (Spring Framework 7).</message>
-                </requireJavaVersion>
-              </rules>
-              <failFast>true</failFast>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
-  <profiles>
-    <profile>
-     <id>exclude-post-jdk15-tests</id>
-      <activation>
-        <jdk>[15,)</jdk>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <configuration>
-                <!-- Nashorn is not part of the JDK anymore in Java 15+ -->
-                <excludes>
-                  <exclude>**/*NashornTest.java</exclude>
-                </excludes>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
-  </profiles>
 
   <description>
     Description of CIB seven - engine - Spring

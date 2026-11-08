@@ -61,23 +61,43 @@ import org.cibseven.bpm.engine.variable.value.TypedValue;
  *
  * <p>A tool that holds its results in an execution of its own loses them before its child ends;
  * {@link #carry} keeps them on the child's execution as the tool ends, and the child's end takes
- * them into the list (CIB7-2215). The list itself is still written only there.
+ * them into the list (CIB7-2215). An entry is still written only there.
  *
- * <p>Only a child that ends writes the list; a step moves a <b>read position</b> and records what
+ * <p>Each entry is a variable of its own on the agent state, {@code adHocAgentResults~<n>} with
+ * its position in the list padded with zeros to ten digits, written once as its child ends and
+ * never again (CIB7-2156). The list was one variable rewritten whole on every child's end, so at
+ * history level full each end stored every entry before it once more: quadratic in the
+ * performances. A list an earlier version wrote, {@code adHocAgentResults} without a suffix, is
+ * still read, before the entries; nothing writes it any more.
+ *
+ * <p>Only a child that ends writes an entry; a step moves a <b>read position</b> and records what
  * a tool result already showed, both in the agent's state map, which only a step writes. A child
  * ending while a step waits for the model therefore meets no row the step changes, and neither has
- * to be repeated (T01). Two children ending at once both append, and one waits for the other.
+ * to be repeated (T01). Two children ending at once take the same next position: the second insert
+ * fails on the engine's unique index of variable names ({@code ACT_UNIQ_VARIABLE}), as the second
+ * update of the one list failed before. Run in a job, its transaction is retried and appends after
+ * the first; a task completed through the API gets the exception, as it did then.
  *
- * <p>A step that reads the list must not write it either. The engine serializes an object it read
- * again when the command ends, and writes it back if the bytes differ; a hash map can come back with
- * a different table size, on Java 17 at twelve entries and every doubling of that. So every map in
- * the list is a {@link TreeMap}, whose bytes depend only on what it holds, and the list is rebuilt
- * that way whenever it is written.
+ * <p>A step that reads the entries must not write them either. The engine serializes an object it
+ * read again when the command ends, and writes it back if the bytes differ; a hash map can come back
+ * with a different table size, on Java 17 at twelve entries and every doubling of that. So every map
+ * in an entry is a {@link TreeMap}, whose bytes depend only on what it holds, and an entry is built
+ * that way when it is written.
  */
 public final class AdHocResults {
 
-    /** Every entry the scope has gathered, oldest first; written only as children end. */
+    /**
+     * The list of entries an earlier version wrote as one variable, rewritten on every child's end;
+     * only read now. Also the start of the entries' names (see {@link #ENTRY_PREFIX}).
+     */
     private static final String RESULTS = "adHocAgentResults";
+
+    /**
+     * Every entry the scope has gathered is a variable named this plus its position in the list,
+     * padded with zeros to ten digits, so the names sort as text in their order; written once, as
+     * its child ends (CIB7-2156).
+     */
+    static final String ENTRY_PREFIX = RESULTS + "~";
 
     /** How far into the list the agent has been shown, as a count of entries; in the state map. */
     private static final String READ_POSITION = "resultsRead";
@@ -304,10 +324,44 @@ public final class AdHocResults {
     }
 
     private static void append(ExecutionEntity scope, Map<String, Object> entry) {
-        List<Map<String, Object>> entries = entries(scope);
-        entries.add(entry);
-        AdHocAgentState.findOrCreate(scope).setVariableLocal(RESULTS,
-                Variables.objectValue(stored(entries)).create());
+        PvmExecutionImpl state = AdHocAgentState.findOrCreate(scope);
+        // A variable of its own, written once: the entries before it are neither read nor written.
+        state.setVariableLocal(entryName(nextPosition(state)),
+                Variables.objectValue(stored(entry)).create());
+    }
+
+    /** The variable name of the entry at {@code position} in the list. */
+    static String entryName(int position) {
+        // Locale.ROOT: one name per position, in ASCII, whatever a node's default locale.
+        return ENTRY_PREFIX + String.format(java.util.Locale.ROOT, "%010d", position);
+    }
+
+    /**
+     * The position of the next entry: after the newest one, or after the list an earlier version
+     * wrote while there is none yet.
+     */
+    private static int nextPosition(PvmExecutionImpl state) {
+        int next = -1;
+        for (String name : state.getVariableNamesLocal()) {
+            Integer position = positionOf(name);
+            if (position != null) {
+                next = Math.max(next, position.intValue() + 1);
+            }
+        }
+        return (next >= 0) ? next : legacyEntries(state).size();
+    }
+
+    /** The position an entry's variable name carries, or null for any other name. */
+    private static Integer positionOf(String name) {
+        if (!name.startsWith(ENTRY_PREFIX)
+                || !AgentChatListener.isAsciiNumber(name.substring(ENTRY_PREFIX.length()))) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(name.substring(ENTRY_PREFIX.length()));
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /**
@@ -500,27 +554,22 @@ public final class AdHocResults {
     }
 
     /**
-     * The list as it is written: every entry, and the values in it, as a {@link TreeMap}. An entry
-     * written before, by an earlier version, may be another map; it is rebuilt too.
+     * An entry as it is written: the entry, and the values in it, as a {@link TreeMap}.
      */
-    private static List<Map<String, Object>> stored(List<Map<String, Object>> entries) {
-        List<Map<String, Object>> stored = new ArrayList<Map<String, Object>>();
-        for (Map<String, Object> entry : entries) {
-            Map<String, Object> copy = new TreeMap<String, Object>();
-            for (Map.Entry<String, Object> field : entry.entrySet()) {
-                Object value = field.getValue();
-                if (value instanceof Map) {
-                    Map<String, Object> values = new TreeMap<String, Object>();
-                    for (Map.Entry<?, ?> declared : ((Map<?, ?>) value).entrySet()) {
-                        values.put(String.valueOf(declared.getKey()), declared.getValue());
-                    }
-                    value = values;
+    private static Map<String, Object> stored(Map<String, Object> entry) {
+        Map<String, Object> copy = new TreeMap<String, Object>();
+        for (Map.Entry<String, Object> field : entry.entrySet()) {
+            Object value = field.getValue();
+            if (value instanceof Map) {
+                Map<String, Object> values = new TreeMap<String, Object>();
+                for (Map.Entry<?, ?> declared : ((Map<?, ?>) value).entrySet()) {
+                    values.put(String.valueOf(declared.getKey()), declared.getValue());
                 }
-                copy.put(field.getKey(), value);
+                value = values;
             }
-            stored.add(copy);
+            copy.put(field.getKey(), value);
         }
-        return stored;
+        return copy;
     }
 
     /**
@@ -532,8 +581,8 @@ public final class AdHocResults {
      * unread, so the next state block continues where this one stopped rather than skipping it.
      */
     static List<Map<String, Object>> since(ExecutionEntity scope) {
-        List<Map<String, Object>> entries = entries(scope);
         int from = readPosition(scope);
+        List<Map<String, Object>> entries = entries(scope, from);
         if (from >= entries.size()) {
             return Collections.emptyList();
         }
@@ -550,7 +599,7 @@ public final class AdHocResults {
                         + " was reached. You will be shown them in your next turn.";
                 break;
             }
-            if (reported.remove(activationIdOf(entries.get(index)))) {
+            if (entries.get(index) == null || reported.remove(activationIdOf(entries.get(index)))) {
                 continue;
             }
             Map<String, Object> entry = describe(entries.get(index));
@@ -570,9 +619,10 @@ public final class AdHocResults {
         return described;
     }
 
-    /** How many entries the scope has gathered so far. */
+    /** How many entries the scope has gathered so far; counted by name, none of them read. */
     static int gathered(ExecutionEntity scope) {
-        return entries(scope).size();
+        PvmExecutionImpl state = AdHocAgentState.find(scope);
+        return (state == null) ? 0 : legacyEntries(state).size() + positions(state).size();
     }
 
     /**
@@ -580,13 +630,13 @@ public final class AdHocResults {
      * was gathered while a tool ran within its call, whose values the tool result carried.
      */
     static void markReported(ExecutionEntity scope, int from) {
-        List<Map<String, Object>> entries = entries(scope);
+        List<Map<String, Object>> entries = entries(scope, from);
         if (from >= entries.size()) {
             return;
         }
         Set<String> reported = reported(scope);
         for (Map<String, Object> entry : entries.subList(from, entries.size())) {
-            String id = activationIdOf(entry);
+            String id = (entry == null) ? null : activationIdOf(entry);
             if (id != null) {
                 reported.add(id);
             }
@@ -607,11 +657,11 @@ public final class AdHocResults {
      */
     static Map<String, Object> gatheredWithinTheCall(ExecutionEntity scope, int from,
             String activityId) {
-        List<Map<String, Object>> entries = entries(scope);
+        List<Map<String, Object>> entries = entries(scope, from);
         Map<String, String> pending = AdHocLoopState.pending(scope);
         for (int index = entries.size() - 1; index >= from; index--) {
             Map<String, Object> entry = entries.get(index);
-            if (activityId.equals(entry.get(ACTIVITY_ID))
+            if (entry != null && activityId.equals(entry.get(ACTIVITY_ID))
                     && !pending.containsKey(activationIdOf(entry))) {
                 return entry;
             }
@@ -952,10 +1002,46 @@ public final class AdHocResults {
         return "<" + value.getClass().getSimpleName() + " value, not shown>";
     }
 
+    /**
+     * Every entry the scope has gathered, oldest first: an earlier version's list, then the rest.
+     * The entries before {@code from} are null, not read: each is a serialized value of its own, so
+     * reading it costs a fetch, and the callers look only at the entries from their position on.
+     * An entry whose value is not a map is null too, so the positions stay those of the names.
+     */
     @SuppressWarnings("unchecked")
-    private static List<Map<String, Object>> entries(ExecutionEntity scope) {
+    private static List<Map<String, Object>> entries(ExecutionEntity scope, int from) {
         PvmExecutionImpl state = AdHocAgentState.find(scope);
-        Object raw = (state == null) ? null : state.getVariableLocal(RESULTS);
+        if (state == null) {
+            return new ArrayList<Map<String, Object>>();
+        }
+        List<Map<String, Object>> entries = legacyEntries(state);
+        for (String name : positions(state).values()) {
+            if (entries.size() < from) {
+                entries.add(null);
+                continue;
+            }
+            Object entry = state.getVariableLocal(name);
+            entries.add((entry instanceof Map) ? (Map<String, Object>) entry : null);
+        }
+        return entries;
+    }
+
+    /** The names of the entries on {@code state}, by position; their values are not read. */
+    private static TreeMap<Integer, String> positions(PvmExecutionImpl state) {
+        TreeMap<Integer, String> names = new TreeMap<Integer, String>();
+        for (String name : state.getVariableNamesLocal()) {
+            Integer position = positionOf(name);
+            if (position != null) {
+                names.put(position, name);
+            }
+        }
+        return names;
+    }
+
+    /** The entries of the list an earlier version wrote as one variable; empty without one. */
+    @SuppressWarnings("unchecked")
+    private static List<Map<String, Object>> legacyEntries(PvmExecutionImpl state) {
+        Object raw = state.getVariableLocal(RESULTS);
         List<Map<String, Object>> entries = new ArrayList<Map<String, Object>>();
         if (raw instanceof Collection) {
             for (Object entry : (Collection<?>) raw) {

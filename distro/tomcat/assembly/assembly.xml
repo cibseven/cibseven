@@ -69,6 +69,10 @@
         <include>org.cibseven.spin:cibseven-spin-dataformat-all*:jar</include>
         <include>org.cibseven.connect:*:jar</include>
         <include>org.cibseven.commons:*:jar</include>
+        <!-- cibseven-commons-typed-values uses jakarta.activation.MimetypesFileTypeMap,
+             Tomcat does not ship Jakarta Activation: the API and its implementation -->
+        <include>jakarta.activation:jakarta.activation-api:jar</include>
+        <include>org.eclipse.angus:angus-activation:jar</include>
 
         <include>org.cibseven.bpm.model:*:jar</include>
         <include>org.cibseven.bpm.dmn:*:jar</include>
@@ -117,6 +121,10 @@
         <include>org.cibseven.spin:cibseven-spin-dataformat-all*:jar</include>
         <include>org.cibseven.connect:*:jar</include>
         <include>org.cibseven.commons:*:jar</include>
+        <!-- cibseven-commons-typed-values uses jakarta.activation.MimetypesFileTypeMap,
+             Tomcat does not ship Jakarta Activation: the API and its implementation -->
+        <include>jakarta.activation:jakarta.activation-api:jar</include>
+        <include>org.eclipse.angus:angus-activation:jar</include>
 
         <include>org.cibseven.bpm.model:*:jar</include>
 

@@ -24,6 +24,7 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.springframework.test.context.ContextConfiguration;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Svetlana Dorokhova
@@ -47,6 +48,7 @@ public class SpringTransactionIntegrationDeleteDeploymentFailTest extends Spring
 
   }
 
+  @Test
   public void testFailingAfterDeleteDeployment() {
     //given
     final BpmnModelInstance model = Bpmn.createExecutableProcess().startEvent().userTask().endEvent().done();
