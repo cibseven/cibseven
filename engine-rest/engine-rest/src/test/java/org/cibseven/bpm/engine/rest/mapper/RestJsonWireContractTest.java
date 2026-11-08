@@ -586,7 +586,7 @@ public class RestJsonWireContractTest {
     assertRead("deserialize/delete-process-instances-null-primitives.json", DeleteProcessInstancesDto.class,
         "{\"processInstanceIds\":[\"p1\",\"p2\"],\"deleteReason\":\"r\",\"skipCustomListeners\":null,"
         + "\"skipIoMappings\":null}");
-    // setSkipSubprocesses(Boolean) unboxes into a boolean field: null fails in the setter (400)
+    // setSkipSubprocesses(Boolean) maps null to false like the other skip flags (CIB7-2633; before: NPE in the setter, 400)
     assertRead("deserialize/delete-process-instances-null-boxed-setter.json", DeleteProcessInstancesDto.class,
         "{\"processInstanceIds\":[\"p1\"],\"skipSubprocesses\":null}");
   }
