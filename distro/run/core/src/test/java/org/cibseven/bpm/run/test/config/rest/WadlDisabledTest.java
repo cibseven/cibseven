@@ -16,14 +16,14 @@
  */
 package org.cibseven.bpm.run.test.config.rest;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
 import org.cibseven.bpm.run.property.CamundaBpmRunRestProperties;
 import org.cibseven.bpm.run.test.AbstractRestTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.JsonNodeType;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,8 +40,8 @@ public class WadlDisabledTest extends AbstractRestTest {
     // then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     assertThat(response.getBody()).isNotNull();
-    assertThat(response.getBody().get("message").textValue()).isEqualTo("HTTP 404 Not Found");
-    assertThat(response.getBody().get("type").textValue()).isEqualTo("NotFoundException");
+    assertThat(response.getBody().get("message").stringValue()).isEqualTo("HTTP 404 Not Found");
+    assertThat(response.getBody().get("type").stringValue()).isEqualTo("NotFoundException");
     assertThat(response.getBody().get("code").getNodeType()).isEqualTo(JsonNodeType.NULL);
   }
 }
