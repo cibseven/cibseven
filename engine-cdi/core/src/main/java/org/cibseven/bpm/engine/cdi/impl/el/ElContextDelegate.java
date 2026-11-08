@@ -91,4 +91,10 @@ public class ElContextDelegate extends ELContext {
     delegateContext.setPropertyResolved(resolved);
   }
 
+  @Override
+  public <T> T convertToType(Object obj, Class<T> type) {
+    // the engine's context converts with JUEL on every EL API (CIB7-2609)
+    return delegateContext.convertToType(obj, type);
+  }
+
 }
