@@ -49,7 +49,7 @@ public class CamundaFormDefinitionDeployer extends AbstractDefinitionDeployer<Ca
     String formContent = new String(resource.getBytes(), StandardCharsets.UTF_8);
 
     try {
-      JsonObject formJsonObject = new Gson().fromJson(formContent, JsonObject.class);
+      JsonObject formJsonObject = JsonUtil.fromJson(new Gson(), formContent, JsonObject.class);
       String camundaFormDefinitionKey = JsonUtil.getString(formJsonObject, "id");
       CamundaFormDefinitionEntity definition = new CamundaFormDefinitionEntity(camundaFormDefinitionKey, deployment.getId(), resource.getName(), deployment.getTenantId());
       return Collections.singletonList(definition);
