@@ -17,7 +17,7 @@
 package org.cibseven.bpm.webapp.rest.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.webapp.db.QueryParameters;
 import org.cibseven.bpm.engine.rest.dto.CamundaQueryParam;
 import org.cibseven.bpm.engine.rest.dto.converter.JacksonAwareStringToTypeConverter;

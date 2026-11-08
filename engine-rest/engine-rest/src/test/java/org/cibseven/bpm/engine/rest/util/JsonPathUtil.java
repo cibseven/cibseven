@@ -16,18 +16,30 @@
  */
 package org.cibseven.bpm.engine.rest.util;
 
+import java.text.SimpleDateFormat;
+
 import org.cibseven.bpm.engine.rest.mapper.JacksonConfigurator;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import io.restassured.path.json.mapper.factory.DefaultJackson2ObjectMapperFactory;
 import io.restassured.path.json.JsonPath;
 
+/**
+ * REST-assured parses JSON with Jackson 2 (test scope only); it is configured like the
+ * Jackson 3 mapper of the REST API ({@link JacksonConfigurator}).
+ */
 public final class JsonPathUtil {
 
   public static JsonPath from(String json) {
     return JsonPath.from(json).using(new DefaultJackson2ObjectMapperFactory() {
       public ObjectMapper create(Class cls, String charset) {
-        return JacksonConfigurator.configureObjectMapper(super.create(cls, charset));
+        ObjectMapper mapper = super.create(cls, charset);
+        mapper.setDateFormat(new SimpleDateFormat(JacksonConfigurator.dateFormatString));
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        return mapper;
       }
     });
   }

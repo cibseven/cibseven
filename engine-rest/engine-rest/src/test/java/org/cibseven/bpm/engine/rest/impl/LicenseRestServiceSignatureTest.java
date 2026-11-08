@@ -19,7 +19,7 @@ package org.cibseven.bpm.engine.rest.impl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
+import tools.jackson.databind.json.JsonMapper;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -31,8 +31,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 public class LicenseRestServiceSignatureTest {
 
@@ -42,13 +42,13 @@ public class LicenseRestServiceSignatureTest {
   private LicenseRestServiceImpl service;
   private Method encryptSignature;
   private Method decryptSignature;
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new JsonMapper();
 
   private String originalSecret;
 
   @BeforeEach
   public void setUp() throws Exception {
-    service = new LicenseRestServiceImpl(null, new ObjectMapper());
+    service = new LicenseRestServiceImpl(null, new JsonMapper());
 
     encryptSignature = LicenseRestServiceImpl.class.getDeclaredMethod("encryptSignature", String.class);
     encryptSignature.setAccessible(true);

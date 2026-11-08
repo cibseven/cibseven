@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.dto.externaltask;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
