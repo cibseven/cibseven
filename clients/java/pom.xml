@@ -19,6 +19,8 @@
   <modules>
     <module>qa</module>
     <module>client</module>
+    <!-- deprecated Jackson 2 variant of the client, removed in 3.1.0 -->
+    <module>client-jackson2</module>
   </modules>
 
   <dependencyManagement>
