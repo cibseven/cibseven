@@ -579,45 +579,16 @@
           <createSourcesJar>true</createSourcesJar>
           <createDependencyReducedPom>true</createDependencyReducedPom>
           <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
+          <!-- Allowlist (CIB7-2636): only these libraries go into the engine jar, relocated
+               to camundajar.impl.* below. Every other dependency stays a regular dependency
+               that applications and containers can replace or exclude. A denylist let new
+               transitive dependencies in unnoticed: spring-core 7 (via spring-beans) brought
+               commons-logging and jspecify into the jar unrelocated. -->
           <artifactSet>
-            <excludes>
-              <exclude>org.cibseven.bpm.model:*</exclude>
-              <exclude>org.cibseven.bpm.dmn:*</exclude>
-              <exclude>org.cibseven.bpm.juel:*</exclude>
-              <exclude>org.cibseven.commons:*</exclude>
-              <exclude>org.camunda.feel:*</exclude>
-
-              <exclude>org.springframework:*</exclude>
-              <exclude>org.slf4j:*</exclude>
-              <exclude>com.sun.mail:*</exclude>
-              <exclude>javax.activation:*</exclude>
-              <!-- Transitive compile dependency of cibseven-commons-typed-values, which uses
-                   jakarta.activation.MimetypesFileTypeMap. It stays a regular dependency instead
-                   of an unrelocated copy inside the engine jar (CIB7-2582). -->
-              <exclude>jakarta.activation:*</exclude>
-              <!-- Jakarta Activation implementation, a runtime dependency of
-                   cibseven-commons-typed-values (CIB7-2605). It must stay a regular dependency:
-                   a copy inside the engine jar would be a second Angus next to the one of the
-                   application or the container. -->
-              <exclude>org.eclipse.angus:*</exclude>
-              <!-- EL implementation, a runtime dependency of cibseven-engine-dmn (CIB7-2609).
-                   It must stay a regular dependency so that applications and containers can
-                   replace or exclude it. -->
-              <exclude>org.glassfish.expressly:*</exclude>
-              <exclude>org.mybatis:mybatis:*</exclude>
-              <exclude>joda-time:*</exclude>
-
-              <!-- Do not shade JUnit into the engine jar. junit-jupiter-api is a
-                   provided dependency and would otherwise be included (together with
-                   its transitive junit-platform-commons) due to
-                   keepDependenciesWithProvidedScope=true, shadowing the JUnit version
-                   on the test classpath of downstream modules. -->
-              <exclude>org.junit.jupiter:*</exclude>
-              <exclude>org.junit.platform:*</exclude>
-              <exclude>org.junit:*</exclude>
-              <exclude>org.opentest4j:*</exclude>
-              <exclude>org.apiguardian:*</exclude>
-            </excludes>
+            <includes>
+              <include>com.google.code.gson:gson</include>
+              <include>com.cronutils:cron-utils</include>
+            </includes>
           </artifactSet>
           <relocations>
             <relocation>
@@ -672,8 +643,10 @@
           <!-- The shaded engine jar must not carry its own copy of any Jakarta EE / Java EE API
                (jakarta.*, javax.*): the container or the application classpath provides these
                APIs, a second copy breaks class identity (CIB7-2582). No exceptions; a library
-               that needs such an API inside the jar must be relocated. Bound to verify, after
-               the shade plugin has replaced the jar in the package phase. -->
+               that needs such an API inside the jar must be relocated. Beyond that, the jar may
+               only contain the engine's own classes and resources and the libraries relocated
+               to camundajar.* (CIB7-2636). Bound to verify, after the shade plugin has replaced
+               the jar in the package phase. -->
           <execution>
             <id>verify-no-jakarta-api-in-shaded-jar</id>
             <phase>verify</phase>
@@ -682,19 +655,55 @@
             </goals>
             <configuration>
               <target>
-                <fail message="${project.build.finalName}.jar bundles unrelocated jakarta.* or javax.* classes, an EL implementation or a Jakarta Activation implementation. Jakarta EE APIs must come from the container or the application classpath: declare them provided, or exclude them from the maven-shade-plugin artifactSet (see the jakarta.enterprise.cdi-api, jakarta.activation and org.eclipse.angus entries).">
+                <!-- Patterns of the two checks below, shared with their self-test. -->
+                <property name="engine.jar.allowed" value="org/cibseven/**,camundajar/**,META-INF/MANIFEST.MF,META-INF/NOTICE,META-INF/maven/**,META-INF/services/**,*.xsd" />
+                <property name="engine.jar.forbidden.ee" value="jakarta/**,javax/**,org/glassfish/expressly/**,com/sun/el/**" />
+                <!-- Self-test: a sample jar with allowed and forbidden entries; each check must flag
+                     exactly the forbidden ones, so a broken pattern cannot let a foreign library pass. -->
+                <property name="engine.jar.selftest" value="${project.build.directory}/engine-jar-guard-selftest.jar" />
+                <zip destfile="${engine.jar.selftest}">
+                  <zipfileset file="${basedir}/pom.xml" fullpath="org/cibseven/bpm/engine/Allowed.class" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="camundajar/impl/com/google/gson/Allowed.class" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="META-INF/services/org.cibseven.Allowed" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="allowed.xsd" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="org/apache/commons/logging/LogFactory.class" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="org/jspecify/annotations/Nullable.class" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="META-INF/versions/9/module-info.class" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="javax/annotation/Forbidden.class" />
+                </zip>
+                <fail message="Self-test of the engine jar checks failed: the allowlist must flag exactly the 4 forbidden entries of ${engine.jar.selftest}.">
+                  <condition>
+                    <not>
+                      <resourcecount when="equal" count="4">
+                        <zipfileset src="${engine.jar.selftest}" includes="**" excludes="${engine.jar.allowed}" />
+                      </resourcecount>
+                    </not>
+                  </condition>
+                </fail>
+                <fail message="Self-test of the engine jar checks failed: the Jakarta check must flag exactly the javax entry of ${engine.jar.selftest}.">
+                  <condition>
+                    <not>
+                      <resourcecount when="equal" count="1">
+                        <zipfileset src="${engine.jar.selftest}" includes="${engine.jar.forbidden.ee}" />
+                      </resourcecount>
+                    </not>
+                  </condition>
+                </fail>
+                <fail message="${project.build.finalName}.jar bundles unrelocated jakarta.* or javax.* classes or an EL implementation. Jakarta EE APIs must come from the container or the application classpath: declare them provided (see jakarta.enterprise.cdi-api), and never add them to the maven-shade-plugin artifactSet includes, which list only the libraries shaded into the engine jar (Gson, cron-utils).">
                   <condition>
                     <resourcecount when="greater" count="0">
-                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="jakarta/**,javax/**,org/glassfish/expressly/**,com/sun/el/**,org/eclipse/angus/**" />
+                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="${engine.jar.forbidden.ee}" />
                     </resourcecount>
                   </condition>
                 </fail>
-                <!-- Gson must only be shaded relocated to camundajar.impl.com.google.gson, and its
-                     error_prone_annotations dependency not at all (CIB7-2634). -->
-                <fail message="${project.build.finalName}.jar bundles unrelocated com.google.* classes (Gson or its error_prone_annotations dependency). Relocate Gson to camundajar.impl.com.google.gson and exclude error_prone_annotations from the gson dependency.">
+                <!-- Allowlist of the jar's entries (CIB7-2636; it also covers Gson's
+                     error_prone_annotations dependency and module descriptor, CIB7-2634).
+                     META-INF/NOTICE is written by the ApacheNoticeResourceTransformer that
+                     release-parent configures for every shaded jar. -->
+                <fail message="${project.build.finalName}.jar contains entries outside org/cibseven/, camundajar/, META-INF/MANIFEST.MF, META-INF/NOTICE, META-INF/maven/, META-INF/services/ and the root *.xsd files, e.g. an unrelocated library (commons-logging, jspecify, com.google.*) or a multi-release META-INF/versions/ folder. Shade only the libraries of the maven-shade-plugin artifactSet includes, relocated to camundajar.impl.*, and keep every other library a regular dependency.">
                   <condition>
                     <resourcecount when="greater" count="0">
-                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="com/google/**,META-INF/versions/*/com/google/**" />
+                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="**" excludes="${engine.jar.allowed}" />
                     </resourcecount>
                   </condition>
                 </fail>
