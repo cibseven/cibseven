@@ -1,11 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jboss-deployment-structure>
   <deployment>
+    <!-- The REST APIs of the web applications (Cockpit, Tasklist, Admin, Welcome) read and write
+         JSON with Jackson 3 (tools.jackson), bundled in WEB-INF/lib together with the Jackson 2
+         annotations it uses (jackson-annotations 2.21), and registered by the JAX-RS applications
+         (CibsevenJacksonJsonProvider). The server only ships Jackson 2 and adds it to JAX-RS
+         deployments, so keep all of the server's Jackson and JSON provider modules out of the
+         deployment: same list as the engine-rest war (cibseven-engine-rest, classifier wildfly). -->
     <exclusions>
-      <module name="com.fasterxml.jackson.datatype.jackson-datatype-jsr310" />
-      <module name="org.jboss.resteasy.resteasy-jackson2-provider" />
       <module name="org.jboss.resteasy.resteasy-jackson-provider" />
       <module name="org.jboss.resteasy.resteasy-jettison-provider" />
+      <module name="com.fasterxml.jackson.core.jackson-core" />
+      <module name="com.fasterxml.jackson.core.jackson-annotations" />
+      <module name="com.fasterxml.jackson.core.jackson-databind" />
+      <module name="com.fasterxml.jackson.datatype.jackson-datatype-jsr310" />
+      <module name="com.fasterxml.jackson.datatype.jackson-datatype-jdk8" />
+      <module name="org.jboss.resteasy.resteasy-jackson2-provider" />
+      <!-- JSON-B (Yasson) ignores our mapper (ContextResolver<ObjectMapper>) and the Jackson annotations -->
+      <module name="org.jboss.resteasy.resteasy-json-binding-provider" />
+      <!-- the server's Jackson 2 JAX-RS providers -->
+      <module name="com.fasterxml.jackson.jakarta.jackson-jakarta-json-provider" />
+      <module name="com.fasterxml.jackson.jaxrs.jackson-jaxrs-json-provider" />
     </exclusions>
   </deployment>
 </jboss-deployment-structure>
