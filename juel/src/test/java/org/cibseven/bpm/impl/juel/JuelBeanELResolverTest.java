@@ -22,7 +22,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.Collections;
 import java.util.List;
 
+import jakarta.el.CompositeELResolver;
+import jakarta.el.ELContext;
 import jakarta.el.ELException;
+import jakarta.el.ELResolver;
 import jakarta.el.ExpressionFactory;
 import jakarta.el.MethodNotFoundException;
 import jakarta.el.ValueExpression;
@@ -112,11 +115,73 @@ public class JuelBeanELResolverTest {
   }
 
   @Test
+  public void shouldConvertNullAsTheOnlyVarArgsArgument() {
+    // 2.2 threw a NullPointerException here
+    assertThat((String[]) eval("${bean.stringVarArgs(null)}")).containsExactly("");
+    assertThat((Long[]) eval("${bean.longVarArgs(null)}")).containsExactly(0L);
+  }
+
+  @Test
+  public void shouldCheckEligibilityWithJuelNotWithTheResolvers() {
+    // given: a resolver converts an Id to a Long, JUEL only to a String
+    IdConverter converter = new IdConverter();
+    useConverter(converter);
+    setVariable("overloaded", new OverloadedBean());
+
+    // when & then: as in 2.2, only m(String) is eligible, and the resolver is not asked
+    assertThat(eval("${overloaded.m(id)}")).isEqualTo("String id-7");
+    assertThat(converter.longConversions).isZero();
+  }
+
+  @Test
+  public void shouldNotMakeAMethodEligibleThroughAResolver() {
+    useConverter(new IdConverter());
+    setVariable("longOnly", new LongOnlyBean());
+
+    assertThatThrownBy(() -> eval("${longOnly.m(id)}")).isInstanceOf(MethodNotFoundException.class);
+  }
+
+  @Test
+  public void shouldNotAskAResolverWhileSelectingTheMethod() {
+    IdConverter converter = new IdConverter();
+    converter.failure = new IllegalStateException("must not be called while selecting the method");
+    useConverter(converter);
+    setVariable("overloaded", new OverloadedBean());
+
+    assertThat(eval("${overloaded.m(id)}")).isEqualTo("String id-7");
+    assertThat(converter.longConversions).isZero();
+  }
+
+  @Test
+  public void shouldConvertTheArgumentsOfTheSelectedMethodWithTheResolvers() {
+    // given: Id to String is eligible through JUEL, and the resolver converts the argument
+    IdConverter converter = new IdConverter();
+    converter.stringValue = "converted";
+    useConverter(converter);
+    setVariable("overloaded", new OverloadedBean());
+
+    // when & then
+    assertThat(eval("${overloaded.m(id)}")).isEqualTo("String converted");
+  }
+
+  @Test
   public void shouldNotResolveWithoutABase() {
     context.setPropertyResolved(false);
 
     assertThat(new JuelBeanELResolver().invoke(context, null, "size", null, new Object[0])).isNull();
     assertThat(context.isPropertyResolved()).isFalse();
+  }
+
+  /**
+   * Puts the converter in front of JUEL's resolvers.
+   */
+  protected void useConverter(ELResolver converter) {
+    CompositeELResolver resolver = new CompositeELResolver();
+    resolver.add(converter);
+    resolver.add(new SimpleResolver());
+    context = new SimpleContext(resolver);
+    context.putContext(ExpressionFactory.class, factory);
+    setVariable("id", new Id());
   }
 
   protected void setVariable(String name, Object value) {
@@ -178,6 +243,92 @@ public class JuelBeanELResolverTest {
 
     public String fail() {
       throw new IllegalStateException("bean failure");
+    }
+
+    public String[] stringVarArgs(String... values) {
+      return values;
+    }
+
+    public Long[] longVarArgs(Long... values) {
+      return values;
+    }
+  }
+
+  public static class Id {
+    @Override
+    public String toString() {
+      return "id-7";
+    }
+  }
+
+  public static class OverloadedBean {
+
+    public String m(Long value) {
+      return "Long " + value;
+    }
+
+    public String m(String value) {
+      return "String " + value;
+    }
+  }
+
+  public static class LongOnlyBean {
+
+    public String m(Long value) {
+      return "Long " + value;
+    }
+  }
+
+  /**
+   * Converts an {@link Id} to a {@link Long}, and to a {@link String} if {@link #stringValue} is set; counts
+   * the conversions to {@link Long}.
+   */
+  public static class IdConverter extends ELResolver {
+
+    protected int longConversions;
+    protected RuntimeException failure;
+    protected String stringValue;
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T convertToType(ELContext context, Object obj, Class<T> type) {
+      if (obj instanceof Id && type == Long.class) {
+        longConversions++;
+        if (failure != null) {
+          throw failure;
+        }
+        context.setPropertyResolved(true);
+        return (T) Long.valueOf(7);
+      }
+      if (obj instanceof Id && type == String.class && stringValue != null) {
+        context.setPropertyResolved(true);
+        return (T) stringValue;
+      }
+      return null;
+    }
+
+    @Override
+    public Object getValue(ELContext context, Object base, Object property) {
+      return null;
+    }
+
+    @Override
+    public Class<?> getType(ELContext context, Object base, Object property) {
+      return null;
+    }
+
+    @Override
+    public void setValue(ELContext context, Object base, Object property, Object value) {
+    }
+
+    @Override
+    public boolean isReadOnly(ELContext context, Object base, Object property) {
+      return true;
+    }
+
+    @Override
+    public Class<?> getCommonPropertyType(ELContext context, Object base) {
+      return null;
     }
   }
 

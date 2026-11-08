@@ -30,6 +30,7 @@ import java.util.List;
 import jakarta.el.BeanELResolver;
 import jakarta.el.ELContext;
 import jakarta.el.ELException;
+import jakarta.el.ExpressionFactory;
 import jakarta.el.LambdaExpression;
 import jakarta.el.MethodNotFoundException;
 
@@ -37,7 +38,7 @@ import jakarta.el.MethodNotFoundException;
  * A {@link BeanELResolver} that selects and invokes bean methods itself, with the rules of the
  * upstream Jakarta Expression Language API, instead of leaving this to the EL API of the runtime.
  * <p>
- * CIB seven 2.2 shipped a relocated copy of the upstream {@code jakarta.el-api} inside
+ * CIB seven 2.2 shipped a relocated copy of the upstream {@code jakarta.el-api} 4.0.0 inside
  * {@code cibseven-juel}, so method calls in expressions behaved the same on every runtime. Since
  * 3.0, the {@code jakarta.el} classes come from the runtime. Tomcat's EL API selects methods with
  * its own algorithm: it rejects some overloaded and varargs calls as ambiguous, and it wraps an
@@ -46,11 +47,26 @@ import jakarta.el.MethodNotFoundException;
  * <p>
  * The method selection and the parameter building are taken from {@code jakarta.el.ELUtil} and
  * {@code jakarta.el.BeanELResolver#invoke} of {@code jakarta.el:jakarta.el-api} 6.0.1
- * (Apache License 2.0), which CIB seven 2.2 used in version 4.0.0 with the same rules. Changes:
- * whether an argument can be coerced is checked with {@link ELContext#convertToType(Object, Class)},
- * i.e. with JUEL as in 2.2, instead of the global {@code ELManager} factory, and a method that
- * cannot be accessed throws a {@link MethodNotFoundException}. Properties are still resolved by
- * the {@link BeanELResolver} of the runtime.
+ * (Apache License 2.0). Version 4.0.0, which CIB seven 2.2 used, has the same rules. As in 2.2:
+ * <ul>
+ * <li>whether a method is eligible, i.e. whether an argument can be coerced to a parameter type,
+ * is checked with JUEL's {@link ExpressionFactory}: the one in the context if it is JUEL's,
+ * otherwise a default one. Resolvers that implement {@code convertToType} do not take part, and
+ * the global {@code ELManager} factory of the runtime, e.g. Tomcat EL or Expressly, is not used;</li>
+ * <li>the arguments of the selected method are converted with
+ * {@link ELContext#convertToType(Object, Class)}, so resolvers come first, then JUEL.</li>
+ * </ul>
+ * Intentional differences from 2.2, where 2.2 failed:
+ * <ul>
+ * <li>{@code null} as the only argument of a varargs parameter becomes an array with the
+ * converted {@code null}, e.g. {@code [""]} for {@code String...} and {@code [0]} for
+ * {@code Long...}; 2.2 threw a {@link NullPointerException};</li>
+ * <li>a call without a parameter array ({@code params == null}) is a call without arguments; 2.2
+ * threw a {@link NullPointerException};</li>
+ * <li>a method that cannot be accessed throws a {@link MethodNotFoundException}; 2.2 threw a
+ * {@link NullPointerException}.</li>
+ * </ul>
+ * Properties are still resolved by the {@link BeanELResolver} of the runtime.
  */
 public class JuelBeanELResolver extends BeanELResolver {
 
@@ -112,7 +128,7 @@ public class JuelBeanELResolver extends BeanELResolver {
 
         List<Wrapper> wrappers = Wrapper.wrap(methods, methodName);
 
-        Wrapper result = findWrapper(context, clazz, wrappers, methodName, paramTypes, paramValues);
+        Wrapper result = findWrapper(getCoercionFactory(context), clazz, wrappers, methodName, paramTypes, paramValues);
 
         Method method = getMethod(clazz, base, result.unWrap());
         if (method == null) {
@@ -122,7 +138,7 @@ public class JuelBeanELResolver extends BeanELResolver {
         return method;
     }
 
-    private static Wrapper findWrapper(ELContext context, Class<?> clazz, List<Wrapper> wrappers, String name,
+    private static Wrapper findWrapper(ExpressionFactory coercionFactory, Class<?> clazz, List<Wrapper> wrappers, String name,
             Class<?>[] paramTypes, Object[] paramValues) {
         List<Wrapper> assignableCandidates = new ArrayList<>();
         List<Wrapper> coercibleCandidates = new ArrayList<>();
@@ -169,7 +185,7 @@ public class JuelBeanELResolver extends BeanELResolver {
                     Class<?> varType = mParamTypes[i].getComponentType();
                     for (int j = i; j < paramCount; j++) {
                         if (!isAssignableFrom(paramTypes[j], varType)
-                                && !(paramValues != null && j < paramValues.length && isCoercibleFrom(context, paramValues[j], varType))) {
+                                && !(paramValues != null && j < paramValues.length && isCoercibleFrom(coercionFactory, paramValues[j], varType))) {
                             noMatch = true;
                             break;
                         }
@@ -182,7 +198,7 @@ public class JuelBeanELResolver extends BeanELResolver {
                         noMatch = true;
                         break;
                     } else {
-                        if (isCoercibleFrom(context, paramValues[i], mParamTypes[i])) {
+                        if (isCoercibleFrom(coercionFactory, paramValues[i], mParamTypes[i])) {
                             coercible = true;
                         } else {
                             noMatch = true;
@@ -404,19 +420,32 @@ public class JuelBeanELResolver extends BeanELResolver {
     }
 
     /**
-     * Unlike the upstream API, which asks the global {@code ELManager} factory, this asks the context, i.e.
-     * JUEL, as CIB seven 2.2 did.
+     * The factory that decides whether an argument can be coerced to a parameter type: JUEL's factory in the
+     * context, otherwise a default JUEL factory. In CIB seven 2.2, the relocated {@code ELUtil} asked its global
+     * factory, which was JUEL's. The global {@code ELManager} factory of the runtime is never used.
      */
-    private static boolean isCoercibleFrom(ELContext context, Object src, Class<?> target) {
+    protected static ExpressionFactory getCoercionFactory(ELContext context) {
+        Object factory = context.getContext(ExpressionFactory.class);
+        if (factory instanceof ExpressionFactoryImpl) {
+            return (ExpressionFactory) factory;
+        }
+        return DefaultCoercionFactory.INSTANCE;
+    }
+
+    private static boolean isCoercibleFrom(ExpressionFactory coercionFactory, Object src, Class<?> target) {
         // TODO: This isn't pretty but it works. Significant refactoring would
         // be required to avoid the exception.
         try {
-            context.convertToType(src, target);
+            coercionFactory.coerceToType(src, target);
         } catch (Exception e) {
             return false;
         }
 
         return true;
+    }
+
+    private static final class DefaultCoercionFactory {
+        static final ExpressionFactory INSTANCE = new ExpressionFactoryImpl();
     }
 
     private static Class<?>[] getTypesFromValues(Object[] values) {
