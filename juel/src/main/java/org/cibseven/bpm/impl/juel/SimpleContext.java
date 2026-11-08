@@ -21,7 +21,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import jakarta.el.ELContext;
+import jakarta.el.ELException;
 import jakarta.el.ELResolver;
+import jakarta.el.ExpressionFactory;
 import jakarta.el.FunctionMapper;
 import jakarta.el.ValueExpression;
 import jakarta.el.VariableMapper;
@@ -143,5 +145,38 @@ public class SimpleContext extends ELContext {
 	 */
 	public void setELResolver(ELResolver resolver) {
 		this.resolver = resolver;
+	}
+
+	/**
+	 * Converts like the upstream {@code jakarta.el-api}: the resolvers first, then the
+	 * {@link ExpressionFactory} put into this context. The EL API of Tomcat, WildFly and JBoss EAP
+	 * skips the context factory, so without this override method arguments would be converted
+	 * with the server's EL implementation instead of JUEL (CIB7-2609). Without a factory in the
+	 * context, the EL API's own conversion applies.
+	 */
+	@Override
+	public <T> T convertToType(Object obj, Class<T> type) {
+		Object factory = getContext(ExpressionFactory.class);
+		if (!(factory instanceof ExpressionFactory)) {
+			return super.convertToType(obj, type);
+		}
+		boolean propertyResolved = isPropertyResolved();
+		try {
+			setPropertyResolved(false);
+			ELResolver elResolver = getELResolver();
+			if (elResolver != null) {
+				T result = elResolver.convertToType(this, obj, type);
+				if (isPropertyResolved()) {
+					return result;
+				}
+			}
+		} catch (ELException e) {
+			throw e;
+		} catch (RuntimeException e) {
+			throw new ELException(e);
+		} finally {
+			setPropertyResolved(propertyResolved);
+		}
+		return ((ExpressionFactory) factory).coerceToType(obj, type);
 	}
 }
