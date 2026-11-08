@@ -83,6 +83,16 @@ public class WebappJsonProviderIT {
         HttpResponse.BodyHandlers.ofString());
     assertThat(malformed.statusCode()).isEqualTo(400);
     assertThat(malformed.body()).contains("\"type\":\"InvalidRequestException\"");
+
+    // valid JSON, but a string where the user profile (an object) is expected: a 400 as well
+    HttpResponse<String> otherType = client.send(HttpRequest.newBuilder(URI.create(base + "default/identity/password-policy"))
+            .header("Content-Type", "application/json")
+            .header("X-XSRF-TOKEN", csrfToken)
+            .POST(HttpRequest.BodyPublishers.ofString("{\"password\": \"secret\", \"profile\": \"demo\"}"))
+            .build(),
+        HttpResponse.BodyHandlers.ofString());
+    assertThat(otherType.statusCode()).as(otherType.body()).isEqualTo(400);
+    assertThat(otherType.body()).contains("\"type\":\"InvalidRequestException\"");
   }
 
 }
