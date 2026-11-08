@@ -47,9 +47,10 @@
       <version>${version.jjwt}</version>
       <optional>true</optional>
     </dependency>
+    <!-- jjwt has no Jackson 3 serializer (jjwt-jackson is Jackson 2 only), so JWT client assertions use Gson -->
     <dependency>
       <groupId>io.jsonwebtoken</groupId>
-      <artifactId>jjwt-jackson</artifactId> <!-- or jjwt-gson if Gson is preferred -->
+      <artifactId>jjwt-gson</artifactId>
       <version>${version.jjwt}</version>
       <optional>true</optional>
     </dependency>
