@@ -20,6 +20,7 @@ import tools.jackson.core.StreamReadConstraints;
 import tools.jackson.core.exc.StreamConstraintsException;
 import tools.jackson.databind.ObjectMapper;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -293,6 +294,35 @@ public class JacksonConfiguratorTest {
 
 			assertEquals(value.locale, readBack.locale, tag);
 			assertEquals(value.keys, readBack.keys, tag);
+		}
+	}
+
+	public static class DateTimeValues {
+		public java.time.Year year = java.time.Year.of(2020);
+		@JsonFormat(shape = JsonFormat.Shape.NUMBER)
+		public java.time.Year yearAsNumber = java.time.Year.of(2020);
+		public java.time.Month month = java.time.Month.MARCH;
+		public Map<java.time.Month, Integer> monthKeys = new LinkedHashMap<>(Map.of(java.time.Month.JANUARY, 1));
+		public java.sql.Date sqlDate = new java.sql.Date(0);
+		@JsonFormat(pattern = "dd.MM.yyyy", timezone = "UTC")
+		public java.sql.Date formattedSqlDate = new java.sql.Date(0);
+	}
+
+	@Test
+	public void testYearMonthAndSqlDateWrittenLikeJackson2() throws Exception {
+		// Jackson 3 alone writes {"year":2020,...,"month":2,...,"sqlDate":"1969-12-31T19:00:00.000-0500",...}
+		TimeZone previous = TimeZone.getDefault();
+		TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
+		try {
+			ObjectMapper mapper = JacksonConfigurator.configureObjectMapper();
+
+			assertEquals("{\"year\":\"2020\",\"yearAsNumber\":2020,\"month\":\"MARCH\",\"monthKeys\":{\"JANUARY\":1},"
+					+ "\"sqlDate\":\"1969-12-31\",\"formattedSqlDate\":\"01.01.1970\"}", mapper.writeValueAsString(new DateTimeValues()));
+			DateTimeValues readBack = mapper.readValue("{\"year\":\"2020\",\"month\":\"MARCH\",\"monthKeys\":{\"JANUARY\":1}}", DateTimeValues.class);
+			assertEquals(java.time.Month.MARCH, readBack.month);
+			assertEquals(Map.of(java.time.Month.JANUARY, 1), readBack.monthKeys);
+		} finally {
+			TimeZone.setDefault(previous);
 		}
 	}
 }
