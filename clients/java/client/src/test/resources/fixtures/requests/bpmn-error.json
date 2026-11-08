@@ -1,0 +1,1 @@
+{"workerId":"fixture-worker","errorCode":"ERR_42","errorMessage":"Business error ä/ö","variables":{"errorItem":{"value":"{\"sku\":\"E-1\",\"qty\":1}","type":"Object","valueInfo":{"objectTypeName":"org.cibseven.bpm.client.variable.json.fixture.FixtureItem","serializationDataFormat":"application/json"}}}}

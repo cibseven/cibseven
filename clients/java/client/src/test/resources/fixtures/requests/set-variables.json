@@ -1,0 +1,1 @@
+{"workerId":"fixture-worker","modifications":{"item":{"value":"{\"sku\":\"V-1\",\"qty\":4}","type":"Object","valueInfo":{"objectTypeName":"org.cibseven.bpm.client.variable.json.fixture.FixtureItem","serializationDataFormat":"application/json"}}}}
