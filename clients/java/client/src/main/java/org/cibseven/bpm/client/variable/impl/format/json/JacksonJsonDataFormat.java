@@ -20,18 +20,25 @@ import static org.cibseven.commons.utils.EnsureUtil.ensureNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.cibseven.bpm.client.impl.ExternalTaskClientLogger;
 import org.cibseven.bpm.client.spi.DataFormat;
 import org.cibseven.bpm.client.variable.impl.format.TypeDetector;
 
 import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.StreamReadConstraints;
 import tools.jackson.core.StreamWriteConstraints;
 import tools.jackson.core.json.JsonFactory;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.ser.std.StdSerializer;
+import tools.jackson.databind.util.StdDateFormat;
 
 /**
  * The {@code application/json} data format of object variables, based on Jackson 3.
@@ -57,6 +64,9 @@ public class JacksonJsonDataFormat implements DataFormat {
    */
   public static final int MAX_NESTING_DEPTH = 1000;
 
+  /** Maximum length of a JSON string value, the default of Jackson 2 (Jackson 3: 100,000,000). */
+  public static final int MAX_STRING_LENGTH = 20_000_000;
+
   protected String name;
   protected ObjectMapper objectMapper;
   protected List<TypeDetector> typeDetectors;
@@ -79,13 +89,39 @@ public class JacksonJsonDataFormat implements DataFormat {
    */
   public static JsonMapper createDefaultObjectMapper() {
     JsonFactory jsonFactory = JsonFactory.builderWithJackson2Defaults()
-        .streamReadConstraints(StreamReadConstraints.builder().maxNestingDepth(MAX_NESTING_DEPTH).build())
-        .streamWriteConstraints(StreamWriteConstraints.builder().maxNestingDepth(MAX_NESTING_DEPTH).build())
+        .streamReadConstraints(StreamReadConstraints.defaults().rebuild()
+            .maxNestingDepth(MAX_NESTING_DEPTH)
+            .maxStringLength(MAX_STRING_LENGTH)
+            .build())
+        .streamWriteConstraints(StreamWriteConstraints.defaults().rebuild().maxNestingDepth(MAX_NESTING_DEPTH).build())
         .build();
     return JsonMapper.builder(jsonFactory)
         .configureForJackson2()
+        // dates with @JsonFormat(shape = STRING) and no pattern: "+00:00" for a zero offset like Jackson 2, not "Z"
+        .defaultDateFormat(new StdDateFormat().withColonInTimeZone(true).withZeroOffsetAsZ(false))
+        // defaultDateFormat(...) turns WRITE_DATES_AS_TIMESTAMPS off; other dates stay timestamps like Jackson 2
+        .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .addModule(new SimpleModule("cibseven-client-jackson2-compatibility")
+            .addSerializer(Locale.class, new Jackson2LocaleSerializer()))
         .build();
   }
+
+  /**
+   * Writes a {@link Locale} with {@link Locale#toString()} ({@code "en_US"}) like Jackson 2. Jackson 3 writes the
+   * language tag ({@code "en-US"}); both forms are read back.
+   */
+  protected static class Jackson2LocaleSerializer extends StdSerializer<Locale> {
+
+    public Jackson2LocaleSerializer() {
+      super(Locale.class);
+    }
+
+    @Override
+    public void serialize(Locale value, JsonGenerator generator, SerializationContext context) {
+      generator.writeString(value.toString());
+    }
+  }
+
 
   public String getName() {
     return name;
