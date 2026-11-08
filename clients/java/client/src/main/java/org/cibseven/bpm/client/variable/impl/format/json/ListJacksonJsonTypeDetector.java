@@ -34,18 +34,34 @@ public class ListJacksonJsonTypeDetector implements TypeDetector {
     return constructType(object).toCanonical();
   }
 
+  /**
+   * The element type is taken from the first element that is not {@code null}; a list of {@code null}s gets the
+   * element type {@code Object}, like an empty list.
+   */
   protected JavaType constructType(Object object) {
     TypeFactory typeFactory = TypeFactory.defaultInstance();
 
+    if (object == null) {
+      return typeFactory.constructType(Object.class);
+    }
+
     if (object instanceof List && !((List<?>) object).isEmpty()) {
       List<?> list = (List<?>) object;
-      Object firstElement = list.get(0);
       if (bindingsArePresent(list.getClass())) {
-        final JavaType elementType = constructType(firstElement);
+        final JavaType elementType = constructType(firstNonNullElement(list));
         return typeFactory.constructCollectionType(list.getClass(), elementType);
       }
     }
     return typeFactory.constructType(object.getClass());
+  }
+
+  protected Object firstNonNullElement(List<?> list) {
+    for (Object element : list) {
+      if (element != null) {
+        return element;
+      }
+    }
+    return null;
   }
 
   private boolean bindingsArePresent(Class<?> erasedType) {
