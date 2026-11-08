@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.dto.runtime;
 
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import tools.jackson.databind.type.TypeFactory;
 
 /**
  *
@@ -24,11 +24,13 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  */
 public class SerializedObjectDto {
 
+  protected static final TypeFactory TYPE_FACTORY = TypeFactory.createDefaultInstance();
+
   protected String type;
   protected Object object;
 
   public SerializedObjectDto(Object value) {
-    type = TypeFactory.defaultInstance().constructType(value.getClass()).toCanonical();
+    type = TYPE_FACTORY.constructType(value.getClass()).toCanonical();
     object = value;
   }
 

@@ -26,10 +26,10 @@ import org.cibseven.bpm.admin.Admin;
 import org.cibseven.bpm.admin.plugin.spi.AdminPlugin;
 import org.cibseven.bpm.engine.rest.exception.ExceptionHandler;
 import org.cibseven.bpm.engine.rest.exception.RestExceptionHandler;
+import org.cibseven.bpm.engine.rest.mapper.CibsevenJacksonJsonProvider;
 import org.cibseven.bpm.engine.rest.mapper.JacksonConfigurator;
 import org.cibseven.bpm.webapp.impl.security.auth.UserAuthenticationResource;
 
-import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
 /**
  * The rest api exposed by the admin application
@@ -43,7 +43,7 @@ public class AdminApplication extends Application {
     Set<Class<?>> classes = new HashSet<Class<?>>();
 
     classes.add(JacksonConfigurator.class);
-    classes.add(JacksonJsonProvider.class);
+    classes.add(CibsevenJacksonJsonProvider.class);
     classes.add(RestExceptionHandler.class);
     classes.add(ExceptionHandler.class);
 

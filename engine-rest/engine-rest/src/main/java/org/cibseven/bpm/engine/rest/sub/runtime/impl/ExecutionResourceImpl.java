@@ -47,7 +47,7 @@ import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.runtime.Incident;
 import org.cibseven.bpm.engine.variable.VariableMap;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class ExecutionResourceImpl implements ExecutionResource {
 

@@ -25,7 +25,7 @@ import org.cibseven.bpm.engine.rest.dto.runtime.ProcessInstanceQueryDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.modification.ProcessInstanceModificationInstructionDto;
 import org.cibseven.bpm.engine.runtime.ModificationBuilder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class ModificationDto {
 

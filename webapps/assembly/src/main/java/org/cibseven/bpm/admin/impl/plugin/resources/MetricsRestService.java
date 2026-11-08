@@ -16,7 +16,8 @@
  */
 package org.cibseven.bpm.admin.impl.plugin.resources;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.cibseven.bpm.admin.impl.plugin.base.dto.MetricsAggregatedQueryDto;
 import org.cibseven.bpm.admin.impl.plugin.base.dto.MetricsAggregatedResultDto;
 import org.cibseven.bpm.admin.resource.AbstractAdminPluginResource;
@@ -35,7 +36,7 @@ import java.util.List;
 public class MetricsRestService extends AbstractAdminPluginResource {
 
   public static final String PATH = "/metrics";
-  public static final ObjectMapper objectMapper = new ObjectMapper();
+  public static final ObjectMapper objectMapper = JsonMapper.builderWithJackson2Defaults().build();
 
   public MetricsRestService(String engineName) {
     super(engineName);
