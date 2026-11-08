@@ -16,9 +16,6 @@
  */
 package org.cibseven.bpm.client.interceptor.auth;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -29,6 +26,11 @@ import org.cibseven.bpm.client.exception.ExternalTaskClientException;
 import org.cibseven.bpm.client.impl.ExternalTaskClientLogger;
 import org.cibseven.bpm.client.interceptor.ClientRequestContext;
 import org.cibseven.bpm.client.interceptor.ClientRequestInterceptor;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -109,7 +111,7 @@ public class OAuth2ClientCredentialsProvider implements ClientRequestInterceptor
         : Collections.unmodifiableMap(new LinkedHashMap<>(builder.additionalParameters));
     this.expiryBuffer = builder.expiryBuffer;
     this.httpClient = builder.httpClient != null ? builder.httpClient : HttpClients.createDefault();
-    this.objectMapper = builder.objectMapper != null ? builder.objectMapper : new ObjectMapper();
+    this.objectMapper = builder.objectMapper != null ? builder.objectMapper : JsonMapper.builderWithJackson2Defaults().build();
   }
 
   @Override
@@ -179,8 +181,8 @@ public class OAuth2ClientCredentialsProvider implements ClientRequestInterceptor
 
         if (statusCode != 200) {
           JsonNode errorJson = parseJsonSilently(body);
-          String error = errorJson != null ? errorJson.path("error").asText("unknown_error") : "unknown_error";
-          String desc  = errorJson != null ? errorJson.path("error_description").asText("") : "";
+          String error = errorJson != null ? errorJson.path("error").asString("unknown_error") : "unknown_error";
+          String desc  = errorJson != null ? errorJson.path("error_description").asString("") : "";
           throw new ExternalTaskClientException(
               "Token endpoint returned HTTP " + statusCode + ": " + error
                   + (desc.isBlank() ? "" : " - " + desc));
@@ -189,7 +191,8 @@ public class OAuth2ClientCredentialsProvider implements ClientRequestInterceptor
       });
 
       JsonNode json = objectMapper.readTree(result[0]);
-      String accessToken = json.path("access_token").asText();
+      // asString("") instead of asString(): a structured value is no token, not an exception
+      String accessToken = json.path("access_token").asString("");
       if (accessToken == null || accessToken.isBlank()) {
         throw new ExternalTaskClientException(
             "Token endpoint response did not contain a valid access_token");
@@ -201,7 +204,7 @@ public class OAuth2ClientCredentialsProvider implements ClientRequestInterceptor
 
     } catch (ExternalTaskClientException e) {
       throw LOG.oauth2TokenAcquisitionFailedException(e);
-    } catch (IOException e) {
+    } catch (JacksonException | IOException e) {
       throw LOG.oauth2TokenAcquisitionFailedException(e);
     }
   }
@@ -209,7 +212,7 @@ public class OAuth2ClientCredentialsProvider implements ClientRequestInterceptor
   private JsonNode parseJsonSilently(String body) {
     try {
       return objectMapper.readTree(body);
-    } catch (JsonProcessingException | RuntimeException ignored) {
+    } catch (RuntimeException ignored) { // includes JacksonException
       return null;
     }
   }

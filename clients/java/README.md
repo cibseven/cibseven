@@ -37,6 +37,59 @@ The following Maven coordinate needs to be added to the projects `pom.xml`:
 </dependency>
 ```
 
+## JSON and Jackson
+
+Since CIB seven 3.0 the client uses Jackson 3 (`tools.jackson`) for object variables (`application/json`) and for
+the requests to the engine. The JSON is the same as with the Jackson 2 based client of CIB seven 2.x: same property
+order, dates as timestamps, enums by name, the same `objectTypeName`s. Unknown properties are still rejected when an
+object variable is read, nesting depth up to 1000 is accepted.
+
+A `DataFormatConfigurator` for `JacksonJsonDataFormat` gets a Jackson 3 mapper. Jackson 3 mappers are immutable, so
+replace the mapper instead of changing it:
+
+```java
+public class MyJsonConfigurator implements DataFormatConfigurator<JacksonJsonDataFormat> {
+
+  public Class<JacksonJsonDataFormat> getDataFormatClass() {
+    return JacksonJsonDataFormat.class;
+  }
+
+  public void configure(JacksonJsonDataFormat dataFormat) {
+    dataFormat.setObjectMapper(dataFormat.getObjectMapper().rebuild()
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .build());
+  }
+}
+```
+
+`JjwtClientAssertionProvider` (OAuth2 client assertions) needs `io.jsonwebtoken:jjwt-api`, `jjwt-impl` and a JSON
+serializer for jjwt; use `jjwt-gson` (jjwt has no Jackson 3 serializer).
+
+### Deprecated: Jackson 2 variant
+
+Applications that cannot move to Jackson 3 yet can use `cibseven-external-task-client-jackson2` until CIB seven 3.1.0,
+where it is removed. It has the same packages and classes, so **never put both artifacts on one class path** (the
+client refuses to start). With the Spring Boot starter, exclude the Jackson 3 client:
+
+```xml
+<dependency>
+  <groupId>org.cibseven.bpm.springboot</groupId>
+  <artifactId>cibseven-bpm-spring-boot-starter-external-task-client</artifactId>
+  <exclusions>
+    <exclusion>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-external-task-client</artifactId>
+    </exclusion>
+  </exclusions>
+</dependency>
+<dependency>
+  <groupId>org.cibseven.bpm</groupId>
+  <artifactId>cibseven-external-task-client-jackson2</artifactId>
+</dependency>
+```
+
+With the Jackson 2 variant, `JjwtClientAssertionProvider` uses `jjwt-jackson`.
+
 ## Contributing
 
 Have a look at our [contribution guide](https://github.com/camunda/camunda-bpm-platform/blob/master/CONTRIBUTING.md) for how to contribute to this repository.
