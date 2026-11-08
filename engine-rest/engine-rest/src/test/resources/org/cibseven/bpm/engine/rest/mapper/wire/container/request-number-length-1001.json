@@ -1,0 +1,2 @@
+HTTP 500
+{"type":"StreamConstraintsException","message":"Number value length (1001) exceeds the maximum allowed (1000, from `StreamReadConstraints.getMaxNumberLength()`)","code":null}

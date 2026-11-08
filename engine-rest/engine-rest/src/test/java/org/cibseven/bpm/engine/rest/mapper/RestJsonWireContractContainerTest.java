@@ -225,6 +225,47 @@ public class RestJsonWireContractContainerTest extends AbstractRestServiceTest {
         .put(JOB_RETRIES_URL));
   }
 
+  /**
+   * Limits of the JSON reader and writer. Inside a property the answer is 400; without a property path the
+   * generic answer stays. The fixtures were recorded on Jackson 2.
+   */
+  @Test
+  public void jsonLimits() throws Exception {
+    ManagementService managementService = processEngine.getManagementService();
+    SetJobRetriesBuilder retriesBuilder = mock(SetJobRetriesBuilder.class, RETURNS_SELF);
+    when(managementService.setJobRetries(anyInt())).thenReturn(retriesBuilder);
+    RuntimeService runtimeService = processEngine.getRuntimeService();
+    ProcessInstanceModificationBuilder modificationBuilder = mock(ProcessInstanceModificationBuilder.class, RETURNS_SELF);
+    when(runtimeService.createProcessInstanceModification("processInstanceId")).thenReturn(modificationBuilder);
+    when(runtimeService.getVariableTyped(eq("processInstanceId"), eq("deep"), anyBoolean()))
+        .thenReturn(Variables.objectValue(nestedLists(1001)).create());
+
+    // a number longer than 1000 digits inside a property
+    assertResponse("container/request-number-length-1001.json", given()
+        .contentType(ContentType.JSON)
+        .body(("{\"retries\":" + "9".repeat(1001) + "}").getBytes(StandardCharsets.UTF_8))
+        .pathParam("id", "jobId")
+        .put(JOB_RETRIES_URL));
+    // nested too deep inside an unknown property, which is skipped: the limit is hit without a property path
+    assertResponse("container/request-nesting-depth-1001-unknown-property.json", post(MODIFICATION_URL, "processInstanceId",
+        "{\"unknown\":" + RestJsonWireContractTest.nestedArrays(1001)
+            + ",\"instructions\":[{\"type\":\"cancel\",\"activityId\":\"a\"}]}"));
+    // writing a response nested deeper than 1000
+    assertResponse("container/response-nesting-depth-1001.json", given()
+        .header(ACCEPT_JSON_HEADER)
+        .pathParam("id", "processInstanceId")
+        .pathParam("name", "deep")
+        .get(VARIABLE_URL));
+  }
+
+  static Object nestedLists(int depth) {
+    Object value = "x";
+    for (int i = 0; i < depth; i++) {
+      value = new java.util.ArrayList<>(java.util.List.of(value));
+    }
+    return value;
+  }
+
   protected Response post(String url, String id, String json) {
     return given()
         .contentType(ContentType.JSON)

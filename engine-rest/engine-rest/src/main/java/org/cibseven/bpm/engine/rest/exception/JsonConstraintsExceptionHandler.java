@@ -24,12 +24,17 @@ import jakarta.ws.rs.ext.Provider;
 import tools.jackson.core.exc.StreamConstraintsException;
 
 /**
- * A request exceeds a limit of the JSON reader (nesting depth, string length, number length).
+ * A JSON limit (nesting depth, string length, number length) is exceeded while reading a request or writing a
+ * response.
  * <p>
- * Inside a property of a request body, the response is 400 like with Jackson 2, which wrapped this error into a
- * {@code JsonMappingException}. Jackson 3 keeps the exception type and only adds the property path, so neither
- * {@link JsonMappingExceptionHandler} nor {@link JsonParseExceptionHandler} applies. Without a path (the top level
- * of a document, or writing a response), the response stays the one of {@link ExceptionHandler}, as with Jackson 2.
+ * When the exception carries a property path, the response is 400 like with Jackson 2, which wrapped this error
+ * into a {@code JsonMappingException}. Jackson 3 keeps the exception type and only adds the path, so neither
+ * {@link JsonMappingExceptionHandler} nor {@link JsonParseExceptionHandler} applies. This holds for writing too: a
+ * response value nested too deep inside a property gives 400, as before.
+ * <p>
+ * Without a path, the response stays the one of {@link ExceptionHandler}, as with Jackson 2. Examples are a number
+ * that is too long, or nesting inside an unknown property that is skipped. A path does not tell a request from a
+ * response. A response that is already committed cannot be replaced.
  */
 @Provider
 public class JsonConstraintsExceptionHandler implements ExceptionMapper<StreamConstraintsException> {
