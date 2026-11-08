@@ -22,7 +22,7 @@ import org.cibseven.bpm.engine.rest.dto.TelemetryConfigurationDto;
 import org.cibseven.bpm.engine.rest.dto.telemetry.TelemetryDataDto;
 import org.cibseven.bpm.engine.telemetry.TelemetryData;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class TelemetryRestServiceImpl extends AbstractRestProcessEngineAware implements TelemetryRestService {
 

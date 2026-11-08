@@ -29,9 +29,10 @@ import org.cibseven.bpm.engine.rest.dto.license.LicenseKeyDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.security.auth.impl.jwt.Configuration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -88,7 +89,7 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
   }
 
   private String encryptSignature(String licenseKey) {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = JsonMapper.builderWithJackson2Defaults().build();
     String secret = getSecret();
     try {
       Map<String, Object> map = objectMapper.readValue(licenseKey, new TypeReference<Map<String, Object>>() {
@@ -101,7 +102,7 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
           .compact();
       map.put("signature", jwe);
       return objectMapper.writeValueAsString(map);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new InvalidRequestException(Status.BAD_REQUEST, e, "Invalid license key JSON format");
     } catch (Exception e) {
       throw new InvalidRequestException(Status.INTERNAL_SERVER_ERROR, e,
@@ -110,7 +111,7 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
   }
 
   private String decryptSignature(String licenseKey) {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = JsonMapper.builderWithJackson2Defaults().build();
     String secret = getSecret();
     try {
       Map<String, Object> map = objectMapper.readValue(licenseKey, new TypeReference<Map<String, Object>>() {
@@ -125,7 +126,7 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
       String signature = new String(payload, StandardCharsets.UTF_8);
       map.put("signature", signature);
       return objectMapper.writeValueAsString(map);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new InvalidRequestException(Status.BAD_REQUEST, e, "Invalid license key JSON format");
     } catch (JwtException e) {
       // the signature was encrypted with another JWT secret than this engine's

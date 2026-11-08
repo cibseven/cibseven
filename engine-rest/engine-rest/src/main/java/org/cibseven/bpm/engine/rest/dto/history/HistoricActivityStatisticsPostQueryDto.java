@@ -32,7 +32,7 @@ import org.cibseven.bpm.engine.rest.dto.AbstractQueryDto;
 import org.cibseven.bpm.engine.rest.dto.VariableQueryParameterDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class HistoricActivityStatisticsPostQueryDto extends AbstractQueryDto<HistoricActivityStatisticsPostQuery> {
 

@@ -34,7 +34,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.UriInfo;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.cockpit.impl.plugin.base.dto.ProcessInstanceDto;
 import org.cibseven.bpm.cockpit.impl.plugin.base.dto.query.ProcessInstanceQueryDto;
 import org.cibseven.bpm.cockpit.impl.plugin.base.sub.resources.ProcessInstanceResource;

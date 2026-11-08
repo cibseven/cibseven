@@ -26,9 +26,9 @@ import org.cibseven.bpm.cockpit.Cockpit;
 import org.cibseven.bpm.cockpit.plugin.spi.CockpitPlugin;
 import org.cibseven.bpm.engine.rest.exception.ExceptionHandler;
 import org.cibseven.bpm.engine.rest.exception.RestExceptionHandler;
+import org.cibseven.bpm.engine.rest.mapper.CibsevenJacksonJsonProvider;
 import org.cibseven.bpm.engine.rest.mapper.JacksonConfigurator;
 
-import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
 /**
  * The cockpit rest api exposed by the application.
@@ -42,7 +42,7 @@ public class CockpitApplication extends Application {
     Set<Class<?>> classes = new HashSet<Class<?>>();
 
     classes.add(JacksonConfigurator.class);
-    classes.add(JacksonJsonProvider.class);
+    classes.add(CibsevenJacksonJsonProvider.class);
     classes.add(ExceptionHandler.class);
     classes.add(RestExceptionHandler.class);
 

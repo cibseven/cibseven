@@ -29,10 +29,8 @@ import org.cibseven.bpm.engine.rest.security.auth.impl.jwt.JwtUser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.IOException;
 import io.jsonwebtoken.security.InvalidKeyException;
@@ -43,7 +41,7 @@ public class JwtTokenAuthenticationProviderTest {
 
   @Test
   public void testJwtAuthentication()
-      throws IOException, ServletException, WeakKeyException, InvalidKeyException, JsonProcessingException {
+      throws IOException, ServletException, WeakKeyException, InvalidKeyException {
     HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 
     applyFilter(request, MockProvider.EXAMPLE_USER_ID);
@@ -57,7 +55,7 @@ public class JwtTokenAuthenticationProviderTest {
   }
 
   protected void applyFilter(HttpServletRequest request, String username)
-      throws IOException, ServletException, WeakKeyException, InvalidKeyException, JsonProcessingException {
+      throws IOException, ServletException, WeakKeyException, InvalidKeyException {
 
     JwtUser user = new JwtUser(username);
 
@@ -73,15 +71,15 @@ public class JwtTokenAuthenticationProviderTest {
   }
 
   private String createToken(String jwtTokenSecret, long validInMillis, JwtUser user)
-      throws WeakKeyException, InvalidKeyException, JsonProcessingException {
+      throws WeakKeyException, InvalidKeyException {
     return JwtTokenAuthenticationProvider.BEARER_PREFIX + Jwts.builder().claims().subject(user.getUserID())
         .expiration(new Date(System.currentTimeMillis() + validInMillis)).issuedAt(new Date())
         .add("user", serialize(user)).and()
         .signWith(Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtTokenSecret.getBytes()))).compact();
   };
 
-  private String serialize(JwtUser user) throws JsonProcessingException {
-    return new ObjectMapper().writeValueAsString(user);
+  private String serialize(JwtUser user) {
+    return new JsonMapper().writeValueAsString(user);
   }
 
 }

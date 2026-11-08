@@ -1,0 +1,1 @@
+[{"permissionName":"READ","resourceName":"Task","resourceId":"*","authorized":true},{"enableTelemetry":false},{"sourceActivityIds":["a"],"targetActivityIds":["b"],"updateEventTrigger":true},{"customer":"customer","type":"type","features":{"cawemo":"true"},"raw":"raw","unlimited":false,"expires":"2030-01-01"}]
