@@ -180,6 +180,10 @@ pipeline {
             }
         }
 
+        // Only this stage updates snapshots (-U). The later Maven calls that use the artifacts installed
+        // here run with -nsu: otherwise a snapshot of the same version that main deployed in the meantime
+        // is newer than ours, and the stage tests main's code instead (CIB7-2642). The full rebuilds in
+        // the deploy, SonarQube and documentation stages keep their own -U.
         stage('Build') {
             when {
                 anyOf {
@@ -205,7 +209,7 @@ pipeline {
                 script {
                     withMaven {
                         sh """
-                            mvn -f ${pipelineParams.pom} \
+                            mvn -nsu -f ${pipelineParams.pom} \
                                 -Dbuild.number=${BUILD_NUMBER} \
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
@@ -214,7 +218,7 @@ pipeline {
                         """
 
                         sh """
-                            mvn -f ${pipelineParams.pom} \
+                            mvn -nsu -f ${pipelineParams.pom} \
                                 -Dbuild.number=${BUILD_NUMBER} \
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
@@ -235,16 +239,16 @@ pipeline {
                 stage('engine') {
                     stages {
                         stage('engine-api-compatibility') {
-                            steps { script { withMaven { sh "mvn -f engine/pom.xml verify -Pcheck-api-compatibility" }}}
+                            steps { script { withMaven { sh "mvn -nsu -f engine/pom.xml verify -Pcheck-api-compatibility" }}}
                         }
                         stage('engine-UNIT-database-table-prefix') {
                             // Temporary disable postgres test because of access issue for tmp dir on Jenkins
-                            steps { script { withMaven { sh "mvn -f engine/pom.xml test -Pdb-table-prefix -DOPTIONAL_PGTEST_EXCLUDE=**/DbIdentityServicePGTest.java" }}}
+                            steps { script { withMaven { sh "mvn -nsu -f engine/pom.xml test -Pdb-table-prefix -DOPTIONAL_PGTEST_EXCLUDE=**/DbIdentityServicePGTest.java" }}}
                         }
                     }
                 }
                 stage('webapp-UNIT-database-table-prefix') {
-                    steps { script { withMaven { sh "mvn -f webapps/assembly/pom.xml test -Pdb-table-prefix -Dskip.frontend.build=true" }}}
+                    steps { script { withMaven { sh "mvn -nsu -f webapps/assembly/pom.xml test -Pdb-table-prefix -Dskip.frontend.build=true" }}}
                 }
                 stage('engine-rest') {
                     // 'engine UNIT & IT' runs engine-rest on the default runtime (Jersey);
@@ -264,9 +268,9 @@ pipeline {
                             steps {
                                 script { withMaven {
                                     // need to cleanup JUEL when running: https://github.com/camunda/camunda-bpm-platform/issues/3419#issuecomment-1720916174
-                                    sh "mvn -f juel/pom.xml clean"
-                                    sh "mvn -f quarkus-extension/pom.xml clean install -Pquarkus-tests"
-                                    sh "mvn -f juel/pom.xml install"
+                                    sh "mvn -nsu -f juel/pom.xml clean"
+                                    sh "mvn -nsu -f quarkus-extension/pom.xml clean install -Pquarkus-tests"
+                                    sh "mvn -nsu -f juel/pom.xml install"
                                     }
                                 }
                             }
@@ -309,13 +313,13 @@ pipeline {
                 stage('Run Integration') {
                     when { expression { params.QA_RUN_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f distro/run/pom.xml clean install -Pintegration-test-run" }}
+                        script { withMaven { sh "mvn -nsu -f distro/run/pom.xml clean install -Pintegration-test-run" }}
                     }
                 }
                 stage('Spring Boot Integration') {
                     when { expression { params.QA_SPRING_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }}
+                        script { withMaven { sh "mvn -nsu -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }}
                     }
                 }
                 stage('Performance') {
@@ -351,26 +355,26 @@ pipeline {
                     when { expression { params.QA_LARGE_DATA || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         // cleanup parent qa directory before large-data test: it can contain h2 database from previous tests
-                        script { withMaven { sh "mvn -f qa/pom.xml clean" }}
-                        script { withMaven { sh "mvn -f qa/large-data-tests/pom.xml clean install -Plarge-data-tests,h2" }}
+                        script { withMaven { sh "mvn -nsu -f qa/pom.xml clean" }}
+                        script { withMaven { sh "mvn -nsu -f qa/large-data-tests/pom.xml clean install -Plarge-data-tests,h2" }}
                     }
                 }
                 stage('Old engine with new schema') { // TODO: fix BpmPlatformXmlLocationTest and DbIdentityServicePGTest
                     when { expression { params.QA_OLD_ENG || params.QA_TEST_SUITE == 'ALL' }}
-                    steps { script { withMaven { sh "mvn -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}}
+                    steps { script { withMaven { sh "mvn -nsu -f qa/test-old-engine/pom.xml clean install -Pold-engine,h2 -DTEMPORARY_OLD_ENGINE_TEST_EXCLUDE=**/BpmPlatformXmlLocationTest.java,**/DbIdentityServicePGTest.java" }}}
                 }
                 stage('Rolling update') {
                     when { expression { params.QA_ROLL_UPD || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
-                        script { withMaven { sh "mvn -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}
+                        script { withMaven { sh "mvn -nsu -f qa/test-db-util/pom.xml clean install" }}
+                        script { withMaven { sh "mvn -nsu -f qa/test-db-rolling-update/pom.xml clean install -Prolling-update,h2" }}
                     }
                 }
                 stage('Instanse migration') {
                     when { expression { params.QA_INST_MIGR || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f qa/test-db-util/pom.xml clean install" }}
-                        script { withMaven { sh "mvn -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
+                        script { withMaven { sh "mvn -nsu -f qa/test-db-util/pom.xml clean install" }}
+                        script { withMaven { sh "mvn -nsu -f qa/test-db-instance-migration/pom.xml clean install -Pinstance-migration,h2" }}
                     }
                 }
             }
@@ -384,46 +388,46 @@ pipeline {
                 stage('engine') {
                     stages {
                         stage('engine-UNIT-historylevel-audit') {
-                            steps { script { withMaven { sh "mvn -f engine/pom.xml verify -Pcfghistoryaudit" }}}
+                            steps { script { withMaven { sh "mvn -nsu -f engine/pom.xml verify -Pcfghistoryaudit" }}}
                         }
                         stage('engine-UNIT-historylevel-activity') {
-                            steps { script { withMaven { sh "mvn -f engine/pom.xml verify -Pcfghistoryactivity" }}}
+                            steps { script { withMaven { sh "mvn -nsu -f engine/pom.xml verify -Pcfghistoryactivity" }}}
                         }
                     }
                 }
                 stage('quarkus-UNIT') { // quarkus-UNIT is enabled under the UNIT tests above
-                    steps { script { withMaven { sh "mvn -f quarkus-extension/pom.xml clean install -Pquarkus-tests" }}}
+                    steps { script { withMaven { sh "mvn -nsu -f quarkus-extension/pom.xml clean install -Pquarkus-tests" }}}
                 }
                 stage('qa') {
                     stages {
                         stage('engine-IT-tomcat-11-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml -Dengine-integration clean install -Ptomcat,postgresql,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -nsu -fn -f qa/pom.xml -Dengine-integration clean install -Ptomcat,postgresql,engine-integration" }}}
                         }
                         stage('engine-IT-tomcat-10-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml -Dengine-integration clean install -Ptomcat10,postgresql,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -nsu -fn -f qa/pom.xml -Dengine-integration clean install -Ptomcat10,postgresql,engine-integration" }}}
                         }
                         stage('engine-IT-wildfly-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml -Dengine-integration clean install -Pwildfly,postgresql,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -nsu -fn -f qa/pom.xml -Dengine-integration clean install -Pwildfly,postgresql,engine-integration" }}}
                         }
                         stage('engine-IT-XA-wildfly-postgresql-142') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml -Dengine-integration clean install -Pwildfly,postgresql,postgresql-xa,engine-integration" }}}
+                            steps { script { withMaven { sh "mvn -nsu -fn -f qa/pom.xml -Dengine-integration clean install -Pwildfly,postgresql,postgresql-xa,engine-integration" }}}
                         }
                         stage('webapp-IT-tomcat-11-h2') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}}
+                            steps { script { withMaven { sh "mvn -nsu -fn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}}
                         }
                         stage('webapp-IT-tomcat-10-h2') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat10,h2,webapps-integration" }}}
+                            steps { script { withMaven { sh "mvn -nsu -fn -f qa/pom.xml clean install -Ptomcat10,h2,webapps-integration" }}}
                         }
                         stage('webapp-IT-wildfly-h2') {
-                            steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration -pl '!integration-tests-engine'" }}}
+                            steps { script { withMaven { sh "mvn -nsu -fn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration -pl '!integration-tests-engine'" }}}
                         }
                     }
                 }
                 stage('camunda-run-IT') {
-                    steps { script { withMaven { sh "mvn -fn -f distro/run/pom.xml install -Pintegration-test-camunda-run" }}}
+                    steps { script { withMaven { sh "mvn -nsu -fn -f distro/run/pom.xml install -Pintegration-test-camunda-run" }}}
                 }
                 stage('spring-boot-starter-IT') {
-                    steps { script { withMaven { sh "mvn -fn -f spring-boot-starter/pom.xml install -Pintegration-test-spring-boot-starter" }}}
+                    steps { script { withMaven { sh "mvn -nsu -fn -f spring-boot-starter/pom.xml install -Pintegration-test-spring-boot-starter" }}}
                 }
             }
         }
@@ -588,7 +592,7 @@ pipeline {
                         script {
                             withMaven() {
                                 sh """
-                                    mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
+                                    mvn -nsu org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom \
                                         -Dlicense.skipDownloadLicenses=true \
                                         -Dmaven.test.skip=true
                                 """
@@ -760,7 +764,7 @@ def engineRestTest(String profile) {
     String reports = "${module}/target/surefire-reports/TEST-*-${profile}.xml"
     sh "if [ -d ${module}/target ]; then find ${module}/target -mindepth 1 -maxdepth 1 ! -name '*-reports' -exec rm -rf {} +; fi"
     try {
-        withMaven { sh "mvn -f ${module}/pom.xml test -P${profile} -Dsurefire.reportNameSuffix=${profile} -Dmaven.test.failure.ignore=true" }
+        withMaven { sh "mvn -nsu -f ${module}/pom.xml test -P${profile} -Dsurefire.reportNameSuffix=${profile} -Dmaven.test.failure.ignore=true" }
     } finally {
         junit allowEmptyResults: true, testResults: reports
         sh "rm -f ${reports}"
@@ -835,7 +839,7 @@ def checkDepVersionAlignment() {
 // The published reports are deleted afterwards, so that the final stage does not count them twice.
 def mvnWithTestReports(String mvnArgs, String moduleDir) {
     try {
-        withMaven { sh "mvn ${mvnArgs}" }
+        withMaven { sh "mvn -nsu ${mvnArgs}" }
     } finally {
         junit allowEmptyResults: true,
               testResults: "${moduleDir}/**/target/surefire-reports/*.xml,${moduleDir}/**/target/failsafe-reports/*.xml"
@@ -896,8 +900,8 @@ def getSbomDeployRepository(String deploymentArgs) {
     String sbomDeployRepositoryUrl
 
     withMaven(options: []) {
-        sbomDeployRepositoryId = sh(script: "mvn -q -f ${pipelineParams.pom} help:evaluate ${deploymentArgs} -Dexpression=project.distributionManagement.${repository}.id -DforceStdout", returnStdout: true).trim()
-        sbomDeployRepositoryUrl = sh(script: "mvn -q -f ${pipelineParams.pom} help:evaluate ${deploymentArgs} -Dexpression=project.distributionManagement.${repository}.url -DforceStdout", returnStdout: true).trim()
+        sbomDeployRepositoryId = sh(script: "mvn -nsu -q -f ${pipelineParams.pom} help:evaluate ${deploymentArgs} -Dexpression=project.distributionManagement.${repository}.id -DforceStdout", returnStdout: true).trim()
+        sbomDeployRepositoryUrl = sh(script: "mvn -nsu -q -f ${pipelineParams.pom} help:evaluate ${deploymentArgs} -Dexpression=project.distributionManagement.${repository}.url -DforceStdout", returnStdout: true).trim()
     }
 
     if (!sbomDeployRepositoryId || !sbomDeployRepositoryUrl ||
@@ -912,16 +916,16 @@ def getSbomDeployRepository(String deploymentArgs) {
 // Snapshot attachments use the timestamped version of the already deployed distro artifact.
 def generateAndDeployDistroSbom(String relPath, String sbomBaseName, String repositoryId, String repositoryUrl) {
     withMaven(options: []) {
-        sh "mvn -V -f ${relPath}/pom.xml org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom -DexcludeTestProject -DskipTests -DoutputName=${sbomBaseName}"
+        sh "mvn -nsu -V -f ${relPath}/pom.xml org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom -DexcludeTestProject -DskipTests -DoutputName=${sbomBaseName}"
 
-        def groupId = sh(script: "mvn -q -f ${relPath}/pom.xml help:evaluate -Dexpression=project.groupId -DforceStdout", returnStdout: true).trim()
-        def artifactId = sh(script: "mvn -q -f ${relPath}/pom.xml help:evaluate -Dexpression=project.artifactId -DforceStdout", returnStdout: true).trim()
-        def version = sh(script: "mvn -q -f ${relPath}/pom.xml help:evaluate -Dexpression=project.version -DforceStdout", returnStdout: true).trim()
+        def groupId = sh(script: "mvn -nsu -q -f ${relPath}/pom.xml help:evaluate -Dexpression=project.groupId -DforceStdout", returnStdout: true).trim()
+        def artifactId = sh(script: "mvn -nsu -q -f ${relPath}/pom.xml help:evaluate -Dexpression=project.artifactId -DforceStdout", returnStdout: true).trim()
+        def version = sh(script: "mvn -nsu -q -f ${relPath}/pom.xml help:evaluate -Dexpression=project.version -DforceStdout", returnStdout: true).trim()
         def deployVersion = getSbomDeployVersion(groupId, artifactId, version, repositoryId)
 
         ['json', 'xml'].each { format ->
             sh """
-                mvn -V deploy:deploy-file \
+                mvn -nsu -V deploy:deploy-file \
                     -DgeneratePom=false \
                     -DgroupId=${groupId} \
                     -DartifactId=${artifactId} \
