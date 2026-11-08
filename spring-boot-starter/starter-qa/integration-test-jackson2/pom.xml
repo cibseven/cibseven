@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.cibseven.bpm.springboot.project</groupId>
+    <artifactId>cibseven-bpm-spring-boot-starter-qa</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>qa-jackson2</artifactId>
+  <name>CIB seven - Spring Boot Starter - QA - Jackson 2 in the application</name>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>org.cibseven.bpm.springboot</groupId>
+      <artifactId>cibseven-bpm-spring-boot-starter-rest</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.cibseven.bpm.springboot</groupId>
+      <artifactId>cibseven-bpm-spring-boot-starter-webapp</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- The application brings Jackson 2 back that the starters keep out of their JAX-RS
+         applications: spring-boot-starter-jersey without exclusions, i.e. Jersey's Jackson 2
+         JacksonFeature (jersey-media-json-jackson) and the Jackson 2 ObjectMapper of Spring Boot
+         (spring-boot-jackson2), which Spring Boot hands to the ResourceConfig of the REST API.
+         Both are also declared directly, so that the test does not depend on the content of the
+         Spring Boot starter. -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jersey</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-jackson2</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.cibseven.bpm.springboot</groupId>
+      <artifactId>cibseven-bpm-spring-boot-starter-test</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <description>
+    Description of CIB seven - Spring Boot Starter - QA - Jackson 2 in the application
+  </description>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CIB seven</name>
+    <url>https://cibseven.org</url>
+  </organization>
+
+  <url>https://cibseven.org</url>
+
+  <developers>
+    <developer>
+      <id>CIB seven</id>
+      <name>CIB seven Community</name>
+      <organization>CIB seven</organization>
+      <organizationUrl>https://cibseven.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/cibseven/cibseven</url>
+    <connection>scm:git:git@github.com:cibseven/cibseven.git</connection>
+    <developerConnection>scm:git:git@github.com:cibseven/cibseven.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/cibseven/cibseven/issues</url>
+  </issueManagement>
+
+</project>
