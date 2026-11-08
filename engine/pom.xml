@@ -604,10 +604,44 @@
             </goals>
             <configuration>
               <target>
+                <!-- Patterns of the two checks below, shared with their self-test. -->
+                <property name="engine.jar.allowed" value="org/cibseven/**,camundajar/**,META-INF/MANIFEST.MF,META-INF/NOTICE,META-INF/maven/**,META-INF/services/**,*.xsd" />
+                <property name="engine.jar.forbidden.ee" value="jakarta/**,javax/**,org/glassfish/expressly/**,com/sun/el/**" />
+                <!-- Self-test: a sample jar with allowed and forbidden entries; each check must flag
+                     exactly the forbidden ones, so a broken pattern cannot let a foreign library pass. -->
+                <property name="engine.jar.selftest" value="${project.build.directory}/engine-jar-guard-selftest.jar" />
+                <zip destfile="${engine.jar.selftest}">
+                  <zipfileset file="${basedir}/pom.xml" fullpath="org/cibseven/bpm/engine/Allowed.class" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="camundajar/impl/com/google/gson/Allowed.class" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="META-INF/services/org.cibseven.Allowed" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="allowed.xsd" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="org/apache/commons/logging/LogFactory.class" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="org/jspecify/annotations/Nullable.class" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="META-INF/versions/9/module-info.class" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="javax/annotation/Forbidden.class" />
+                </zip>
+                <fail message="Self-test of the engine jar checks failed: the allowlist must flag exactly the 4 forbidden entries of ${engine.jar.selftest}.">
+                  <condition>
+                    <not>
+                      <resourcecount when="equal" count="4">
+                        <zipfileset src="${engine.jar.selftest}" includes="**" excludes="${engine.jar.allowed}" />
+                      </resourcecount>
+                    </not>
+                  </condition>
+                </fail>
+                <fail message="Self-test of the engine jar checks failed: the Jakarta check must flag exactly the javax entry of ${engine.jar.selftest}.">
+                  <condition>
+                    <not>
+                      <resourcecount when="equal" count="1">
+                        <zipfileset src="${engine.jar.selftest}" includes="${engine.jar.forbidden.ee}" />
+                      </resourcecount>
+                    </not>
+                  </condition>
+                </fail>
                 <fail message="${project.build.finalName}.jar bundles unrelocated jakarta.* or javax.* classes or an EL implementation. Jakarta EE APIs must come from the container or the application classpath: declare them provided (see jakarta.enterprise.cdi-api), and never add them to the maven-shade-plugin artifactSet includes, which list only the libraries shaded into the engine jar (Gson, cron-utils).">
                   <condition>
                     <resourcecount when="greater" count="0">
-                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="jakarta/**,javax/**,org/glassfish/expressly/**,com/sun/el/**" />
+                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="${engine.jar.forbidden.ee}" />
                     </resourcecount>
                   </condition>
                 </fail>
@@ -618,7 +652,7 @@
                 <fail message="${project.build.finalName}.jar contains entries outside org/cibseven/, camundajar/, META-INF/MANIFEST.MF, META-INF/NOTICE, META-INF/maven/, META-INF/services/ and the root *.xsd files, e.g. an unrelocated library (commons-logging, jspecify, com.google.*) or a multi-release META-INF/versions/ folder. Shade only the libraries of the maven-shade-plugin artifactSet includes, relocated to camundajar.impl.*, and keep every other library a regular dependency.">
                   <condition>
                     <resourcecount when="greater" count="0">
-                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="**" excludes="org/cibseven/**,camundajar/**,META-INF/MANIFEST.MF,META-INF/NOTICE,META-INF/maven/**,META-INF/services/**,*.xsd" />
+                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="**" excludes="${engine.jar.allowed}" />
                     </resourcecount>
                   </condition>
                 </fail>
