@@ -195,4 +195,17 @@ public class JacksonJsonDataFormatJackson3Test {
     assertThat(dataFormat.writeValue(new Jackson2CompatibilityTest.FormattedDates()))
         .isEqualTo("{\"date\":\"1970-01-01T00:00:00.000Z\",\"calendar\":\"1970-01-01T00:00:00.000Z\"}");
   }
+
+  @Test
+  public void shouldSwitchCompletelyToJackson3WithANewMapper() {
+    // given: a complete switch to Jackson 3's defaults; the application adds its own modules to this mapper
+    dataFormat.setObjectMapper(JsonMapper.builder().build());
+
+    // when / then: Jackson 3's own output, also for dates that are not annotated
+    assertThat(dataFormat.readValue(dataFormat.writeValue(new Jackson2CompatibilityTest.Accessors()), Map.class))
+        .containsOnlyKeys("x", "a1", "URL", "URLValue", "xCoordinate", "OK", "IBAN"); // FIX_FIELD_NAME_UPPER_CASE_PREFIX is on
+    assertThat(dataFormat.writeValue(new Jackson2CompatibilityTest.VoidGetter())).isEqualTo("{\"nothing\":null,\"value\":1}"); // sorted: SORT_PROPERTIES_ALPHABETICALLY is on
+    assertThat(dataFormat.writeValue(Locale.US)).isEqualTo("\"en-US\"");
+    assertThat(dataFormat.writeValue(new java.util.Date(0))).isEqualTo("\"1970-01-01T00:00:00.000Z\"");
+  }
 }
