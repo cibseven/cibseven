@@ -23,7 +23,10 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 import org.cibseven.spin.impl.json.jackson.format.JacksonJsonDataFormat;
@@ -72,6 +75,75 @@ public class Jackson2CompatibilityTest {
     }
   }
 
+  /** Accessors whose property names Jackson 3 builds differently or not at all. */
+  public static class Accessors {
+    private String url = "u";
+    private String urlValue = "uv";
+    private int x = 1;
+    private int xCoordinate = 2;
+    private boolean ok = true;
+    private String iban = "i";
+    private String abc = "abc";
+    private String links = "l";
+    private String value = "v";
+    private String first = "f";
+    private String a1 = "a1";
+
+    public String getURL() { return url; }
+    public void setURL(String url) { this.url = url; }
+    public String getURLValue() { return urlValue; }
+    public void setURLValue(String urlValue) { this.urlValue = urlValue; }
+    public int getX() { return x; }
+    public void setX(int x) { this.x = x; }
+    public int getXCoordinate() { return xCoordinate; }
+    public void setXCoordinate(int xCoordinate) { this.xCoordinate = xCoordinate; }
+    public boolean isOK() { return ok; }
+    public void setOK(boolean ok) { this.ok = ok; }
+    public String getIBAN() { return iban; }
+    public void setIBAN(String iban) { this.iban = iban; }
+    public String getaBc() { return abc; }
+    public void setaBc(String abc) { this.abc = abc; }
+    public String get_links() { return links; }
+    public void set_links(String links) { this.links = links; }
+    public String getvalue() { return value; }
+    public void setvalue(String value) { this.value = value; }
+    public String get1st() { return first; }
+    public void set1st(String first) { this.first = first; }
+    public String getA1() { return a1; }
+    public void setA1(String a1) { this.a1 = a1; }
+  }
+
+  /** Every property has a field of the same name (Jackson 2 naming): the field order is the property order. */
+  public static class FieldOrder {
+    private String url = "u";
+    private boolean ok = true;
+    private String iban = "i";
+    private int x = 1;
+
+    public String getURL() { return url; }
+    public boolean isOK() { return ok; }
+    public String getIBAN() { return iban; }
+    public int getX() { return x; }
+  }
+
+  public static class VoidGetter {
+    public int getValue() { return 1; }
+    public Void getNothing() { return null; }
+  }
+
+  public static class LocaleValue {
+    public Locale locale;
+    public Map<Locale, Integer> keys = new LinkedHashMap<>();
+  }
+
+  /** What Jackson 2 writes for {@link Accessors}; the order of the properties without a field is not fixed. */
+  protected static final String ACCESSORS_JSON = "{\"url\":\"u\",\"x\":1,\"ok\":true,\"iban\":\"i\",\"value\":\"v\",\"a1\":\"a1\","
+      + "\"urlvalue\":\"uv\",\"xcoordinate\":2,\"aBc\":\"abc\",\"_links\":\"l\",\"1st\":\"f\"}";
+
+  /** Locales whose {@link Locale#toString()} has a script or extensions ("zh_TW_#Hant"). */
+  protected static final List<String> LOCALES_WITH_SCRIPT_OR_EXTENSIONS = List.of("zh-Hant-TW", "sr-Latn-RS",
+      "th-TH-u-nu-thai", "en-Latn-US-u-ca-japanese", "ja-JP-u-ca-japanese-x-lvariant-JP");
+
   @Test
   public void shouldWriteLocaleWithUnderscore() {
     // Jackson 3 alone writes the language tag "en-US"
@@ -93,6 +165,50 @@ public class Jackson2CompatibilityTest {
   public void shouldSkipRootLocaleAsEmpty() {
     // Locale.ROOT is written as "" and counts as empty, so NON_EMPTY leaves it out
     assertThat(write(new NonEmptyLocales())).isEqualTo("{\"locale\":\"en_US\"}");
+  }
+
+  @Test
+  public void shouldNameAccessorsLikeJackson2() {
+    // Jackson 3 alone writes {"x":1,"a1":"a1","URL":"u","URLValue":"uv","XCoordinate":2,"OK":true,"IBAN":"i"}
+    assertThat(read(write(new Accessors()), Map.class)).isEqualTo(read(ACCESSORS_JSON, Map.class));
+    // Jackson 3 alone writes {"x":1,"URL":"u","OK":true,"IBAN":"i"}
+    assertThat(write(new FieldOrder())).isEqualTo("{\"url\":\"u\",\"ok\":true,\"iban\":\"i\",\"x\":1}");
+  }
+
+  @Test
+  public void shouldReadAccessorsLikeJackson2() {
+    Accessors accessors = read(ACCESSORS_JSON.replace("\"u\"", "\"U\"").replace("\"l\"", "\"L\"").replace("\"f\"", "\"F\"")
+        .replace("\"uv\"", "\"UV\"").replace("\"abc\"", "\"ABC\"").replace("2", "3"), Accessors.class);
+
+    assertThat(accessors.getURL()).isEqualTo("U");
+    assertThat(accessors.getURLValue()).isEqualTo("UV");
+    assertThat(accessors.getXCoordinate()).isEqualTo(3);
+    assertThat(accessors.getaBc()).isEqualTo("ABC");
+    assertThat(accessors.get_links()).isEqualTo("L");
+    assertThat(accessors.get1st()).isEqualTo("F");
+  }
+
+  @Test
+  public void shouldNotWriteVoidGetters() {
+    // Jackson 3 alone writes {"value":1,"nothing":null}
+    assertThat(write(new VoidGetter())).isEqualTo("{\"value\":1}");
+  }
+
+  @Test
+  public void shouldReadLocalesWithScriptOrExtensions() {
+    for (String tag : LOCALES_WITH_SCRIPT_OR_EXTENSIONS) {
+      // given
+      LocaleValue value = new LocaleValue();
+      value.locale = Locale.forLanguageTag(tag);
+      value.keys.put(value.locale, 1);
+
+      // when: Jackson 3 alone reads "zh_TW_#Hant" as zh-TW
+      LocaleValue readBack = read(write(value), LocaleValue.class);
+
+      // then
+      assertThat(readBack.locale).as(tag).isEqualTo(value.locale);
+      assertThat(readBack.keys).as(tag).containsOnlyKeys(value.locale);
+    }
   }
 
   @Test
