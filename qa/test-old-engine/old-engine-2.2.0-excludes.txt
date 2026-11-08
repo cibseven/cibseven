@@ -18,6 +18,8 @@
 # Surefire excludesFile of the old-engine profile: tests of the 2.2.0 engine that cannot pass with
 # the current test runtime. Unlike <excludes>, this file accepts single methods (Class.java#method).
 # Remove the entries when cibseven.old.engine.version contains the GraalJS 25 and parser fixes.
+# On JDK 25 the profile old-engine-jdk25 uses old-engine-2.2.0-excludes-jdk25.txt instead: keep both
+# files in sync.
 
 # GraalJS 25, every JDK: the 2.2.0 engine calls Context.Builder.allowIO(boolean), which GraalJS 25
 # rejects next to the IOAccess of its script engine, and it gets ECMAScript 5 in Nashorn compatibility
@@ -25,7 +27,3 @@
 **/ScriptTaskGraalJsTest.java
 # GraalJS 25, every JDK: the same allowIO(boolean) conflict. The other 36 tests keep running.
 **/ScriptTaskTest.java#shouldLoadExternalScriptJavascript
-
-# JDK 25 only (passes on JDK 17 and 21): the XML parser keeps the attribute limit relaxed by a
-# preceding test. The 3.0 BpmnParseTest sets the limit itself; the 2.2.0 one does not.
-**/BpmnParseTest.java#testFeatureSecureProcessingRejectsDefinitionDueToAttributeLimit
