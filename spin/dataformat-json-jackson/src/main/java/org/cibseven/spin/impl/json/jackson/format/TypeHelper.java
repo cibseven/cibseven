@@ -16,8 +16,8 @@
  */
 package org.cibseven.spin.impl.json.jackson.format;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.type.TypeFactory;
 
 import java.lang.reflect.TypeVariable;
 import java.util.Collection;
@@ -29,6 +29,8 @@ import java.util.Set;
  * Collection of helper methods to construct types.
  */
 public class TypeHelper {
+
+  private static final TypeFactory typeFactory = TypeFactory.createDefaultInstance();
 
   /**
    * Checks if the erased type has the correct number of type bindings.
@@ -60,7 +62,6 @@ public class TypeHelper {
    * @return Java type.
    */
   static JavaType constructType(Object value) {
-    TypeFactory typeFactory = TypeFactory.defaultInstance();
     if (value instanceof Collection<?>) {
       Collection<?> collection = (Collection<?>) value;
       int size = collection.size();

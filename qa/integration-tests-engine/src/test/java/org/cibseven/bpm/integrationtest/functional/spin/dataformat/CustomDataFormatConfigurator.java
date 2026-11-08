@@ -19,8 +19,7 @@ package org.cibseven.bpm.integrationtest.functional.spin.dataformat;
 import org.cibseven.bpm.integrationtest.functional.spin.XmlSerializable;
 import org.cibseven.spin.impl.json.jackson.format.JacksonJsonDataFormat;
 import org.cibseven.spin.spi.DataFormatConfigurator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.module.SimpleModule;
 
 /**
  * @author Svetlana Dorokhova.
@@ -37,11 +36,11 @@ public class CustomDataFormatConfigurator implements DataFormatConfigurator<Jack
 
   @Override
   public void configure(JacksonJsonDataFormat dataFormat) {
-    ObjectMapper objectMapper = dataFormat.getObjectMapper();
     SimpleModule module = new SimpleModule();
     module.addDeserializer(XmlSerializable.class, new XmlSerializableJsonDeserializer());
     module.addSerializer(XmlSerializable.class, new XmlSerializableJsonSerializer());
-    objectMapper.registerModule(module);
+    // Jackson 3 mappers are immutable: replace the mapper instead of registering the module on it
+    dataFormat.setObjectMapper(dataFormat.getObjectMapper().rebuild().addModule(module).build());
   }
 
 }

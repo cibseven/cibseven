@@ -26,9 +26,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.type.TypeFactory;
 
 public class JsonDeserializationValidationTest {
 
@@ -48,7 +47,7 @@ public class JsonDeserializationValidationTest {
   @Test
   public void shouldValidateNothingForPrimitiveClass() {
     // given
-    JavaType type = TypeFactory.defaultInstance().constructType(int.class);
+    JavaType type = TypeFactory.createDefaultInstance().constructType(int.class);
     validator = createValidatorMock(true);
 
     // when
@@ -61,7 +60,7 @@ public class JsonDeserializationValidationTest {
   @Test
   public void shouldValidateBaseTypeOnlyForBaseClass() {
     // given
-    JavaType type = TypeFactory.defaultInstance().constructType(String.class);
+    JavaType type = TypeFactory.createDefaultInstance().constructType(String.class);
     validator = createValidatorMock(true);
 
     // when
@@ -75,7 +74,7 @@ public class JsonDeserializationValidationTest {
   @Test
   public void shouldValidateBaseTypeOnlyForComplexClass() {
     // given
-    JavaType type = TypeFactory.defaultInstance().constructType(Complex.class);
+    JavaType type = TypeFactory.createDefaultInstance().constructType(Complex.class);
     validator = createValidatorMock(true);
 
     // when
@@ -89,7 +88,7 @@ public class JsonDeserializationValidationTest {
   @Test
   public void shouldValidateContentTypeOnlyForArrayClass() {
     // given
-    JavaType type = TypeFactory.defaultInstance().constructType(Integer[].class);
+    JavaType type = TypeFactory.createDefaultInstance().constructType(Integer[].class);
     validator = createValidatorMock(true);
 
     // when
@@ -103,7 +102,7 @@ public class JsonDeserializationValidationTest {
   @Test
   public void shouldValidateCollectionAndContentTypeForCollectionClass() {
     // given
-    JavaType type = TypeFactory.defaultInstance().constructFromCanonical("java.util.ArrayList<java.lang.String>");
+    JavaType type = TypeFactory.createDefaultInstance().constructFromCanonical("java.util.ArrayList<java.lang.String>");
     validator = createValidatorMock(true);
 
     // when
@@ -118,7 +117,7 @@ public class JsonDeserializationValidationTest {
   @Test
   public void shouldValidateCollectionAndContentTypeForNestedCollectionClass() {
     // given
-    JavaType type = TypeFactory.defaultInstance().constructFromCanonical("java.util.ArrayList<java.util.ArrayList<java.lang.String>>");
+    JavaType type = TypeFactory.createDefaultInstance().constructFromCanonical("java.util.ArrayList<java.util.ArrayList<java.lang.String>>");
     validator = createValidatorMock(true);
 
     // when
@@ -133,7 +132,7 @@ public class JsonDeserializationValidationTest {
   @Test
   public void shouldValidateMapAndKeyAndContentTypeForMapClass() {
     // given
-    JavaType type = TypeFactory.defaultInstance().constructFromCanonical("java.util.HashMap<java.lang.String, java.lang.Integer>");
+    JavaType type = TypeFactory.createDefaultInstance().constructFromCanonical("java.util.HashMap<java.lang.String, java.lang.Integer>");
     validator = createValidatorMock(true);
 
     // when
@@ -149,7 +148,7 @@ public class JsonDeserializationValidationTest {
   @Test
   public void shouldFailForSimpleClass() {
     // given
-    JavaType type = TypeFactory.defaultInstance().constructType(String.class);
+    JavaType type = TypeFactory.createDefaultInstance().constructType(String.class);
     validator = createValidatorMock(false);
 
     // when
@@ -161,7 +160,7 @@ public class JsonDeserializationValidationTest {
   @Test
   public void shouldFailForComplexClass() {
     // given
-    JavaType type = TypeFactory.defaultInstance().constructType(Complex.class);
+    JavaType type = TypeFactory.createDefaultInstance().constructType(Complex.class);
     validator = createValidatorMock(false);
 
     // when
@@ -174,7 +173,7 @@ public class JsonDeserializationValidationTest {
   @Test
   public void shouldFailForArrayClass() {
     // given
-    JavaType type = TypeFactory.defaultInstance().constructType(Integer[].class);
+    JavaType type = tools.jackson.databind.type.TypeFactory.createDefaultInstance().constructType(Integer[].class);
     validator = createValidatorMock(false);
 
     // when
@@ -186,7 +185,7 @@ public class JsonDeserializationValidationTest {
   @Test
   public void shouldFailForCollectionClass() {
     // given
-    JavaType type = TypeFactory.defaultInstance().constructFromCanonical("java.util.ArrayList<java.lang.String>");
+    JavaType type = TypeFactory.createDefaultInstance().constructFromCanonical("java.util.ArrayList<java.lang.String>");
     validator = createValidatorMock(false);
 
     // when
@@ -198,7 +197,7 @@ public class JsonDeserializationValidationTest {
   @Test
   public void shouldFailForMapClass() {
     // given
-    JavaType type = TypeFactory.defaultInstance().constructFromCanonical("java.util.HashMap<java.lang.String, java.lang.Integer>");
+    JavaType type = TypeFactory.createDefaultInstance().constructFromCanonical("java.util.HashMap<java.lang.String, java.lang.Integer>");
     validator = createValidatorMock(false);
 
     // when
@@ -210,7 +209,7 @@ public class JsonDeserializationValidationTest {
   @Test
   public void shouldFailOnceForMapClass() {
     // given
-    JavaType type = TypeFactory.defaultInstance().constructFromCanonical("java.util.HashMap<java.lang.String, java.lang.String>");
+    JavaType type = TypeFactory.createDefaultInstance().constructFromCanonical("java.util.HashMap<java.lang.String, java.lang.String>");
     validator = createValidatorMock(false);
 
     // when

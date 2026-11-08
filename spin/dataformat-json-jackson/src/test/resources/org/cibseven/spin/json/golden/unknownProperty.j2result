@@ -1,0 +1,1 @@
+EXCEPTION com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException: Unrecognized field "extra" (class poc.beans.Item), not marked as ignorable (2 known properties: "sku", "qty")
