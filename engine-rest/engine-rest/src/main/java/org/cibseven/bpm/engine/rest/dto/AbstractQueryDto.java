@@ -30,7 +30,7 @@ import org.cibseven.bpm.engine.rest.exception.RestException;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Defines common query operations, such as sorting options and validation.

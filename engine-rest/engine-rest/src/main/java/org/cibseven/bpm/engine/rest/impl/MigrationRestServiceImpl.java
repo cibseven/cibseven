@@ -39,7 +39,7 @@ import org.cibseven.bpm.engine.rest.dto.runtime.ProcessInstanceQueryDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.cibseven.bpm.engine.rest.dto.VariableValueDto.toMap;
 

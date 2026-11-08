@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 /**
  * Base class for implementing a HAL resource as defined in
  * <a href="http://tools.ietf.org/html/draft-kelly-json-hal-06#section-4">json-hal-06#section-4</a>
@@ -30,6 +33,7 @@ import java.util.TreeMap;
  * @author Daniel Meyer
  *
  */
+@JsonPropertyOrder({"_links", "_embedded"})
 public abstract class HalResource<T extends HalResource<?>> {
 
   /** This resource links */
@@ -45,10 +49,14 @@ public abstract class HalResource<T extends HalResource<?>> {
     this.linker = Hal.getInstance().createLinker(this);
   }
 
+  // explicit names (and order above): Jackson 3 does not detect accessors whose name starts
+  // with "_" by default, e.g. with a mapper that is not configured by JacksonConfigurator
+  @JsonProperty("_links")
   public Map<String, HalLink> get_links() {
     return _links;
   }
 
+  @JsonProperty("_embedded")
   public Map<String, Object> get_embedded() {
     return _embedded;
   }

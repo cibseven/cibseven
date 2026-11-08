@@ -24,7 +24,7 @@ import jakarta.ws.rs.core.MultivaluedMap;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.management.SchemaLogQuery;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * @author Miklas Boskamp

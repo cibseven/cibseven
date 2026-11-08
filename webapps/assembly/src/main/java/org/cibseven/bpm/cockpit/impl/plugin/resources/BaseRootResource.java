@@ -22,7 +22,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.ext.Providers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.cockpit.plugin.resource.AbstractCockpitPluginRootResource;
 import org.cibseven.bpm.engine.rest.util.ProvidersUtil;
 

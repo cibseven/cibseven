@@ -24,11 +24,11 @@ import jakarta.ws.rs.core.Application;
 
 import org.cibseven.bpm.engine.rest.exception.ExceptionHandler;
 import org.cibseven.bpm.engine.rest.exception.RestExceptionHandler;
+import org.cibseven.bpm.engine.rest.mapper.CibsevenJacksonJsonProvider;
 import org.cibseven.bpm.engine.rest.mapper.JacksonConfigurator;
 import org.cibseven.bpm.tasklist.Tasklist;
 import org.cibseven.bpm.tasklist.plugin.spi.TasklistPlugin;
 
-import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
 /**
  * @author Roman Smirnov
@@ -41,7 +41,7 @@ public class TasklistApplication extends Application {
     Set<Class<?>> classes = new HashSet<Class<?>>();
 
     classes.add(JacksonConfigurator.class);
-    classes.add(JacksonJsonProvider.class);
+    classes.add(CibsevenJacksonJsonProvider.class);
     classes.add(ExceptionHandler.class);
     classes.add(RestExceptionHandler.class);
 

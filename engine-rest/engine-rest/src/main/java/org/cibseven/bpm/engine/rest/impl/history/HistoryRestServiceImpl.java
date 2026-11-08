@@ -39,7 +39,7 @@ import org.cibseven.bpm.engine.rest.history.UserOperationLogRestService;
 
 import org.cibseven.bpm.engine.rest.impl.AbstractRestProcessEngineAware;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class HistoryRestServiceImpl extends AbstractRestProcessEngineAware implements HistoryRestService {
 

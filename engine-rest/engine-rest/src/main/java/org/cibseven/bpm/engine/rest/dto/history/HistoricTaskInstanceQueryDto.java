@@ -40,7 +40,7 @@ import org.cibseven.bpm.engine.rest.dto.converter.StringListConverter;
 import org.cibseven.bpm.engine.rest.dto.converter.VariableListConverter;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * @author Roman Smirnov

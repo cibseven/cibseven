@@ -24,11 +24,11 @@ import jakarta.ws.rs.core.Application;
 
 import org.cibseven.bpm.engine.rest.exception.ExceptionHandler;
 import org.cibseven.bpm.engine.rest.exception.RestExceptionHandler;
+import org.cibseven.bpm.engine.rest.mapper.CibsevenJacksonJsonProvider;
 import org.cibseven.bpm.engine.rest.mapper.JacksonConfigurator;
 import org.cibseven.bpm.welcome.Welcome;
 import org.cibseven.bpm.welcome.plugin.spi.WelcomePlugin;
 
-import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
 /**
  * The rest api exposed by the welcome application
@@ -42,7 +42,7 @@ public class WelcomeApplication extends Application {
     Set<Class<?>> classes = new HashSet<Class<?>>();
 
     classes.add(JacksonConfigurator.class);
-    classes.add(JacksonJsonProvider.class);
+    classes.add(CibsevenJacksonJsonProvider.class);
     classes.add(RestExceptionHandler.class);
     classes.add(ExceptionHandler.class);
 
