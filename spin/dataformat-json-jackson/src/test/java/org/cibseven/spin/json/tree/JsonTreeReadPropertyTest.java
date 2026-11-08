@@ -402,6 +402,17 @@ public class JsonTreeReadPropertyTest {
   }
 
   @Test
+  public void shouldReturnMutableFieldNames() {
+    // as in Spin 2.x: callers (e.g. scripts) may sort or edit the returned list
+    java.util.List<String> fieldNames = jsonNode.fieldNames();
+    java.util.Collections.sort(fieldNames);
+    fieldNames.remove("id");
+
+    assertThat(fieldNames).doesNotContain("id").isSorted();
+    assertThat(jsonNode.fieldNames()).contains("id");
+  }
+
+  @Test
   public void shouldFailToReadNonFieldNames() {
     try {
       order.fieldNames();
