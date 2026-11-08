@@ -41,8 +41,17 @@ public class BothClientVariantsTest {
     List<URL> jackson3 = Collections.list(classLoader.getResources(JacksonVariantCheck.JACKSON3_MARKER));
     List<URL> jackson2 = Collections.list(classLoader.getResources(JacksonVariantCheck.JACKSON2_MARKER));
 
-    assertThat(jackson3).singleElement().asString().contains("cibseven-external-task-client");
-    assertThat(jackson2).singleElement().asString().contains("cibseven-external-task-client-jackson2");
+    // one marker each, from two different class path entries (jars, or target/classes in a reactor build)
+    assertThat(jackson3).hasSize(1);
+    assertThat(jackson2).hasSize(1);
+    assertThat(origin(jackson3.get(0), JacksonVariantCheck.JACKSON3_MARKER))
+        .isNotEqualTo(origin(jackson2.get(0), JacksonVariantCheck.JACKSON2_MARKER));
+  }
+
+  protected static String origin(URL resource, String name) {
+    String url = resource.toString();
+    assertThat(url).endsWith(name);
+    return url.substring(0, url.length() - name.length());
   }
 
   @Test

@@ -17,6 +17,7 @@
 package org.cibseven.bpm.client.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -116,5 +117,20 @@ public class ExternalTaskClientBuilderImplTest {
     // then
     assertThat(node.isArray()).isTrue();
     assertThat(objectMapper.writeValueAsString(node)).isEqualTo(deepJson);
+  }
+
+  @Test
+  public void testRestMapperKeepsTheReadLimitsOfJackson2() {
+    // given: the REST mapper of the client; Jackson 3 alone accepts strings of up to 100 million characters
+    // and stops at 500 levels. No Jackson imports, see above
+    var clientBuilder = new ExternalTaskClientBuilderImpl();
+    clientBuilder.initObjectMapper();
+    var objectMapper = clientBuilder.getObjectMapper();
+    String longString = "\"" + "a".repeat(20_000_001) + "\"";
+    String depth1001 = "[".repeat(1001) + "]".repeat(1001);
+
+    // when / then
+    assertThatThrownBy(() -> objectMapper.readTree(longString)).hasStackTraceContaining("20000000");
+    assertThatThrownBy(() -> objectMapper.readTree(depth1001)).hasStackTraceContaining("maximum allowed (1000");
   }
 }
