@@ -1476,6 +1476,12 @@ description: JSON Web Token support for the JVM and Android
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
+io.jsonwebtoken:jjwt-gson:0.12.6
+name: jjwt-gson
+description: JSON Web Token support for the JVM and Android
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
 io.micrometer:micrometer-commons:1.15.11
 name: micrometer-commons
 description: Module containing common code
@@ -5436,6 +5442,20 @@ tools.jackson.core:jackson-databind:3.1.2
 name: jackson-databind
 description: General data-binding functionality for Jackson: works on core streaming API
 url: https://github.com/FasterXML/jackson
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+tools.jackson.jakarta.rs:jackson-jakarta-rs-base:3.1.7
+name: jackson-jakarta-rs-base
+description: Pile of code that is shared by all Jackson-based Jakarta-RS providers.
+url: https://github.com/FasterXML/jackson-jakarta-rs-providers
+license: Apache-2.0
+license url: https://opensource.org/licenses/Apache-2.0
+========================================================================
+tools.jackson.jakarta.rs:jackson-jakarta-rs-json-provider:3.1.7
+name: jackson-jakarta-rs-json-provider
+description: Functionality to handle JSON input/output for Jakarta-RS implementations (like Jersey and RESTeasy) using standard Jackson data binding.
+url: https://github.com/FasterXML/jackson-jakarta-rs-providers
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
