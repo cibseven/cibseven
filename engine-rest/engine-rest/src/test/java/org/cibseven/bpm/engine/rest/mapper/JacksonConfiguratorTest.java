@@ -19,6 +19,9 @@ import tools.jackson.core.StreamReadConstraints;
 import tools.jackson.core.exc.StreamConstraintsException;
 import tools.jackson.databind.ObjectMapper;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 public class JacksonConfiguratorTest {
 
 	final static int DEFAULT_LIMIT = JacksonConfigurator.DEFAULT_MAX_STRING_LENGTH;
@@ -140,5 +143,32 @@ public class JacksonConfiguratorTest {
 		assertEquals("{\"locale\":\"en_US\",\"root\":\"\"}", mapper.writeValueAsString(locales));
 		assertEquals(Locale.US, mapper.readValue("\"en_US\"", Locale.class));
 		assertEquals(Locale.US, mapper.readValue("\"en-US\"", Locale.class));
+	}
+
+	public static class PolymorphicLocale {
+		@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
+		public Object value = Locale.US;
+	}
+
+	public static class NonEmptyLocales {
+		@JsonInclude(JsonInclude.Include.NON_EMPTY)
+		public Locale root = Locale.ROOT;
+		@JsonInclude(JsonInclude.Include.NON_EMPTY)
+		public Locale locale = Locale.US;
+	}
+
+	@Test
+	public void testLocaleWithTypeInformationWrittenLikeJackson2() throws Exception {
+		ObjectMapper mapper = JacksonConfigurator.configureObjectMapper();
+
+		assertEquals("{\"value\":[\"java.util.Locale\",\"en_US\"]}", mapper.writeValueAsString(new PolymorphicLocale()));
+	}
+
+	@Test
+	public void testRootLocaleSkippedAsEmptyLikeJackson2() throws Exception {
+		// Locale.ROOT is written as "" and counts as empty, so NON_EMPTY leaves it out
+		ObjectMapper mapper = JacksonConfigurator.configureObjectMapper();
+
+		assertEquals("{\"locale\":\"en_US\"}", mapper.writeValueAsString(new NonEmptyLocales()));
 	}
 }
