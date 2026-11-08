@@ -16,12 +16,18 @@
  */
 package org.cibseven.bpm.spring.boot.starter.spin;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import org.cibseven.spin.impl.json.jackson.format.JacksonJsonDataFormat;
 import org.cibseven.spin.spi.DataFormatConfigurator;
 
-
+/**
+ * Registers the Jackson 2 {@link ParameterNamesModule} with the deprecated Jackson 2 variant of Spin
+ * ({@code cibseven-spin-dataformat-json-jackson2}). For Jackson 3, used by
+ * {@code cibseven-spin-dataformat-json-jackson}, see {@link CamundaJackson3FormatConfiguratorParameterNames}.
+ *
+ * @deprecated together with the Jackson 2 variant of Spin, removed in CIB seven 3.1.0
+ */
+@Deprecated(since = "3.0.0", forRemoval = true)
 public class CamundaJacksonFormatConfiguratorParameterNames implements DataFormatConfigurator<JacksonJsonDataFormat> {
 
   @Override
@@ -31,9 +37,8 @@ public class CamundaJacksonFormatConfiguratorParameterNames implements DataForma
 
   @Override
   public void configure(JacksonJsonDataFormat dataFormat) {
-    ObjectMapper mapper = dataFormat.getObjectMapper();
     final ParameterNamesModule parameterNamesModule = new ParameterNamesModule();
 
-    mapper.registerModule(parameterNamesModule);
+    Jackson2SpinObjectMapper.of(dataFormat).registerModule(parameterNamesModule);
   }
 }

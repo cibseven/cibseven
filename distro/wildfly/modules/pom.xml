@@ -61,6 +61,19 @@
       <artifactId>cibseven-spin-dataformat-xml-dom</artifactId>
     </dependency>
 
+    <!-- Jackson 2 for the com.fasterxml.jackson.core.* modules in the cibseven slot (ai-agent);
+         the Spin JSON data format above brings Jackson 3 (tools.jackson.core.* modules) -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${version.jackson}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${version.jackson}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-engine-plugin-connect</artifactId>
@@ -288,6 +301,18 @@
                     <chainedmapper>
                       <regexpmapper from="^(.*)/([^/]+)/([^/]*)$$" to="\1/cibseven/\3" handledirsep="yes" />
                       <regexpmapper from="^(com.fasterxml.jackson.*)\/((jackson.*-)[0-9\.]*).*.jar$$" to="\1/\3${version.jackson}.jar" handledirsep="yes" />
+                    </chainedmapper>
+                  </mapper>
+                </copy>
+
+                <!-- copy the Jackson 3 dependencies (tools.jackson.core) to the cibseven slot -->
+                <delete dir="target/modules/tools/jackson" />
+                <copy todir="target/modules" flatten="false">
+                  <fileset refid="maven.project.dependencies" />
+                  <mapper>
+                    <chainedmapper>
+                      <regexpmapper from="^(.*)/([^/]+)/([^/]*)$$" to="\1/cibseven/\3" handledirsep="yes" />
+                      <regexpmapper from="^(tools.jackson.*)\/((jackson.*-)[0-9\.]*).*.jar$$" to="\1/\3${version.jackson3}.jar" handledirsep="yes" />
                     </chainedmapper>
                   </mapper>
                 </copy>
