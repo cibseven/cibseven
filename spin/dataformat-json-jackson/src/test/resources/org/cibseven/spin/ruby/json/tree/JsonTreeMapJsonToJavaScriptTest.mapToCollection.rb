@@ -1,4 +1,6 @@
-desiredType = com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance().constructCollectionType($collectionType, $mapToType)
+java_import 'tools.jackson.databind.type.TypeFactory'
+
+desiredType = TypeFactory.createDefaultInstance().constructCollectionType($collectionType, $mapToType)
 
 $result = S($input, "application/json").mapTo(desiredType.toCanonical())
 
