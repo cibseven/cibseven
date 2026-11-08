@@ -324,6 +324,7 @@
         <dependency>
           <groupId>org.graalvm.js</groupId>
           <artifactId>js</artifactId>
+          <type>pom</type>
           <scope>test</scope>
         </dependency>
 
@@ -515,6 +516,9 @@
                 <exclude>**/*NashornTest.java</exclude>
                 <exclude>${TEMPORARY_OLD_ENGINE_TEST_EXCLUDE}</exclude>
               </excludes>
+              <!-- Old engine 2.2.0 lacks the GraalJS 25 builder and parser-isolation fixes. The file excludes
+                   single methods where possible, which <excludes> does not allow. -->
+              <excludesFile>${project.basedir}/old-engine-2.2.0-excludes.txt</excludesFile>
               <testFailureIgnore>false</testFailureIgnore>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <argLine>-Xmx2g -Duser.language=en -Duser.region=US -XX:+HeapDumpOnOutOfMemoryError
