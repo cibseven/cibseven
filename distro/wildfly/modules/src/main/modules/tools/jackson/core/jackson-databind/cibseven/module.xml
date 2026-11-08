@@ -1,0 +1,20 @@
+<module xmlns="urn:jboss:module:1.0" name="tools.jackson.core.jackson-databind" slot="cibseven">
+  <!-- Jackson 3 for the Spin JSON data format and json-path. WildFly does not ship Jackson 3
+       modules (WFLY-21365), hence the cibseven slot, like the Jackson 2 modules of CIB seven.
+       Jackson 3 uses the Jackson 2 annotations (com.fasterxml.jackson.annotation, 2.21). -->
+  <resources>
+    <resource-root path="jackson-databind-@version.jackson3@.jar" />
+  </resources>
+
+  <dependencies>
+
+    <module name="java.base" />
+    <module name="java.desktop"/>
+    <module name="java.logging"/>
+    <module name="java.sql"/>
+    <module name="java.xml"/>
+    <module name="tools.jackson.core.jackson-core" export="true" slot="cibseven" />
+    <module name="com.fasterxml.jackson.core.jackson-annotations" export="true" slot="cibseven" />
+
+  </dependencies>
+</module>
