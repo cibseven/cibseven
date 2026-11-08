@@ -6,6 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 import org.cibseven.bpm.engine.rest.dto.ModificationDto;
@@ -126,4 +129,16 @@ public class JacksonConfiguratorTest {
 		assertEquals(longString, deserializedString);
 	}
 
+	@Test
+	public void testLocaleWrittenLikeJackson2() throws Exception {
+		// Jackson 3 alone writes the language tag "en-US"
+		ObjectMapper mapper = JacksonConfigurator.configureObjectMapper();
+
+		Map<String, Locale> locales = new LinkedHashMap<>();
+		locales.put("locale", Locale.US);
+		locales.put("root", Locale.ROOT);
+		assertEquals("{\"locale\":\"en_US\",\"root\":\"\"}", mapper.writeValueAsString(locales));
+		assertEquals(Locale.US, mapper.readValue("\"en_US\"", Locale.class));
+		assertEquals(Locale.US, mapper.readValue("\"en-US\"", Locale.class));
+	}
 }

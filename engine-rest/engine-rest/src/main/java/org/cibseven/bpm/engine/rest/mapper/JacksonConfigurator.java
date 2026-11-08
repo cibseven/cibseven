@@ -19,6 +19,7 @@ package org.cibseven.bpm.engine.rest.mapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
 
@@ -31,14 +32,18 @@ import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.util.EngineUtilLogger;
 import org.cibseven.bpm.engine.rest.hal.Hal;
 
+import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.StreamReadConstraints;
 import tools.jackson.core.StreamWriteConstraints;
 import tools.jackson.core.json.JsonFactory;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.introspect.DefaultAccessorNamingStrategy;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.ser.std.StdSerializer;
 
 /**
  * Provides the Jackson {@link ObjectMapper} of the REST API.
@@ -134,7 +139,26 @@ public class JacksonConfigurator implements ContextResolver<ObjectMapper> {
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
         // the date format uses the JVM default time zone (no explicit mapper time zone)
-        .defaultDateFormat(new SimpleDateFormat(dateFormat));
+        .defaultDateFormat(new SimpleDateFormat(dateFormat))
+        // Jackson 3 writes a Locale as language tag ("en-US"), Jackson 2 with toString() ("en_US"),
+        // e.g. in deserialized object variable values
+        .addModule(new SimpleModule("cibseven-rest-jackson2-compatibility")
+            .addSerializer(Locale.class, new Jackson2LocaleSerializer()));
+  }
+
+  /**
+   * Writes a {@link Locale} with {@link Locale#toString()} ({@code "en_US"}) like Jackson 2. Both forms are read.
+   */
+  protected static class Jackson2LocaleSerializer extends StdSerializer<Locale> {
+
+    public Jackson2LocaleSerializer() {
+      super(Locale.class);
+    }
+
+    @Override
+    public void serialize(Locale value, JsonGenerator generator, SerializationContext context) {
+      generator.writeString(value.toString());
+    }
   }
 
   @Override
