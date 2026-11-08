@@ -66,6 +66,11 @@ public class ListTypeNameTest {
 
   protected static final String ITEM = Item.class.getName();
 
+  /** A list subclass that fixes its element type, so the type name needs no element detection. */
+  public static class ItemList extends ArrayList<Item> {
+    private static final long serialVersionUID = 1L;
+  }
+
   protected DataFormat dataFormat;
 
   @BeforeEach
@@ -120,4 +125,19 @@ public class ListTypeNameTest {
     assertThat(read).containsExactly(null, new Item("a"));
   }
 
+  @Test
+  public void shouldNameListSubclassWithFixedElementTypeAndNullFirst() {
+    // given
+    ItemList items = new ItemList();
+    items.add(null);
+    items.add(new Item("a"));
+
+    // when
+    String typeName = dataFormat.getCanonicalTypeName(items);
+    ItemList read = dataFormat.readValue(dataFormat.writeValue(items), typeName);
+
+    // then
+    assertThat(typeName).isEqualTo(ItemList.class.getName());
+    assertThat(read).containsExactly(null, new Item("a"));
+  }
 }
