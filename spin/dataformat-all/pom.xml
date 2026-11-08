@@ -66,6 +66,12 @@
                 </excludes>
               </artifactSet>
               <relocations>
+                <!-- Jackson 3 (tools.jackson) and the Jackson 2 annotations it uses
+                     (com.fasterxml.jackson.annotation) -->
+                <relocation>
+                  <pattern>tools.jackson</pattern>
+                  <shadedPattern>spinjar.tools.jackson</shadedPattern>
+                </relocation>
                 <relocation>
                   <pattern>com.fasterxml</pattern>
                   <shadedPattern>spinjar.com.fasterxml</shadedPattern>
@@ -121,6 +127,11 @@
                   <artifact>*:*</artifact>
                   <excludes>
                     <exclude>module-info.class</exclude>
+                    <!-- Java-version specific classes of multi-release jars (jackson-core 3:
+                         META-INF/versions/{17,21,23}/tools/jackson/...). maven-shade-plugin 3.6 does not
+                         relocate them, and the shaded jar is no multi-release jar, so the JVM would
+                         ignore them anyway: the relocated base classes are used on every Java version. -->
+                    <exclude>META-INF/versions/**</exclude>
                   </excludes>
                 </filter>
               </filters>
@@ -130,7 +141,8 @@
       </plugin>
       <!-- The shaded jar may only carry Spin's own classes and libraries relocated to spinjar.*:
            it sits in shared classloaders (Tomcat lib/), where an unrelocated library (JAXB,
-           Jakarta Activation, JUnit, ...) is exposed to every web application. Bound to verify,
+           Jakarta Activation, Jackson 3, JUnit, ...) is exposed to every web application. Also checks
+           the Java-version specific classes under META-INF/versions/N/. Bound to verify,
            after the shade plugin has replaced the jar in the package phase. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -144,10 +156,10 @@
             </goals>
             <configuration>
               <target>
-                <fail message="${project.build.finalName}.jar bundles classes outside org/cibseven/spin and spinjar (e.g. jakarta.*, javax.*, org.junit.*). Relocate every shaded library to spinjar.* or exclude it from the maven-shade-plugin artifactSet.">
+                <fail message="${project.build.finalName}.jar bundles classes outside org/cibseven/spin and spinjar (e.g. tools.jackson.*, jakarta.*, javax.*, org.junit.*), possibly under META-INF/versions/N/. Relocate every shaded library to spinjar.* or exclude it from the maven-shade-plugin artifactSet.">
                   <condition>
                     <resourcecount when="greater" count="0">
-                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="**/*.class" excludes="org/cibseven/spin/**,spinjar/**,META-INF/**" />
+                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="**/*.class" excludes="org/cibseven/spin/**,spinjar/**,META-INF/versions/*/org/cibseven/spin/**,META-INF/versions/*/spinjar/**" />
                     </resourcecount>
                   </condition>
                 </fail>
@@ -187,6 +199,7 @@
               !spinjar*,
               !org.junit*,
               !org.slf4j.impl,
+              !tools.jackson*,
               !com.fasterxml*,
               !com.jayway,
               !net.minidev.json*,

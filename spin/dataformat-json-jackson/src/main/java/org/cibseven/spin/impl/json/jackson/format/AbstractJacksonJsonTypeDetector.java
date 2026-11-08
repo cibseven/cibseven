@@ -18,10 +18,20 @@ package org.cibseven.spin.impl.json.jackson.format;
 
 import org.cibseven.spin.spi.DataFormat;
 import org.cibseven.spin.spi.TypeDetector;
+import tools.jackson.databind.type.TypeFactory;
 
 public abstract class AbstractJacksonJsonTypeDetector implements TypeDetector {
+  private final TypeFactory typeFactory;
+
+  protected AbstractJacksonJsonTypeDetector() {
+    this.typeFactory = TypeFactory.createDefaultInstance();
+  }
 
   public boolean appliesTo(DataFormat<?> dataFormat) {
     return dataFormat instanceof JacksonJsonDataFormat;
+  }
+
+  public TypeFactory getTypeFactory() {
+    return typeFactory;
   }
 }

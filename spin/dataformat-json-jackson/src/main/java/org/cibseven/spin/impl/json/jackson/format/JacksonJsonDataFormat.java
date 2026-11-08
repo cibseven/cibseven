@@ -20,10 +20,11 @@ import static org.cibseven.commons.utils.EnsureUtil.ensureNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
-import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
-import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+import com.jayway.jsonpath.spi.json.Jackson3JsonProvider;
+import com.jayway.jsonpath.spi.mapper.Jackson3MappingProvider;
 import org.cibseven.spin.DataFormats;
 import org.cibseven.spin.impl.json.jackson.JacksonJsonLogger;
 import org.cibseven.spin.impl.json.jackson.JacksonJsonNode;
@@ -32,14 +33,22 @@ import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.spi.DataFormat;
 import org.cibseven.spin.spi.TypeDetector;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.Configuration.ConfigurationBuilder;
+import tools.jackson.core.StreamReadConstraints;
+import tools.jackson.core.StreamWriteConstraints;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.ser.std.ToStringSerializer;
+import tools.jackson.databind.type.TypeFactory;
+import tools.jackson.databind.util.StdDateFormat;
 
 /**
  * Spin data format that can wrap Json content and uses
@@ -55,6 +64,15 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
 
   public static final String DATA_FORMAT_NAME = DataFormats.JSON_DATAFORMAT_NAME;
 
+  /**
+   * Maximum nesting depth of JSON the default mapper reads and writes: the limit of Jackson 2
+   * (Jackson 3 defaults to 500), so that JSON accepted by CIB seven 2.x is still accepted.
+   */
+  public static final int MAX_NESTING_DEPTH = 1000;
+
+  /** Maximum length of a JSON string value, the default of Jackson 2 (Jackson 3: 100,000,000). */
+  public static final int MAX_STRING_LENGTH = 20_000_000;
+
   private static final JacksonJsonLogger LOG = JacksonJsonLogger.JSON_TREE_LOGGER;
 
   /** The Jackson Object Mapper used by this dataformat */
@@ -62,6 +80,9 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
 
   /** The JsonPath configuration */
   protected Configuration jsonPathConfiguration;
+
+  /** The JsonPath configuration this data format created itself; only this one follows {@link #setObjectMapper(ObjectMapper)}. */
+  protected Configuration defaultJsonPathConfiguration;
 
   protected List<TypeDetector> typeDetectors;
 
@@ -72,16 +93,12 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
   protected final String name;
 
   public JacksonJsonDataFormat(String name) {
-    this(name, new ObjectMapper());
+    this(name, createDefaultObjectMapper());
   }
 
   public JacksonJsonDataFormat(String name, ObjectMapper objectMapper) {
-
-    this(name, objectMapper,
-        new ConfigurationBuilder()
-          .jsonProvider(new JacksonJsonProvider(objectMapper))
-          .mappingProvider(new JacksonMappingProvider(objectMapper))
-          .build());
+    this(name, objectMapper, createDefaultJsonPathConfiguration(objectMapper));
+    this.defaultJsonPathConfiguration = this.jsonPathConfiguration;
   }
 
   public JacksonJsonDataFormat(String name, ObjectMapper objectMapper, Configuration jsonPathConfiguration) {
@@ -162,7 +179,7 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
    */
   public JavaType constructJavaTypeFromCanonicalString(String canonicalString) {
     try {
-      return TypeFactory.defaultInstance().constructFromCanonical(canonicalString);
+      return getObjectMapper().getTypeFactory().constructFromCanonical(canonicalString);
     } catch (IllegalArgumentException e) {
       throw LOG.unableToConstructJavaType(canonicalString, e);
     }
@@ -208,9 +225,74 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
     return objectMapper;
   }
 
+  /**
+   * Replaces the {@link ObjectMapper} of this data format.
+   *
+   * <p>Jackson 3 mappers are immutable, so a {@link org.cibseven.spin.spi.DataFormatConfigurator}
+   * customizes the mapper with {@code setObjectMapper(getObjectMapper().rebuild()...build())}.
+   * If the JsonPath configuration is still the default one built from the previous mapper,
+   * it is rebuilt from the new mapper so that JsonPath queries see the same customizations.
+   * A configuration set with {@link #setJsonPathConfiguration(Configuration)} is kept.</p>
+   *
+   * @param objectMapper the new object mapper
+   */
   public void setObjectMapper(ObjectMapper objectMapper) {
     this.objectMapper = objectMapper;
+    if (jsonPathConfiguration != null && jsonPathConfiguration == defaultJsonPathConfiguration) {
+      this.jsonPathConfiguration = createDefaultJsonPathConfiguration(objectMapper);
+      this.defaultJsonPathConfiguration = this.jsonPathConfiguration;
+    }
   }
+
+  /**
+   * Creates the default mapper of this data format: the Jackson 2 defaults of Jackson 3
+   * ({@link JsonMapper#builderWithJackson2Defaults()}: dates as timestamps, no alphabetical property order,
+   * enums by name, null for primitives accepted, unknown properties rejected, "/" not escaped, ...) and the
+   * nesting depth limit of Jackson 2 ({@link #MAX_NESTING_DEPTH}) for reading and writing. JSON written by
+   * CIB seven 2.x on Jackson 2 is read and written unchanged.
+   *
+   * @return a new default object mapper
+   */
+  public static JsonMapper createDefaultObjectMapper() {
+    JsonFactory jsonFactory = JsonFactory.builderWithJackson2Defaults()
+        .streamReadConstraints(StreamReadConstraints.defaults().rebuild()
+            .maxNestingDepth(MAX_NESTING_DEPTH)
+            .maxStringLength(MAX_STRING_LENGTH)
+            .build())
+        .streamWriteConstraints(StreamWriteConstraints.defaults().rebuild().maxNestingDepth(MAX_NESTING_DEPTH).build())
+        .build();
+    return JsonMapper.builder(jsonFactory)
+        .configureForJackson2()
+        // dates with @JsonFormat(shape = STRING) and no pattern: "+00:00" for a zero offset like Jackson 2, not "Z"
+        .defaultDateFormat(new StdDateFormat().withColonInTimeZone(true).withZeroOffsetAsZ(false))
+        // defaultDateFormat(...) turns WRITE_DATES_AS_TIMESTAMPS off; Spin writes other dates as timestamps like Jackson 2
+        .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+        // a Locale with toString() ("en_US") like Jackson 2, not as language tag ("en-US"); both forms are read back.
+        // ToStringSerializer, as in Jackson 2, also keeps type ids and "" as empty value (Locale.ROOT, NON_EMPTY)
+        .addModule(new SimpleModule("cibseven-spin-jackson2-compatibility")
+            .addSerializer(Locale.class, new ToStringSerializer(Locale.class)))
+        .build();
+  }
+
+  /**
+   * Builds the JsonPath {@link Configuration} this data format uses by default:
+   * JSON and mapping provider backed by the given object mapper.
+   *
+   * @param objectMapper the object mapper of the data format
+   * @return the default JsonPath configuration
+   */
+  protected static Configuration createDefaultJsonPathConfiguration(ObjectMapper objectMapper) {
+    try {
+      return new ConfigurationBuilder()
+          .jsonProvider(new Jackson3JsonProvider(objectMapper))
+          .mappingProvider(new Jackson3MappingProvider(objectMapper))
+          .build();
+    } catch (NoClassDefFoundError e) {
+      // json-path before 3.0.0 has no Jackson 3 providers, e.g. the version Spring Boot manages
+      throw LOG.jsonPathWithoutJackson3Support(e);
+    }
+  }
+
 
   // helper functions //////////////////////////////////////////
 
