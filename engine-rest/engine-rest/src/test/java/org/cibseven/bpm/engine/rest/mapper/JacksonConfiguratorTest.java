@@ -224,6 +224,15 @@ public class JacksonConfiguratorTest {
 		public int getX() { return x; }
 	}
 
+	/** A record with additional getters; Jackson 3 names getURL() like the component URL. */
+	public record RecordAccessors(String URL, String getValue) {
+		public String getURL() { return "extra"; }
+		public boolean isOK() { return true; }
+	}
+
+	/** What Jackson 2 writes for {@code new RecordAccessors("u", "v")}. */
+	protected static final String RECORD_ACCESSORS_JSON = "{\"URL\":\"u\",\"getValue\":\"v\",\"url\":\"extra\",\"ok\":true}";
+
 	public static class VoidGetter {
 		public int getValue() { return 1; }
 		public Void getNothing() { return null; }
@@ -254,6 +263,15 @@ public class JacksonConfiguratorTest {
 		Accessors accessors = mapper.readValue(ACCESSORS_JSON.replace("\"u\"", "\"U\"").replace("\"l\"", "\"L\""), Accessors.class);
 		assertEquals("U", accessors.getURL());
 		assertEquals("L", accessors.get_links());
+	}
+
+	@Test
+	public void testAdditionalRecordGettersNamedLikeJackson2() throws Exception {
+		// Jackson 3 alone writes {"URL":"extra","getValue":"v","OK":true}: the component's value is lost
+		ObjectMapper mapper = JacksonConfigurator.configureObjectMapper();
+
+		assertEquals(mapper.readTree(RECORD_ACCESSORS_JSON), mapper.readTree(mapper.writeValueAsString(new RecordAccessors("u", "v"))));
+		assertEquals(new RecordAccessors("u", "v"), mapper.readValue("{\"URL\":\"u\",\"getValue\":\"v\"}", RecordAccessors.class));
 	}
 
 	@Test

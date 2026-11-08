@@ -168,7 +168,8 @@ public class JacksonConfigurator implements ContextResolver<ObjectMapper> {
    * Property names of getters and setters like Jackson 2, which Jackson 3 no longer offers: leading upper-case letters
    * are lower-cased ({@code getURL()} is {@code "url"}, not {@code "URL"}), and accessors whose name continues with a
    * lower-case letter, a digit or {@code "_"} ({@code getvalue()}, {@code get1st()}, {@code get_links()}) are
-   * properties as well. Records keep the naming of Jackson 3, which equals the one of Jackson 2.
+   * properties as well. Record components keep their names; additional getters of a record are named like Jackson 2
+   * too (Jackson 3 names {@code getURL()} "URL", the name of a component {@code URL}, and drops that component's value).
    */
   public static class Jackson2AccessorNaming extends DefaultAccessorNamingStrategy.Provider {
 
@@ -198,6 +199,14 @@ public class JacksonConfigurator implements ContextResolver<ObjectMapper> {
       return new LegacyNaming(config, builderClass, mutatorPrefix, _getterPrefix, _isGetterPrefix);
     }
 
+    @Override
+    public AccessorNamingStrategy forRecord(MapperConfig<?> config, AnnotatedClass recordClass) {
+      if (config.isEnabled(MapperFeature.INFER_RECORD_GETTERS_FROM_COMPONENTS_ONLY)) {
+        return new DefaultAccessorNamingStrategy.RecordNamingStrict(config, recordClass); // components only: no names to build
+      }
+      return new LegacyRecordNaming(config, recordClass);
+    }
+
     protected static class LegacyNaming extends DefaultAccessorNamingStrategy {
 
       protected LegacyNaming(MapperConfig<?> config, AnnotatedClass forClass, String mutatorPrefix,
@@ -205,31 +214,47 @@ public class JacksonConfigurator implements ContextResolver<ObjectMapper> {
         super(config, forClass, mutatorPrefix, getterPrefix, isGetterPrefix, null);
       }
 
-      /** Jackson 2's {@code legacyManglePropertyName}: lower-cases all leading upper-case letters. */
       @Override
       protected String stdManglePropertyName(String basename, int offset) {
-        int end = basename.length();
-        if (end == offset) {
-          return null;
-        }
-        char c = basename.charAt(offset);
-        char d = Character.toLowerCase(c);
-        if (c == d) {
-          return basename.substring(offset);
-        }
-        StringBuilder name = new StringBuilder(end - offset);
-        name.append(d);
-        for (int i = offset + 1; i < end; ++i) {
-          c = basename.charAt(i);
-          d = Character.toLowerCase(c);
-          if (c == d) {
-            name.append(basename, i, end);
-            break;
-          }
-          name.append(d);
-        }
-        return name.toString();
+        return legacyManglePropertyName(basename, offset);
       }
+    }
+
+    protected static class LegacyRecordNaming extends DefaultAccessorNamingStrategy.RecordNaming {
+
+      protected LegacyRecordNaming(MapperConfig<?> config, AnnotatedClass forClass) {
+        super(config, forClass);
+      }
+
+      @Override
+      protected String stdManglePropertyName(String basename, int offset) {
+        return legacyManglePropertyName(basename, offset);
+      }
+    }
+
+    /** Jackson 2's {@code legacyManglePropertyName}: lower-cases all leading upper-case letters. */
+    protected static String legacyManglePropertyName(String basename, int offset) {
+      int end = basename.length();
+      if (end == offset) {
+        return null;
+      }
+      char c = basename.charAt(offset);
+      char d = Character.toLowerCase(c);
+      if (c == d) {
+        return basename.substring(offset);
+      }
+      StringBuilder name = new StringBuilder(end - offset);
+      name.append(d);
+      for (int i = offset + 1; i < end; ++i) {
+        c = basename.charAt(i);
+        d = Character.toLowerCase(c);
+        if (c == d) {
+          name.append(basename, i, end);
+          break;
+        }
+        name.append(d);
+      }
+      return name.toString();
     }
   }
 
