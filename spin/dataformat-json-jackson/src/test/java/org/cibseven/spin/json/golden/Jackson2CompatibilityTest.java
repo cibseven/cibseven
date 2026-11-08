@@ -126,6 +126,15 @@ public class Jackson2CompatibilityTest {
     public int getX() { return x; }
   }
 
+  /** A record with additional getters; Jackson 3 names getURL() like the component URL. */
+  public record RecordAccessors(String URL, String getValue) {
+    public String getURL() { return "extra"; }
+    public boolean isOK() { return true; }
+  }
+
+  /** What Jackson 2 writes for {@code new RecordAccessors("u", "v")}. */
+  protected static final String RECORD_ACCESSORS_JSON = "{\"URL\":\"u\",\"getValue\":\"v\",\"url\":\"extra\",\"ok\":true}";
+
   public static class VoidGetter {
     public int getValue() { return 1; }
     public Void getNothing() { return null; }
@@ -186,6 +195,13 @@ public class Jackson2CompatibilityTest {
     assertThat(accessors.getaBc()).isEqualTo("ABC");
     assertThat(accessors.get_links()).isEqualTo("L");
     assertThat(accessors.get1st()).isEqualTo("F");
+  }
+
+  @Test
+  public void shouldNameAdditionalRecordGettersLikeJackson2() {
+    // Jackson 3 alone writes {"URL":"extra","getValue":"v","OK":true}: the component's value is lost
+    assertThat(read(write(new RecordAccessors("u", "v")), Map.class)).isEqualTo(read(RECORD_ACCESSORS_JSON, Map.class));
+    assertThat(read("{\"URL\":\"u\",\"getValue\":\"v\"}", RecordAccessors.class)).isEqualTo(new RecordAccessors("u", "v"));
   }
 
   @Test
