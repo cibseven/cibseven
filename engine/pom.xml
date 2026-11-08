@@ -113,6 +113,15 @@
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
+      <exclusions>
+        <!-- Gson (since 2.11) declares error_prone_annotations as a dependency. They are
+             compile-time only annotations that Gson does not need at runtime; excluded so that
+             the shade plugin does not copy them unrelocated into the engine jar (CIB7-2634). -->
+        <exclusion>
+          <groupId>com.google.errorprone</groupId>
+          <artifactId>error_prone_annotations</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- provided dependencies -->
@@ -572,6 +581,18 @@
           <transformers>
             <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
           </transformers>
+          <filters>
+            <filter>
+              <!-- Gson's JPMS module descriptor (multi-release folder) and ProGuard rules name the
+                   unrelocated com.google.gson packages; they do not apply to the relocated copy
+                   (CIB7-2634). -->
+              <artifact>com.google.code.gson:gson</artifact>
+              <excludes>
+                <exclude>META-INF/versions/**</exclude>
+                <exclude>META-INF/proguard/**</exclude>
+              </excludes>
+            </filter>
+          </filters>
           <shadeTestJar>true</shadeTestJar>
         </configuration>
       </plugin>
@@ -614,6 +635,15 @@
                   <condition>
                     <resourcecount when="greater" count="0">
                       <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="jakarta/**,javax/**,org/glassfish/expressly/**,com/sun/el/**,org/eclipse/angus/**" />
+                    </resourcecount>
+                  </condition>
+                </fail>
+                <!-- Gson must only be shaded relocated to camundajar.impl.com.google.gson, and its
+                     error_prone_annotations dependency not at all (CIB7-2634). -->
+                <fail message="${project.build.finalName}.jar bundles unrelocated com.google.* classes (Gson or its error_prone_annotations dependency). Relocate Gson to camundajar.impl.com.google.gson and exclude error_prone_annotations from the gson dependency.">
+                  <condition>
+                    <resourcecount when="greater" count="0">
+                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="com/google/**,META-INF/versions/*/com/google/**" />
                     </resourcecount>
                   </condition>
                 </fail>
