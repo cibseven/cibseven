@@ -27,7 +27,7 @@ import org.cibseven.bpm.engine.filter.FilterQuery;
 import org.cibseven.bpm.engine.rest.dto.AbstractQueryDto;
 import org.cibseven.bpm.engine.rest.dto.CamundaQueryParam;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * @author Sebastian Menski

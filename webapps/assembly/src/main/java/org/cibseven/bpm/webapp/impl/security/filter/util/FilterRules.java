@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 package org.cibseven.bpm.webapp.impl.security.filter.util;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -34,7 +33,8 @@ import org.cibseven.bpm.webapp.impl.security.filter.SecurityFilterConfig.PathFil
 import org.cibseven.bpm.webapp.impl.security.filter.SecurityFilterConfig.PathMatcherConfig;
 import org.cibseven.bpm.webapp.impl.security.filter.SecurityFilterRule;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Utility to load and match filter rules.
@@ -45,7 +45,7 @@ public class FilterRules {
 
   public static List<SecurityFilterRule> load(InputStream configFileResource,
                                               String applicationPath) throws IOException {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = JsonMapper.builderWithJackson2Defaults().build();
 
     SecurityFilterConfig config = objectMapper.readValue(configFileResource, SecurityFilterConfig.class);
     return createFilterRules(config, applicationPath);

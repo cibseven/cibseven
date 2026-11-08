@@ -153,6 +153,7 @@
         <scope>import</scope>
       </dependency>
 
+      <!-- Jackson 3 (tools.jackson.*), used by engine-rest, the webapps and Spin JSON -->
       <dependency>
         <groupId>tools.jackson</groupId>
         <artifactId>jackson-bom</artifactId>

@@ -28,7 +28,7 @@ import org.cibseven.bpm.engine.rest.security.auth.impl.jwt.Configuration;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class LicenseRestServiceImplTest {
 
@@ -36,7 +36,7 @@ public class LicenseRestServiceImplTest {
   public void testMissingJwtConfigurationIsUnavailableWithTheCause() {
     // CIB7-2493: no secret anywhere makes Configuration.getInstance() throw; the REST server runs
     // requests on other threads, so the static mock is checked here directly
-    LicenseRestServiceImpl service = new LicenseRestServiceImpl("default", new ObjectMapper());
+    LicenseRestServiceImpl service = new LicenseRestServiceImpl("default", JsonMapper.builder().build());
     try (MockedStatic<Configuration> configuration = mockStatic(Configuration.class)) {
       configuration.when(Configuration::getInstance)
         .thenThrow(new IllegalStateException("No JWT secret found: could not find configuration file"));

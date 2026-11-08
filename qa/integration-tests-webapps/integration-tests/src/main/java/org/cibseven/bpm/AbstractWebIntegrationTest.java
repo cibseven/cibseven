@@ -16,7 +16,6 @@
  */
 package org.cibseven.bpm;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -64,22 +63,15 @@ public abstract class AbstractWebIntegrationTest {
   @BeforeAll
   public static void setUpClass() {
     Unirest.config().reset().enableCookieManagement(false).setObjectMapper(new ObjectMapper() {
-      final com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+      // Jackson 3; its exceptions are unchecked
+      final tools.jackson.databind.ObjectMapper mapper = tools.jackson.databind.json.JsonMapper.builderWithJackson2Defaults().build();
 
       public String writeValue(Object value) {
-        try {
-          return mapper.writeValueAsString(value);
-        } catch (JsonProcessingException e) {
-          throw new RuntimeException(e);
-        }
+        return mapper.writeValueAsString(value);
       }
 
       public <T> T readValue(String value, Class<T> valueType) {
-        try {
-          return mapper.readValue(value, valueType);
-        } catch (JsonProcessingException e) {
-          throw new RuntimeException(e);
-        }
+        return mapper.readValue(value, valueType);
       }
     });
   }

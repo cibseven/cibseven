@@ -32,7 +32,7 @@ import org.cibseven.bpm.engine.rest.exception.RestException;
 import org.cibseven.bpm.engine.rest.history.HistoryCleanupRestService;
 import org.cibseven.bpm.engine.runtime.Job;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class HistoryCleanupRestServiceImpl implements HistoryCleanupRestService {
 
