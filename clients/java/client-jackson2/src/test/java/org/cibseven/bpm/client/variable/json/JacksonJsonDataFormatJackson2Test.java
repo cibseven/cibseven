@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -34,6 +35,7 @@ import org.cibseven.bpm.client.variable.json.fixture.FixtureItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -95,6 +97,20 @@ public class JacksonJsonDataFormatJackson2Test {
     assertThatThrownBy(() -> dataFormat.writeValue(LocalDate.of(2026, 11, 7))).isInstanceOf(DataFormatException.class);
     assertThatThrownBy(() -> dataFormat.writeValue(Optional.of("x"))).isInstanceOf(DataFormatException.class);
     assertThat(dataFormat.getCanonicalTypeName(Optional.of("x"))).isEqualTo("java.util.Optional");
+  }
+
+  /** A property whose class comes from the JSON. */
+  public static class ClassIdValue {
+    @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
+    public Object value;
+  }
+
+  @Test
+  public void shouldReadClassIdsForAnyPropertyType() {
+    // Jackson 2 reads the class of a property of type Object from the JSON, like the 2.2 client (Jackson 3 does not)
+    ClassIdValue value = dataFormat.readValue("{\"value\":[\"java.util.Locale\",\"en_US\"]}", ClassIdValue.class);
+
+    assertThat(value.value).isEqualTo(Locale.US);
   }
 
 }

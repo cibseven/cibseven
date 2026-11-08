@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -39,10 +40,13 @@ import org.cibseven.bpm.client.variable.json.fixture.FixtureItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 
 /**
  * Behaviour of the Jackson 3 based data format that is not shared with the deprecated Jackson 2 variant
@@ -137,4 +141,32 @@ public class JacksonJsonDataFormatJackson3Test {
         .hasCauseInstanceOf(tools.jackson.core.JacksonException.class);
   }
 
+  /** A property whose class comes from the JSON. */
+  public static class ClassIdValue {
+    @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
+    public Object value;
+  }
+
+  @Test
+  public void shouldNotReadClassIdsForTooGenericPropertyTypes() {
+    // Jackson 3's default PolymorphicTypeValidator, kept on purpose: no class from the JSON for a property of type
+    // Object, Serializable, Comparable, ... (Jackson 2 read it, see JacksonJsonDataFormatJackson2Test)
+    assertThatThrownBy(() -> dataFormat.readValue("{\"value\":[\"java.util.Locale\",\"en_US\"]}", ClassIdValue.class))
+        .isInstanceOf(DataFormatException.class)
+        .hasStackTraceContaining("PolymorphicTypeValidator");
+  }
+
+  @Test
+  public void shouldReadClassIdsAllowedByAPolymorphicTypeValidator() {
+    // given: a configurator allows the classes of the application
+    dataFormat.setObjectMapper(dataFormat.getObjectMapper().rebuild()
+        .polymorphicTypeValidator(BasicPolymorphicTypeValidator.builder().allowIfSubType("java.util.").build())
+        .build());
+
+    // when
+    ClassIdValue value = dataFormat.readValue("{\"value\":[\"java.util.Locale\",\"en_US\"]}", ClassIdValue.class);
+
+    // then
+    assertThat(value.value).isEqualTo(Locale.US);
+  }
 }
