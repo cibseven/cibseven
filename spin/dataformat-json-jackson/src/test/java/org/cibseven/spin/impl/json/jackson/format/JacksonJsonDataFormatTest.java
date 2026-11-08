@@ -23,12 +23,16 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.cibseven.spin.impl.json.jackson.JacksonJsonNode;
 import org.cibseven.spin.json.SpinJsonDataFormatException;
 import org.cibseven.spin.json.SpinJsonException;
 import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.json.mapping.EmptyBean;
+import org.cibseven.spin.json.golden.Jackson2CompatibilityTest.Accessors;
+import org.cibseven.spin.json.golden.Jackson2CompatibilityTest.FormattedDates;
+import org.cibseven.spin.json.golden.Jackson2CompatibilityTest.VoidGetter;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -37,10 +41,16 @@ import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.Jackson3JsonProvider;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.introspect.DefaultAccessorNamingStrategy;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import tools.jackson.databind.module.SimpleModule;
 import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.ser.jdk.JDKStringLikeSerializer;
+import tools.jackson.databind.util.StdDateFormat;
 
 public class JacksonJsonDataFormatTest {
 
@@ -251,6 +261,33 @@ public class JacksonJsonDataFormatTest {
 
     // then
     assertThat(value.value).isEqualTo(Locale.US);
+  }
+
+  @Test
+  public void shouldSwitchToJackson3StandardsInAConfigurator() {
+    // given: the switches of the update guide, as a DataFormatConfigurator would apply them
+    JacksonJsonDataFormat format = new JacksonJsonDataFormat("test");
+    format.setObjectMapper(format.getObjectMapper().rebuild()
+        .accessorNaming(new DefaultAccessorNamingStrategy.Provider())
+        .enable(MapperFeature.ALLOW_VOID_VALUED_PROPERTIES)
+        .addModule(new SimpleModule("jackson3-standards").addSerializer(JDKStringLikeSerializer.find(Locale.class)))
+        .defaultDateFormat(new StdDateFormat())
+        .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .build());
+
+    // when / then: Jackson 3's own output
+    assertThat(format.getMapper().mapInternalToJava(format.getMapper().mapJavaToInternal(new Accessors()), Map.class))
+        .containsOnlyKeys("x", "a1", "URL", "URLValue", "XCoordinate", "OK", "IBAN");
+    assertThat(write(format, new VoidGetter())).isEqualTo("{\"value\":1,\"nothing\":null}");
+    assertThat(write(format, Locale.US)).isEqualTo("\"en-US\"");
+    assertThat(write(format, new FormattedDates()))
+        .isEqualTo("{\"date\":\"1970-01-01T00:00:00.000Z\",\"calendar\":\"1970-01-01T00:00:00.000Z\"}");
+  }
+
+  protected static String write(JacksonJsonDataFormat format, Object value) {
+    StringWriter writer = new StringWriter();
+    format.getWriter().writeToWriter(writer, format.getMapper().mapJavaToInternal(value));
+    return writer.toString();
   }
 
   @Test
