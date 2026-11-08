@@ -1,0 +1,1 @@
+{"id":null,"resourceType":"Task","name":"f","owner":"o","query":{"assignee":"demo","dueBefore":"2013-01-23T13:42:42.000+0100","orQueries":[{"candidateGroup":"g"}],"sorting":[{"sortBy":"dueDate","sortOrder":"asc"}]},"properties":{"color":"#ff0000","priority":5,"refresh":true,"variables":[{"name":"v","label":"V"}]}}

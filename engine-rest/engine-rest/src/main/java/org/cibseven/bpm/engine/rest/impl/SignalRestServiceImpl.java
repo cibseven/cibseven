@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.exception.NotFoundException;
 import org.cibseven.bpm.engine.rest.SignalRestService;

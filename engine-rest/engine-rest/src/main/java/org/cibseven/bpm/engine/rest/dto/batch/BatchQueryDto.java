@@ -32,7 +32,7 @@ import org.cibseven.bpm.engine.rest.dto.CamundaQueryParam;
 import org.cibseven.bpm.engine.rest.dto.converter.BooleanConverter;
 import org.cibseven.bpm.engine.rest.dto.converter.StringListConverter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class BatchQueryDto extends AbstractQueryDto<BatchQuery> {
 

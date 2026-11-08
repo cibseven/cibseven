@@ -28,7 +28,6 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -57,6 +56,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+
+import tools.jackson.core.JacksonException;
 
 public class HalResourceCacheTest extends AbstractRestServiceTest {
 
@@ -125,7 +126,7 @@ public class HalResourceCacheTest extends AbstractRestServiceTest {
       fail("Exception expected");
     }
     catch (HalRelationCacheConfigurationException e) {
-      assertTrue(e.getCause() instanceof IOException);
+      assertTrue(e.getCause() instanceof JacksonException);
     }
   }
 

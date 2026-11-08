@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import jakarta.ws.rs.container.AsyncResponse;

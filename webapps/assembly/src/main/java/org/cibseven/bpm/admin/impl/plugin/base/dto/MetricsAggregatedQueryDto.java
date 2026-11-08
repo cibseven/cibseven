@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.admin.impl.plugin.base.dto;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.webapp.rest.dto.AbstractRestQueryParametersDto;
 import org.cibseven.bpm.engine.impl.metrics.util.MetricsUtil;

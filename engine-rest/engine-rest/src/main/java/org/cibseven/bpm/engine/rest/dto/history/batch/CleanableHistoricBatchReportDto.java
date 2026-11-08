@@ -26,7 +26,7 @@ import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.history.CleanableHistoricBatchReport;
 import org.cibseven.bpm.engine.rest.dto.AbstractQueryDto;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class CleanableHistoricBatchReportDto extends AbstractQueryDto<CleanableHistoricBatchReport> {
 
