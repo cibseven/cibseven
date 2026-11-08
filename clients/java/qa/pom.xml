@@ -17,6 +17,8 @@
 
   <modules>
     <module>engine-variable-test</module>
+    <!-- an application with both client variants on the class path: the client must refuse to start -->
+    <module>both-variants-test</module>
   </modules>
 
   <description>
