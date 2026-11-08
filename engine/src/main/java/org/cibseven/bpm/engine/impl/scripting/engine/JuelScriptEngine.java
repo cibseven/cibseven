@@ -33,10 +33,10 @@ import javax.script.SimpleBindings;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.el.ExpressionFactoryResolver;
 import org.cibseven.bpm.engine.impl.el.ProcessEngineElContext;
+import org.cibseven.bpm.impl.juel.JuelBeanELResolver;
 import org.cibseven.bpm.impl.juel.SimpleResolver;
 
 import jakarta.el.ArrayELResolver;
-import jakarta.el.BeanELResolver;
 import jakarta.el.CompositeELResolver;
 import jakarta.el.ELException;
 import jakarta.el.ELResolver;
@@ -112,7 +112,7 @@ public class JuelScriptEngine extends AbstractScriptEngine {
     compositeResolver.add(new ListELResolver());
     compositeResolver.add(new MapELResolver());
     compositeResolver.add(new ResourceBundleELResolver());
-    compositeResolver.add(new BeanELResolver());
+    compositeResolver.add(new JuelBeanELResolver());
     return new SimpleResolver(compositeResolver);
   }
 
