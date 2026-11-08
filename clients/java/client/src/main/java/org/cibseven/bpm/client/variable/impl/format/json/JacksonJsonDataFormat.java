@@ -21,6 +21,10 @@ import static org.cibseven.commons.utils.EnsureUtil.ensureNotNull;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
+import java.text.DateFormat;
+import java.time.Month;
+import java.time.Year;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.IllformedLocaleException;
 import java.util.List;
@@ -31,6 +35,7 @@ import org.cibseven.bpm.client.spi.DataFormat;
 import org.cibseven.bpm.client.variable.impl.format.TypeDetector;
 
 import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.StreamReadConstraints;
 import tools.jackson.core.StreamWriteConstraints;
 import tools.jackson.core.json.JsonFactory;
@@ -41,18 +46,26 @@ import tools.jackson.databind.JavaType;
 import tools.jackson.databind.KeyDeserializer;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationConfig;
+import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.ValueSerializer;
 import tools.jackson.databind.annotation.JsonPOJOBuilder;
 import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.cfg.MapperConfig;
 import tools.jackson.databind.deser.jdk.JDKFromStringDeserializer;
+import tools.jackson.databind.ext.javatime.ser.YearSerializer;
+import tools.jackson.databind.ext.sql.JavaSqlDateSerializer;
 import tools.jackson.databind.introspect.AccessorNamingStrategy;
 import tools.jackson.databind.introspect.AnnotatedClass;
 import tools.jackson.databind.introspect.DefaultAccessorNamingStrategy;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.ser.Serializers;
+import tools.jackson.databind.ser.jdk.EnumSerializer;
 import tools.jackson.databind.ser.std.ToStringSerializer;
 import tools.jackson.databind.util.StdDateFormat;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * The {@code application/json} data format of object variables, based on Jackson 3.
@@ -122,10 +135,8 @@ public class JacksonJsonDataFormat implements DataFormat {
         // a Locale with toString() ("en_US") like Jackson 2, not as language tag ("en-US"); both forms are read back.
         // ToStringSerializer, as in Jackson 2, also keeps type ids and "" as empty value (Locale.ROOT, NON_EMPTY);
         // Jackson2LocaleDeserializer reads "zh_TW_#Hant" back with its script, like Jackson 2
-        .addModule(new SimpleModule("cibseven-client-jackson2-compatibility")
-            .addSerializer(Locale.class, new ToStringSerializer(Locale.class))
-            .addDeserializer(Locale.class, Jackson2LocaleDeserializer.forLocale())
-            .addKeyDeserializer(Locale.class, new Jackson2LocaleKeyDeserializer()))
+        // Year, Month and java.sql.Date are written like Jackson 2 too (see Jackson2CompatibilityModule)
+        .addModule(new Jackson2CompatibilityModule("cibseven-client-jackson2-compatibility"))
         .build();
   }
 
@@ -316,6 +327,112 @@ public class JacksonJsonDataFormat implements DataFormat {
       }
     }
     return -1;
+  }
+
+  /**
+   * The Jackson 2 compatible serializers and deserializers of this mapper. Registered after Jackson 3's own java.time
+   * support, so they take precedence.
+   */
+  public static class Jackson2CompatibilityModule extends SimpleModule {
+
+    private static final long serialVersionUID = 1L;
+
+    public Jackson2CompatibilityModule(String name) {
+      super(name);
+      addSerializer(Locale.class, new ToStringSerializer(Locale.class));
+      addDeserializer(Locale.class, Jackson2LocaleDeserializer.forLocale());
+      addKeyDeserializer(Locale.class, new Jackson2LocaleKeyDeserializer());
+      addSerializer(Year.class, new Jackson2YearSerializer());
+      addSerializer(java.sql.Date.class, new Jackson2SqlDateSerializer());
+    }
+
+    @Override
+    public void setupModule(SetupContext context) {
+      super.setupModule(context);
+      context.addSerializers(new Jackson2EnumLikeSerializers());
+    }
+  }
+
+  /**
+   * {@link Month} as enum ({@code "JANUARY"}) like Jackson 2, with all enum settings and {@code @JsonFormat}; Jackson 3
+   * writes the month number ({@code 0}).
+   */
+  public static class Jackson2EnumLikeSerializers extends Serializers.Base {
+
+    @Override
+    public ValueSerializer<?> findEnumSerializer(SerializationConfig config, JavaType type,
+        BeanDescription.Supplier beanDescRef, JsonFormat.Value formatOverrides) {
+      if (!type.hasRawClass(Month.class)) {
+        return null;
+      }
+      JsonFormat.Value format = calculateEffectiveFormat(beanDescRef, Month.class, formatOverrides);
+      JsonFormat.Shape shape = format.getShape();
+      if (shape == JsonFormat.Shape.POJO || shape == JsonFormat.Shape.OBJECT) {
+        return null; // as Jackson's own enum handling: written as bean
+      }
+      return EnumSerializer.construct(Month.class, config, beanDescRef.get(), format);
+    }
+  }
+
+  /**
+   * {@link Year} like Jackson 2: a number only if dates are written as timestamps, otherwise text ({@code "2020"});
+   * Jackson 3 always writes a number unless the property says otherwise.
+   */
+  public static class Jackson2YearSerializer extends YearSerializer {
+
+    private static final long serialVersionUID = 1L;
+
+    public Jackson2YearSerializer() {
+      super(null);
+    }
+
+    protected Jackson2YearSerializer(Jackson2YearSerializer base, DateTimeFormatter formatter, Boolean useTimestamp) {
+      super(base, formatter, useTimestamp);
+    }
+
+    @Override
+    protected YearSerializer withFormat(DateTimeFormatter formatter, Boolean useTimestamp, JsonFormat.Shape shape) {
+      return new Jackson2YearSerializer(this, formatter, useTimestamp);
+    }
+
+    @Override
+    protected boolean useTimestampFromGlobalDefaults(SerializationContext ctxt) {
+      return ctxt != null && ctxt.isEnabled(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS);
+    }
+  }
+
+  /**
+   * {@link java.sql.Date} like Jackson 2: written as text without a format on the property, it is the value's own
+   * {@code toString()} ({@code "1970-01-01"}); Jackson 3 uses the mapper's date format instead. Timestamps and a
+   * format on the property ({@code @JsonFormat}) work as before.
+   */
+  public static class Jackson2SqlDateSerializer extends JavaSqlDateSerializer {
+
+    private static final long serialVersionUID = 1L;
+
+    public Jackson2SqlDateSerializer() {
+      super(null, null);
+    }
+
+    protected Jackson2SqlDateSerializer(Boolean useTimestamp, DateFormat customFormat) {
+      super(useTimestamp, customFormat);
+    }
+
+    @Override
+    public Jackson2SqlDateSerializer withFormat(Boolean timestamp, DateFormat customFormat) {
+      return new Jackson2SqlDateSerializer(timestamp, customFormat);
+    }
+
+    @Override
+    public void serialize(java.sql.Date value, JsonGenerator generator, SerializationContext ctxt) {
+      if (_asTimestamp(ctxt)) {
+        generator.writeNumber(_timestamp(value));
+      } else if (_customFormat == null) {
+        generator.writeString(value.toString());
+      } else {
+        _serializeAsString(value, generator, ctxt);
+      }
+    }
   }
 
   public String getName() {

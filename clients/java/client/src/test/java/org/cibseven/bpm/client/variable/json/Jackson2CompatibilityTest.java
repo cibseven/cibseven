@@ -19,6 +19,7 @@ package org.cibseven.bpm.client.variable.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.time.Month;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -132,6 +133,11 @@ public class Jackson2CompatibilityTest {
   /** What Jackson 2 writes for {@code new RecordAccessors("u", "v")}. */
   protected static final String RECORD_ACCESSORS_JSON = "{\"URL\":\"u\",\"getValue\":\"v\",\"url\":\"extra\",\"ok\":true}";
 
+  public static class MonthValue {
+    public Month month = Month.MARCH;
+    public Map<Month, Integer> keys = new LinkedHashMap<>(Map.of(Month.JANUARY, 1));
+  }
+
   public static class VoidGetter {
     public int getValue() { return 1; }
     public Void getNothing() { return null; }
@@ -200,6 +206,22 @@ public class Jackson2CompatibilityTest {
     assertThat(format.readValue(format.writeValue(new RecordAccessors("u", "v")), Map.class))
         .isEqualTo(format.readValue(RECORD_ACCESSORS_JSON, Map.class));
     assertThat(format.readValue("{\"URL\":\"u\",\"getValue\":\"v\"}", RecordAccessors.class)).isEqualTo(new RecordAccessors("u", "v"));
+  }
+
+  @Test
+  public void shouldWriteMonthAsEnumLikeJackson2() {
+    // Jackson 3 alone writes the month number: {"month":2,"keys":{"JANUARY":1}}
+    String json = format.writeValue(new MonthValue());
+
+    assertThat(json).isEqualTo("{\"month\":\"MARCH\",\"keys\":{\"JANUARY\":1}}");
+    MonthValue readBack = format.readValue(json, MonthValue.class);
+    assertThat(readBack.month).isEqualTo(Month.MARCH);
+    assertThat(readBack.keys).containsOnlyKeys(Month.JANUARY);
+  }
+
+  @Test
+  public void shouldWriteSqlDateAsTimestampLikeJackson2() {
+    assertThat(format.writeValue(Map.of("date", new java.sql.Date(0)))).isEqualTo("{\"date\":0}");
   }
 
   @Test

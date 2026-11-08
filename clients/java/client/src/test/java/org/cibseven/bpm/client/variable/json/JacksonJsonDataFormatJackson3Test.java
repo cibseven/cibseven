@@ -208,4 +208,19 @@ public class JacksonJsonDataFormatJackson3Test {
     assertThat(dataFormat.writeValue(Locale.US)).isEqualTo("\"en-US\"");
     assertThat(dataFormat.writeValue(new java.util.Date(0))).isEqualTo("\"1970-01-01T00:00:00.000Z\"");
   }
+
+  @Test
+  public void shouldWriteYearAndSqlDateLikeJackson2WhenDatesAreText() {
+    // given: dates as text, as a configurator may set; Jackson 2 with JavaTimeModule wrote "2020" and toString()
+    dataFormat.setObjectMapper(dataFormat.getObjectMapper().rebuild().disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build());
+    java.util.TimeZone previous = java.util.TimeZone.getDefault();
+    java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("America/New_York"));
+    try {
+      // when / then: Jackson 3 alone writes 2020 and "1970-01-01T00:00:00.000+00:00"
+      assertThat(dataFormat.writeValue(java.time.Year.of(2020))).isEqualTo("\"2020\"");
+      assertThat(dataFormat.writeValue(new java.sql.Date(0))).isEqualTo("\"1969-12-31\"");
+    } finally {
+      java.util.TimeZone.setDefault(previous);
+    }
+  }
 }
