@@ -16,16 +16,14 @@
  */
 package org.cibseven.spin.impl.json.jackson.format;
 
-import java.io.IOException;
 import java.io.Writer;
 
 import org.cibseven.spin.impl.json.jackson.JacksonJsonLogger;
 import org.cibseven.spin.spi.DataFormatWriter;
-
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * @author Daniel Meyer
@@ -43,13 +41,12 @@ public class JacksonJsonDataFormatWriter implements DataFormatWriter {
 
   public void writeToWriter(Writer writer, Object input) {
     final ObjectMapper objectMapper = dataFormat.getObjectMapper();
-    final JsonFactory factory = objectMapper.getFactory();
 
     try {
-      JsonGenerator generator = factory.createGenerator(writer);
+      JsonGenerator generator = objectMapper.createGenerator(writer);
       objectMapper.writeTree(generator, (JsonNode) input);
     }
-    catch (IOException e) {
+    catch (JacksonException e) {
       throw LOG.unableToWriteJsonNode(e);
     }
 

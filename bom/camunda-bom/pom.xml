@@ -33,6 +33,25 @@
         <artifactId>java-uuid-generator</artifactId>
         <version>${version.uuid-generator}</version>
       </dependency>
+      <!-- json-path of the Spin JSON data format: 3.0.0 or later is required for Jackson 3
+           (Jackson3JsonProvider). Spring Boot 4.1 manages json-path 2.10.0, so import this BOM
+           before spring-boot-dependencies; with spring-boot-starter-parent set the json-path.version
+           property instead. -->
+      <dependency>
+        <groupId>com.jayway.jsonpath</groupId>
+        <artifactId>json-path</artifactId>
+        <version>${version.json-path}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.minidev</groupId>
+        <artifactId>json-smart</artifactId>
+        <version>${version.json-smart}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.minidev</groupId>
+        <artifactId>accessors-smart</artifactId>
+        <version>${version.accessors-smart}</version>
+      </dependency>
       <!-- Camunda Platform public artifacts -->
       <dependency>
         <groupId>org.cibseven.bpm</groupId>

@@ -16,20 +16,18 @@
  */
 package org.cibseven.bpm.integrationtest.functional.spin.dataformat;
 
-import java.io.IOException;
 import org.cibseven.bpm.integrationtest.functional.spin.XmlSerializable;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ValueDeserializer;
 
 /**
  * @author Svetlana Dorokhova.
  */
-public class XmlSerializableJsonDeserializer extends JsonDeserializer<XmlSerializable> {
+public class XmlSerializableJsonDeserializer extends ValueDeserializer<XmlSerializable> {
 
   @Override
-  public XmlSerializable deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+  public XmlSerializable deserialize(JsonParser p, DeserializationContext ctxt) {
     XmlSerializable xmlSerializable = new XmlSerializable();
     xmlSerializable.setProperty(p.getValueAsString());
     return xmlSerializable;
