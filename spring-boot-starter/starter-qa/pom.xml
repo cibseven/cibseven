@@ -31,6 +31,7 @@
         <module>integration-test-plugins</module>
         <module>integration-test-webapp</module>
         <module>integration-test-liquibase</module>
+        <module>integration-test-jackson2</module>
       </modules>
       <build>
         <pluginManagement>
