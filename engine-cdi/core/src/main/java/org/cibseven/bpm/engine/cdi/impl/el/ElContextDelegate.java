@@ -18,6 +18,7 @@ package org.cibseven.bpm.engine.cdi.impl.el;
 
 import java.util.Locale;
 import jakarta.el.ELContext;
+import jakarta.el.ELException;
 import jakarta.el.ELResolver;
 import jakarta.el.FunctionMapper;
 import jakarta.el.VariableMapper;
@@ -91,9 +92,29 @@ public class ElContextDelegate extends ELContext {
     delegateContext.setPropertyResolved(resolved);
   }
 
+  /**
+   * Asks this wrapper's resolver first, as {@link ELContext#convertToType(Object, Class)} does,
+   * then the wrapped context, which converts with JUEL on every EL API (CIB7-2609).
+   */
   @Override
   public <T> T convertToType(Object obj, Class<T> type) {
-    // the engine's context converts with JUEL on every EL API (CIB7-2609)
+    boolean propertyResolved = isPropertyResolved();
+    try {
+      setPropertyResolved(false);
+      ELResolver resolver = getELResolver();
+      if (resolver != null) {
+        T result = resolver.convertToType(this, obj, type);
+        if (isPropertyResolved()) {
+          return result;
+        }
+      }
+    } catch (ELException e) {
+      throw e;
+    } catch (RuntimeException e) {
+      throw new ELException(e);
+    } finally {
+      setPropertyResolved(propertyResolved);
+    }
     return delegateContext.convertToType(obj, type);
   }
 
