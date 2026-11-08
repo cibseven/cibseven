@@ -3,6 +3,7 @@ package org.cibseven.bpm.engine.rest.mapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -59,6 +60,19 @@ public class JacksonConfiguratorTest {
 		assertThrows(StreamConstraintsException.class, () -> {
 			test(HIGHER_LIMIT + 1);
     	});
+	}
+
+	@Test
+	public void testDefaultMaxStringLengthIsTheLimitOfJackson2() throws Exception {
+		// without jackson.properties (the one of this test module sets 50,000,000)
+		int defaultLimit = JacksonConfigurator.readMaxStringLength(new java.util.Properties());
+		ObjectMapper mapper = JacksonConfigurator.createObjectMapperBuilder(JacksonConfigurator.DEFAULT_DATE_FORMAT, defaultLimit).build();
+
+		assertEquals(20_000_000, defaultLimit);
+		assertEquals(20_000_000, mapper.readValue("\"" + "a".repeat(20_000_000) + "\"", String.class).length());
+		StreamConstraintsException exception = assertThrows(StreamConstraintsException.class,
+				() -> mapper.readValue("\"" + "a".repeat(20_000_001) + "\"", String.class));
+		assertTrue(exception.getMessage().contains("20000000"), exception.getMessage());
 	}
 
 	@Test

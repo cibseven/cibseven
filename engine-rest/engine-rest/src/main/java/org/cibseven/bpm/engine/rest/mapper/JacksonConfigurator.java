@@ -123,8 +123,13 @@ public class JacksonConfigurator implements ContextResolver<ObjectMapper> {
       LOG.exceptionWhileReadingFile(PROPERTIES_FILE, e);
     }
 
-    maxStringLength = Integer.parseInt(properties.getProperty(LENGTH_PROPERTY, maxStringLength + ""));
+    maxStringLength = readMaxStringLength(properties);
 
+  }
+
+  /** @return <code>jackson.maxStringLength</code> of the given properties, by default {@link #DEFAULT_MAX_STRING_LENGTH} */
+  static int readMaxStringLength(Properties properties) {
+    return Integer.parseInt(properties.getProperty(LENGTH_PROPERTY, String.valueOf(DEFAULT_MAX_STRING_LENGTH)));
   }
 
   /**
@@ -145,6 +150,13 @@ public class JacksonConfigurator implements ContextResolver<ObjectMapper> {
    * @return a builder with the settings of the REST API mapper for the given date format
    */
   protected static JsonMapper.Builder createObjectMapperBuilder(String dateFormat) {
+    return createObjectMapperBuilder(dateFormat, maxStringLength);
+  }
+
+  /**
+   * @return a builder with the settings of the REST API mapper for the given date format and string limit
+   */
+  protected static JsonMapper.Builder createObjectMapperBuilder(String dateFormat, int maxStringLength) {
     StreamReadConstraints streamReadConstraints = StreamReadConstraints.builder()
         .maxStringLength(maxStringLength)
         .maxNestingDepth(MAX_NESTING_DEPTH)
