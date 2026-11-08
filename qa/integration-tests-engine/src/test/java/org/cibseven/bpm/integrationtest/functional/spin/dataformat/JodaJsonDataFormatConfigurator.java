@@ -19,8 +19,8 @@ package org.cibseven.bpm.integrationtest.functional.spin.dataformat;
 import org.cibseven.spin.impl.json.jackson.format.JacksonJsonDataFormat;
 import org.cibseven.spin.spi.DataFormatConfigurator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.datatype.joda.JodaModule;
 
 /**
  * @author Thorben Lindhauer
@@ -35,11 +35,10 @@ public class JodaJsonDataFormatConfigurator implements DataFormatConfigurator<Ja
 
   @Override
   public void configure(JacksonJsonDataFormat dataFormat) {
-    ObjectMapper objectMapper = dataFormat.getObjectMapper();
-
-    objectMapper.registerModule(new JodaModule());
-    objectMapper.configure(com.fasterxml.jackson.databind.SerializationFeature.
-        WRITE_DATES_AS_TIMESTAMPS , false);
+    dataFormat.setObjectMapper(dataFormat.getObjectMapper().rebuild()
+        .addModule(new JodaModule())
+        .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .build());
   }
 
 }
