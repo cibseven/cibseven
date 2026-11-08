@@ -18,6 +18,7 @@ package org.cibseven.bpm.engine.rest.impl;
 
 import org.cibseven.bpm.engine.rest.exception.ExceptionHandler;
 import org.cibseven.bpm.engine.rest.exception.JsonMappingExceptionHandler;
+import org.cibseven.bpm.engine.rest.exception.JsonConstraintsExceptionHandler;
 import org.cibseven.bpm.engine.rest.exception.JsonParseExceptionHandler;
 import org.cibseven.bpm.engine.rest.exception.ProcessEngineExceptionHandler;
 import org.cibseven.bpm.engine.rest.exception.RestExceptionHandler;
@@ -49,6 +50,7 @@ public class CamundaRestResources {
     CONFIGURATION_CLASSES.add(CibsevenJacksonJsonProvider.class);
     CONFIGURATION_CLASSES.add(JsonMappingExceptionHandler.class);
     CONFIGURATION_CLASSES.add(JsonParseExceptionHandler.class);
+    CONFIGURATION_CLASSES.add(JsonConstraintsExceptionHandler.class);
     CONFIGURATION_CLASSES.add(ProcessEngineExceptionHandler.class);
     CONFIGURATION_CLASSES.add(RestExceptionHandler.class);
     CONFIGURATION_CLASSES.add(MultipartPayloadProvider.class);

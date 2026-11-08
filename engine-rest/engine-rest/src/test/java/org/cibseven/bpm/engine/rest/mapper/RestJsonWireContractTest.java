@@ -816,6 +816,10 @@ public class RestJsonWireContractTest {
     public Date date = WINTER;
     public Calendar calendar = utcCalendar();
     public BigDecimal amount = new BigDecimal("1.50");
+    // Jackson 3 writes Year as number and Month as month number, and java.sql.Date with the date format
+    public java.time.Year year = java.time.Year.of(2013);
+    public java.time.Month month = java.time.Month.JANUARY;
+    public java.sql.Date sqlDate = new java.sql.Date(WINTER.getTime());
 
     static Calendar utcCalendar() {
       Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));

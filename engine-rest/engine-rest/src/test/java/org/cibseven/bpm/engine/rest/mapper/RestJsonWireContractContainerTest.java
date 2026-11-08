@@ -212,6 +212,12 @@ public class RestJsonWireContractContainerTest extends AbstractRestServiceTest {
         .pathParam("id", "processInstanceId")
         .pathParam("name", "deep")
         .put(VARIABLE_URL));
+    assertResponse("container/request-nesting-depth-1001.json", given()
+        .contentType(ContentType.JSON)
+        .body(("{\"value\":" + RestJsonWireContractTest.nestedArrays(1001) + "}").getBytes(StandardCharsets.UTF_8))
+        .pathParam("id", "processInstanceId")
+        .pathParam("name", "deep")
+        .put(VARIABLE_URL));
     assertResponse("container/request-number-overflow.json", given()
         .contentType(ContentType.JSON)
         .body("{\"retries\":99999999999}".getBytes(StandardCharsets.UTF_8))
