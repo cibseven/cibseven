@@ -20,6 +20,7 @@ import static org.cibseven.commons.utils.EnsureUtil.ensureNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import com.jayway.jsonpath.spi.json.Jackson3JsonProvider;
@@ -34,16 +35,22 @@ import org.cibseven.spin.spi.TypeDetector;
 
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.Configuration.ConfigurationBuilder;
+import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.StreamReadConstraints;
 import tools.jackson.core.StreamWriteConstraints;
 import tools.jackson.core.json.JsonFactory;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.ser.std.StdSerializer;
 import tools.jackson.databind.type.TypeFactory;
+import tools.jackson.databind.util.StdDateFormat;
 
 /**
  * Spin data format that can wrap Json content and uses
@@ -65,6 +72,9 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
    */
   public static final int MAX_NESTING_DEPTH = 1000;
 
+  /** Maximum length of a JSON string value, the default of Jackson 2 (Jackson 3: 100,000,000). */
+  public static final int MAX_STRING_LENGTH = 20_000_000;
+
   private static final JacksonJsonLogger LOG = JacksonJsonLogger.JSON_TREE_LOGGER;
 
   /** The Jackson Object Mapper used by this dataformat */
@@ -72,6 +82,9 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
 
   /** The JsonPath configuration */
   protected Configuration jsonPathConfiguration;
+
+  /** The JsonPath configuration this data format created itself; only this one follows {@link #setObjectMapper(ObjectMapper)}. */
+  protected Configuration defaultJsonPathConfiguration;
 
   protected List<TypeDetector> typeDetectors;
 
@@ -87,6 +100,7 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
 
   public JacksonJsonDataFormat(String name, ObjectMapper objectMapper) {
     this(name, objectMapper, createDefaultJsonPathConfiguration(objectMapper));
+    this.defaultJsonPathConfiguration = this.jsonPathConfiguration;
   }
 
   public JacksonJsonDataFormat(String name, ObjectMapper objectMapper, Configuration jsonPathConfiguration) {
@@ -225,10 +239,10 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
    * @param objectMapper the new object mapper
    */
   public void setObjectMapper(ObjectMapper objectMapper) {
-    ObjectMapper previousObjectMapper = this.objectMapper;
     this.objectMapper = objectMapper;
-    if (isDefaultJsonPathConfiguration(jsonPathConfiguration, previousObjectMapper)) {
+    if (jsonPathConfiguration != null && jsonPathConfiguration == defaultJsonPathConfiguration) {
       this.jsonPathConfiguration = createDefaultJsonPathConfiguration(objectMapper);
+      this.defaultJsonPathConfiguration = this.jsonPathConfiguration;
     }
   }
 
@@ -243,13 +257,39 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
    */
   public static JsonMapper createDefaultObjectMapper() {
     JsonFactory jsonFactory = JsonFactory.builderWithJackson2Defaults()
-        .streamReadConstraints(StreamReadConstraints.builder().maxNestingDepth(MAX_NESTING_DEPTH).build())
-        .streamWriteConstraints(StreamWriteConstraints.builder().maxNestingDepth(MAX_NESTING_DEPTH).build())
+        .streamReadConstraints(StreamReadConstraints.defaults().rebuild()
+            .maxNestingDepth(MAX_NESTING_DEPTH)
+            .maxStringLength(MAX_STRING_LENGTH)
+            .build())
+        .streamWriteConstraints(StreamWriteConstraints.defaults().rebuild().maxNestingDepth(MAX_NESTING_DEPTH).build())
         .build();
     return JsonMapper.builder(jsonFactory)
         .configureForJackson2()
+        // dates with @JsonFormat(shape = STRING) and no pattern: "+00:00" for a zero offset like Jackson 2, not "Z"
+        .defaultDateFormat(new StdDateFormat().withColonInTimeZone(true).withZeroOffsetAsZ(false))
+        // defaultDateFormat(...) turns WRITE_DATES_AS_TIMESTAMPS off; Spin writes other dates as timestamps like Jackson 2
+        .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .addModule(new SimpleModule("cibseven-spin-jackson2-compatibility")
+            .addSerializer(Locale.class, new Jackson2LocaleSerializer()))
         .build();
   }
+
+  /**
+   * Writes a {@link Locale} with {@link Locale#toString()} ({@code "en_US"}) like Jackson 2. Jackson 3 writes the
+   * language tag ({@code "en-US"}); both forms are read back.
+   */
+  protected static class Jackson2LocaleSerializer extends StdSerializer<Locale> {
+
+    public Jackson2LocaleSerializer() {
+      super(Locale.class);
+    }
+
+    @Override
+    public void serialize(Locale value, JsonGenerator generator, SerializationContext context) {
+      generator.writeString(value.toString());
+    }
+  }
+
 
   /**
    * Builds the JsonPath {@link Configuration} this data format uses by default:
@@ -270,18 +310,6 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
     }
   }
 
-  /**
-   * @return true if the configuration is the one {@link #createDefaultJsonPathConfiguration(ObjectMapper)}
-   * builds for the given object mapper (no options, no evaluation listeners)
-   */
-  protected static boolean isDefaultJsonPathConfiguration(Configuration configuration, ObjectMapper objectMapper) {
-    return configuration != null
-        && configuration.jsonProvider() instanceof Jackson3JsonProvider
-        && ((Jackson3JsonProvider) configuration.jsonProvider()).getObjectMapper() == objectMapper
-        && configuration.mappingProvider() instanceof Jackson3MappingProvider
-        && configuration.getOptions().isEmpty()
-        && configuration.getEvaluationListeners().isEmpty();
-  }
 
   // helper functions //////////////////////////////////////////
 

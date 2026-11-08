@@ -72,6 +72,39 @@ public class JacksonJsonDataFormatTest {
   }
 
   @Test
+  public void shouldKeepUserJsonPathConfigurationThatLooksLikeTheDefault() {
+    // given: a configuration of the user with the same provider types and the same mapper as the default one
+    JacksonJsonDataFormat format = new JacksonJsonDataFormat("test");
+    ObjectMapper mapper = format.getObjectMapper();
+    Configuration userConfiguration = Configuration.builder()
+        .jsonProvider(new Jackson3JsonProvider(mapper))
+        .mappingProvider(new com.jayway.jsonpath.spi.mapper.Jackson3MappingProvider(mapper))
+        .build();
+    format.setJsonPathConfiguration(userConfiguration);
+
+    // when
+    format.setObjectMapper(mapper.rebuild().build());
+
+    // then: only the configuration the data format created itself follows the new mapper
+    assertThat(format.getJsonPathConfiguration()).isSameAs(userConfiguration);
+  }
+
+  @Test
+  public void shouldRebuildDefaultJsonPathConfigurationOnEveryNewObjectMapper() {
+    // given
+    JacksonJsonDataFormat format = new JacksonJsonDataFormat("test");
+    format.setObjectMapper(format.getObjectMapper().rebuild().build());
+    ObjectMapper secondMapper = format.getObjectMapper().rebuild().build();
+
+    // when
+    format.setObjectMapper(secondMapper);
+
+    // then
+    assertThat(((Jackson3JsonProvider) format.getJsonPathConfiguration().jsonProvider()).getObjectMapper())
+        .isSameAs(secondMapper);
+  }
+
+  @Test
   public void shouldKeepJsonPathConfigurationOfOtherObjectMapper() {
     // given
     ObjectMapper otherMapper = JsonMapper.builder().build();
