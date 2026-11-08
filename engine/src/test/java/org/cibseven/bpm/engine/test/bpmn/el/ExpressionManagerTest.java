@@ -190,6 +190,34 @@ public class ExpressionManagerTest extends PluggableProcessEngineTest {
     assertThat(userTask).isNotNull();
   }
 
+  @Test
+  public void shouldConvertNullMethodArgumentWithJuel() {
+    // given: JUEL converts null to 0 for a Long parameter, as CIB seven 2.2 did. The EL 3+
+    // implementations of Tomcat, WildFly and JBoss EAP would pass null (CIB7-2609).
+    BpmnModelInstance process = Bpmn.createExecutableProcess("testProcess")
+        .startEvent()
+        .serviceTask()
+          .camundaExpression("${limit.compareTo(missing)}")
+          .camundaResultVariable("result")
+        .userTask("wait")
+        .endEvent()
+        .done();
+
+    deploymentId = repositoryService.createDeployment()
+        .addModelInstance("testProcess.bpmn", process)
+        .deploy()
+        .getId();
+
+    // when
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testProcess",
+        Variables.createVariables()
+            .putValue("limit", 5L)
+            .putValue("missing", null));
+
+    // then: Long#compareTo(0L), not a NullPointerException from Long#compareTo(null)
+    assertThat(runtimeService.getVariable(processInstance.getId(), "result")).isEqualTo(1);
+  }
+
   @Deployment
   @Test
   public void shouldResolveMethodExpressionTwoParametersSameType() {

@@ -32,6 +32,7 @@ import javax.script.SimpleBindings;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.el.ExpressionFactoryResolver;
+import org.cibseven.bpm.engine.impl.el.ProcessEngineElContext;
 import org.cibseven.bpm.impl.juel.SimpleResolver;
 
 import jakarta.el.ArrayELResolver;
@@ -154,28 +155,17 @@ public class JuelScriptEngine extends AbstractScriptEngine {
       scriptCtx.setAttribute("lang:import", getImportMethod(), ScriptContext.ENGINE_SCOPE);
     }
 
-    ELContext elContext = new ELContext() {
+    // ProcessEngineElContext converts with the factory put into the context, i.e. with JUEL, on
+    // every EL API, not with the server's EL implementation (CIB7-2609)
+    ELContext elContext = new ProcessEngineElContext(new ScriptContextFunctionMapper(scriptCtx), createElResolver()) {
 
-      ELResolver resolver = createElResolver();
-      VariableMapper varMapper = new ScriptContextVariableMapper(scriptCtx);
-      FunctionMapper funcMapper = new ScriptContextFunctionMapper(scriptCtx);
-
-      @Override
-      public ELResolver getELResolver() {
-        return resolver;
-      }
+      final VariableMapper varMapper = new ScriptContextVariableMapper(scriptCtx);
 
       @Override
       public VariableMapper getVariableMapper() {
         return varMapper;
       }
-
-      @Override
-      public FunctionMapper getFunctionMapper() {
-        return funcMapper;
-      }
     };
-    // convert with JUEL instead of the global jakarta.el.ELManager (CIB7-2609)
     elContext.putContext(ExpressionFactory.class, expressionFactory);
     // Store the elcontext in the scriptContext to be able to reuse
     scriptCtx.setAttribute("elcontext", elContext, ScriptContext.ENGINE_SCOPE);
