@@ -21,8 +21,7 @@ import java.text.SimpleDateFormat;
 import org.cibseven.spin.impl.json.jackson.format.JacksonJsonDataFormat;
 import org.cibseven.spin.spi.DataFormatConfigurator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import tools.jackson.databind.cfg.DateTimeFeature;
 
 /**
  * @author Thorben Lindhauer
@@ -39,10 +38,10 @@ public class JsonDataFormatConfigurator implements DataFormatConfigurator<Jackso
 
   @Override
   public void configure(JacksonJsonDataFormat dataFormat) {
-    ObjectMapper objectMapper = dataFormat.getObjectMapper();
-    objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-    objectMapper.setDateFormat(DATE_FORMAT);
-
+    dataFormat.setObjectMapper(dataFormat.getObjectMapper().rebuild()
+        .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .defaultDateFormat(DATE_FORMAT)
+        .build());
   }
 
 }
