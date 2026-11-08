@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.impl.optimize;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.engine.history.HistoricActivityInstance;
 import org.cibseven.bpm.engine.history.HistoricDecisionInstance;
 import org.cibseven.bpm.engine.history.HistoricIncident;

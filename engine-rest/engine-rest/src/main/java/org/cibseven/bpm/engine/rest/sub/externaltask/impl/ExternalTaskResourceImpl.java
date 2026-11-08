@@ -37,7 +37,7 @@ import org.cibseven.bpm.engine.rest.exception.RestException;
 import org.cibseven.bpm.engine.rest.sub.externaltask.ExternalTaskResource;
 import org.cibseven.bpm.engine.variable.VariableMap;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * @author Thorben Lindhauer

@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.sub.repository.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.BadUserRequestException;

@@ -32,7 +32,7 @@ import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.runtime.ModificationBuilder;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceQuery;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class ModificationRestServiceImpl extends AbstractRestProcessEngineAware implements ModificationRestService {
 

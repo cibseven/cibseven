@@ -1,0 +1,2 @@
+HTTP 200
+[{"@class":"org.cibseven.bpm.engine.rest.dto.repository.ProcessDefinitionStatisticsResultDto","id":"invoice:1:abc","instances":7,"failedJobs":2,"incidents":[{"incidentType":"failedJob","incidentCount":3}],"definition":{"id":"invoice:1:abc","key":"invoice","category":null,"description":null,"name":null,"version":0,"resource":null,"deploymentId":null,"diagram":null,"suspended":false,"tenantId":null,"versionTag":null,"historyTimeToLive":0,"startableInTasklist":false}}]

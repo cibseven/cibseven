@@ -17,7 +17,7 @@
 package org.cibseven.bpm.cockpit.rest.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.cockpit.db.QueryParameters;
 import org.cibseven.bpm.engine.impl.db.sql.MybatisJoinHelper;
 import org.cibseven.bpm.engine.rest.dto.CamundaQueryParam;

@@ -34,47 +34,39 @@
       <artifactId>commons-io</artifactId>
     </dependency>
 
+    <!-- Jackson 3 (versions from tools.jackson:jackson-bom, imported in the parent POM) -->
     <dependency>
-      <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
+      <groupId>tools.jackson.jakarta.rs</groupId>
       <artifactId>jackson-jakarta-rs-json-provider</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>jakarta.activation</groupId>
-          <artifactId>jakarta.activation-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>jakarta.xml.bind</groupId>
-          <artifactId>jakarta.xml.bind-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
-      <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
+    <dependency>
+      <groupId>tools.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <!-- Jackson 3 keeps the Jackson 2 annotations (com.fasterxml.jackson.annotation, 2.21) -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+    </dependency>
+
+    <dependency> <!-- https://github.com/jwtk/jjwt -->
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-api</artifactId>
+      <version>${version.jjwt}</version>
     </dependency>
 
     <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jsr310</artifactId>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-impl</artifactId>
+      <version>${version.jjwt}</version>
     </dependency>
-    
-	<dependency> <!-- https://github.com/jwtk/jjwt -->
-	  <groupId>io.jsonwebtoken</groupId>
-	  <artifactId>jjwt-api</artifactId>
-	  <version>${version.jjwt}</version>
-	</dependency>
-	
-	<dependency>
-	  <groupId>io.jsonwebtoken</groupId>
-	  <artifactId>jjwt-impl</artifactId>
-	  <version>${version.jjwt}</version>
-	</dependency>
-	
-	<dependency>
-	  <groupId>io.jsonwebtoken</groupId>
-	  <artifactId>jjwt-jackson</artifactId> <!-- or jjwt-gson if Gson is preferred -->
-	  <version>${version.jjwt}</version>
-	</dependency>
+
+    <!-- JSON backend of jjwt: Gson, as jjwt has no Jackson 3 support (jjwt#1029) -->
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-gson</artifactId>
+      <version>${version.jjwt}</version>
+    </dependency>
 
     <!-- provided deps -->
     <dependency>
@@ -215,6 +207,12 @@
         <artifactId>system-stubs-jupiter</artifactId>
         <version>2.1.8</version>
         <scope>test</scope>
+    </dependency>
+    <!-- REST-assured (de)serializes request and response bodies with Jackson 2 -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.rest-assured</groupId>

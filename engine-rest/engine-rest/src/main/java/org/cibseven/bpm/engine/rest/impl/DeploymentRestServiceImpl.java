@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.util.ArrayList;
