@@ -248,6 +248,19 @@ pipeline {
                             // Temporary disable postgres test because of access issue for tmp dir on Jenkins
                             steps { script { withMaven { sh "mvn -nsu -f engine/pom.xml test -Pdb-table-prefix -DOPTIONAL_PGTEST_EXCLUDE=**/DbIdentityServicePGTest.java" }}}
                         }
+                        // after engine-api-compatibility: that stage rebuilds engine/target/*.jar, which the
+                        // Quarkus extension plugin reads from the workspace ("zip END header not found", CIB7-2642)
+                        stage('quarkus-extension') {
+                            steps {
+                                script { withMaven {
+                                    // need to cleanup JUEL when running: https://github.com/camunda/camunda-bpm-platform/issues/3419#issuecomment-1720916174
+                                    sh "mvn -nsu -f juel/pom.xml clean"
+                                    sh "mvn -nsu -f quarkus-extension/pom.xml clean install -Pquarkus-tests"
+                                    sh "mvn -nsu -f juel/pom.xml install"
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 stage('webapp-UNIT-database-table-prefix') {
@@ -262,21 +275,6 @@ pipeline {
                         }
                         stage('engine-rest-UNIT-ee10-compatibility') {
                             steps { script { engineRestTest('ee10-compatibility') }}
-                        }
-                    }
-                }
-                stage("quarkus") {
-                    stages {
-                        stage('quarkus-extension') {
-                            steps {
-                                script { withMaven {
-                                    // need to cleanup JUEL when running: https://github.com/camunda/camunda-bpm-platform/issues/3419#issuecomment-1720916174
-                                    sh "mvn -nsu -f juel/pom.xml clean"
-                                    sh "mvn -nsu -f quarkus-extension/pom.xml clean install -Pquarkus-tests"
-                                    sh "mvn -nsu -f juel/pom.xml install"
-                                    }
-                                }
-                            }
                         }
                     }
                 }
