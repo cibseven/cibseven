@@ -27,17 +27,15 @@ import org.cibseven.bpm.client.spi.DataFormat;
 import org.cibseven.bpm.client.variable.impl.format.TypeDetector;
 
 import tools.jackson.core.JacksonException;
-import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.StreamReadConstraints;
 import tools.jackson.core.StreamWriteConstraints;
 import tools.jackson.core.json.JsonFactory;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.module.SimpleModule;
-import tools.jackson.databind.ser.std.StdSerializer;
+import tools.jackson.databind.ser.std.ToStringSerializer;
 import tools.jackson.databind.util.StdDateFormat;
 
 /**
@@ -101,27 +99,12 @@ public class JacksonJsonDataFormat implements DataFormat {
         .defaultDateFormat(new StdDateFormat().withColonInTimeZone(true).withZeroOffsetAsZ(false))
         // defaultDateFormat(...) turns WRITE_DATES_AS_TIMESTAMPS off; other dates stay timestamps like Jackson 2
         .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+        // a Locale with toString() ("en_US") like Jackson 2, not as language tag ("en-US"); both forms are read back.
+        // ToStringSerializer, as in Jackson 2, also keeps type ids and "" as empty value (Locale.ROOT, NON_EMPTY)
         .addModule(new SimpleModule("cibseven-client-jackson2-compatibility")
-            .addSerializer(Locale.class, new Jackson2LocaleSerializer()))
+            .addSerializer(Locale.class, new ToStringSerializer(Locale.class)))
         .build();
   }
-
-  /**
-   * Writes a {@link Locale} with {@link Locale#toString()} ({@code "en_US"}) like Jackson 2. Jackson 3 writes the
-   * language tag ({@code "en-US"}); both forms are read back.
-   */
-  protected static class Jackson2LocaleSerializer extends StdSerializer<Locale> {
-
-    public Jackson2LocaleSerializer() {
-      super(Locale.class);
-    }
-
-    @Override
-    public void serialize(Locale value, JsonGenerator generator, SerializationContext context) {
-      generator.writeString(value.toString());
-    }
-  }
-
 
   public String getName() {
     return name;

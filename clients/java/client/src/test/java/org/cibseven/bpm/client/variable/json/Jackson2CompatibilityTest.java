@@ -28,6 +28,8 @@ import org.cibseven.bpm.client.variable.impl.format.json.JacksonJsonDataFormat;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * Cases where Jackson 3 differs from Jackson 2 out of the box and the client's JSON data format keeps the
@@ -41,6 +43,18 @@ public class Jackson2CompatibilityTest {
     public Locale locale = Locale.US;
     public Locale language = Locale.GERMAN;
     public Locale root = Locale.ROOT;
+  }
+
+  public static class PolymorphicLocale {
+    @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
+    public Object value = Locale.US;
+  }
+
+  public static class NonEmptyLocales {
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Locale root = Locale.ROOT;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Locale locale = Locale.US;
   }
 
   public static class FormattedDates {
@@ -65,6 +79,17 @@ public class Jackson2CompatibilityTest {
   public void shouldReadLocaleInBothForms() {
     assertThat(format.readValue("{\"locale\":\"en_US\"}", LocaleHolder.class).locale).isEqualTo(Locale.US);
     assertThat(format.readValue("{\"locale\":\"en-US\"}", LocaleHolder.class).locale).isEqualTo(Locale.US);
+  }
+
+  @Test
+  public void shouldWriteLocaleWithTypeInformation() {
+    assertThat(format.writeValue(new PolymorphicLocale())).isEqualTo("{\"value\":[\"java.util.Locale\",\"en_US\"]}");
+  }
+
+  @Test
+  public void shouldSkipRootLocaleAsEmpty() {
+    // Locale.ROOT is written as "" and counts as empty, so NON_EMPTY leaves it out
+    assertThat(format.writeValue(new NonEmptyLocales())).isEqualTo("{\"locale\":\"en_US\"}");
   }
 
   @Test
