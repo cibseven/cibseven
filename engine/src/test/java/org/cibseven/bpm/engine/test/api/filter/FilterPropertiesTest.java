@@ -123,6 +123,35 @@ public class FilterPropertiesTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
+  public void testDeeplyNestedProperties() {
+    // given properties nested 700 levels deep (CIB7-2634: Gson reads only 255 levels by default)
+    Map<String, Object> properties = new HashMap<>();
+    Map<String, Object> current = properties;
+    for (int i = 1; i < 700; i++) {
+      Map<String, Object> nested = new HashMap<>();
+      current.put("nested", nested);
+      current = nested;
+    }
+    current.put("value", 42);
+    filter.setProperties(properties);
+    filterService.saveFilter(filter);
+
+    // when
+    filter = filterService.getFilter(filter.getId());
+
+    // then
+    int depth = 1;
+    Map<String, Object> persistentProperties = filter.getProperties();
+    while (persistentProperties.containsKey("nested")) {
+      persistentProperties = (Map<String, Object>) persistentProperties.get("nested");
+      depth++;
+    }
+    assertEquals(700, depth);
+    assertEquals(42, persistentProperties.get("value"));
+  }
+
+  @Test
   public void testMapContainingListProperty() {
     // given
     Map properties = Collections.singletonMap("foo", Collections.singletonList("bar"));

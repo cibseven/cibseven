@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.telemetry.TelemetryLogger;
+import org.cibseven.bpm.engine.impl.util.JsonUtil;
 import org.cibseven.bpm.engine.telemetry.LicenseKeyData;
 
 import com.google.gson.Gson;
@@ -57,7 +58,7 @@ public class LicenseKeyDataImpl implements LicenseKeyData {
 
   public static LicenseKeyDataImpl fromRawString(String rawLicense) {
     try {
-      LicenseKeyDataImpl resultLicense = new Gson().fromJson(rawLicense, LicenseKeyDataImpl.class);
+      LicenseKeyDataImpl resultLicense = JsonUtil.fromJson(new Gson(), rawLicense, LicenseKeyDataImpl.class);
       resultLicense.setRaw(null);
       return resultLicense;
     } catch (JsonSyntaxException e) {
