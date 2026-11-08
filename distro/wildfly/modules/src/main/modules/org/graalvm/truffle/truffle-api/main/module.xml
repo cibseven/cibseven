@@ -9,7 +9,6 @@
     <module name="java.sql" />
     <module name="jdk.unsupported" />
     <module name="org.graalvm.sdk.graal-sdk" services="export" export="true" />
-    <!-- Truffle.getRuntime() looks up its TruffleRuntimeAccess with the ServiceLoader of this module's class loader -->
-    <module name="org.graalvm.truffle.truffle-runtime" services="import" optional="true" />
+    <module name="org.graalvm.sdk.jniutils" />
   </dependencies>
 </module>

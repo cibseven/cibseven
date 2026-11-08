@@ -6,6 +6,5 @@
   <dependencies>
     <module name="java.base" />
     <module name="jdk.unsupported" />
-    <module name="org.graalvm.sdk.word" />
   </dependencies>
 </module>
