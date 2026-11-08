@@ -58,6 +58,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response.Status;
 import org.assertj.core.api.Assertions;
@@ -125,6 +126,9 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
@@ -506,6 +510,49 @@ public class ProcessInstanceRestServiceInteractionTest extends AbstractRestServi
         eq(true),
         eq(false)
     );
+  }
+
+  static Stream<Arguments> skipSubprocessesValues() {
+    // CIB7-2633: null and a missing property must both mean "false", like the other skip flags
+    return Stream.of(
+        Arguments.of("null", ",\"skipSubprocesses\":null", false),
+        Arguments.of("missing", "", false),
+        Arguments.of("true", ",\"skipSubprocesses\":true", true),
+        Arguments.of("false", ",\"skipSubprocesses\":false", false));
+  }
+
+  @ParameterizedTest(name = "skipSubprocesses {0}")
+  @MethodSource("skipSubprocessesValues")
+  public void testDeleteAsyncSkipSubprocessesValues(String value, String skipSubprocessesJson, boolean expected) {
+    List<String> ids = List.of(MockProvider.EXAMPLE_PROCESS_INSTANCE_ID);
+    when(runtimeServiceMock.deleteProcessInstancesAsync(any(), any(), any(), anyString(), anyBoolean(), anyBoolean(), anyBoolean())).thenReturn(new BatchEntity());
+
+    given()
+        .contentType(ContentType.JSON)
+        .body("{\"processInstanceIds\":[\"" + MockProvider.EXAMPLE_PROCESS_INSTANCE_ID + "\"],"
+            + "\"deleteReason\":\"" + TEST_DELETE_REASON + "\"" + skipSubprocessesJson + "}")
+        .then().expect()
+        .statusCode(Status.OK.getStatusCode())
+        .when().post(DELETE_PROCESS_INSTANCES_ASYNC_URL);
+
+    verify(runtimeServiceMock).deleteProcessInstancesAsync(ids, null, null, TEST_DELETE_REASON, false, expected, false);
+  }
+
+  @ParameterizedTest(name = "skipSubprocesses {0}")
+  @MethodSource("skipSubprocessesValues")
+  public void testDeleteAsyncHistoricQueryBasedSkipSubprocessesValues(String value, String skipSubprocessesJson, boolean expected) {
+    List<String> ids = List.of(MockProvider.EXAMPLE_PROCESS_INSTANCE_ID);
+    when(runtimeServiceMock.deleteProcessInstancesAsync(any(), any(), any(), anyString(), anyBoolean(), anyBoolean(), anyBoolean())).thenReturn(new BatchEntity());
+
+    given()
+        .contentType(ContentType.JSON)
+        .body("{\"processInstanceIds\":[\"" + MockProvider.EXAMPLE_PROCESS_INSTANCE_ID + "\"],"
+            + "\"deleteReason\":\"" + TEST_DELETE_REASON + "\"" + skipSubprocessesJson + "}")
+        .then().expect()
+        .statusCode(Status.OK.getStatusCode())
+        .when().post(DELETE_PROCESS_INSTANCES_ASYNC_HIST_QUERY_URL);
+
+    verify(runtimeServiceMock).deleteProcessInstancesAsync(ids, null, null, TEST_DELETE_REASON, false, expected, false);
   }
 
   @Test
