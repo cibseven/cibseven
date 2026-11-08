@@ -18,6 +18,7 @@ package org.cibseven.bpm.client.impl;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.cibseven.bpm.client.exception.ConnectionLostException;
 import org.cibseven.bpm.client.exception.ExternalTaskClientException;
@@ -41,6 +42,8 @@ import org.cibseven.commons.logging.BaseLogger;
  * @author Tassilo Weidner
  */
 public class ExternalTaskClientLogger extends BaseLogger {
+
+  private static final AtomicBoolean JACKSON2_VARIANT_DEPRECATION_LOGGED = new AtomicBoolean();
 
   protected static final String PROJECT_CODE = "TASK/CLIENT";
   protected static final String PROJECT_LOGGER = "org.cibseven.bpm.client";
@@ -265,6 +268,23 @@ public class ExternalTaskClientLogger extends BaseLogger {
   public ExternalTaskClientException oauth2TokenAcquisitionFailedException(Throwable cause) {
     return new ExternalTaskClientException(exceptionMessage(
       "034", "Failed to acquire OAuth2 access token from token endpoint"), cause);
+  }
+
+  /**
+   * Logged once per JVM by the deprecated Jackson 2 variant (cibseven-external-task-client-jackson2).
+   */
+  public void jackson2VariantDeprecated() {
+    if (JACKSON2_VARIANT_DEPRECATION_LOGGED.compareAndSet(false, true)) {
+      logWarn("036", "cibseven-external-task-client-jackson2 (Jackson 2) is deprecated and will be removed in "
+          + "CIB seven 3.1.0. Use cibseven-external-task-client (Jackson 3).");
+    }
+  }
+
+  public ExternalTaskClientException bothJacksonVariantsOnClasspathException(Object jackson3Marker, Object jackson2Marker) {
+    return new ExternalTaskClientException(exceptionMessage(
+      "035", "Both cibseven-external-task-client (Jackson 3, {}) and the deprecated cibseven-external-task-client-jackson2 "
+          + "(Jackson 2, {}) are on the class path. They contain the same classes; keep exactly one of them.",
+      jackson3Marker, jackson2Marker));
   }
 
 }
