@@ -18,9 +18,14 @@ package org.cibseven.bpm.client.variable.impl.format.json;
 
 import org.cibseven.bpm.client.variable.impl.format.TypeDetector;
 
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import tools.jackson.databind.type.TypeFactory;
 
 public class DefaultJsonJacksonTypeDetector implements TypeDetector {
+
+  /**
+   * Jackson 3 has no shared {@code TypeFactory.defaultInstance()}; the type names only depend on the classes.
+   */
+  protected static final TypeFactory TYPE_FACTORY = TypeFactory.createDefaultInstance();
 
   public boolean canHandle(Object object) {
     return true;
@@ -28,7 +33,7 @@ public class DefaultJsonJacksonTypeDetector implements TypeDetector {
 
   public String detectType(Object object) {
     Class<?> type = object.getClass();
-    return TypeFactory.defaultInstance().constructType(type).toCanonical();
+    return TYPE_FACTORY.constructType(type).toCanonical();
   }
 
 }
