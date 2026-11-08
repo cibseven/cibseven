@@ -23,10 +23,10 @@ import org.cibseven.bpm.engine.impl.el.ReadOnlyMapELResolver;
 import org.cibseven.bpm.engine.impl.el.VariableContextElResolver;
 import org.cibseven.bpm.engine.impl.el.VariableScopeElResolver;
 import org.cibseven.bpm.engine.test.mock.MockElResolver;
+import org.cibseven.bpm.impl.juel.JuelBeanELResolver;
 import org.springframework.context.ApplicationContext;
 
 import jakarta.el.ArrayELResolver;
-import jakarta.el.BeanELResolver;
 import jakarta.el.CompositeELResolver;
 import jakarta.el.ELResolver;
 import jakarta.el.ListELResolver;
@@ -83,7 +83,7 @@ public class SpringExpressionManager extends JuelExpressionManager {
     compositeElResolver.add(new ArrayELResolver());
     compositeElResolver.add(new ListELResolver());
     compositeElResolver.add(new MapELResolver());
-    compositeElResolver.add(new BeanELResolver());
+    compositeElResolver.add(new JuelBeanELResolver());
 
     return compositeElResolver;
   }

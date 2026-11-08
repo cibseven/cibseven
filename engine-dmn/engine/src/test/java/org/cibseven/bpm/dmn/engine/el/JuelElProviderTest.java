@@ -53,10 +53,31 @@ public class JuelElProviderTest {
   }
 
   @Test
-  public void shouldFindAnElImplementationOnTheRuntimeClasspath() {
+  public void shouldConvertNullMethodArgumentWithJuel() {
+    ElExpression expression = new JuelElProvider().createExpression("${bean.describe(missing)}");
+
+    Object value = expression.getValue(createVariables()
+        .putValue("bean", new ArgumentBean())
+        .putValue("missing", null)
+        .asVariableContext());
+
+    // JUEL converts null to 0 for a Long parameter, as CIB seven 2.2 did; EL 3+ would pass null
+    assertThat(value).isEqualTo("0");
+  }
+
+  @Test
+  public void shouldFindAnElImplementation() {
     // jakarta.el.BeanELResolver asks the global jakarta.el.ELManager whether an argument can be
-    // converted. cibseven-engine-dmn therefore brings org.glassfish.expressly:expressly at runtime.
+    // converted, so cibseven-engine-dmn brings org.glassfish.expressly:expressly at runtime. The test
+    // class path contains test-scoped dependencies too, so this test cannot tell runtime from test
+    // scope; the engine test suite (JuelScriptEngineTest, ExpressionManagerTest) does.
     assertThat(ExpressionFactory.newInstance()).isNotNull();
+  }
+
+  public static class ArgumentBean {
+    public String describe(Long value) {
+      return String.valueOf(value);
+    }
   }
 
 }
