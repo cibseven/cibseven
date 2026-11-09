@@ -14,26 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.spring.boot.starter.property.csrf;
+package org.cibseven.bpm.spring.boot.starter.property.webapppath;
 
-import org.cibseven.bpm.spring.boot.starter.property.CsrfProperties;
-import org.cibseven.bpm.spring.boot.starter.property.ParsePropertiesHelper;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyParsePropertiesHelper;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@TestPropertySource(properties = {
-  "camunda.bpm.webapp.csrf.enableSameSiteCookie=false"
-})
-public class CookieSameSiteDisabledTest extends ParsePropertiesHelper {
+public class LegacyWebAppPathPropertyDefaultTest extends LegacyParsePropertiesHelper {
 
   @Test
-  public void shouldCheckSameSiteCookieDisabled() {
-    CsrfProperties properties = webapp.getCsrf();
+  public void shouldDefaultToCamundaPrefix() {
+    // given
 
-    assertThat(properties.isEnableSameSiteCookie()).isFalse();
-    assertThat(properties.getInitParams()).containsEntry("enableSameSiteCookie", "false");
+    // when
+    String applicationPath = webapp.getLegacyApplicationPath();
+
+    // then
+    assertThat(applicationPath).isEqualTo("/camunda");
   }
 
 }

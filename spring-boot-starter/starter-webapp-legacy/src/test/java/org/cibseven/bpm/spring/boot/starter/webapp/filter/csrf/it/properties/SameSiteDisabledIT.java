@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.spring.boot.starter.webapp.filter.csrf.it.properties;
 
-import org.cibseven.bpm.spring.boot.starter.property.WebappProperty;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyWebappProperty;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.util.HttpClientRule;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.util.FilterTestApp;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -53,7 +53,7 @@ public class SameSiteDisabledIT {
 
     // TODO: adjust test to cibseven webclient and comment this out
     assertThat(xsrfCookieValue).matches("XSRF-TOKEN=[A-Z0-9]{32};" +
-        "Path=" + WebappProperty.LEGACY_APP_PATH);
+        "Path=" + LegacyWebappProperty.LEGACY_APP_PATH);
     assertThat(xsrfTokenHeader).matches("[A-Z0-9]{32}");
 
     // TODO: adjust test to cibseven webclient and uncomment this

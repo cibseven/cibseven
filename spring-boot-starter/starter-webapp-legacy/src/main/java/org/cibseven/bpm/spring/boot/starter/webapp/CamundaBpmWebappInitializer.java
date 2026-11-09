@@ -34,8 +34,7 @@ import org.cibseven.bpm.cockpit.impl.web.CockpitApplication;
 import org.cibseven.bpm.cockpit.impl.web.bootstrap.CockpitContainerBootstrap;
 import org.cibseven.bpm.engine.rest.filter.CacheControlFilter;
 import org.cibseven.bpm.engine.rest.filter.EmptyBodyFilter;
-import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
-import org.cibseven.bpm.spring.boot.starter.property.WebappProperty;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyWebappProperty;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.AppendTrailingSlashFilter;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.LazyProcessEnginesFilter;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.LazySecurityFilter;
@@ -68,10 +67,10 @@ public class CamundaBpmWebappInitializer implements ServletContextInitializer {
 
   private ServletContext servletContext;
 
-  private final CamundaBpmProperties properties;
+  private final LegacyWebappProperty webapp;
 
-  public CamundaBpmWebappInitializer(CamundaBpmProperties properties) {
-    this.properties = properties;
+  public CamundaBpmWebappInitializer(LegacyWebappProperty webapp) {
+    this.webapp = webapp;
   }
 
   @Override
@@ -86,7 +85,6 @@ public class CamundaBpmWebappInitializer implements ServletContextInitializer {
     servletContext.addListener(new WelcomeContainerBootstrap());
     servletContext.addListener(new HttpSessionMutexListener());
 
-    WebappProperty webapp = properties.getWebapp();
     String legacyApplicationPath = webapp.getLegacyApplicationPath();
 
     ServletContextUtil.setAppPath(legacyApplicationPath, servletContext);
@@ -146,7 +144,7 @@ public class CamundaBpmWebappInitializer implements ServletContextInitializer {
 		legacyApplicationPath + "/api/welcome/*");
   }
 
-  protected String getAuthCacheTTL(WebappProperty webapp) {
+  protected String getAuthCacheTTL(LegacyWebappProperty webapp) {
     long authCacheTTL = webapp.getAuth().getCache().getTimeToLive();
     boolean authCacheTTLEnabled = webapp.getAuth().getCache().isTtlEnabled();
     if (authCacheTTLEnabled) {

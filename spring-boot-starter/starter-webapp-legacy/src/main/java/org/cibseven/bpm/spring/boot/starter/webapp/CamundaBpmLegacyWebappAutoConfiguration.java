@@ -17,6 +17,7 @@
 package org.cibseven.bpm.spring.boot.starter.webapp;
 
 import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyWebappProperty;
 import org.cibseven.bpm.spring.boot.starter.property.WebappProperty;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.LazyDelegateFilter.InitHook;
 import org.cibseven.bpm.spring.boot.starter.webapp.filter.LazyInitRegistration;
@@ -27,6 +28,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnResource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
@@ -46,24 +48,28 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @ConditionalOnBean(CamundaBpmProperties.class)
 @ConditionalOnWebApplication
 @AutoConfigureAfter(CamundaBpmWebappAutoConfiguration.class)
+@EnableConfigurationProperties(LegacyWebappProperty.class)
 public class CamundaBpmLegacyWebappAutoConfiguration implements WebMvcConfigurer {
 
   private final CamundaBpmProperties properties;
 
-  public CamundaBpmLegacyWebappAutoConfiguration(CamundaBpmProperties properties) {
+  private final LegacyWebappProperty legacyWebapp;
+
+  public CamundaBpmLegacyWebappAutoConfiguration(CamundaBpmProperties properties, LegacyWebappProperty legacyWebapp) {
     this.properties = properties;
+    this.legacyWebapp = legacyWebapp;
   }
 
   @Bean
   public CamundaBpmWebappInitializer camundaBpmWebappInitializer() {
-    return new CamundaBpmWebappInitializer(properties);
+    return new CamundaBpmWebappInitializer(legacyWebapp);
   }
 
   @Bean(name = "resourceLoaderDependingInitHook")
   public InitHook<ResourceLoaderDependingFilter> resourceLoaderDependingInitHook(ResourceLoader resourceLoader) {
     return filter -> {
       filter.setResourceLoader(resourceLoader);
-      filter.setWebappProperty(properties.getWebapp());
+      filter.setWebappProperty(properties.getWebapp(), legacyWebapp);
     };
   }
 
@@ -79,8 +85,8 @@ public class CamundaBpmLegacyWebappAutoConfiguration implements WebMvcConfigurer
 
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
-    final String legacyClasspath = "classpath:" + properties.getWebapp().getLegacyWebjarClasspath();
-    String legacyApplicationPath = properties.getWebapp().getLegacyApplicationPath();
+    final String legacyClasspath = "classpath:" + legacyWebapp.getLegacyWebjarClasspath();
+    String legacyApplicationPath = legacyWebapp.getLegacyApplicationPath();
 
     registry.addResourceHandler(legacyApplicationPath + "/lib/**")
         .addResourceLocations(legacyClasspath + "/lib/");

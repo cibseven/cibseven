@@ -14,26 +14,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.spring.boot.starter.property.csrf;
+package org.cibseven.bpm.spring.boot.starter.property.authcachettl;
 
-import org.cibseven.bpm.spring.boot.starter.property.CsrfProperties;
-import org.cibseven.bpm.spring.boot.starter.property.ParsePropertiesHelper;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyParsePropertiesHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestPropertySource(properties = {
-  "camunda.bpm.webapp.csrf.enableSecureCookie=false"
+    "camunda.bpm.webapp.auth.cache.ttl-enabled=false",
+    "camunda.bpm.webapp.auth.cache.time-to-live=6",
 })
-public class CookieSecureDisabledTest extends ParsePropertiesHelper {
+public class AuthCacheTTLPropertyTest extends LegacyParsePropertiesHelper {
 
   @Test
-  public void shouldCheckSecureCookieDisabled() {
-    CsrfProperties properties = webapp.getCsrf();
+  public void shouldBeConfigurable() {
+    // given
 
-    assertThat(properties.isEnableSecureCookie()).isFalse();
-    assertThat(properties.getInitParams()).doesNotContainKey("enableSecureCookie");
+    // when
+    boolean cacheEnabled = webapp.getAuth().getCache().isTtlEnabled();
+    long ttl = webapp.getAuth().getCache().getTimeToLive();
+
+    // then
+    assertThat(cacheEnabled).isFalse();
+    assertThat(ttl).isEqualTo(6);
   }
 
 }

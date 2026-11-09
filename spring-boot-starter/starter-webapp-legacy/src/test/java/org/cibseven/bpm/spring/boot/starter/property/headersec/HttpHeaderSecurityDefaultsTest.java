@@ -17,12 +17,12 @@
 package org.cibseven.bpm.spring.boot.starter.property.headersec;
 
 import org.cibseven.bpm.spring.boot.starter.property.HeaderSecurityProperties;
-import org.cibseven.bpm.spring.boot.starter.property.ParsePropertiesHelper;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyParsePropertiesHelper;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class HttpHeaderSecurityDefaultsTest extends ParsePropertiesHelper {
+public class HttpHeaderSecurityDefaultsTest extends LegacyParsePropertiesHelper {
 
   @Test
   public void shouldCheckXssProtection() {

@@ -14,26 +14,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.spring.boot.starter.property.csrf;
+package org.cibseven.bpm.spring.boot.starter.property.headersec;
 
-import org.cibseven.bpm.spring.boot.starter.property.CsrfProperties;
-import org.cibseven.bpm.spring.boot.starter.property.ParsePropertiesHelper;
+import org.cibseven.bpm.spring.boot.starter.property.HeaderSecurityProperties;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyParsePropertiesHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestPropertySource(properties = {
-  "camunda.bpm.webapp.csrf.enableSameSiteCookie=true"
+  "camunda.bpm.webapp.headerSecurity.hstsDisabled=false",
+  "camunda.bpm.webapp.headerSecurity.hstsIncludeSubdomainsDisabled=false",
+  "camunda.bpm.webapp.headerSecurity.hstsMaxAge=47",
+  "camunda.bpm.webapp.headerSecurity.hstsValue=Foo"
 })
-public class CookieSameSiteEnabledTest extends ParsePropertiesHelper {
+public class HstsPropertiesTest extends LegacyParsePropertiesHelper {
 
   @Test
-  public void shouldCheckSameSiteCookieEnabled() {
-    CsrfProperties properties = webapp.getCsrf();
+  public void shouldCheckHstsProperties() {
+    // given
+    
+    // when
+    HeaderSecurityProperties properties = webapp.getHeaderSecurity();
 
-    assertThat(properties.isEnableSameSiteCookie()).isTrue();
-    assertThat(properties.getInitParams()).doesNotContainKey("enableSameSiteCookie");
+    // then
+    assertThat(properties.isHstsDisabled()).isFalse();
+    assertThat(properties.isHstsIncludeSubdomainsDisabled()).isFalse();
+    assertThat(properties.getHstsMaxAge()).isEqualTo("47");
+    assertThat(properties.getHstsValue()).isEqualTo("Foo");
   }
 
 }

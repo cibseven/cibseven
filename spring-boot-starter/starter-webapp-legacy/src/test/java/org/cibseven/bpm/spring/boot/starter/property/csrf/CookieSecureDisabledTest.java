@@ -14,35 +14,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.spring.boot.starter.property.headersec;
+package org.cibseven.bpm.spring.boot.starter.property.csrf;
 
-import org.cibseven.bpm.spring.boot.starter.property.HeaderSecurityProperties;
-import org.cibseven.bpm.spring.boot.starter.property.ParsePropertiesHelper;
+import org.cibseven.bpm.spring.boot.starter.property.CsrfProperties;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyParsePropertiesHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestPropertySource(properties = {
-  "camunda.bpm.webapp.headerSecurity.hstsDisabled=false",
-  "camunda.bpm.webapp.headerSecurity.hstsIncludeSubdomainsDisabled=false",
-  "camunda.bpm.webapp.headerSecurity.hstsMaxAge=47",
-  "camunda.bpm.webapp.headerSecurity.hstsValue=Foo"
+  "camunda.bpm.webapp.csrf.enableSecureCookie=false"
 })
-public class HstsPropertiesTest extends ParsePropertiesHelper {
+public class CookieSecureDisabledTest extends LegacyParsePropertiesHelper {
 
   @Test
-  public void shouldCheckHstsProperties() {
-    // given
-    
-    // when
-    HeaderSecurityProperties properties = webapp.getHeaderSecurity();
+  public void shouldCheckSecureCookieDisabled() {
+    CsrfProperties properties = webapp.getCsrf();
 
-    // then
-    assertThat(properties.isHstsDisabled()).isFalse();
-    assertThat(properties.isHstsIncludeSubdomainsDisabled()).isFalse();
-    assertThat(properties.getHstsMaxAge()).isEqualTo("47");
-    assertThat(properties.getHstsValue()).isEqualTo("Foo");
+    assertThat(properties.isEnableSecureCookie()).isFalse();
+    assertThat(properties.getInitParams()).doesNotContainKey("enableSecureCookie");
   }
 
 }

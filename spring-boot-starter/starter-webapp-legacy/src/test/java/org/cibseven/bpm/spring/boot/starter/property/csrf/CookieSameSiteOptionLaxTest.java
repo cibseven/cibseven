@@ -17,23 +17,23 @@
 package org.cibseven.bpm.spring.boot.starter.property.csrf;
 
 import org.cibseven.bpm.spring.boot.starter.property.CsrfProperties;
-import org.cibseven.bpm.spring.boot.starter.property.ParsePropertiesHelper;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyParsePropertiesHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestPropertySource(properties = {
-  "camunda.bpm.webapp.csrf.sameSiteCookieOption=strict"
+  "camunda.bpm.webapp.csrf.sameSiteCookieOption=lax"
 })
-public class CookieSameSiteOptionStrictTest extends ParsePropertiesHelper {
+public class CookieSameSiteOptionLaxTest extends LegacyParsePropertiesHelper {
 
   @Test
-  public void shouldCheckSameSiteCookieOptionStrict() {
+  public void shouldCheckSameSiteCookieOptionLax() {
     CsrfProperties properties = webapp.getCsrf();
 
-    assertThat(properties.getSameSiteCookieOption()).isEqualTo("strict");
-    assertThat(properties.getInitParams()).containsEntry("sameSiteCookieOption", "strict");
+    assertThat(properties.getSameSiteCookieOption()).isEqualTo("lax");
+    assertThat(properties.getInitParams()).containsEntry("sameSiteCookieOption", "lax");
   }
 
 }

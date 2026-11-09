@@ -17,23 +17,23 @@
 package org.cibseven.bpm.spring.boot.starter.property.csrf;
 
 import org.cibseven.bpm.spring.boot.starter.property.CsrfProperties;
-import org.cibseven.bpm.spring.boot.starter.property.ParsePropertiesHelper;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyParsePropertiesHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestPropertySource(properties = {
-  "camunda.bpm.webapp.csrf.enableSecureCookie=true"
+  "camunda.bpm.webapp.csrf.enableSameSiteCookie=true"
 })
-public class CookieSecureEnabledTest extends ParsePropertiesHelper {
+public class CookieSameSiteEnabledTest extends LegacyParsePropertiesHelper {
 
   @Test
-  public void shouldCheckSecureCookieEnabled() {
+  public void shouldCheckSameSiteCookieEnabled() {
     CsrfProperties properties = webapp.getCsrf();
 
-    assertThat(properties.isEnableSecureCookie()).isTrue();
-    assertThat(properties.getInitParams()).containsEntry("enableSecureCookie", "true");
+    assertThat(properties.isEnableSameSiteCookie()).isTrue();
+    assertThat(properties.getInitParams()).doesNotContainKey("enableSameSiteCookie");
   }
 
 }

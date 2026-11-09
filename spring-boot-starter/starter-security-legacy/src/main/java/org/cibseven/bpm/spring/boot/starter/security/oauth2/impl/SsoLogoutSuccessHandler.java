@@ -19,7 +19,7 @@ package org.cibseven.bpm.spring.boot.starter.security.oauth2.impl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.cibseven.bpm.spring.boot.starter.security.oauth2.OAuth2Properties;
+import org.cibseven.bpm.spring.boot.starter.security.oauth2.LegacyWebappOAuth2Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -36,7 +36,7 @@ public class SsoLogoutSuccessHandler extends OidcClientInitiatedLogoutSuccessHan
   private static final Logger logger = LoggerFactory.getLogger(SsoLogoutSuccessHandler.class);
 
   public SsoLogoutSuccessHandler(ClientRegistrationRepository clientRegistrationRepository,
-                                 OAuth2Properties oAuth2Properties) {
+                                 LegacyWebappOAuth2Properties oAuth2Properties) {
     super(clientRegistrationRepository);
     this.setPostLogoutRedirectUri(oAuth2Properties.getSsoLogout().getPostLogoutRedirectUri());
   }

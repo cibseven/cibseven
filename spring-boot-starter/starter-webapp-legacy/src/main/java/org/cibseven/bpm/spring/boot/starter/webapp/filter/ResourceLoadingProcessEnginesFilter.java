@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyWebappProperty;
 import org.cibseven.bpm.spring.boot.starter.property.WebappProperty;
 
 import org.cibseven.bpm.webapp.impl.engine.ProcessEnginesFilter;
@@ -38,12 +39,13 @@ public class ResourceLoadingProcessEnginesFilter extends ProcessEnginesFilter im
 
   protected ResourceLoader resourceLoader;
   protected WebappProperty webappProperty;
+  protected LegacyWebappProperty legacyWebappProperty;
 
   @Override
   protected void applyFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
     String contextPath = request.getContextPath();
     String requestUri = request.getRequestURI().substring(contextPath.length());
-    String legacyApplicationPath = webappProperty.getLegacyApplicationPath();
+    String legacyApplicationPath = legacyWebappProperty.getLegacyApplicationPath();
 
     requestUri = trimChar(requestUri, '/');
     String legacyAppPath = trimChar(legacyApplicationPath, '/');
@@ -64,7 +66,7 @@ public class ResourceLoadingProcessEnginesFilter extends ProcessEnginesFilter im
     InputStream is = null;
 
     try {
-      Resource resource = resourceLoader.getResource("classpath:"+webappProperty.getLegacyWebjarClasspath() + name);
+      Resource resource = resourceLoader.getResource("classpath:"+legacyWebappProperty.getLegacyWebjarClasspath() + name);
       is = resource.getInputStream();
 
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -111,11 +113,21 @@ public class ResourceLoadingProcessEnginesFilter extends ProcessEnginesFilter im
     }
 
   /**
+   * @return the legacyWebappProperty
+   */
+  public LegacyWebappProperty getLegacyWebappProperty() {
+    return legacyWebappProperty;
+  }
+
+  /**
    * @param webappProperty
    *          webappProperty to set
+   * @param legacyWebappProperty
+   *          legacyWebappProperty to set
    */
-  public void setWebappProperty(WebappProperty webappProperty) {
+  public void setWebappProperty(WebappProperty webappProperty, LegacyWebappProperty legacyWebappProperty) {
     this.webappProperty = webappProperty;
+    this.legacyWebappProperty = legacyWebappProperty;
   }
 
   /**

@@ -23,6 +23,7 @@ import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
 
 import org.cibseven.bpm.engine.impl.util.IoUtil;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyWebappProperty;
 import org.cibseven.bpm.spring.boot.starter.property.WebappProperty;
 import org.cibseven.bpm.webapp.impl.security.filter.SecurityFilter;
 import org.cibseven.bpm.webapp.impl.security.filter.util.FilterRules;
@@ -33,11 +34,11 @@ public class ResourceLoadingSecurityFilter extends SecurityFilter implements Res
 
   private ResourceLoader resourceLoader;
 
-  private WebappProperty webappProperty;
+  private LegacyWebappProperty legacyWebappProperty;
   @Override
   protected void loadFilterRules(FilterConfig filterConfig, String applicationPath) throws ServletException {
     String configFileName = filterConfig.getInitParameter("configFile");
-    Resource resource = resourceLoader.getResource("classpath:" + webappProperty.getLegacyWebjarClasspath() + configFileName);
+    Resource resource = resourceLoader.getResource("classpath:" + legacyWebappProperty.getLegacyWebjarClasspath() + configFileName);
     InputStream configFileResource;
     try {
       configFileResource = resource.getInputStream();
@@ -69,18 +70,20 @@ public class ResourceLoadingSecurityFilter extends SecurityFilter implements Res
   }
   
   /**
-   * @return the webappProperty
+   * @return the legacyWebappProperty
    */
-    public WebappProperty getWebappProperty() {
-        return webappProperty;
-    }
+  public LegacyWebappProperty getLegacyWebappProperty() {
+    return legacyWebappProperty;
+  }
 
-    /**
-     * @param webappProperty 
-     *          webappProperty to set
-     */
-    public void setWebappProperty(WebappProperty webappProperty) {
-        this.webappProperty = webappProperty;
-    }
+  /**
+   * @param webappProperty
+   *          not used, the security rules only depend on the legacy webapp
+   * @param legacyWebappProperty
+   *          legacyWebappProperty to set
+   */
+  public void setWebappProperty(WebappProperty webappProperty, LegacyWebappProperty legacyWebappProperty) {
+    this.legacyWebappProperty = legacyWebappProperty;
+  }
   
 }

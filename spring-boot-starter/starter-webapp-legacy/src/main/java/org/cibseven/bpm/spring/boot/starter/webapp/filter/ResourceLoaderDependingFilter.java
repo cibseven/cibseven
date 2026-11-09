@@ -17,6 +17,7 @@
 package org.cibseven.bpm.spring.boot.starter.webapp.filter;
 
 import jakarta.servlet.Filter;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyWebappProperty;
 import org.cibseven.bpm.spring.boot.starter.property.WebappProperty;
 
 import org.springframework.core.io.ResourceLoader;
@@ -24,5 +25,5 @@ import org.springframework.core.io.ResourceLoader;
 public interface ResourceLoaderDependingFilter extends Filter {
 
   void setResourceLoader(ResourceLoader resourceLoader);
-  void setWebappProperty(WebappProperty webappProperty);
+  void setWebappProperty(WebappProperty webappProperty, LegacyWebappProperty legacyWebappProperty);
 }

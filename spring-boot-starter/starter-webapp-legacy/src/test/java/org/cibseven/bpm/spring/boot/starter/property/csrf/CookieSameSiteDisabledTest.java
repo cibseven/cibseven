@@ -14,26 +14,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.spring.boot.starter.property.authcachettl;
+package org.cibseven.bpm.spring.boot.starter.property.csrf;
 
-import org.cibseven.bpm.spring.boot.starter.property.ParsePropertiesHelper;
+import org.cibseven.bpm.spring.boot.starter.property.CsrfProperties;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyParsePropertiesHelper;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AuthCacheTTLPropertyDefaultTest extends ParsePropertiesHelper {
+@TestPropertySource(properties = {
+  "camunda.bpm.webapp.csrf.enableSameSiteCookie=false"
+})
+public class CookieSameSiteDisabledTest extends LegacyParsePropertiesHelper {
 
   @Test
-  public void shouldDefaultToEnabledAndTTLFiveMinutes() {
-    // given
+  public void shouldCheckSameSiteCookieDisabled() {
+    CsrfProperties properties = webapp.getCsrf();
 
-    // when
-    boolean enabled = webapp.getAuth().getCache().isTtlEnabled();
-    long ttl = webapp.getAuth().getCache().getTimeToLive();
-
-    // then
-    assertThat(enabled).isTrue();
-    assertThat(ttl).isEqualTo(1_000 * 60 * 5);
+    assertThat(properties.isEnableSameSiteCookie()).isFalse();
+    assertThat(properties.getInitParams()).containsEntry("enableSameSiteCookie", "false");
   }
 
 }

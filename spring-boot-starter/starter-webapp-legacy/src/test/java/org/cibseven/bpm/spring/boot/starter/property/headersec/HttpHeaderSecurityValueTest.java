@@ -17,7 +17,7 @@
 package org.cibseven.bpm.spring.boot.starter.property.headersec;
 
 import org.cibseven.bpm.spring.boot.starter.property.HeaderSecurityProperties;
-import org.cibseven.bpm.spring.boot.starter.property.ParsePropertiesHelper;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyParsePropertiesHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 
@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
   "camunda.bpm.webapp.headerSecurity.contentTypeOptionsValue=aValue",
   "camunda.bpm.webapp.headerSecurity.hstsValue=aValue"
 })
-public class HttpHeaderSecurityValueTest extends ParsePropertiesHelper {
+public class HttpHeaderSecurityValueTest extends LegacyParsePropertiesHelper {
 
   @Test
   public void shouldCheckXssProtectionValue() {

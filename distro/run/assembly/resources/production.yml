@@ -3,15 +3,6 @@
 # security guide: https://docs.cibseven.org/manual/latest/user-guide/security/
 
 camunda.bpm:
-# https://docs.cibseven.org/manual/latest/user-guide/security/#http-header-security-in-webapps
-# https://docs.cibseven.org/manual/latest/webapps/shared-options/header-security/
-  webapp:
-    csrf:
-      enable-same-site-cookie: true
-      same-site-cookie-option: STRICT
-    header-security:
-      hsts-disabled: false
-
 # https://docs.cibseven.org/manual/latest/user-guide/security/#authorization
 # https://docs.cibseven.org/manual/latest/user-guide/process-engine/authorization-service/
   authorization.enabled: true

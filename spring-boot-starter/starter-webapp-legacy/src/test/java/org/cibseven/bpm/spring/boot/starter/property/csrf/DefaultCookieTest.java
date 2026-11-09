@@ -17,12 +17,12 @@
 package org.cibseven.bpm.spring.boot.starter.property.csrf;
 
 import org.cibseven.bpm.spring.boot.starter.property.CsrfProperties;
-import org.cibseven.bpm.spring.boot.starter.property.ParsePropertiesHelper;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyParsePropertiesHelper;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DefaultCookieTest extends ParsePropertiesHelper {
+public class DefaultCookieTest extends LegacyParsePropertiesHelper {
 
   @Test
   public void shouldCheckSecureCookie() {

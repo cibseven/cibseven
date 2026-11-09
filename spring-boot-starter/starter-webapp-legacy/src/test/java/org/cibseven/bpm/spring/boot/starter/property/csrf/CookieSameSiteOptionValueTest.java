@@ -17,7 +17,7 @@
 package org.cibseven.bpm.spring.boot.starter.property.csrf;
 
 import org.cibseven.bpm.spring.boot.starter.property.CsrfProperties;
-import org.cibseven.bpm.spring.boot.starter.property.ParsePropertiesHelper;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyParsePropertiesHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 
@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestPropertySource(properties = {
   "camunda.bpm.webapp.csrf.sameSiteCookieValue=aCustomValue"
 })
-public class CookieSameSiteOptionValueTest extends ParsePropertiesHelper {
+public class CookieSameSiteOptionValueTest extends LegacyParsePropertiesHelper {
 
   @Test
   public void shouldCheckSameSiteCookieValue() {

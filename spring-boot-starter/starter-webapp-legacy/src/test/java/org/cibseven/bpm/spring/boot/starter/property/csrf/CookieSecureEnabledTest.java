@@ -14,26 +14,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.spring.boot.starter.property.headersec;
+package org.cibseven.bpm.spring.boot.starter.property.csrf;
 
-import org.cibseven.bpm.spring.boot.starter.property.HeaderSecurityProperties;
-import org.cibseven.bpm.spring.boot.starter.property.ParsePropertiesHelper;
+import org.cibseven.bpm.spring.boot.starter.property.CsrfProperties;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyParsePropertiesHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestPropertySource(properties = {
-  "camunda.bpm.webapp.headerSecurity.xssProtectionOption=anOption"
+  "camunda.bpm.webapp.csrf.enableSecureCookie=true"
 })
-public class XssProtectionOptionTest extends ParsePropertiesHelper {
+public class CookieSecureEnabledTest extends LegacyParsePropertiesHelper {
 
   @Test
-  public void shouldCheckXssProtectionOptionTest() {
-    HeaderSecurityProperties properties = webapp.getHeaderSecurity();
+  public void shouldCheckSecureCookieEnabled() {
+    CsrfProperties properties = webapp.getCsrf();
 
-    assertThat(properties.getXssProtectionOption()).isEqualTo("anOption");
-    assertThat(properties.getInitParams()).containsEntry("xssProtectionOption", "anOption");
+    assertThat(properties.isEnableSecureCookie()).isTrue();
+    assertThat(properties.getInitParams()).containsEntry("enableSecureCookie", "true");
   }
 
 }

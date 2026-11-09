@@ -14,25 +14,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cibseven.bpm.spring.boot.starter.property.csrf;
+package org.cibseven.bpm.spring.boot.starter.property.headersec;
 
-import org.cibseven.bpm.spring.boot.starter.property.CsrfProperties;
-import org.cibseven.bpm.spring.boot.starter.property.ParsePropertiesHelper;
+import org.cibseven.bpm.spring.boot.starter.property.HeaderSecurityProperties;
+import org.cibseven.bpm.spring.boot.starter.property.LegacyParsePropertiesHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestPropertySource(properties = {
-  "camunda.bpm.webapp.csrf.cookieName=myFancyCookie"
+  "camunda.bpm.webapp.headerSecurity.xssProtectionOption=anOption"
 })
-public class CookieNameTest extends ParsePropertiesHelper {
+public class XssProtectionOptionTest extends LegacyParsePropertiesHelper {
 
   @Test
-  public void shouldCheckCookieName() {
-    CsrfProperties properties = webapp.getCsrf();
+  public void shouldCheckXssProtectionOptionTest() {
+    HeaderSecurityProperties properties = webapp.getHeaderSecurity();
 
-    assertThat(properties.getInitParams()).containsEntry("cookieName", "myFancyCookie");
+    assertThat(properties.getXssProtectionOption()).isEqualTo("anOption");
+    assertThat(properties.getInitParams()).containsEntry("xssProtectionOption", "anOption");
   }
 
 }
