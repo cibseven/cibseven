@@ -16,11 +16,9 @@
  */
 package org.cibseven.bpm.spring.boot.starter.webapp;
 
-import java.util.Collections;
 import java.util.Map;
 
 import jakarta.servlet.DispatcherType;
-import jakarta.servlet.SessionTrackingMode;
 
 import org.cibseven.bpm.spring.boot.starter.CamundaBpmAutoConfiguration;
 import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
@@ -33,7 +31,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.boot.webmvc.autoconfigure.WebMvcRegistrations;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -56,11 +53,6 @@ public class CamundaBpmWebappAutoConfiguration implements WebMvcConfigurer, WebM
 
   @Autowired
   private CamundaBpmProperties properties;
-
-  @Bean
-  public ServletContextInitializer webappSessionTrackingInitializer() {
-    return servletContext -> servletContext.setSessionTrackingModes(Collections.singleton(SessionTrackingMode.COOKIE));
-  }
 
   // redirects the application path to the index, see addViewControllers
   @Bean

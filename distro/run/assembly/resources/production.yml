@@ -72,9 +72,9 @@ camunda.bpm:
 #      administrator-user-name: admin
 #      administrator-group-name: admins
 
-server:
 # https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#https
 # do not use the provided certificate in production
+#server:
 #  ssl:
 #    key-store: classpath:keystore.p12
 #    key-store-password: camunda
@@ -82,12 +82,6 @@ server:
 #    key-alias: camunda
 #    key-password: camunda
 #  port: 8443
-
-# https://docs.cibseven.org/manual/latest/user-guide/security/#http-header-security-in-webapps
-# https://docs.cibseven.org/manual/latest/webapps/shared-options/header-security/
-  servlet.session.cookie:
-    secure: true
-    http-only: true
 
 # https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#logging
 # https://docs.cibseven.org/manual/latest/user-guide/logging/#process-engine
