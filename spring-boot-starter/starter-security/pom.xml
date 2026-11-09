@@ -25,23 +25,6 @@
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
-
-    <!-- the OAuth2 integration and SSO logout plugins of the legacy webapps; only present in the legacy-webapps tests -->
-    <dependency>
-      <groupId>org.cibseven.bpm.webapp</groupId>
-      <artifactId>cibseven-webapp-jakarta</artifactId>
-      <version>${version.legacy-webapps}</version>
-      <type>jar</type>
-      <classifier>classes</classifier>
-      <optional>true</optional>
-      <exclusions>
-        <!-- the 2.x POM pulls in 2.x engine-rest artifacts; the current ones come from this build -->
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>cibseven-bpm-spring-boot-starter-rest</artifactId>
@@ -61,13 +44,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-oauth2-client</artifactId>
-      <!-- using oauth2-resource-server's nimbus-jose-jwt -->
-      <exclusions>
-        <exclusion>
-            <groupId>com.nimbusds</groupId>
-            <artifactId>nimbus-jose-jwt</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <artifactId>cibseven-bpm-spring-boot-starter-test</artifactId>
@@ -97,37 +73,27 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-resttestclient</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-restclient</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-http-client</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-webmvc-test</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <!-- the OAuth2 tests drive the legacy webapps, whose UI files are no longer in the webjar built here -->
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>unpack-legacy-webapps-for-tests</id>
-            <phase>generate-test-resources</phase>
-            <goals>
-              <goal>unpack</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.cibseven.bpm.webapp</groupId>
-                  <artifactId>cibseven-webapp-webjar</artifactId>
-                  <version>${version.legacy-webapps}</version>
-                  <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
-                  <includes>META-INF/resources/webjars/camunda/**,META-INF/resources/plugin/**</includes>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 
   <description>
     Description of CIB seven - Spring Boot Starter - Spring Security

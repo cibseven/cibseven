@@ -34,6 +34,14 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- Jakarta EE 11 platform APIs (JAX-RS 4.0, ...) -->
+      <dependency>
+        <groupId>jakarta.platform</groupId>
+        <artifactId>jakarta.jakartaee-bom</artifactId>
+        <version>${version.jakarta-ee-spec}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-core-internal-dependencies</artifactId>
@@ -117,7 +125,7 @@
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-common</artifactId>
-      <version>${version.jersey3}</version>
+      <version>${version.jersey}</version>
       <scope>test</scope>
     </dependency>
 

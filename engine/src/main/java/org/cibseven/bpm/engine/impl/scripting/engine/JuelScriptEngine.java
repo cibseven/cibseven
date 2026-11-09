@@ -32,10 +32,11 @@ import javax.script.SimpleBindings;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.el.ExpressionFactoryResolver;
+import org.cibseven.bpm.engine.impl.el.ProcessEngineElContext;
+import org.cibseven.bpm.impl.juel.JuelBeanELResolver;
 import org.cibseven.bpm.impl.juel.SimpleResolver;
 
 import jakarta.el.ArrayELResolver;
-import jakarta.el.BeanELResolver;
 import jakarta.el.CompositeELResolver;
 import jakarta.el.ELException;
 import jakarta.el.ELResolver;
@@ -111,7 +112,7 @@ public class JuelScriptEngine extends AbstractScriptEngine {
     compositeResolver.add(new ListELResolver());
     compositeResolver.add(new MapELResolver());
     compositeResolver.add(new ResourceBundleELResolver());
-    compositeResolver.add(new BeanELResolver());
+    compositeResolver.add(new JuelBeanELResolver());
     return new SimpleResolver(compositeResolver);
   }
 
@@ -154,27 +155,18 @@ public class JuelScriptEngine extends AbstractScriptEngine {
       scriptCtx.setAttribute("lang:import", getImportMethod(), ScriptContext.ENGINE_SCOPE);
     }
 
-    ELContext elContext = new ELContext() {
+    // ProcessEngineElContext converts with the factory put into the context, i.e. with JUEL, on
+    // every EL API, not with the server's EL implementation (CIB7-2609)
+    ELContext elContext = new ProcessEngineElContext(new ScriptContextFunctionMapper(scriptCtx), createElResolver()) {
 
-      ELResolver resolver = createElResolver();
-      VariableMapper varMapper = new ScriptContextVariableMapper(scriptCtx);
-      FunctionMapper funcMapper = new ScriptContextFunctionMapper(scriptCtx);
-
-      @Override
-      public ELResolver getELResolver() {
-        return resolver;
-      }
+      final VariableMapper varMapper = new ScriptContextVariableMapper(scriptCtx);
 
       @Override
       public VariableMapper getVariableMapper() {
         return varMapper;
       }
-
-      @Override
-      public FunctionMapper getFunctionMapper() {
-        return funcMapper;
-      }
     };
+    elContext.putContext(ExpressionFactory.class, expressionFactory);
     // Store the elcontext in the scriptContext to be able to reuse
     scriptCtx.setAttribute("elcontext", elContext, ScriptContext.ENGINE_SCOPE);
     return elContext;

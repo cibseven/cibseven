@@ -21,9 +21,9 @@ import org.cibseven.bpm.engine.impl.el.ExpressionManager;
 import org.cibseven.bpm.engine.impl.el.JuelExpressionManager;
 import org.cibseven.bpm.engine.impl.el.VariableContextElResolver;
 import org.cibseven.bpm.engine.impl.el.VariableScopeElResolver;
+import org.cibseven.bpm.impl.juel.JuelBeanELResolver;
 
 import jakarta.el.ArrayELResolver;
-import jakarta.el.BeanELResolver;
 import jakarta.el.CompositeELResolver;
 import jakarta.el.ELResolver;
 import jakarta.el.ListELResolver;
@@ -57,7 +57,7 @@ public class CdiExpressionManager extends JuelExpressionManager {
     compositeElResolver.add(new ArrayELResolver());
     compositeElResolver.add(new ListELResolver());
     compositeElResolver.add(new MapELResolver());
-    compositeElResolver.add(new BeanELResolver());
+    compositeElResolver.add(new JuelBeanELResolver());
 
     return compositeElResolver;
   }

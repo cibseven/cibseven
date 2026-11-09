@@ -26,6 +26,7 @@ public class ProcessEngineConfigurationDto {
   private String historyLevel;
   private boolean authorizationEnabled;
   private boolean enablePasswordPolicy;
+  private String webclientExtensionsVersion;
   /**
    * The engine-wide default history time to live, in days, as configured by the
    * {@code historyTimeToLive} engine property.
@@ -103,6 +104,7 @@ public class ProcessEngineConfigurationDto {
     dto.historyLevel = configuration.getHistory();
     dto.authorizationEnabled = configuration.isAuthorizationEnabled();
     dto.enablePasswordPolicy = configuration.isEnablePasswordPolicy();
+    dto.webclientExtensionsVersion = configuration.getWebclientExtensionsVersion();
     // historyTimeToLive/enforceHistoryTimeToLive are only declared on the impl class, not
     // on the abstract ProcessEngineConfiguration.
     // Every engine created by CIB seven uses the impl class. For any other (custom) implementation
@@ -161,6 +163,14 @@ public class ProcessEngineConfigurationDto {
 
   public void setEnablePasswordPolicy(boolean enablePasswordPolicy) {
     this.enablePasswordPolicy = enablePasswordPolicy;
+  }
+
+  public String getWebclientExtensionsVersion() {
+    return webclientExtensionsVersion;
+  }
+
+  public void setWebclientExtensionsVersion(String webclientExtensionsVersion) {
+    this.webclientExtensionsVersion = webclientExtensionsVersion;
   }
 
   public int getHistoryTimeToLive() {

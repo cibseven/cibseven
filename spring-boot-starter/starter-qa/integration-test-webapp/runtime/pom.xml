@@ -38,18 +38,9 @@
         </dependency>
 
         <dependency>
-          <groupId>org.cibseven.bpm.webapp</groupId>
-          <artifactId>cibseven-webapp-jakarta</artifactId>
-          <version>${version.legacy-webapps}</version>
-          <type>jar</type>
-          <classifier>classes</classifier>
-          <exclusions>
-            <!-- the 2.x POM pulls in 2.x engine-rest artifacts; the current ones come from this build -->
-            <exclusion>
-              <groupId>*</groupId>
-              <artifactId>*</artifactId>
-            </exclusion>
-          </exclusions>
+          <groupId>org.cibseven.bpm.springboot</groupId>
+          <artifactId>cibseven-bpm-spring-boot-starter-webapp-legacy</artifactId>
+          <version>${project.version}</version>
         </dependency>
 
         <!-- REST API -->
@@ -85,13 +76,11 @@
         <dependency>
           <groupId>org.junit.jupiter</groupId>
           <artifactId>junit-jupiter-api</artifactId>
-          <version>${version.junit5}</version>
           <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>org.junit.jupiter</groupId>
           <artifactId>junit-jupiter-params</artifactId>
-          <version>${version.junit5}</version>
           <scope>test</scope>
         </dependency>
 
@@ -110,6 +99,7 @@
         <dependency>
           <groupId>org.graalvm.js</groupId>
           <artifactId>js</artifactId>
+          <type>pom</type>
           <version>${version.graal.js}</version>
         </dependency>
 

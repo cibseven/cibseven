@@ -104,6 +104,27 @@ public class ParseUtil {
     }
   }
 
+  /**
+   * Checks that every interval of a static retry configuration can be parsed.
+   * {@link #parseRetryIntervals(String)} only validates single-interval cycles,
+   * an invalid entry in an interval list (e.g. <code>PT1M,PT5X</code>) is not detected there.
+   *
+   * @return true if the configuration is an expression or all of its intervals are valid
+   */
+  public static boolean hasValidRetryIntervals(FailedJobRetryConfiguration configuration) {
+    if (configuration == null || configuration.getExpression() != null) {
+      return true;
+    }
+    for (String interval : configuration.getRetryIntervals()) {
+      try {
+        new DurationHelper(interval);
+      } catch (Exception e) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public static ProcessEngineDetails parseProcessEngineVersion(boolean trimSuffixEE) {
     String version = ProductPropertiesUtil.getProductVersion();
     return parseProcessEngineVersion(version, trimSuffixEE);

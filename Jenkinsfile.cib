@@ -12,17 +12,14 @@ import groovy.transform.Field
 @Field String mavenLocalRepoRedirected = null
 @Field Map pipelineParams = [
     pom: ConstantsInternal.DEFAULT_MAVEN_POM_PATH,
-    mvnContainerName: Constants.MAVEN_JDK_17_CONTAINER,
     uiParamPresets: [:],
     testMode: false,
     dependencyTrackSynchronous: true,
     buildPodConfig: [
-        (Constants.MAVEN_JDK_17_CONTAINER): [
-            resources: [
-                cpu: '4',
-                memory: '16Gi',
-                ephemeralStorage: '16Gi'
-            ]
+        resources: [
+            cpu: '4',
+            memory: '16Gi',
+            ephemeralStorage: '16Gi'
         ]
     ]
 ]
@@ -32,14 +29,20 @@ pipeline {
     agent {
         kubernetes {
             yaml BuildPodCreator.cibStandardPod(nodepool: Constants.NODEPOOL_STABLE)
-                    .withContainerFromName(pipelineParams.mvnContainerName, pipelineParams.buildPodConfig[pipelineParams.mvnContainerName])
+                    .withContainerFromName(getMavenContainerName(params.JDK_VERSION), pipelineParams.buildPodConfig)
                     .asYaml()
-            defaultContainer pipelineParams.mvnContainerName
+            defaultContainer(getMavenContainerName(params.JDK_VERSION))
         }
     }
 
     // Parameter that can be changed in the Jenkins UI
     parameters {
+
+        choice(
+            name: 'JDK_VERSION',
+            choices: ['17', '21', '25'],
+            description: 'Java version for the Maven container'
+        )
 
         booleanParam(
             name: 'BUILD_FEATURE_BRANCH',
@@ -210,7 +213,7 @@ pipeline {
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
                                 -DOPTIONAL_PGTEST_EXCLUDE=org/cibseven/bpm/engine/impl/identity/db/DbIdentityServicePGTest.java \
-                                -pl !org.cibseven.bpm:cibseven-engine-spring-6,!:cibseven-spin-core,!:cibseven-engine-rest-core,!:cibseven-webapp,!:cibseven-engine-cdi,!:cibseven-example-invoice,!:cibseven-ejb-client,!:cibseven-sql-scripts
+                                -pl !:cibseven-spin-core,!:cibseven-engine-rest-core,!:cibseven-webapp,!:cibseven-engine-cdi,!:cibseven-example-invoice,!:cibseven-ejb-client,!:cibseven-sql-scripts
                         """
 
                         sh """
@@ -219,7 +222,7 @@ pipeline {
                                 verify \
                                 -Dmaven.test.failure.ignore=true \
                                 -DOPTIONAL_PGTEST_EXCLUDE=org/cibseven/bpm/engine/impl/identity/db/DbIdentityServicePGTest.java \
-                                -pl org.cibseven.bpm:cibseven-engine-spring-6,:cibseven-spin-core,:cibseven-engine-rest-core,:cibseven-webapp,:cibseven-engine-cdi,:cibseven-example-invoice,:cibseven-ejb-client,:cibseven-sql-scripts \
+                                -pl :cibseven-spin-core,:cibseven-engine-rest-core,:cibseven-webapp,:cibseven-engine-cdi,:cibseven-example-invoice,:cibseven-ejb-client,:cibseven-sql-scripts \
                                 -fn
                         """
                     }
@@ -246,6 +249,18 @@ pipeline {
                 stage('webapp-UNIT-database-table-prefix') {
                     steps { script { withMaven { sh "mvn -f webapps/assembly/pom.xml test -Pdb-table-prefix -Dskip.frontend.build=true" }}}
                 }
+                stage('engine-rest') {
+                    // 'engine UNIT & IT' runs engine-rest on the default runtime (Jersey);
+                    // these stages cover the other JAX-RS runtimes, see engineRestTest().
+                    stages {
+                        stage('engine-rest-UNIT-resteasy') {
+                            steps { script { engineRestTest('resteasy') }}
+                        }
+                        stage('engine-rest-UNIT-ee10-compatibility') {
+                            steps { script { engineRestTest('ee10-compatibility') }}
+                        }
+                    }
+                }
                 stage("quarkus") {
                     stages {
                         stage('quarkus-extension') {
@@ -269,21 +284,29 @@ pipeline {
                 expression { isAnyCustomTest || params.QA_TEST_SUITE == 'ALL'}
             }
             stages {
+                // The runs of one stage rebuild the same module with "clean", so each run publishes
+                // its own test reports before the next one wipes them (CIB7-2164).
                 stage('Engine Integration') {
                     when { expression { params.QA_ENG_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Ptomcat,h2,engine-integration" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly,h2,engine-integration" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly-domain,h2,engine-integration" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml -Dengine-integration clean install -Pwildfly,wildfly-servlet,h2,engine-integration" }}
+                        script {
+                            stage('engine-IT tomcat') { mvnWithTestReports("-f qa/pom.xml -Dengine-integration clean install -Ptomcat,h2,engine-integration", 'qa/integration-tests-engine') }
+                            stage('engine-IT tomcat10') { mvnWithTestReports("-f qa/pom.xml -Dengine-integration clean install -Ptomcat10,h2,engine-integration", 'qa/integration-tests-engine') }
+                            stage('engine-IT wildfly') { mvnWithTestReports("-f qa/pom.xml -Dengine-integration clean install -Pwildfly,h2,engine-integration", 'qa/integration-tests-engine') }
+                            stage('engine-IT wildfly-domain') { mvnWithTestReports("-f qa/pom.xml -Dengine-integration clean install -Pwildfly-domain,h2,engine-integration", 'qa/integration-tests-engine') }
+                            stage('engine-IT wildfly-servlet') { mvnWithTestReports("-f qa/pom.xml -Dengine-integration clean install -Pwildfly,wildfly-servlet,h2,engine-integration", 'qa/integration-tests-engine') }
+                        }
                     }
                 }
                 stage('Web Integration') {
                     when { expression { params.QA_WEB_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Ptomcat10,h2,webapps-integration" }}
-                        script { withMaven { sh "mvn -f qa/pom.xml clean install -Pwildfly,h2,webapps-integration" }}
+                        // TODO: enable chrome and chromedriver on jenkins and remove the exclusion for org.cibseven.bpm.LoginIT
+                        script {
+                            stage('webapp-IT tomcat') { mvnWithTestReports("-f qa/pom.xml clean install -Ptomcat,h2,webapps-integration", 'qa/integration-tests-webapps') }
+                            stage('webapp-IT tomcat10') { mvnWithTestReports("-f qa/pom.xml clean install -Ptomcat10,h2,webapps-integration", 'qa/integration-tests-webapps') }
+                            stage('webapp-IT wildfly') { mvnWithTestReports("-f qa/pom.xml clean install -Pwildfly,h2,webapps-integration", 'qa/integration-tests-webapps') }
+                        }
                     }
                 }
                 stage('Run Integration') {
@@ -291,19 +314,16 @@ pipeline {
                     steps {
                         // TODO: remove the legacy-webapps builds after complete migration from webapp tests to webclient tests.
                         // The tests run against the legacy webapps, so they are installed locally first; the finally block
-                        // puts the regular webjar and run distros back, even when the tests fail.
+                        // puts the regular webjar and Run back, even when the tests fail.
                         script {
                             try {
                                 withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests -Plegacy-webapps" }
                                 withMaven { sh "mvn -f distro/run/pom.xml clean install -DskipTests -Plegacy-webapps" }
-                                withMaven { sh "mvn -f distro/run4/pom.xml clean install -DskipTests -Plegacy-webapps" }
 
                                 withMaven { sh "mvn -f distro/run/pom.xml clean install -Pintegration-test-run" }
-                                withMaven { sh "mvn -f distro/run4/pom.xml clean install -Pintegration-test-run" }
                             } finally {
                                 withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests" }
                                 withMaven { sh "mvn -f distro/run/pom.xml clean install -DskipTests" }
-                                withMaven { sh "mvn -f distro/run4/pom.xml clean install -DskipTests" }
                             }
                         }
                     }
@@ -317,7 +337,6 @@ pipeline {
                                 withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests -Plegacy-webapps" }
 
                                 withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }
-                                withMaven { sh "mvn -f spring-boot-4-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }
                             } finally {
                                 withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests" }
                             }
@@ -328,7 +347,7 @@ pipeline {
                     when {  expression { params.QA_PERF || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
                         script {
-                            withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2" }
+                            stage('perf benchmark') { mvnWithTestReports("-f qa/performance-tests-engine/pom.xml clean install -Pbenchmark,h2", 'qa/performance-tests-engine') }
                             if (params.ATTACH_QA_PERF_REPORTS == true) {
                                 sh "mkdir ./qa/performance-tests-engine/target/perf_benchmark; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_benchmark/"
                                 zip zipFile: 'perf_benchmark.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_benchmark'
@@ -336,7 +355,7 @@ pipeline {
                             }
                         }
                         script {
-                            withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Psql-statementlog,h2" }
+                            stage('perf sql-statementlog') { mvnWithTestReports("-f qa/performance-tests-engine/pom.xml clean install -Psql-statementlog,h2", 'qa/performance-tests-engine') }
                             if (params.ATTACH_QA_PERF_REPORTS == true) {
                                 sh "mkdir ./qa/performance-tests-engine/target/perf_sql_statementlog; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_sql_statementlog/"
                                 zip zipFile: 'perf_sql_statementlog.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_sql_statementlog'
@@ -344,7 +363,7 @@ pipeline {
 	                        }
                         }
                         script {
-                            withMaven { sh "mvn -f qa/performance-tests-engine/pom.xml clean install -Pactivity-count,h2 -DwatchActivities=start,timer,end -Dtest=AsyncStartAndTimerPerformanceTest" }
+                            stage('perf activity-count') { mvnWithTestReports("-f qa/performance-tests-engine/pom.xml clean install -Pactivity-count,h2 -DwatchActivities=start,timer,end -Dtest=AsyncStartAndTimerPerformanceTest", 'qa/performance-tests-engine') }
                             if (params.ATTACH_QA_PERF_REPORTS == true) {
                                 sh "mkdir ./qa/performance-tests-engine/target/perf_activity_count; mv ./qa/performance-tests-engine/target/reports ./qa/performance-tests-engine/target/results qa/performance-tests-engine/target/perf_activity_count/"
                                 zip zipFile: 'perf_activity_count.zip', archive: true, overwrite: true, dir: 'qa/performance-tests-engine/target/perf_activity_count'
@@ -402,10 +421,10 @@ pipeline {
                 }
                 stage('qa') {
                     stages {
-                        stage('engine-IT-tomcat-10-postgresql-142') {
+                        stage('engine-IT-tomcat-11-postgresql-142') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml -Dengine-integration clean install -Ptomcat,postgresql,engine-integration" }}}
                         }
-                        stage('engine-IT-tomcat-11-postgresql-142') {
+                        stage('engine-IT-tomcat-10-postgresql-142') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml -Dengine-integration clean install -Ptomcat10,postgresql,engine-integration" }}}
                         }
                         stage('engine-IT-wildfly-postgresql-142') {
@@ -414,10 +433,10 @@ pipeline {
                         stage('engine-IT-XA-wildfly-postgresql-142') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml -Dengine-integration clean install -Pwildfly,postgresql,postgresql-xa,engine-integration" }}}
                         }
-                        stage('webapp-IT-tomcat-10-h2') {
+                        stage('webapp-IT-tomcat-11-h2') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat,h2,webapps-integration" }}}
                         }
-                        stage('webapp-IT-tomcat-11-h2') {
+                        stage('webapp-IT-tomcat-10-h2') {
                             steps { script { withMaven { sh "mvn -fn -f qa/pom.xml clean install -Ptomcat10,h2,webapps-integration" }}}
                         }
                         stage('webapp-IT-wildfly-h2') {
@@ -449,19 +468,23 @@ pipeline {
 
         stage('Deploy to artifacts.cibseven.org') {
             when {
-                anyOf {
-                    // allow deploy of snapshots from main branch
-                    allOf {
-                        branch 'main'
-                        expression { mavenProjectInformation.version.endsWith("-SNAPSHOT") == true }
-                        anyOf {
-                            expression { params.BUILD_FEATURE_BRANCH == true }
-                            expression { params.VERIFY == true }
+                allOf {
+                    // deploy only artifacts built with JDK 17, also when forced
+                    expression { (params.JDK_VERSION ?: '17') == '17' }
+                    anyOf {
+                        // allow deploy of snapshots from main branch
+                        allOf {
+                            branch 'main'
+                            expression { mavenProjectInformation.version.endsWith("-SNAPSHOT") == true }
+                            anyOf {
+                                expression { params.BUILD_FEATURE_BRANCH == true }
+                                expression { params.VERIFY == true }
+                            }
                         }
-                    }
-                    // force deploy
-                    allOf {
-                        expression { params.DEPLOY_TO_ARTIFACTS }
+                        // force deploy
+                        allOf {
+                            expression { params.DEPLOY_TO_ARTIFACTS }
+                        }
                     }
                 }
             }
@@ -506,6 +529,7 @@ pipeline {
         stage('Deploy to Maven Central') {
             when {
                 allOf {
+                    expression { (params.JDK_VERSION ?: '17') == '17' }
                     expression { params.DEPLOY_TO_MAVEN_CENTRAL }
                     expression { mavenProjectInformation.version.endsWith("-SNAPSHOT") == false }
                     expression { isPatchVersion() == false }
@@ -588,6 +612,7 @@ pipeline {
                         allOf {
                             branch 'main'
                             expression { params.SAST_DEPENDENCY_TRACK }
+                            expression { (params.JDK_VERSION ?: '17') == '17' }
                         }
                     }
                     steps {
@@ -630,7 +655,7 @@ pipeline {
 
         stage('Documentation, OpenAPI') {
             when {
-                expression { params.OPEN_API }
+                expression { params.OPEN_API && (params.JDK_VERSION ?: '17') == '17' }
             }
             steps {
                 script {
@@ -664,7 +689,7 @@ pipeline {
 
         stage('Documentation, javaDocs') {
             when {
-                expression { params.JAVA_DOCS }
+                expression { params.JAVA_DOCS && (params.JDK_VERSION ?: '17') == '17' }
             }
             steps {
                 script {
@@ -749,6 +774,41 @@ pipeline {
     }
 }
 
+def getMavenContainerName(String jdkVersion) {
+    switch (jdkVersion) {
+        case '25':
+            return Constants.MAVEN_JDK_25_CONTAINER
+        case '21':
+            return Constants.MAVEN_JDK_21_CONTAINER
+        default:
+            return Constants.MAVEN_JDK_17_CONTAINER
+    }
+}
+
+// Runs the engine-rest tests with another JAX-RS runtime (Maven profile). 'engine UNIT & IT' has run
+// them before on the default one (Jersey), and the 'JUnit Report' stage publishes those reports from
+// engine-rest/engine-rest/target at the end (CIB7-2582):
+// - No 'clean': it would also delete the Jersey reports. 'engine UNIT & IT' ignores test failures, so
+//   failing Jersey tests would then never be reported and the build could stay green. Everything else
+//   in target/ is removed instead, because each profile compiles its own runtime classes and
+//   ContainerSpecifics service into target/test-classes, and leftovers break the next profile.
+// - Failing tests do not fail the stage (-Dmaven.test.failure.ignore, as in 'engine UNIT & IT'): a failed
+//   stage skips all later ones, 'QA Tests' and 'JUnit Report' included. junit marks the build unstable.
+// - The reports get the profile as suffix (TEST-<class>-<profile>.xml, test class "<class>(<profile>)").
+//   They are published right after the run, also when Maven fails, and then deleted, so that 'JUnit
+//   Report' does not count them twice. The Jersey reports stay for it.
+def engineRestTest(String profile) {
+    String module = 'engine-rest/engine-rest'
+    String reports = "${module}/target/surefire-reports/TEST-*-${profile}.xml"
+    sh "if [ -d ${module}/target ]; then find ${module}/target -mindepth 1 -maxdepth 1 ! -name '*-reports' -exec rm -rf {} +; fi"
+    try {
+        withMaven { sh "mvn -f ${module}/pom.xml test -P${profile} -Dsurefire.reportNameSuffix=${profile} -Dmaven.test.failure.ignore=true" }
+    } finally {
+        junit allowEmptyResults: true, testResults: reports
+        sh "rm -f ${reports}"
+    }
+}
+
 // Split in two on purpose: collecting the facts pays the one Maven start-up
 // that resolves the effective pom and warms the local repository, and the branches
 // that follow are pure shell reading those facts.
@@ -811,6 +871,20 @@ def checkDepVersionAlignment() {
     parallel branches
 }
 
+// Runs one Maven call and publishes the test reports below moduleDir right away, also when
+// the call fails. The final 'JUnit Report' stage alone would only see the reports of the last
+// run, since every "clean" of the same module deletes those of the run before (CIB7-2164).
+// The published reports are deleted afterwards, so that the final stage does not count them twice.
+def mvnWithTestReports(String mvnArgs, String moduleDir) {
+    try {
+        withMaven { sh "mvn ${mvnArgs}" }
+    } finally {
+        junit allowEmptyResults: true,
+              testResults: "${moduleDir}/**/target/surefire-reports/*.xml,${moduleDir}/**/target/failsafe-reports/*.xml"
+        sh "find ${moduleDir} -type d \\( -name surefire-reports -o -name failsafe-reports \\) -prune -exec rm -rf {} +"
+    }
+}
+
 // - "1.2.0" -> no
 // - "1.2.0-SNAPSHOT" -> no
 // - "1.2.3" -> yes
@@ -834,7 +908,7 @@ def isSNAPSHOTVersion() {
 def deployDistroSboms(String deploymentArgs) {
     Map sbomDeployRepository = getSbomDeployRepository(deploymentArgs)
 
-    def distroSbomProjects = ['distro/run', 'distro/run4', 'distro/tomcat', 'distro/wildfly']
+    def distroSbomProjects = ['distro/run', 'distro/tomcat', 'distro/wildfly']
 
     // Each invocation uses a distinct -f path and -DoutputName, so they can
     // run concurrently without conflicting on the shared output directory.

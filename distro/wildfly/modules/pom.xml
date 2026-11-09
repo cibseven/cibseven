@@ -127,10 +127,18 @@
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js</artifactId>
+      <version>${version.graal.js}</version>
+      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js-scriptengine</artifactId>
+      <version>${version.graal.js}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.ibm.icu</groupId>
+      <artifactId>icu4j</artifactId>
+      <version>${version.icu.icu4j}</version>
     </dependency>
 
     <!-- template engine dependencies -->
@@ -147,17 +155,6 @@
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-    </dependency>
-
-    <!-- Patched lz4-java replacing the 1.10.4 jar bundled in wildfly-dist (CVE-2026-59949).
-         WildFly's system module is excluded from the distro.
-         copy-dependencies step below already maps <groupId path>/<version>/<jar> to
-         <groupId path>/main/<jar>, which is exactly the layout the module.xml expects.
-         Drop this once WildFly ships lz4-java >= 1.11.1. -->
-    <dependency>
-      <groupId>at.yawk.lz4</groupId>
-      <artifactId>lz4-java</artifactId>
-      <version>${version.lz4-java}</version>
     </dependency>
 
   </dependencies>
@@ -186,6 +183,12 @@
                   <fileset refid="maven.project.dependencies" />
                   <regexpmapper from="^(.*)/([^/]+)/([^/]*)$$" to="\1/main/\3" handledirsep="yes" />
                 </copy>
+
+                <delete>
+                  <fileset dir="target/modules/org/graalvm/js/js/main">
+                    <include name="js-*.pom" />
+                  </fileset>
+                </delete>
 
                 <delete dir="target/modules/org/cibseven/bpm" />
 

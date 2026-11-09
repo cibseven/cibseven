@@ -17,7 +17,6 @@
 package org.cibseven.bpm.dmn.engine.impl.el;
 
 import jakarta.el.ArrayELResolver;
-import jakarta.el.BeanELResolver;
 import jakarta.el.CompositeELResolver;
 import jakarta.el.ELContext;
 import jakarta.el.ELResolver;
@@ -29,6 +28,7 @@ import org.cibseven.bpm.dmn.engine.impl.spi.el.ElExpression;
 import org.cibseven.bpm.dmn.engine.impl.spi.el.ElProvider;
 
 import org.cibseven.bpm.impl.juel.ExpressionFactoryImpl;
+import org.cibseven.bpm.impl.juel.JuelBeanELResolver;
 import org.cibseven.bpm.impl.juel.TreeValueExpression;
 import org.cibseven.bpm.impl.juel.SimpleContext;
 
@@ -45,7 +45,11 @@ public class JuelElProvider implements ElProvider {
   protected final ELContext parsingElContext;
 
   public JuelElProvider() {
-    this(new ExpressionFactoryImpl(), new JuelElContextFactory(createDefaultResolver()));
+    this(new ExpressionFactoryImpl());
+  }
+
+  private JuelElProvider(ExpressionFactoryImpl expressionFactory) {
+    this(expressionFactory, new JuelElContextFactory(createDefaultResolver(), expressionFactory));
   }
 
   public JuelElProvider(ExpressionFactoryImpl expressionFactory, JuelElContextFactory elContextFactory) {
@@ -82,7 +86,7 @@ public class JuelElProvider implements ElProvider {
     resolver.add(new ListELResolver(true));
     resolver.add(new MapELResolver(true));
     resolver.add(new ResourceBundleELResolver());
-    resolver.add(new BeanELResolver());
+    resolver.add(new JuelBeanELResolver());
     return resolver;
   }
 }

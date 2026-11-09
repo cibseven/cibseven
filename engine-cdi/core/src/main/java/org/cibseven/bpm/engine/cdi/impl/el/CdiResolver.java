@@ -16,9 +16,6 @@
  */
 package org.cibseven.bpm.engine.cdi.impl.el;
 
-import java.beans.FeatureDescriptor;
-import java.util.Iterator;
-
 import jakarta.el.ELContext;
 import jakarta.el.ELResolver;
 import jakarta.enterprise.inject.spi.BeanManager;
@@ -38,6 +35,9 @@ public class CdiResolver extends ELResolver {
     return BeanManagerLookup.getBeanManager();
   }
 
+  // BeanManager#getELResolver is deprecated for removal since CDI 4.1 (Jakarta EE 11) in favour of
+  // ELAwareBeanManager (jakarta.enterprise.cdi-el-api). It still works on CDI 4.0 and 4.1 containers.
+  @SuppressWarnings("removal")
   protected jakarta.el.ELResolver getWrappedResolver() {
     BeanManager beanManager = getBeanManager();
     jakarta.el.ELResolver resolver = beanManager.getELResolver();

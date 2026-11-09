@@ -103,6 +103,10 @@ large-data-tests:
     cpu: 4
     images: [ 'maven:3.9.7-eclipse-temurin-11', 'postgres:17.0' ]
 
+# Legacy Camunda CI (Jenkinsfile); Jenkinsfile.cib does not read this file. The engine-rest
+# stages below are outdated: engine-rest-jakarta no longer exists, and the wildfly-compatibility
+# profile is now ee10-compatibility. CIB seven runs engine-rest with the resteasy and
+# ee10-compatibility profiles in the 'MISC tests' stage of Jenkinsfile.cib (CIB7-2582).
 engine-rest-unit-jersey-2:
   directory: 'engine-rest/engine-rest'
   command: 'clean install -Pjersey2'

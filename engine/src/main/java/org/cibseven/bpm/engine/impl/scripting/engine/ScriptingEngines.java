@@ -59,6 +59,11 @@ public class ScriptingEngines implements DmnScriptEngineResolver {
 
   public static final String GRAAL_JS_SCRIPT_ENGINE_NAME = "Graal.js";
   public static final String DEFAULT_JS_SCRIPTING_LANGUAGE = GRAAL_JS_SCRIPT_ENGINE_NAME;
+  /**
+   * ECMAScript version of Graal JS in Nashorn compatibility mode, on every path that creates the engine.
+   * Without it, Graal JS 25 parses ECMAScript 5 only in that mode: no let, const or arrow functions.
+   */
+  public static final String GRAAL_JS_NASHORN_COMPAT_ECMASCRIPT_VERSION = "2022";
 
   protected ScriptEngineResolver scriptEngineResolver;
   protected ScriptBindingsFactory scriptBindingsFactory;

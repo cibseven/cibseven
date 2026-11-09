@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             xmlns:camunda="http://camunda.org/schema/1.0/dmn"
+             id="juelMethodArgumentConversionDefinitions"
+             name="JUEL method argument conversion"
+             namespace="http://camunda.org/schema/1.0/dmn">
+
+  <decision id="juelMethodArgumentConversion" name="JUEL method argument conversion" camunda:historyTimeToLive="5">
+    <decisionTable id="decisionTable">
+      <input id="input">
+        <inputExpression id="inputExpression" expressionLanguage="juel">
+          <text>${limit.compareTo(missing)}</text>
+        </inputExpression>
+      </input>
+      <output id="output" name="result" typeRef="integer" />
+      <rule id="rule">
+        <inputEntry id="inputEntry">
+          <text>1</text>
+        </inputEntry>
+        <outputEntry id="outputEntry">
+          <text>1</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+
+</definitions>

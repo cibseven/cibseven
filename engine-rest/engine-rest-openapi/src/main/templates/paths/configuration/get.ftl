@@ -20,6 +20,7 @@
                            "historyLevel": "full",
                            "authorizationEnabled": false,
                            "enablePasswordPolicy": false,
+                           "webclientExtensionsVersion": "3.0.0",
                            "historyTimeToLive": 180,
                            "enforceHistoryTimeToLive": true
                          }

@@ -16,19 +16,35 @@
  */
 package org.cibseven.bpm.spring.boot.starter.security.oauth2.impl;
 
+import java.util.Collections;
+import java.util.Map;
+
+import org.springframework.boot.autoconfigure.condition.ConditionMessage;
 import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
-import org.springframework.boot.autoconfigure.security.oauth2.client.ClientsConfiguredCondition;
+import org.springframework.boot.autoconfigure.condition.SpringBootCondition;
+import org.springframework.boot.context.properties.bind.Bindable;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * Condition that matches if no {@code spring.security.oauth2.client.registration} properties are defined
- * by inverting the outcome of {@link ClientsConfiguredCondition}.
+ * Condition that matches if no {@code spring.security.oauth2.client.registration} properties are defined.
+ * Reimplemented for Spring Boot 4 where ClientsConfiguredCondition is package-private.
  */
-public class ClientsNotConfiguredCondition extends ClientsConfiguredCondition {
+public class ClientsNotConfiguredCondition extends SpringBootCondition {
+
+  private static final Bindable<Map<String, Object>> STRING_OBJECT_MAP = Bindable
+      .mapOf(String.class, Object.class);
+
   @Override
   public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    var matchOutcome = super.getMatchOutcome(context, metadata);
-    return new ConditionOutcome(!matchOutcome.isMatch(), matchOutcome.getConditionMessage());
+    ConditionMessage.Builder message = ConditionMessage.forCondition("OAuth2 Clients Not Configured Condition");
+    Map<String, Object> registrations = Binder.get(context.getEnvironment())
+        .bind("spring.security.oauth2.client.registration", STRING_OBJECT_MAP)
+        .orElse(Collections.emptyMap());
+    if (registrations.isEmpty()) {
+      return ConditionOutcome.match(message.notAvailable("registered clients"));
+    }
+    return ConditionOutcome.noMatch(message.foundExactly("registered clients"));
   }
 }

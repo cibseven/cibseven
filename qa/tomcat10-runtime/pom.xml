@@ -120,10 +120,17 @@
         <dependency>
           <groupId>org.graalvm.js</groupId>
           <artifactId>js</artifactId>
+          <version>${version.graal.js}</version>
+          <type>pom</type>
         </dependency>
         <dependency>
           <groupId>org.graalvm.js</groupId>
           <artifactId>js-scriptengine</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>com.ibm.icu</groupId>
+          <artifactId>icu4j</artifactId>
+          <version>${version.icu.icu4j}</version>
         </dependency>
 
         <dependency>
@@ -159,6 +166,13 @@
         <dependency>
           <groupId>org.cibseven.spin</groupId>
           <artifactId>cibseven-spin-dataformat-all</artifactId>
+        </dependency>
+
+        <!-- the implementation of the jakarta.activation-api in lib/, see distro/tomcat/assembly -->
+        <dependency>
+          <groupId>org.eclipse.angus</groupId>
+          <artifactId>angus-activation</artifactId>
+          <version>${version.angus-activation}</version>
         </dependency>
 
         <dependency>

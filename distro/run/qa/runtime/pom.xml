@@ -46,6 +46,8 @@
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
+      <!-- The aggregate, not -api: without junit-jupiter-engine on the test classpath failsafe
+           finds no provider and reports "No tests to run" instead of failing. -->
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>

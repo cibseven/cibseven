@@ -17,8 +17,12 @@
 package org.cibseven.connect.ai.agent.impl;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
@@ -30,9 +34,12 @@ import dev.langchain4j.data.message.ChatMessageSerializer;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 
+import org.cibseven.connect.ai.agent.agentic.AdHocConversation;
 import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
 import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.core.variable.scope.AbstractVariableScope;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
 import org.cibseven.bpm.engine.variable.Variables;
 
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
@@ -49,9 +56,23 @@ import org.cibseven.connect.ai.agent.AgentConnectorConstants;
  * the process-instance scope, so a {@code memoryId} is scoped to one process
  * instance: reusing the same id in another instance starts a fresh conversation.
  *
- * <p>Stateless and safe to share as a singleton across job-executor threads —
- * the execution is resolved per call from the engine's thread-local
- * {@link Context}.
+ * <p>One conversation is kept elsewhere: that of the agent driving an agentic ad
+ * hoc sub process, whose tools are the scope's children. The turn runner says
+ * which call that is ({@code AdHocConversation.drive}), and its conversation goes
+ * where those tools cannot reach it, and only there: it is never read from,
+ * written to or cleared at the process level (CIB7-2408). This store is the only
+ * one that does so; with any other store, as {@link AgentChatMemoryStore} says,
+ * the agent's conversation is as reachable as any other.
+ *
+ * <p>Every other AI agent task, inside an ad hoc sub process too, plain or used as
+ * a tool, keeps its conversation at the process level, so it outlives the scope
+ * and stays until the process instance ends (CIB7-2232).
+ *
+ * <p>Holds no state of its own and is safe to share as a singleton across
+ * job-executor threads: the execution is resolved per call from the engine's
+ * thread-local {@link Context}, and whether the call is the driving agent's from
+ * the thread-local that {@code AdHocConversation.drive} sets while the turn runner
+ * asks the agent.
  *
  * <p>Whether this store is used at all is decided by {@link AgentChatMemoryStore},
  * not here. The only case this class handles itself is the absence of an engine
@@ -64,6 +85,9 @@ import org.cibseven.connect.ai.agent.AgentConnectorConstants;
  * larger than the database will accept (see {@link #DEFAULT_MAX_PAYLOAD_BYTES}),
  * and concurrent branches sharing one {@code memoryId} and therefore one variable
  * row (see {@code warnOnConcurrentBranch}).
+ *
+ * <p>Within a connector invocation the writes are held back and each conversation
+ * is written once, when the invocation ends ({@link Batch}, CIB7-2156).
  */
 final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
 
@@ -71,9 +95,11 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
 
   /**
    * Engine limit for the {@code NAME_} column of {@code ACT_RU_VARIABLE} —
-   * {@code ACT_HI_VARINST} and {@code ACT_HI_DETAIL} share it.
+   * {@code ACT_HI_VARINST} and {@code ACT_HI_DETAIL} share it. Counted in UTF-8 bytes,
+   * since DB2 counts the column in bytes. Shared with the chat-log chunk names of
+   * {@link AgentChatListener}.
    */
-  private static final int MAX_VARIABLE_NAME_LENGTH = 255;
+  static final int MAX_VARIABLE_NAME_LENGTH = 255;
 
   /**
    * Ceiling for the serialized conversation, in bytes. Unlike the variable name,
@@ -148,7 +174,10 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
       return noContextBuffer.getMessages(memoryId);
     }
     String name = variableName(memoryId);
-    Object raw = execution.getVariable(name);
+    Object raw = Batch.isOpen() ? Batch.staged(key(execution, name)) : null;
+    if (raw == null) {
+      raw = readRaw(execution, name);
+    }
     if (raw == null || raw.toString().isEmpty()) {
       return new ArrayList<>();
     }
@@ -175,7 +204,40 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
     String json = ChatMessageSerializer.messagesToJson(messages);
     String name = variableName(memoryId);
     checkPayloadSize(name, json, messages.size());
-    warnOnConcurrentBranch(execution, name);
+    boolean driven = AdHocConversation.drivenScope(execution) != null;
+    if (!driven) {
+      warnOnConcurrentBranch(execution, name);
+    }
+    if (Batch.isOpen()) {
+      Batch.stage(key(execution, name), execution, json);
+    } else {
+      write(execution, driven, name, json);
+    }
+  }
+
+  /**
+   * Writes the conversation where it lives: the driving agent's out of its tools' reach, every
+   * other one at the process level. Called on every update outside a {@link Batch}, and once per
+   * conversation when a batch closes.
+   */
+  private static void write(ExecutionEntity execution, boolean driven, String name, String json) {
+    if (driven) {
+      // The agent that drives an agentic ad hoc sub process, as the turn runner
+      // says (CIB7-2232). Its tools are the scope's child activities, so they are
+      // the untrusted party — and the scope execution is their ancestor. Writing
+      // here would let a tool rewrite the conversation. The agent state execution
+      // is their sibling, so it is unreachable that way — and so is the
+      // conversation holder one level up, which a scope keeping its conversation
+      // across entries uses instead (CIB7-2137).
+      //
+      // Nothing at the process level is touched: a process variable under this name is
+      // not the agent's, whoever wrote it, and stays where it is (CIB7-2408).
+      PvmExecutionImpl state = AdHocConversation.memoryExecution(execution);
+      state.setVariableLocal(name, Variables.objectValue(json).create());
+      return;
+    }
+    // Every other AI agent task, inside an ad hoc sub process as well, keeps its
+    // conversation at the process level, so it outlives any scope it runs in.
     // Java serialization stores in ACT_GE_BYTEARRAY and so bypasses the
     // VARCHAR(4000) limit — as the chat-log variable does.
     execution.setVariable(name, Variables.objectValue(json).create());
@@ -192,7 +254,34 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
       noContextBuffer.deleteMessages(memoryId);
       return;
     }
-    execution.removeVariable(variableName(memoryId));
+    String name = variableName(memoryId);
+    ExecutionEntity drivenScope = AdHocConversation.drivenScope(execution);
+    // What a batch still holds for it is gone too, or closing the batch would bring it back.
+    // Only for the conversation this call clears: the driving agent's leaves a process-level
+    // write under the same name where it is, as it leaves the variable (CIB7-2408).
+    if (Batch.isOpen()) {
+      Batch.discard(key(execution, name));
+    }
+    if (drivenScope != null) {
+      // The driving agent's own call, the only one that clears its conversation
+      // (CIB7-2232). It clears only where the agent keeps it, never the process
+      // level, which the agent neither reads nor writes (CIB7-2408).
+      PvmExecutionImpl state = AdHocConversation.findMemoryExecution(drivenScope);
+      if (state != null && state.hasVariableLocal(name)) {
+        state.removeVariableLocal(name);
+      }
+      return;
+    }
+    // The process level, where every other conversation lives. A call with the
+    // driving agent's memoryId from anywhere else, the scope itself included, ends
+    // here too and so cannot reach the agent's conversation, as
+    // AgentChatMemoryStore.clear(Object) says (CIB7-2232).
+    //
+    // Unconditionally, because removeVariable already checks containsKey before it
+    // walks up the parent chain and does nothing when the name is nowhere. Guarding
+    // on getVariable() != null instead would skip a variable that exists holding
+    // null, which is a delete that does not delete.
+    execution.removeVariable(name);
   }
 
   /**
@@ -280,7 +369,10 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
   /**
    * Warns once when the writing execution is a concurrent branch, because the
    * memory variable lives at the process-instance scope and every branch sharing
-   * a {@code memoryId} therefore contends on one row.
+   * a {@code memoryId} therefore contends on one row. Every activity of an ad hoc
+   * sub process runs on a concurrent execution, so an AI agent task there is one
+   * too, a tool of an agentic scope included: two performances of the same tool
+   * share its derived {@code memoryId} (CIB7-2232).
    *
    * <p>The contention itself is handled by the engine — the loser gets an
    * {@code OptimisticLockingException} and the job is retried. What makes it worth
@@ -295,7 +387,8 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
       return;
     }
     LOG.warn("AI Agent connector: chat memory '{}' is being written from a concurrent execution "
-        + "(parallel gateway or multi-instance). The variable lives at the process-instance scope, "
+        + "(a branch of a parallel gateway or multi-instance, or an activity of an ad hoc sub "
+        + "process, which runs on one too). The variable lives at the process-instance scope, "
         + "so branches sharing this memoryId contend on one row and the losing branch fails with "
         + "an OptimisticLockingException, retrying the entire service task. Tools that commit "
         + "outside the job transaction — ProcessStarterTool starts process instances in its own "
@@ -328,7 +421,8 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
    * The process-variable name carrying the conversation for {@code memoryId}.
    *
    * @throws AgentConnectorException when the id is missing or blank, or when it
-   *     is too long for the engine's variable-name column. A missing id would
+   *     is too long for the engine's variable-name column, counted in UTF-8 bytes
+   *     as for the chat-log chunk names. A missing id would
    *     otherwise produce one shared variable name for every such conversation
    *     in the instance — every agent task without an id reading and overwriting
    *     the same history — so it is rejected rather than mapped to a placeholder.
@@ -343,14 +437,256 @@ final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
           + "a BPMN input mapping that resolves to an empty value overrides that with nothing.");
     }
     String name = AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX + id;
-    if (name.length() > MAX_VARIABLE_NAME_LENGTH) {
+    int bytes = name.getBytes(StandardCharsets.UTF_8).length;
+    if (bytes > MAX_VARIABLE_NAME_LENGTH) {
       throw new AgentConnectorException(String.format(
-          "memoryId is too long: the chat-memory variable name would be %d characters, but the "
-          + "engine limits variable names to %d. Use a memoryId of at most %d characters.",
-          name.length(), MAX_VARIABLE_NAME_LENGTH,
+          "memoryId is too long: the chat-memory variable name would be %d bytes (UTF-8), but the "
+          + "engine limits variable names to %d. Use a memoryId of at most %d ASCII characters.",
+          bytes, MAX_VARIABLE_NAME_LENGTH,
           MAX_VARIABLE_NAME_LENGTH - AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX.length()));
     }
     return name;
   }
 
+  /**
+   * Reads the conversation: the driving agent's only from where {@link AdHocConversation}
+   * keeps it, every other one from the process level.
+   *
+   * <p>The driving agent's has no fallback to the process level, not even before its
+   * first write (CIB7-2408). The variable name there is predictable — with
+   * {@code perActivity} it is made of the enclosing execution's id and the scope's id —
+   * so whoever can set a process variable before the agent's first turn, the assignee of
+   * a user task before the scope or a correlated message, could otherwise hand the agent
+   * a conversation of their choice, which it would take for its own. The fallback was
+   * there for instances of builds of the agentic branch from before CIB7-2232; no
+   * release has the agentic layer, so no released instance needs it.
+   *
+   * <p>No migration for anything else that builds of the agentic branch kept elsewhere
+   * before CIB7-2232: the conversation of an AI agent task other than the driving
+   * agent, which they kept on the agent state or the holder, and a tool's conversation
+   * under the earlier form of its derived id. Neither is read any more, so such a task
+   * starts its conversation anew; the old copy goes with its execution, or stays until
+   * the instance ends. No release ever wrote either.
+   *
+   * <p>Deliberately never creates a state execution, because a read must not
+   * write — a scope nobody ever stored anything in would otherwise acquire an
+   * execution just from being looked at.
+   */
+  private static Object readRaw(ExecutionEntity execution, String name) {
+    ExecutionEntity drivenScope = AdHocConversation.drivenScope(execution);
+    if (drivenScope != null) {
+      PvmExecutionImpl state = AdHocConversation.findMemoryExecution(drivenScope);
+      return (state == null) ? null : state.getVariableLocal(name);
+    }
+    return execution.getVariable(name);
+  }
+
+  /** Which conversation a write on {@code execution} is, on this thread now. */
+  private static Key key(ExecutionEntity execution, String name) {
+    return (AdHocConversation.drivenScope(execution) != null)
+        ? new Key(execution, name, true)
+        : processLevelKey(execution, name);
+  }
+
+  /**
+   * The process-level conversation {@code name} as seen from {@code execution}: the scope
+   * {@code setVariable} would write it to, the nearest one holding it, else the process instance.
+   * Two executions of one instance that reach the same variable get the same key.
+   */
+  private static Key processLevelKey(ExecutionEntity execution, String name) {
+    AbstractVariableScope scope = execution;
+    while (!scope.hasVariableLocal(name) && scope.getParentVariableScope() != null) {
+      scope = scope.getParentVariableScope();
+    }
+    return new Key(scope, name, false);
+  }
+
+  /**
+   * One conversation: where it is anchored, its variable name, and whether it is the driving
+   * agent's. The anchor is compared by identity, as the engine has one object per execution in a
+   * command. The driving agent's is anchored on the scope execution, but lives out of its tools'
+   * reach, so it never shares a key with a process-level one, whatever the names.
+   */
+  private static final class Key {
+
+    private final Object anchor;
+    private final String name;
+    private final boolean driven;
+
+    Key(Object anchor, String name, boolean driven) {
+      this.anchor = anchor;
+      this.name = name;
+      this.driven = driven;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if (!(other instanceof Key)) {
+        return false;
+      }
+      Key key = (Key) other;
+      return anchor == key.anchor && name.equals(key.name) && driven == key.driven;
+    }
+
+    @Override
+    public int hashCode() {
+      return 31 * (31 * System.identityHashCode(anchor) + name.hashCode()) + (driven ? 1 : 0);
+    }
+  }
+
+  /**
+   * A write a {@link Batch} holds back: the execution that first staged the conversation in that
+   * batch, and the newest JSON.
+   */
+  private static final class Held {
+
+    private final ExecutionEntity execution;
+    private final String json;
+
+    Held(ExecutionEntity execution, String json) {
+      this.execution = execution;
+      this.json = json;
+    }
+  }
+
+  /**
+   * Holds back the conversation writes of one connector invocation and writes each conversation
+   * once, when the invocation ends (CIB7-2156).
+   *
+   * <p>LangChain4j's chat memory writes the whole conversation on every message it adds: the
+   * task, the model's answer, every tool result. Each write of a variable is a history row of its
+   * own at history level {@code full}, holding the whole conversation, so one model call with
+   * three tools made five rows. Held back here, the invocation reads its own latest version and
+   * the engine sees one write per conversation. An agentic step is one invocation (CIB7-2148), so
+   * that is one row per step.
+   *
+   * <p>The invocation, not the command, because the command can outlive what the conversation is
+   * written to: a step that ends its scope removes the agent state with it, and a process that
+   * ends in the same transaction removes its variables. Written when the invocation ends, the
+   * conversation reaches the database and its history exactly as the last of its writes did
+   * before; nothing between that write and the end of the invocation changes the process.
+   *
+   * <p>A batch belongs to the thread it was opened on, as the engine's own context does. Opened
+   * within another — an AI agent task used as a tool runs a connector invocation of its own while
+   * the outer one waits (CIB7-2155) — it holds that invocation's conversations, and writes them
+   * when that one ends. A conversation the outer batch already holds stays there, so the newest
+   * version is the one written.
+   *
+   * <p>A failed invocation still writes what it held when it closes. Usually the transaction is
+   * rolled back anyway; where it is not, the conversation is in the state the last write left it
+   * before as well.
+   */
+  static final class Batch implements AutoCloseable {
+
+    /** The batches open on this thread, innermost first; unset while none is. */
+    private static final ThreadLocal<Deque<Batch>> OPEN = new ThreadLocal<>();
+
+    /** Per conversation, its last write; first write first. */
+    private final Map<Key, Held> held = new LinkedHashMap<>();
+
+    private Batch() {
+    }
+
+    /** Opens a batch on this thread; closing it writes what it held. */
+    static Batch open() {
+      Deque<Batch> open = OPEN.get();
+      if (open == null) {
+        open = new ArrayDeque<>();
+        OPEN.set(open);
+      }
+      Batch batch = new Batch();
+      open.push(batch);
+      return batch;
+    }
+
+    /** Whether a batch is open on this thread. */
+    static boolean isOpen() {
+      return OPEN.get() != null;
+    }
+
+    /**
+     * Holds the write in the batch that has the conversation, else the innermost.
+     *
+     * <p>Written at close from the execution that first staged it there, not from the latest: in
+     * a nested invocation that is the outer one's, which is still running when its batch closes,
+     * while the inner task's may have ended by then. Both reach the same variable, as their keys
+     * are equal. Not written through the key's anchor, which would make the anchor rather than an
+     * invoking execution the source that the history ({@code ACT_HI_DETAIL}) and variable
+     * listeners see.
+     */
+    static void stage(Key key, ExecutionEntity execution, String json) {
+      Deque<Batch> open = OPEN.get();
+      Batch target = open.peek();
+      for (Batch batch : open) {
+        if (batch.held.containsKey(key)) {
+          target = batch;
+        }
+      }
+      Held first = target.held.get(key);
+      target.held.put(key, new Held((first != null) ? first.execution : execution, json));
+    }
+
+    /** The JSON a batch holds for the conversation, or {@code null}. */
+    static String staged(Key key) {
+      for (Batch batch : OPEN.get()) {
+        Held write = batch.held.get(key);
+        if (write != null) {
+          return write.json;
+        }
+      }
+      return null;
+    }
+
+    /** Forgets what a batch holds for the conversation. */
+    static void discard(Key key) {
+      for (Batch batch : OPEN.get()) {
+        batch.held.remove(key);
+      }
+    }
+
+    /**
+     * Writes what this batch held and closes it. Closed even when a write fails, so the thread
+     * does not carry it into the next invocation.
+     *
+     * <p>A write that fails is logged before it is rethrown: when the invocation fails as well,
+     * the failure is only a suppressed exception of the invocation's, and a {@code BpmnError}
+     * caught by a boundary event lets the transaction commit without the conversation. The log
+     * leaves out the stack trace, which the engine or the suppressed exception carries.
+     */
+    @Override
+    public void close() {
+      try {
+        // Every conversation is attempted, so one that cannot be written does not keep the others
+        // back; the first failure is thrown, any further ones go with it.
+        RuntimeException first = null;
+        for (Map.Entry<Key, Held> write : held.entrySet()) {
+          Key key = write.getKey();
+          try {
+            ProcessVariableChatMemoryStore.write(write.getValue().execution, key.driven, key.name,
+                write.getValue().json);
+          } catch (RuntimeException e) {
+            LOG.warn("AI Agent connector: could not write the conversation '{}' at the end of the "
+                + "connector invocation: {}", key.name, e.toString());
+            if (first == null) {
+              first = e;
+            } else {
+              first.addSuppressed(e);
+            }
+          }
+        }
+        if (first != null) {
+          throw first;
+        }
+      } finally {
+        held.clear();
+        Deque<Batch> open = OPEN.get();
+        if (open != null) {
+          open.remove(this);
+          if (open.isEmpty()) {
+            OPEN.remove();
+          }
+        }
+      }
+    }
+  }
 }

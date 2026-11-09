@@ -81,6 +81,13 @@
 
       <dependency>
         <groupId>org.graalvm.js</groupId>
+        <artifactId>js</artifactId>
+        <type>pom</type>
+        <version>${version.graal.js}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.graalvm.js</groupId>
         <artifactId>js-scriptengine</artifactId>
         <version>${version.graal.js}</version>
       </dependency>
@@ -142,7 +149,6 @@
         <plugin>
           <groupId>org.apache.felix</groupId>
           <artifactId>maven-bundle-plugin</artifactId>
-          <version>3.5.0</version>
           <configuration>
             <instructions>
               <Export-Package>org.cibseven.spin*</Export-Package>
@@ -175,15 +181,6 @@
           </plugin>
         </plugins>
       </build>
-    </profile>
-    <profile>
-      <id>jdk11</id>
-      <activation>
-        <jdk>[11,)</jdk>
-      </activation>
-      <modules>
-        <module>dataformat-xml-dom</module>
-      </modules>
     </profile>
   </profiles>
 

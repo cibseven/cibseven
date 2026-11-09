@@ -28,10 +28,12 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.spin.DataFormats;
+import org.junit.jupiter.api.Test;
 
 public class HistoricDecisionInstanceSerializationTest extends PluggableProcessEngineTestCase {
 
   @Deployment(resources = {"org/cibseven/spin/plugin/DecisionSingleOutput.dmn11.xml"})
+  @Test
   public void testListJsonProperty() {
     JsonListSerializable<String> list = new JsonListSerializable<String>();
     list.addElement("foo");

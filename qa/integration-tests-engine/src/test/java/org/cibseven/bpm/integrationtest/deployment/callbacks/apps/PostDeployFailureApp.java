@@ -18,10 +18,10 @@ package org.cibseven.bpm.integrationtest.deployment.callbacks.apps;
 
 import org.cibseven.bpm.application.PostDeploy;
 import org.cibseven.bpm.application.ProcessApplication;
+import org.cibseven.bpm.application.impl.JakartaServletProcessApplication;
 
 @ProcessApplication
-// Using fully-qualified class name instead of import statement to allow for automatic Jakarta transformation
-public class PostDeployFailureApp extends org.cibseven.bpm.application.impl.ServletProcessApplication {
+public class PostDeployFailureApp extends JakartaServletProcessApplication {
   
   @PostDeploy
   public void fail() {

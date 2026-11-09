@@ -59,7 +59,6 @@
           <plugin>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <failIfNoTests>false</failIfNoTests>
               <trimStackTrace>false</trimStackTrace>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <excludes combine.children="append">
@@ -78,7 +77,6 @@
           <plugin>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <failIfNoTests>false</failIfNoTests>
               <trimStackTrace>false</trimStackTrace>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <excludes combine.children="append">
@@ -169,6 +167,24 @@
       </dependencyManagement>
 
       <dependencies>
+        <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+          <version>4.13.2</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.junit.vintage</groupId>
+          <artifactId>junit-vintage-engine</artifactId>
+          <version>${version.junit5}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-engine</artifactId>
+          <version>${version.junit5}</version>
+          <scope>test</scope>
+        </dependency>
         <dependency>
           <groupId>org.assertj</groupId>
           <artifactId>assertj-core</artifactId>
@@ -308,6 +324,7 @@
         <dependency>
           <groupId>org.graalvm.js</groupId>
           <artifactId>js</artifactId>
+          <type>pom</type>
           <scope>test</scope>
         </dependency>
 
@@ -367,6 +384,7 @@
                       <artifactId>cibseven-engine</artifactId>
                       <version>${cibseven.old.engine.version}</version>
                       <type>test-jar</type>
+                      <classifier>tests</classifier>
                       <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
                     </artifactItem>
                   </artifactItems>
@@ -387,6 +405,7 @@
                       <artifactId>cibseven-sql-scripts</artifactId>
                       <version>${project.version}</version>
                       <type>test-jar</type>
+                      <classifier>tests</classifier>
                       <outputDirectory>${project.build.directory}/scripts-current</outputDirectory>
                       <overWrite>true</overWrite>
                     </artifactItem>
@@ -457,6 +476,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
+              <failIfNoTests>true</failIfNoTests>
               <excludes>
                 <exclude>**/*TestCase.java</exclude>
 
@@ -491,8 +511,14 @@
 
                 <!-- The test is not relevant in `old-engine` setup and lacks necessary resource files -->
                 <exclude>**DatabaseNamingConsistencyTest.java</exclude>
+
+                <!-- The old engine test suite still contains Nashorn tests, but Nashorn is not part of the JDK anymore -->
+                <exclude>**/*NashornTest.java</exclude>
                 <exclude>${TEMPORARY_OLD_ENGINE_TEST_EXCLUDE}</exclude>
               </excludes>
+              <!-- Old engine 2.2.0 lacks the GraalJS 25 builder and parser-isolation fixes. The file excludes
+                   single methods where possible, which <excludes> does not allow. -->
+              <excludesFile>${project.basedir}/old-engine-2.2.0-excludes.txt</excludesFile>
               <testFailureIgnore>false</testFailureIgnore>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <argLine>-Xmx2g -Duser.language=en -Duser.region=US -XX:+HeapDumpOnOutOfMemoryError
@@ -505,28 +531,6 @@
           </plugin>
 
         </plugins>
-      </build>
-    </profile>
-
-    <profile>
-     <id>exclude-post-jdk15-tests</id>
-      <activation>
-        <jdk>[15,)</jdk>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <configuration>
-                <!-- Nashorn is not part of the JDK anymore in Java 15+ -->
-                <excludes combine.children="append">
-                  <exclude>**/*NashornTest.java</exclude>
-                </excludes>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
       </build>
     </profile>
 

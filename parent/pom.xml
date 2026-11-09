@@ -20,15 +20,15 @@
   <properties>
     <version.quarkus>3.33.3</version.quarkus>
     <version.spring.framework>5.3.39</version.spring.framework>
-    <version.spring.framework6>6.2.19</version.spring.framework6>
     <version.spring.framework7>7.0.9</version.spring.framework7>
-    <version.spring-boot>3.5.16</version.spring-boot>
-    <version.spring-boot4>4.1.1</version.spring-boot4>
-    <version.resteasy>3.15.6.Final</version.resteasy>
-    <version.jersey3>3.1.11</version.jersey3>
-    <version.jaxrs.api>2.0.1.Final</version.jaxrs.api>
+    <version.spring-boot>4.1.1</version.spring-boot>
+    <!-- JAX-RS runtimes, both Jakarta REST 4.0 (Jakarta EE 11, see version.jakarta-ee-spec):
+         Jersey as managed by Spring Boot (version.spring-boot) and used by the REST API webapp,
+         RESTEasy as shipped by WildFly (version.wildfly) and bundled by the Tomcat distro webapp. -->
+    <version.jersey>4.0.2</version.jersey>
+    <version.resteasy>7.0.5.Final</version.resteasy>
     <version.groovy>5.0.4</version.groovy>
-    <version.graal.js>21.3.19.1</version.graal.js>
+    <version.graal.js>25.0.1</version.graal.js>
     <version.icu.icu4j>71.1</version.icu.icu4j>
     <!-- json-smart and accessors-smart are runtime dependencies of json-path -->
     <version.json-path>2.9.0</version.json-path>
@@ -38,13 +38,16 @@
     <version.commons-lang3>3.20.0</version.commons-lang3>
     <version.openjpa>2.4.3</version.openjpa>
     <version.hamcrest>3.0</version.hamcrest>
-    <version.hibernate>6.6.10.Final</version.hibernate>
+    <version.hibernate>7.0.10.Final</version.hibernate>
     <version.hikaricp>4.0.3</version.hikaricp>
     <version.jackson>2.21.7</version.jackson>
     <version.jackson3>3.1.7</version.jackson3>
     <version.xml.jaxb-impl>2.3.6</version.xml.jaxb-impl>
     <version.xml.jaxb-impl4>4.0.5</version.xml.jaxb-impl4>
     <version.jakarta.xml.bind-api>4.0.2</version.jakarta.xml.bind-api>
+    <!-- Jakarta Activation implementation: a runtime dependency of cibseven-commons-typed-values
+         (CIB7-2605) and shipped in the Tomcat lib/; matches its jakarta.activation-api 2.1.3 -->
+    <version.angus-activation>2.0.2</version.angus-activation>
     <version.httpclient5>5.6.4</version.httpclient5>
     <version.httpcore5>5.4.3</version.httpcore5>
     <version.cronutils>9.2.1</version.cronutils>
@@ -71,12 +74,8 @@
     <version.bouncycastle>1.47</version.bouncycastle>
 
     <!-- application servers -->
-    <version.wildfly>41.0.1.Final</version.wildfly>
-    <version.wildfly.core>33.0.0.Final</version.wildfly.core>
-
-    <!-- Overrides the lz4-java shipped inside wildfly-dist (1.10.4 in WildFly 41),
-         which is flagged for CVE-2026-59949. -->
-    <version.lz4-java>1.11.1</version.lz4-java>
+    <version.wildfly>42.0.0.Final</version.wildfly>
+    <version.wildfly.core>34.0.0.Final</version.wildfly.core>
 
     <version.tomcat10>10.1.59</version.tomcat10>
     <version.tomcat>11.0.25</version.tomcat>
@@ -88,7 +87,10 @@
     <version.freemarker>2.3.35</version.freemarker>
 
     <version.jboss-javaee-spec>3.0.2.Final</version.jboss-javaee-spec>
-    <version.jakarta-ee-spec>10.0.0</version.jakarta-ee-spec>
+    <!-- Jakarta EE platform level of all modules (jakartaee-bom / jakartaee-api) -->
+    <version.jakarta-ee-spec>11.0.0</version.jakarta-ee-spec>
+    <!-- Jakarta Expression Language 6.0 implementation, used in tests (the API comes from the EE BOM) -->
+    <version.expressly>6.0.0</version.expressly>
 
     <version.eirslett.frontend.maven.plugin>1.12.1</version.eirslett.frontend.maven.plugin>
     <version.nodejs>24.13.1</version.nodejs>
@@ -130,9 +132,15 @@
     <camunda.osgi.remove.headers>Ignore-Package,Include-Resource,Private-Package,Bundle-DocURL</camunda.osgi.remove.headers>
     <camunda.osgi.include.resource>{maven-resources}</camunda.osgi.include.resource>
     <camunda.osgi.embed />
+    <!-- Skips enforce-no-test-libraries-in-compile-scope. Only test helper and QA modules set it to true.
+         The default follows enforcer.skip, so that -Denforcer.skip=true still skips every rule. -->
+    <enforcer.skip>false</enforcer.skip>
+    <cibseven.enforcer.allowTestLibraries>${enforcer.skip}</cibseven.enforcer.allowTestLibraries>
     <plugin.version.maven-bundle>5.1.9</plugin.version.maven-bundle> <!-- compatible with JDK 17 -->
     <!-- Define the maximum number of JVM processes that Surefire will spawn concurrently to execute the tests. 1C equals to number of available CPU cores in system. -->
     <surefire.forkCount>1</surefire.forkCount>
+    <!-- Arguments for test plugins on JDK 25; conditionally activated by the jdk25-test-jvm-args profile. -->
+    <test.jvm.args.jdk25 />
   </properties>
 
   <dependencyManagement>
@@ -209,7 +217,8 @@
             <argLine>-Xmx2g -Duser.language=en -Duser.region=US -XX:+HeapDumpOnOutOfMemoryError
               -XX:HeapDumpPath=${project.build.directory}/heap_dump.hprof
               --add-opens=java.base/java.util=ALL-UNNAMED
-              --add-opens=java.base/java.lang=ALL-UNNAMED</argLine>
+              --add-opens=java.base/java.lang=ALL-UNNAMED
+              ${test.jvm.args.jdk25}</argLine>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
             <forkCount>${surefire.forkCount}</forkCount>
           </configuration>
@@ -219,7 +228,7 @@
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>${version.surefire}</version>
           <configuration>
-            <argLine>-Xmx968m</argLine>
+            <argLine>-Xmx968m ${test.jvm.args.jdk25}</argLine>
             <runOrder>hourly</runOrder>
           </configuration>
           <executions>
@@ -248,6 +257,8 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
+          <!-- release-parent pins 3.2.4, whose ASM cannot read Java 17 class files (major version 61) -->
+          <version>3.6.0</version>
           <configuration>
             <createSourcesJar>true</createSourcesJar>
           </configuration>
@@ -387,39 +398,147 @@
             <goals>
               <goal>enforce</goal>
             </goals>
+            <configuration>
+              <fail>true</fail>
+              <rules>
+                <bannedDependencies>
+                  <searchTransitive>true</searchTransitive>
+                  <excludes>
+                    <exclude>org.springframework:spring-core</exclude>
+                  </excludes>
+                  <includes>
+                    <include>org.springframework:spring-core:[${version.spring.framework}]</include>
+                    <include>org.springframework:spring-core:[${version.spring.framework7}]</include>
+                  </includes>
+                  <message>
+                    Spring Framework must appear in the dependency graph only at a pinned line:
+                    ${version.spring.framework} / ${version.spring.framework7}.
+                    Note this checks the whole graph, including versions that lose mediation and
+                    never reach the classpath. Two usual causes:
+                      1. a Spring Boot BOM bump moved the framework line without the matching
+                        version.spring.frameworkN update;
+                      2. a third-party dependency declares its own framework version in a module
+                        that does not manage Spring — manage it there, or exclude it at the source.
+                  </message>
+                </bannedDependencies>
+              </rules>
+            </configuration>
+          </execution>
+          <!-- CIB seven 3.x is built against Jakarta EE 11 (EL 6.0). Catches an older platform API, or
+               an older EL, CDI or Servlet API, that sneaks in through a pinned version or a third-party
+               dependency. It covers the platform POMs and the APIs whose version CIB seven code depends
+               on, not every Jakarta EE API. The QA servers (e.g. Tomcat 10.1 of the tomcat10 profile) are
+               not affected: they come as distribution archives, not as these API artifacts. -->
+          <execution>
+            <id>enforce-jakarta-ee-11</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <fail>true</fail>
+              <rules>
+                <bannedDependencies>
+                  <searchTransitive>true</searchTransitive>
+                  <excludes>
+                    <exclude>jakarta.platform:jakarta.jakartaee-api:(,11.0.0)</exclude>
+                    <exclude>jakarta.platform:jakarta.jakartaee-web-api:(,11.0.0)</exclude>
+                    <exclude>jakarta.platform:jakarta.jakartaee-core-api:(,11.0.0)</exclude>
+                    <exclude>jakarta.el:jakarta.el-api:(,6.0.0)</exclude>
+                    <!-- EL 4.0 implementation; use org.glassfish.expressly:expressly (EL 6.0) -->
+                    <exclude>org.glassfish:jakarta.el</exclude>
+                    <!-- EL 5.0 API under JBoss coordinates (e.g. via RESTEasy 6.2) -->
+                    <exclude>org.jboss.spec.jakarta.el:jboss-el-api_5.0_spec</exclude>
+                    <exclude>jakarta.enterprise:jakarta.enterprise.cdi-api:(,4.1.0)</exclude>
+                    <exclude>jakarta.servlet:jakarta.servlet-api:(,6.1.0)</exclude>
+                  </excludes>
+                  <message>
+                    CIB seven is built against Jakarta EE 11: the platform APIs come from
+                    jakarta.jakartaee-bom ${version.jakarta-ee-spec} (property version.jakarta-ee-spec).
+                    The Expression Language API must be 6.0 or later, the CDI API 4.1 or later and the
+                    Servlet API 6.1 or later. Remove the pinned version, import the Jakarta EE BOM,
+                    or exclude the old API at the dependency that brings it in.
+                  </message>
+                </bannedDependencies>
+              </rules>
+            </configuration>
+          </execution>
+          <!-- Keeps test libraries out of the compile and runtime classpath of the published artifacts.
+               The JUnit 5 migration (#461) declared junit-jupiter-api and AssertJ without a scope, and the
+               dependencyManagement entries carry no scope either, so they leaked into 29 published modules
+               and into the distributions (CIB7-2586). Test and provided scope stay allowed. Modules that
+               ship test helpers opt out with the property cibseven.enforcer.allowTestLibraries. -->
+          <execution>
+            <id>enforce-no-test-libraries-in-compile-scope</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <skip>${cibseven.enforcer.allowTestLibraries}</skip>
+              <fail>true</fail>
+              <rules>
+                <bannedDependencies>
+                  <searchTransitive>true</searchTransitive>
+                  <excludes>
+                    <exclude>junit:junit:*:*:compile</exclude>
+                    <exclude>junit:junit:*:*:runtime</exclude>
+                    <exclude>org.junit.jupiter:*:*:*:compile</exclude>
+                    <exclude>org.junit.jupiter:*:*:*:runtime</exclude>
+                    <exclude>org.junit.platform:*:*:*:compile</exclude>
+                    <exclude>org.junit.platform:*:*:*:runtime</exclude>
+                    <exclude>org.junit.vintage:*:*:*:compile</exclude>
+                    <exclude>org.junit.vintage:*:*:*:runtime</exclude>
+                    <exclude>org.opentest4j:*:*:*:compile</exclude>
+                    <exclude>org.opentest4j:*:*:*:runtime</exclude>
+                    <!-- comes only with JUnit; Netty, the only other user, excludes it -->
+                    <exclude>org.apiguardian:*:*:*:compile</exclude>
+                    <exclude>org.apiguardian:*:*:*:runtime</exclude>
+                    <exclude>org.assertj:*:*:*:compile</exclude>
+                    <exclude>org.assertj:*:*:*:runtime</exclude>
+                    <exclude>org.mockito:*:*:*:compile</exclude>
+                    <exclude>org.mockito:*:*:*:runtime</exclude>
+                    <exclude>org.hamcrest:*:*:*:compile</exclude>
+                    <exclude>org.hamcrest:*:*:*:runtime</exclude>
+                    <exclude>uk.org.webcompere:system-stubs*:*:*:compile</exclude>
+                    <exclude>uk.org.webcompere:system-stubs*:*:*:runtime</exclude>
+                    <exclude>org.jboss.arquillian*:*:*:*:compile</exclude>
+                    <exclude>org.jboss.arquillian*:*:*:*:runtime</exclude>
+                    <exclude>org.testcontainers:*:*:*:compile</exclude>
+                    <exclude>org.testcontainers:*:*:*:runtime</exclude>
+                  </excludes>
+                  <message>
+                    Test libraries (JUnit, AssertJ, Mockito, Hamcrest, System Stubs, Arquillian,
+                    Testcontainers) must not be on the compile or runtime classpath: they would end
+                    up in the published POMs and in the distributions. Declare them with
+                    &lt;scope&gt;test&lt;/scope&gt; (or provided), or exclude them at the dependency that
+                    brings them in. Only a module that ships test helpers may opt out, with
+                    &lt;cibseven.enforcer.allowTestLibraries&gt;true&lt;/cibseven.enforcer.allowTestLibraries&gt;.
+                  </message>
+                </bannedDependencies>
+              </rules>
+            </configuration>
           </execution>
         </executions>
-        <configuration>
-          <fail>true</fail>
-          <rules>
-            <bannedDependencies>
-              <searchTransitive>true</searchTransitive>
-              <excludes>
-                <exclude>org.springframework:spring-core</exclude>
-              </excludes>
-              <includes>
-                <include>org.springframework:spring-core:[${version.spring.framework}]</include>
-                <include>org.springframework:spring-core:[${version.spring.framework6}]</include>
-                <include>org.springframework:spring-core:[${version.spring.framework7}]</include>
-              </includes>
-              <message>
-                Spring Framework must appear in the dependency graph only at a pinned line:
-                ${version.spring.framework} / ${version.spring.framework6} / ${version.spring.framework7}.
-                Note this checks the whole graph, including versions that lose mediation and
-                never reach the classpath. Two usual causes:
-                  1. a Spring Boot BOM bump moved the framework line without the matching
-                    version.spring.frameworkN update;
-                  2. a third-party dependency declares its own framework version in a module
-                    that does not manage Spring — manage it there, or exclude it at the source.
-              </message>
-            </bannedDependencies>
-          </rules>
-        </configuration>
       </plugin>
     </plugins>
   </build>
 
   <profiles>
+    <!-- Temporary JDK 25 test workaround for Graal/Truffle native-access and Unsafe warnings,
+         e.g. engine-dmn/ExpressionLanguageTest and engine/ScriptTaskGraalJsTest.
+         Remove or narrow these flags once the underlying APIs/dependencies no longer need them
+         and these tests run without the warnings. -->
+    <profile>
+      <id>jdk25-test-jvm-args</id>
+      <activation>
+        <jdk>[25,)</jdk>
+      </activation>
+      <properties>
+        <test.jvm.args.jdk25>--enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow</test.jvm.args.jdk25>
+      </properties>
+    </profile>
+
     <profile>
       <!-- Adds the released 2.x legacy webapps (Cockpit, Tasklist, Admin) back for the tests that
            still drive the engine through them. Anything built with it must never be published.

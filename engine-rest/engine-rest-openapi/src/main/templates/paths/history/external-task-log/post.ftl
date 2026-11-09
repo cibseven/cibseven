@@ -52,6 +52,7 @@
                            "tenantId": null,
                            "creationLog": false,
                            "failureLog": true,
+                           "fetchedLog": false,
                            "successLog": false,
                            "deletionLog": false,
                            "removalTime": "2018-02-10T14:33:19.000+0200",

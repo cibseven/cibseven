@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.impl.scripting.engine;
 
+import static org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines.GRAAL_JS_NASHORN_COMPAT_ECMASCRIPT_VERSION;
 import static org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines.GRAAL_JS_SCRIPT_ENGINE_NAME;
 import static org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines.GROOVY_SCRIPTING_LANGUAGE;
 import static org.cibseven.bpm.engine.impl.util.ReflectUtil.CAMUNDA_NAMESPACE;
@@ -48,6 +49,8 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
   private static final String JS_LOAD_OPTION = "js.load";
   private static final String JS_PRINT_OPTION = "js.print";
   private static final String JS_GLOBAL_ARGUMENTS_OPTION = "js.global-arguments";
+  private static final String JS_NASHORN_COMPAT_OPTION = "js.nashorn-compat";
+  private static final String JS_ECMASCRIPT_VERSION_OPTION = "js.ecmascript-version";
   
   protected final Map<String, Runnable> engineNameToInitLogicMappings = Map.of(
       GRAAL_JS_SCRIPT_ENGINE_NAME, this::disableGraalVMInterpreterOnlyModeWarnings
@@ -203,11 +206,20 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
       }
       if (config.isEnableScriptEngineLoadExternalResources()) {
         // make sure Graal JS can load external scripts
-        var allowIO = builderClass.getMethod("allowIO", boolean.class);
-        builder = allowIO.invoke(builder, true);
+        try {
+          Class<?> ioAccessClass = Class.forName("org.graalvm.polyglot.io.IOAccess");
+          var allowIO = builderClass.getMethod("allowIO", ioAccessClass);
+          var ioAccessAll = ioAccessClass.getField("ALL").get(null);
+          builder = allowIO.invoke(builder, ioAccessAll);
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
+          var allowIO = builderClass.getMethod("allowIO", boolean.class);
+          builder = allowIO.invoke(builder, true);
+        }
       }
       if (config.isEnableScriptEngineNashornCompatibility()) {
         // enable Nashorn compatibility mode
+        builder = optionMethod.invoke(builder, JS_NASHORN_COMPAT_OPTION, "true");
+        builder = optionMethod.invoke(builder, JS_ECMASCRIPT_VERSION_OPTION, GRAAL_JS_NASHORN_COMPAT_ECMASCRIPT_VERSION);
         var allowAllAccess = builderClass.getMethod("allowAllAccess", boolean.class);
         builder = allowAllAccess.invoke(builder, true);
       }

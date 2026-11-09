@@ -167,6 +167,7 @@
       <dependency>
         <groupId>org.graalvm.js</groupId>
         <artifactId>js</artifactId>
+        <type>pom</type>
         <version>${version.graal.js}</version>
       </dependency>
       <dependency>
@@ -197,8 +198,8 @@
         <version>${mule.version}</version>
       </dependency>
       <!-- Import the whole Mockito BOM rather than managing mockito-core alone, so that
-           mockito-junit-jupiter cannot drift to a different version via a Spring Boot BOM
-           (spring-boot 4 supplies 5.20.0, spring-boot 3.5 supplies 5.17.0). -->
+           mockito-junit-jupiter cannot drift to a different version via the Spring Boot BOM
+           (spring-boot 4 supplies 5.20.0). -->
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-bom</artifactId>
@@ -296,31 +297,6 @@
         <artifactId>tomcat-catalina</artifactId>
         <version>${version.tomcat}</version>
       </dependency>
-
-<!--      <dependency>
-        <groupId>org.jboss.resteasy</groupId>
-        <artifactId>resteasy-jaxrs</artifactId>
-        <version>${version.resteasy}</version>
-        <!- - The exclusion is there because we don't need the Resteasy client
-          API in the Rest API test suite and assembly; in case you need to remove
-          the exclusion here, please make sure to add it in the REST API projects - ->
-        <exclusions>
-          <exclusion>
-            <artifactId>httpclient5</artifactId>
-            <groupId>org.apache.httpcomponents.client5</groupId>
-          </exclusion>
-          <exclusion>
-            <groupId>commons-httpclient</groupId>
-            <artifactId>commons-httpclient</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-
-      <dependency>
-        <groupId>org.jboss.resteasy</groupId>
-        <artifactId>tjws</artifactId>
-        <version>${version.resteasy}</version>
-      </dependency>-->
 
       <dependency>
         <groupId>org.apache.directory.server</groupId>
@@ -424,50 +400,50 @@
       
       <!-- Jakarta EL implementation for test environments -->
       <dependency>
-        <groupId>org.glassfish</groupId>
-        <artifactId>jakarta.el</artifactId>
-        <version>4.0.2</version>
+        <groupId>org.glassfish.expressly</groupId>
+        <artifactId>expressly</artifactId>
+        <version>${version.expressly}</version>
       </dependency>
       
       <!-- Jersey/JAX-RS dependencies for test environments -->
       <dependency>
         <groupId>org.glassfish.jersey.containers</groupId>
         <artifactId>jersey-container-grizzly2-http</artifactId>
-        <version>${version.jersey3}</version>
+        <version>${version.jersey}</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.containers</groupId>
         <artifactId>jersey-container-servlet</artifactId>
-        <version>${version.jersey3}</version>
+        <version>${version.jersey}</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.inject</groupId>
         <artifactId>jersey-hk2</artifactId>
-        <version>${version.jersey3}</version>
+        <version>${version.jersey}</version>
       </dependency>
       
       <!-- Jersey JAXB extension for proper JAXB integration -->
       <dependency>
         <groupId>org.glassfish.jersey.media</groupId>
         <artifactId>jersey-media-jaxb</artifactId>
-        <version>${version.jersey3}</version>
+        <version>${version.jersey}</version>
       </dependency>
       
       <!-- Jersey core dependencies to force consistent versions -->
       <dependency>
         <groupId>org.glassfish.jersey.core</groupId>
         <artifactId>jersey-server</artifactId>
-        <version>${version.jersey3}</version>
+        <version>${version.jersey}</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.core</groupId>
         <artifactId>jersey-common</artifactId>
-        <version>${version.jersey3}</version>
+        <version>${version.jersey}</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.core</groupId>
         <artifactId>jersey-client</artifactId>
-        <version>${version.jersey3}</version>
+        <version>${version.jersey}</version>
       </dependency>
       
       <!-- Jakarta JAXB implementation for test environments -->
@@ -475,13 +451,6 @@
         <groupId>org.glassfish.jaxb</groupId>
         <artifactId>jaxb-runtime</artifactId>
         <version>4.0.5</version>
-      </dependency>
-      
-      <!-- Jakarta JAX-RS API -->
-      <dependency>
-        <groupId>jakarta.ws.rs</groupId>
-        <artifactId>jakarta.ws.rs-api</artifactId>
-        <version>3.1.0</version>
       </dependency>
       
     </dependencies>
