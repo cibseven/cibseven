@@ -38,6 +38,15 @@
       </exclusions>
     </dependency>
 
+    <!-- The legacy webapps come as the released 2.2.0 jar, which is built against Jackson 2:
+         its REST applications (Admin, Cockpit, Tasklist, Welcome) register the Jackson 2
+         JAX-RS provider. The engine REST API is on Jackson 3 and no longer brings it. -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
+      <artifactId>jackson-jakarta-rs-json-provider</artifactId>
+      <version>${version.jackson}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.cibseven.bpm.webapp</groupId>
       <artifactId>cibseven-webapp-webjar</artifactId>
