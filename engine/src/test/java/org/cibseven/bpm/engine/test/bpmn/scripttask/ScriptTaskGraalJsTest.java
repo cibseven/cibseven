@@ -34,12 +34,15 @@ import java.util.List;
 import org.cibseven.bpm.engine.ScriptEvaluationException;
 import org.cibseven.bpm.engine.delegate.BpmnError;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
+import org.cibseven.bpm.engine.impl.scripting.engine.CamundaScriptEngineManager;
+import org.cibseven.bpm.engine.impl.scripting.engine.DefaultScriptEngineResolver;
 import org.cibseven.bpm.engine.impl.scripting.engine.ScriptEngineResolver;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 
 public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
@@ -90,6 +93,52 @@ public class ScriptTaskGraalJsTest extends AbstractScriptTaskTest {
     processEngineConfiguration.setEnableScriptEngineLoadExternalResources(enableExternalResources);
     processEngineConfiguration.setEnableScriptEngineNashornCompatibility(enableNashornCompat);
     processEngineConfiguration.setUseCibSevenNamespaceInScripting(true);
+  }
+
+  @org.cibseven.bpm.engine.test.Deployment(resources = {
+      "org/cibseven/bpm/engine/test/bpmn/scripttask/ScriptTaskGraalJsTest.testJavaScriptCanUseIcu.bpmn20.xml"
+  })
+  @ParameterizedTest
+  @MethodSource("setups")
+  public void testJavaScriptCanUseIcu(boolean configureHostAccess, boolean enableExternalResources, boolean enableNashornCompat) {
+    applyParams(configureHostAccess, enableExternalResources, enableNashornCompat);
+
+    if (enableNashornCompat || configureHostAccess) {
+      ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("graalIcuProcess");
+
+      assertEquals("LATIN CAPITAL LETTER A", runtimeService.getVariable(processInstance.getId(), "icuCharacterName"));
+    } else {
+      assertThatThrownBy(() -> runtimeService.startProcessInstanceByKey("graalIcuProcess"))
+        .isInstanceOf(ScriptEvaluationException.class)
+        .hasMessageContaining("Unable to evaluate script");
+    }
+  }
+
+  @ParameterizedTest(name = "useCibSevenNamespaceInScripting={0}")
+  @ValueSource(booleans = {false, true})
+  public void shouldUseEcmaScript2022InNashornCompatibilityMode(boolean useCibSevenNamespaceInScripting) {
+    // given: Nashorn compatibility on the default resolver path (false) and on the CIB seven class loader path (true)
+    boolean useCibSevenNamespaceBefore = processEngineConfiguration.isUseCibSevenNamespaceInScripting();
+    processEngineConfiguration.setEnableScriptEngineNashornCompatibility(true);
+    processEngineConfiguration.setUseCibSevenNamespaceInScripting(useCibSevenNamespaceInScripting);
+    // a fresh engine factory: Graal JS rejects a second host access configuration on the polyglot engine
+    // that the factory shares with the contexts of the previous tests (resetConfiguration() restores it)
+    processEngineConfiguration.setScriptEngineResolver(new DefaultScriptEngineResolver(new CamundaScriptEngineManager()));
+    try {
+      deployProcess(GRAALJS,
+          "let doubled = [1, 2].map(value => value * 2);"
+        + "execution.setVariable('doubled', doubled.join(','));"
+        + "execution.setVariable('hasOwn', typeof Object.hasOwn);");
+
+      // when
+      ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testProcess");
+
+      // then: ES 2015 syntax and ES 2022 built-ins on both paths, not ECMAScript 5
+      assertEquals("2,4", runtimeService.getVariable(processInstance.getId(), "doubled"));
+      assertEquals("function", runtimeService.getVariable(processInstance.getId(), "hasOwn"));
+    } finally {
+      processEngineConfiguration.setUseCibSevenNamespaceInScripting(useCibSevenNamespaceBefore);
+    }
   }
 
   @ParameterizedTest

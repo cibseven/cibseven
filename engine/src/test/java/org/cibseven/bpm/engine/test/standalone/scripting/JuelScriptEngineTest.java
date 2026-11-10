@@ -1,8 +1,8 @@
 /*
- * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH
+ * Copyright CIB software GmbH and/or licensed to CIB software GmbH
  * under one or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information regarding copyright
- * ownership. Camunda licenses this file to you under the Apache License,
+ * ownership. CIB software licenses this file to you under the Apache License,
  * Version 2.0; you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -24,7 +24,9 @@ import javax.script.SimpleScriptContext;
 import jakarta.el.ELContext;
 import jakarta.el.ExpressionFactory;
 
+import org.cibseven.bpm.engine.impl.el.ProcessEngineElContext;
 import org.cibseven.bpm.engine.impl.scripting.engine.JuelScriptEngine;
+import org.cibseven.bpm.impl.juel.ExpressionFactoryImpl;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 
@@ -47,6 +49,17 @@ public class JuelScriptEngineTest {
   }
 
   @Test
+  public void shouldConvertNullMethodArgumentWithJuel() throws Exception {
+    JuelScriptEngine engine = new JuelScriptEngine();
+    ScriptContext scriptContext = new SimpleScriptContext();
+    scriptContext.setAttribute("bean", new ArgumentBean(), ScriptContext.ENGINE_SCOPE);
+    scriptContext.setAttribute("missing", null, ScriptContext.ENGINE_SCOPE);
+
+    // JUEL converts null to 0 for a Long parameter, as CIB seven 2.2 did; EL 3+ would pass null
+    assertThat(engine.eval("${bean.describe(missing)}", scriptContext)).isEqualTo("0");
+  }
+
+  @Test
   public void shouldPutTheJuelFactoryIntoTheContext() throws Exception {
     JuelScriptEngine engine = new JuelScriptEngine();
     ScriptContext scriptContext = new SimpleScriptContext();
@@ -54,7 +67,15 @@ public class JuelScriptEngineTest {
     engine.eval("${1}", scriptContext);
 
     ELContext elContext = (ELContext) scriptContext.getAttribute("elcontext");
-    assertThat(elContext.getContext(ExpressionFactory.class)).isNotNull();
+    assertThat(elContext.getContext(ExpressionFactory.class)).isInstanceOf(ExpressionFactoryImpl.class);
+    // converts with that factory on every EL API, not only on the upstream jakarta.el-api
+    assertThat(elContext).isInstanceOf(ProcessEngineElContext.class);
+  }
+
+  public static class ArgumentBean {
+    public String describe(Long value) {
+      return String.valueOf(value);
+    }
   }
 
 }

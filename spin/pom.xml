@@ -20,6 +20,9 @@
     <module>dataformat-json-jackson</module>
     <module>dataformat-xml-dom</module>
     <module>dataformat-all</module>
+    <!-- deprecated Jackson 2 variants, removed in 3.1.0 -->
+    <module>dataformat-json-jackson2</module>
+    <module>dataformat-all-jackson2</module>
   </modules>
 
   <properties>
@@ -77,6 +80,13 @@
         <groupId>org.apache.groovy</groupId>
         <artifactId>groovy-xml</artifactId>
         <version>${version.groovy}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.graalvm.js</groupId>
+        <artifactId>js</artifactId>
+        <type>pom</type>
+        <version>${version.graal.js}</version>
       </dependency>
 
       <dependency>

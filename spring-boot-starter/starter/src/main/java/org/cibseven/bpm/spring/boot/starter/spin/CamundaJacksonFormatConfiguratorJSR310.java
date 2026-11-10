@@ -16,12 +16,18 @@
  */
 package org.cibseven.bpm.spring.boot.starter.spin;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.cibseven.spin.impl.json.jackson.format.JacksonJsonDataFormat;
 import org.cibseven.spin.spi.DataFormatConfigurator;
 
-
+/**
+ * Registers the Jackson 2 {@link JavaTimeModule} with the deprecated Jackson 2 variant of Spin
+ * ({@code cibseven-spin-dataformat-json-jackson2}). Jackson 3, used by
+ * {@code cibseven-spin-dataformat-json-jackson}, supports this out of the box.
+ *
+ * @deprecated together with the Jackson 2 variant of Spin, removed in CIB seven 3.1.0
+ */
+@Deprecated(since = "3.0.0", forRemoval = true)
 public class CamundaJacksonFormatConfiguratorJSR310 implements DataFormatConfigurator<JacksonJsonDataFormat> {
 
   @Override
@@ -31,9 +37,8 @@ public class CamundaJacksonFormatConfiguratorJSR310 implements DataFormatConfigu
 
   @Override
   public void configure(JacksonJsonDataFormat dataFormat) {
-    ObjectMapper mapper = dataFormat.getObjectMapper();
     final JavaTimeModule javaTimeModule = new JavaTimeModule();
 
-    mapper.registerModule(javaTimeModule);
+    Jackson2SpinObjectMapper.of(dataFormat).registerModule(javaTimeModule);
   }
 }

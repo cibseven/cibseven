@@ -16,18 +16,14 @@
  */
 package org.cibseven.bpm.spring.boot.starter;
 
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
-
 import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.spring.boot.starter.plugin.ApplicationContextClassloaderSwitchPlugin;
+import org.cibseven.bpm.spring.boot.starter.spin.CamundaJackson3FormatConfiguratorParameterNames;
 import org.cibseven.bpm.spring.boot.starter.spin.CamundaJacksonFormatConfiguratorJSR310;
 import org.cibseven.bpm.spring.boot.starter.spin.CamundaJacksonFormatConfiguratorJdk8;
 import org.cibseven.bpm.spring.boot.starter.spin.CamundaJacksonFormatConfiguratorParameterNames;
 import org.cibseven.bpm.spring.boot.starter.spin.SpringBootSpinProcessEnginePlugin;
 import org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin;
-import org.cibseven.spin.impl.json.jackson.format.JacksonJsonDataFormat;
 import org.cibseven.spin.plugin.impl.SpinProcessEnginePlugin;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -37,17 +33,40 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@SuppressWarnings("removal") // the Jackson 2 configurators of the deprecated Jackson 2 variant of Spin
 public class CamundaBpmPluginConfiguration {
 
+  /**
+   * Marker class that only the deprecated Jackson 2 variant of Spin JSON has
+   * ({@code cibseven-spin-dataformat-json-jackson2}, {@code cibseven-spin-dataformat-all-jackson2}).
+   */
+  static final String SPIN_JACKSON2_VARIANT = "org.cibseven.spin.impl.json.jackson.Jackson2Variant";
+
   /*
-     When `camunda-spin-dataformat-all` is used as a dependency,
-     SpinDataFormatConfigurationJSR310, SpinDataFormatConfigurationParameterNames
-     and SpinDataFormatConfigurationJdk8 are not used. The `camunda-spin-dataformat-all`
-     artifact comes with a shaded Jackson ObjectMapper (prefixed with `spinjar`),
-     which breaks auto-configuration for Jackson Java 8 modules.
+     The Jackson 2 modules for Java 8 types (JSR310, Jdk8, ParameterNames) are registered only with the
+     deprecated Jackson 2 variant of Spin (`cibseven-spin-dataformat-json-jackson2`). Jackson 3, used by
+     `cibseven-spin-dataformat-json-jackson` and `cibseven-spin-dataformat-all`, supports java.time
+     and Optional out of the box; parameter names are built in too, but Spin's Jackson 2 defaults turn
+     them off, so the starter turns them on again (as the ParameterNames module did with Jackson 2). `cibseven-spin-dataformat-all-jackson2` comes with a
+     shaded Jackson ObjectMapper (prefixed with `spinjar`), which breaks auto-configuration for the
+     Jackson Java 8 modules.
   */
 
-  @ConditionalOnClass({JacksonJsonDataFormat.class, JavaTimeModule.class})
+  @ConditionalOnClass(name = {"org.cibseven.spin.impl.json.jackson.format.JacksonJsonDataFormat",
+      "tools.jackson.databind.ObjectMapper"})
+  @ConditionalOnMissingClass({SPIN_JACKSON2_VARIANT, "spinjar.tools.jackson.databind.ObjectMapper"})
+  @Configuration
+  static class SpinDataFormatConfigurationJackson3ParameterNames {
+
+    @Bean
+    @ConditionalOnMissingBean(name = "spinDataFormatConfiguratorJackson3ParameterNames")
+    public static CamundaJackson3FormatConfiguratorParameterNames spinDataFormatConfiguratorJackson3ParameterNames() {
+      return new CamundaJackson3FormatConfiguratorParameterNames();
+    }
+
+  }
+
+  @ConditionalOnClass(name = {SPIN_JACKSON2_VARIANT, "com.fasterxml.jackson.datatype.jsr310.JavaTimeModule"})
   @ConditionalOnMissingClass("spinjar.com.fasterxml.jackson.databind.ObjectMapper")
   @Configuration
   static class SpinDataFormatConfigurationJSR310 {
@@ -60,7 +79,7 @@ public class CamundaBpmPluginConfiguration {
 
   }
 
-  @ConditionalOnClass({JacksonJsonDataFormat.class, ParameterNamesModule.class})
+  @ConditionalOnClass(name = {SPIN_JACKSON2_VARIANT, "com.fasterxml.jackson.module.paramnames.ParameterNamesModule"})
   @ConditionalOnMissingClass("spinjar.com.fasterxml.jackson.databind.ObjectMapper")
   @Configuration
   static class SpinDataFormatConfigurationParameterNames {
@@ -73,7 +92,7 @@ public class CamundaBpmPluginConfiguration {
 
   }
 
-  @ConditionalOnClass({JacksonJsonDataFormat.class, Jdk8Module.class})
+  @ConditionalOnClass(name = {SPIN_JACKSON2_VARIANT, "com.fasterxml.jackson.datatype.jdk8.Jdk8Module"})
   @ConditionalOnMissingClass("spinjar.com.fasterxml.jackson.databind.ObjectMapper")
   @Configuration
   static class SpinDataFormatConfigurationJdk8 {

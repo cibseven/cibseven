@@ -28,13 +28,9 @@
     <version.jersey>4.0.2</version.jersey>
     <version.resteasy>7.0.5.Final</version.resteasy>
     <version.groovy>5.0.4</version.groovy>
-    <version.graal.js>21.3.19.1</version.graal.js>
+    <version.graal.js>25.0.1</version.graal.js>
     <version.icu.icu4j>71.1</version.icu.icu4j>
-    <!-- json-smart and accessors-smart are runtime dependencies of json-path -->
-    <version.json-path>2.9.0</version.json-path>
-    <version.json-smart>2.5.2</version.json-smart>
-    <version.accessors-smart>2.5.2</version.accessors-smart>
-    <version.gson>2.8.9</version.gson>
+    <version.gson>2.13.2</version.gson>
     <version.commons-lang3>3.20.0</version.commons-lang3>
     <version.openjpa>2.4.3</version.openjpa>
     <version.hamcrest>3.0</version.hamcrest>
@@ -45,8 +41,8 @@
     <version.xml.jaxb-impl>2.3.6</version.xml.jaxb-impl>
     <version.xml.jaxb-impl4>4.0.5</version.xml.jaxb-impl4>
     <version.jakarta.xml.bind-api>4.0.2</version.jakarta.xml.bind-api>
-    <!-- Jakarta Activation implementation shipped in the Tomcat lib/; matches the
-         jakarta.activation-api 2.1.3 of cibseven-commons-typed-values -->
+    <!-- Jakarta Activation implementation: a runtime dependency of cibseven-commons-typed-values
+         (CIB7-2605) and shipped in the Tomcat lib/; matches its jakarta.activation-api 2.1.3 -->
     <version.angus-activation>2.0.2</version.angus-activation>
     <version.httpclient5>5.6.4</version.httpclient5>
     <version.httpcore5>5.4.3</version.httpcore5>
@@ -139,6 +135,13 @@
     <plugin.version.maven-bundle>5.1.9</plugin.version.maven-bundle> <!-- compatible with JDK 17 -->
     <!-- Define the maximum number of JVM processes that Surefire will spawn concurrently to execute the tests. 1C equals to number of available CPU cores in system. -->
     <surefire.forkCount>1</surefire.forkCount>
+    <!-- Arguments for test plugins on JDK 25; conditionally activated by the jdk25-test-jvm-args profile. -->
+    <test.jvm.args.jdk25 />
+    <!-- Spin JSON variant banned from the dependency graph by the enforce-single-spin-json-variant
+         execution below: the deprecated Jackson 2 artifacts by default. A module that uses the Jackson 2
+         variant on purpose bans the Jackson 3 artifacts instead. -->
+    <spin.json.banned.json-jackson>org.cibseven.spin:cibseven-spin-dataformat-json-jackson2</spin.json.banned.json-jackson>
+    <spin.json.banned.all>org.cibseven.spin:cibseven-spin-dataformat-all-jackson2</spin.json.banned.all>
   </properties>
 
   <dependencyManagement>
@@ -148,6 +151,14 @@
         <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-bom</artifactId>
         <version>${project.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>tools.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson3}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -215,7 +226,8 @@
             <argLine>-Xmx2g -Duser.language=en -Duser.region=US -XX:+HeapDumpOnOutOfMemoryError
               -XX:HeapDumpPath=${project.build.directory}/heap_dump.hprof
               --add-opens=java.base/java.util=ALL-UNNAMED
-              --add-opens=java.base/java.lang=ALL-UNNAMED</argLine>
+              --add-opens=java.base/java.lang=ALL-UNNAMED
+              ${test.jvm.args.jdk25}</argLine>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
             <forkCount>${surefire.forkCount}</forkCount>
           </configuration>
@@ -225,7 +237,7 @@
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>${version.surefire}</version>
           <configuration>
-            <argLine>-Xmx968m</argLine>
+            <argLine>-Xmx968m ${test.jvm.args.jdk25}</argLine>
             <runOrder>hourly</runOrder>
           </configuration>
           <executions>
@@ -421,6 +433,37 @@
               </rules>
             </configuration>
           </execution>
+          <!-- The deprecated Jackson 2 variants of Spin JSON (cibseven-spin-dataformat-json-jackson2,
+               cibseven-spin-dataformat-all-jackson2) have the same packages and class names as the
+               Jackson 3 artifacts, so the two variants must never meet on one classpath. The banned
+               coordinates come from the spin.json.banned.* properties. -->
+          <execution>
+            <id>enforce-single-spin-json-variant</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <fail>true</fail>
+              <rules>
+                <bannedDependencies>
+                  <searchTransitive>true</searchTransitive>
+                  <excludes>
+                    <exclude>${spin.json.banned.json-jackson}</exclude>
+                    <exclude>${spin.json.banned.all}</exclude>
+                  </excludes>
+                  <message>
+                    Spin JSON comes in a Jackson 3 variant (cibseven-spin-dataformat-json-jackson,
+                    cibseven-spin-dataformat-all) and a deprecated Jackson 2 variant (the same artifacts
+                    with the suffix -jackson2). Both have the same packages and class names: never put both
+                    on one classpath. CIB seven modules use the Jackson 3 variant; a module that uses the
+                    Jackson 2 variant on purpose sets the properties spin.json.banned.json-jackson and
+                    spin.json.banned.all to the Jackson 3 artifacts.
+                  </message>
+                </bannedDependencies>
+              </rules>
+            </configuration>
+          </execution>
           <!-- CIB seven 3.x is built against Jakarta EE 11 (EL 6.0). Catches an older platform API, or
                an older EL, CDI or Servlet API, that sneaks in through a pinned version or a third-party
                dependency. It covers the platform POMs and the APIs whose version CIB seven code depends
@@ -522,6 +565,20 @@
   </build>
 
   <profiles>
+    <!-- Temporary JDK 25 test workaround for Graal/Truffle native-access and Unsafe warnings,
+         e.g. engine-dmn/ExpressionLanguageTest and engine/ScriptTaskGraalJsTest.
+         Remove or narrow these flags once the underlying APIs/dependencies no longer need them
+         and these tests run without the warnings. -->
+    <profile>
+      <id>jdk25-test-jvm-args</id>
+      <activation>
+        <jdk>[25,)</jdk>
+      </activation>
+      <properties>
+        <test.jvm.args.jdk25>--enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow</test.jvm.args.jdk25>
+      </properties>
+    </profile>
+
     <profile>
       <id>license-header-check</id>
       <build>
