@@ -29,6 +29,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.ServiceLoader;
 import java.util.TimeZone;
 
 import org.cibseven.bpm.engine.ManagementService;
@@ -40,6 +41,7 @@ import org.cibseven.bpm.engine.management.ProcessDefinitionStatisticsQuery;
 import org.cibseven.bpm.engine.management.SetJobRetriesBuilder;
 import org.cibseven.bpm.engine.rest.AbstractRestServiceTest;
 import org.cibseven.bpm.engine.rest.helper.MockTaskBuilder;
+import org.cibseven.bpm.engine.rest.util.container.ContainerSpecifics;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceModificationBuilder;
 import org.cibseven.bpm.engine.task.Task;
@@ -228,6 +230,10 @@ public class RestJsonWireContractContainerTest extends AbstractRestServiceTest {
   /**
    * Limits of the JSON reader and writer. Inside a property the answer is 400; without a property path the
    * generic answer stays. The fixtures were recorded on Jackson 2.
+   * <p>
+   * Writing a response is the exception: RESTEasy has already committed the response when the writer hits the
+   * limit, so the client gets 200 with the value cut off at the limit, with Jackson 2 and with Jackson 3. Jersey
+   * still replaces the response and answers 400. That case has one fixture per JAX-RS runtime.
    */
   @Test
   public void jsonLimits() throws Exception {
@@ -251,11 +257,18 @@ public class RestJsonWireContractContainerTest extends AbstractRestServiceTest {
         "{\"unknown\":" + RestJsonWireContractTest.nestedArrays(1001)
             + ",\"instructions\":[{\"type\":\"cancel\",\"activityId\":\"a\"}]}"));
     // writing a response nested deeper than 1000
-    assertResponse("container/response-nesting-depth-1001.json", given()
+    assertResponse(onResteasy() ? "container/response-nesting-depth-1001-resteasy.json"
+        : "container/response-nesting-depth-1001.json", given()
         .header(ACCEPT_JSON_HEADER)
         .pathParam("id", "processInstanceId")
         .pathParam("name", "deep")
         .get(VARIABLE_URL));
+  }
+
+  /** The JAX-RS runtime of the test profile: the profiles resteasy and ee10-compatibility run on RESTEasy. */
+  static boolean onResteasy() {
+    return ServiceLoader.load(ContainerSpecifics.class).iterator().next().getClass().getSimpleName()
+        .equals("ResteasySpecifics");
   }
 
   static Object nestedLists(int depth) {

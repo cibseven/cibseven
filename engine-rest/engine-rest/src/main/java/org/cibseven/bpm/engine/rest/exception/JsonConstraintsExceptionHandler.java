@@ -34,7 +34,8 @@ import tools.jackson.core.exc.StreamConstraintsException;
  * <p>
  * Without a path, the response stays the one of {@link ExceptionHandler}, as with Jackson 2. Examples are a number
  * that is too long, or nesting inside an unknown property that is skipped. A path does not tell a request from a
- * response. A response that is already committed cannot be replaced.
+ * response. A response that is already committed cannot be replaced: RESTEasy then answers 200 with the value cut
+ * off at the limit, as with Jackson 2.
  */
 @Provider
 public class JsonConstraintsExceptionHandler implements ExceptionMapper<StreamConstraintsException> {
