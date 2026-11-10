@@ -226,6 +226,13 @@ public class EngineUtilLogger extends ProcessEngineLogger {
       "Exception while parsing JSON: {}", e.getMessage(), e);
   }
 
+  public void warnJsonNestingLimitExceeded(int nestingLimit) {
+    logWarn(
+      "049",
+      "Could not read JSON nested deeper than {} levels, an empty JSON object is used instead. "
+      + "The exception is logged with ENGINE-09030 on level DEBUG.", nestingLimit);
+  }
+
   public void logAccessExternalSchemaNotSupported(Exception e) {
     logDebug(
         "031",

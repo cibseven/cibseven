@@ -28,6 +28,7 @@ import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.scripting.ExecutableScript;
 import org.cibseven.bpm.engine.impl.util.ClassLoaderUtil;
 import org.cibseven.bpm.engine.impl.variable.serializer.VariableSerializers;
+import org.cibseven.bpm.impl.juel.JuelBeanELResolver;
 import org.cibseven.bpm.engine.repository.DeploymentBuilder;
 
 import jakarta.el.BeanELResolver;
@@ -173,7 +174,7 @@ public abstract class AbstractProcessApplication implements ProcessApplicationIn
     if (processApplicationBeanElResolver == null) {
       synchronized (this) {
         if (processApplicationBeanElResolver == null) {
-          processApplicationBeanElResolver = new jakarta.el.BeanELResolver();
+          processApplicationBeanElResolver = new JuelBeanELResolver();
         }
       }
     }

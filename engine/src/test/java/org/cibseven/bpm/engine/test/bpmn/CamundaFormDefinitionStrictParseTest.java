@@ -89,6 +89,47 @@ public class CamundaFormDefinitionStrictParseTest {
   }
 
   @Test
+  public void shouldParseDeeplyNestedForm_strictParsingEnabled() {
+    // given a form nested 700 levels deep (CIB7-2634: Gson reads only 255 levels by default)
+    processEngineConfiguration.setDisableStrictCamundaFormParsing(false);
+
+    // when
+    testRule.deploy(repositoryService.createDeployment().addString("deep.form", nestedForm(700)));
+
+    // then
+    List<CamundaFormDefinition> formDefinitions = engineRule.getProcessEngineConfiguration().getCommandExecutorTxRequired()
+        .execute(new FindCamundaFormDefinitionsCmd());
+    assertThat(formDefinitions).extracting(CamundaFormDefinition::getKey).containsExactly("deepForm");
+  }
+
+  @Test
+  public void shouldNotParseTooDeeplyNestedForm_strictParsingEnabled() {
+    // given a form nested deeper than the 1000 levels the engine reads
+    processEngineConfiguration.setDisableStrictCamundaFormParsing(false);
+
+    // then
+    assertThatThrownBy(() -> {
+      testRule.deploy(repositoryService.createDeployment().addString("deep.form", nestedForm(1100)));
+    }).isInstanceOf(ProcessEngineException.class)
+    .hasMessageContaining("ENGINE-09033 Could not parse Camunda Form resource deep.form.");
+    assertThat(repositoryService.createDeploymentQuery().list()).hasSize(0);
+  }
+
+  /** A form whose JSON is nested {@code depth} (even) levels deep: groups in groups. */
+  protected static String nestedForm(int depth) {
+    int groups = (depth - 2) / 2;
+    StringBuilder form = new StringBuilder("{\"id\":\"deepForm\",\"type\":\"default\",\"components\":");
+    for (int i = 0; i < groups; i++) {
+      form.append("[{\"type\":\"group\",\"components\":");
+    }
+    form.append("[]");
+    for (int i = 0; i < groups; i++) {
+      form.append("}]");
+    }
+    return form.append('}').toString();
+  }
+
+  @Test
   public void shouldNotParseAnyFormFile_strictParsingEnabled() {
     // given
     processEngineConfiguration.setDisableStrictCamundaFormParsing(false);

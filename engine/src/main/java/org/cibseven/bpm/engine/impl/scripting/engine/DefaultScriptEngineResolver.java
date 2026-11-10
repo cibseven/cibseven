@@ -153,6 +153,9 @@ public class DefaultScriptEngineResolver implements ScriptEngineResolver {
       if (config.isEnableScriptEngineNashornCompatibility()) {
         // enable Nashorn compatibility mode
         scriptEngine.getContext().setAttribute("polyglot.js.nashorn-compat", true, ScriptContext.ENGINE_SCOPE);
+        // with the same ECMAScript version as CamundaScriptEngineManager, not ECMAScript 5
+        scriptEngine.getContext().setAttribute("polyglot.js.ecmascript-version",
+            ScriptingEngines.GRAAL_JS_NASHORN_COMPAT_ECMASCRIPT_VERSION, ScriptContext.ENGINE_SCOPE);
       }
     }
   }

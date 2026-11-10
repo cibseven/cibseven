@@ -59,6 +59,29 @@
       <optional>true</optional>
     </dependency>
 
+    <!-- Jackson 2 modules for Java 8 types, registered only with the deprecated Jackson 2 variant
+         of Spin (cibseven-spin-dataformat-json-jackson2), see CamundaBpmPluginConfiguration -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jdk8</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.module</groupId>
+      <artifactId>jackson-module-parameter-names</artifactId>
+      <optional>true</optional>
+    </dependency>
+
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-engine-plugin-connect</artifactId>
