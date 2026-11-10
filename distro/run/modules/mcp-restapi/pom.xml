@@ -73,7 +73,12 @@
 
     <!-- Spring Security is supplied by the oauth2 module (run.sh/run.bat oauth2 flag).
          Without spring-security-config on the classpath the MCP server starts unsecured.
-         Nevertheless, it requires spring-security-core to be on the classpath to run. -->
+         Nevertheless, it requires spring-security-core to be on the classpath to run, so it is
+         shipped (default scope): otherwise it would inherit the provided scope of spring-security-web. -->
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-core</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-crypto</artifactId>
