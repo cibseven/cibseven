@@ -82,7 +82,7 @@ import org.cibseven.connect.spi.Connector;
  *       <camunda:inputParameter name="pgPort">5432</camunda:inputParameter>
  *       <camunda:inputParameter name="pgDatabase">vectors</camunda:inputParameter>
  *       <camunda:inputParameter name="pgUser">postgres</camunda:inputParameter>
- * *       <camunda:inputParameter name="pgTable">embeddings</camunda:inputParameter>
+ *       <camunda:inputParameter name="pgTable">embeddings</camunda:inputParameter>
  *       <camunda:inputParameter name="maxRagResults">5</camunda:inputParameter>
  *       <camunda:inputParameter name="minRagScore">0.7</camunda:inputParameter>
  *       <camunda:inputParameter name="embeddingDimension">384</camunda:inputParameter>
