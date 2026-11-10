@@ -74,12 +74,13 @@
       <param-name>jersey.config.server.disableMoxyJson</param-name>
       <param-value>true</param-value>
     </init-param>
-    <!-- enable Jackson explicitly so no default JSON serializer like JSON-B is enabled -->
+    <!-- JSON is read and written by the Jackson 3 provider of the REST API
+         (CibsevenJacksonJsonProvider, registered by DefaultApplication). Name it as the JSON
+         feature of the application so that no JSON feature of the server's Jersey configures
+         itself: not JSON-B or MOXy, and not JacksonFeature, which is Jackson 2. -->
     <init-param>
-      <param-name>jersey.config.server.provider.classnames</param-name>
-      <param-value>
-        org.glassfish.jersey.jackson.JacksonFeature
-      </param-value>
+      <param-name>jersey.config.server.jsonFeature</param-name>
+      <param-value>CibsevenJacksonJsonProvider</param-value>
     </init-param>
     <!-- Enable to debug Jersey requests -->
     <!--
