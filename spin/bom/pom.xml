@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-root</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -50,8 +50,8 @@
             <artifactId>jakarta.xml.bind-api</artifactId>
           </exclusion>
           <exclusion>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-impl</artifactId>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -65,6 +65,41 @@
       <dependency>
         <groupId>org.cibseven.spin</groupId>
         <artifactId>cibseven-spin-dataformat-xml-dom</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <!-- Deprecated Jackson 2 variants of cibseven-spin-dataformat-all and
+           cibseven-spin-dataformat-json-jackson (which are on Jackson 3 since 3.0.0).
+           Same packages and class names: never put a -jackson2 artifact and its
+           unsuffixed counterpart on one classpath. Removed in 3.1.0. -->
+      <dependency>
+        <groupId>org.cibseven.spin</groupId>
+        <artifactId>cibseven-spin-dataformat-all-jackson2</artifactId>
+        <version>${project.version}</version>
+        <!-- Excluding dependencies that are shaded in cibseven-spin-dataformat-all-jackson2 -->
+        <exclusions>
+          <exclusion>
+            <groupId>org.cibseven.spin</groupId>
+            <artifactId>cibseven-spin-dataformat-json-jackson2</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.cibseven.spin</groupId>
+            <artifactId>cibseven-spin-dataformat-xml-dom</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.cibseven.spin</groupId>
+        <artifactId>cibseven-spin-dataformat-json-jackson2</artifactId>
         <version>${project.version}</version>
       </dependency>
 

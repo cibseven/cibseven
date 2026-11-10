@@ -179,7 +179,7 @@
     <servlet-name>Admin Api</servlet-name>
     <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
     <init-param>
-      <param-name>javax.ws.rs.Application</param-name>
+      <param-name>jakarta.ws.rs.Application</param-name>
       <param-value>org.cibseven.bpm.admin.impl.web.AdminApplication</param-value>
     </init-param>
     <init-param>
@@ -197,7 +197,7 @@
     <servlet-name>Tasklist Api</servlet-name>
     <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
     <init-param>
-      <param-name>javax.ws.rs.Application</param-name>
+      <param-name>jakarta.ws.rs.Application</param-name>
       <param-value>org.cibseven.bpm.tasklist.impl.web.TasklistApplication</param-value>
     </init-param>
     <init-param>
@@ -215,7 +215,7 @@
     <servlet-name>Engine Api</servlet-name>
     <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
     <init-param>
-      <param-name>javax.ws.rs.Application</param-name>
+      <param-name>jakarta.ws.rs.Application</param-name>
       <param-value>org.cibseven.bpm.webapp.impl.engine.EngineRestApplication</param-value>
     </init-param>
     <init-param>
@@ -233,7 +233,7 @@
     <servlet-name>Welcome Api</servlet-name>
     <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
     <init-param>
-      <param-name>javax.ws.rs.Application</param-name>
+      <param-name>jakarta.ws.rs.Application</param-name>
       <param-value>org.cibseven.bpm.welcome.impl.web.WelcomeApplication</param-value>
     </init-param>
     <init-param>

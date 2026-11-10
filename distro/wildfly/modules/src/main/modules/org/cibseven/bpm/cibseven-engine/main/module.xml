@@ -28,6 +28,7 @@
     <module name="org.apache.groovy.groovy-all" services="import"/>
     <module name="org.graalvm.js.js-scriptengine" services="import"/>
     <module name="org.graalvm.js.js" services="import"/>
+    <module name="org.graalvm.js.js-language" services="import"/>
     <module name="org.graalvm.regex.regex" services="import"/>
     <module name="org.graalvm.sdk.graal-sdk" services="import"/>
     <module name="org.graalvm.truffle.truffle-api" services="import"/>
@@ -42,11 +43,18 @@
     <module name="org.cibseven.commons.cibseven-commons-logging" />
     <module name="org.cibseven.commons.cibseven-commons-utils" />
     <module name="org.cibseven.commons.cibseven-commons-typed-values" export="true" />
+    <!-- Variables.fileValue(File) finds the Angus provider of MimetypesFileTypeMap through the
+         context class loader, which can be this module (CIB7-2605). The services of Angus
+         are not visible through the typed-values module. -->
+    <module name="org.eclipse.angus.activation" services="import" />
     <module name="org.cibseven.template-engines.cibseven-template-engines-freemarker" services="import" />
     <module name="org.cibseven.spin.cibseven-spin-core" services="import"/>
 
     <module name="org.cibseven.bpm.dmn.cibseven-engine-dmn" />
     <module name="org.cibseven.bpm.juel.cibseven-juel" services="import"/>
+    <!-- the classes use jakarta.el directly; cibseven-juel does not pass it on, and the
+         jakarta.enterprise.api route (via the private org.glassfish.expressly) is incidental -->
+    <module name="jakarta.el.api" />
 
   </dependencies>
 </module>

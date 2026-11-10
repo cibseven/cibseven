@@ -23,6 +23,7 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.task.TaskQuery;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.springframework.test.context.ContextConfiguration;
+import org.junit.jupiter.api.Test;
 
 /**
  * The CallActivityBasedOnSpringBeansExpressionTest is used to test dynamically wiring in the calledElement 
@@ -37,6 +38,7 @@ public class CallActivityBasedOnSpringBeansExpressionTest extends SpringProcessE
 	@Deployment(resources = {
 			"org/cibseven/bpm/engine/spring/test/expression/callactivity/CallActivityBasedOnSpringBeansExpressionTest.testCallActivityByExpression.bpmn20.xml",
 			"org/cibseven/bpm/engine/spring/test/expression/callactivity/simpleSubProcess.bpmn20.xml" })
+	@Test
 	public void testCallActivityByExpression() throws Exception {
 		// Start process (main)
 		ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testCallActivityByExpression");

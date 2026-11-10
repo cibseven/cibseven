@@ -249,6 +249,7 @@ public class AgentConnectorImplAuthTest {
     assertThat(derived.getUserId()).isEqualTo("alice");
     assertThat(derived.getGroupIds()).containsExactlyInAnyOrder("g1", "g2");
     assertThat(derived.getTenantIds()).containsExactly("tenant-1");
+    assertThat(derived).isInstanceOf(StartUserAuthentication.class);
   }
 
   @Test

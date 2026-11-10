@@ -12,7 +12,7 @@
   <parent>
     <groupId>org.cibseven.bpm.tomcat</groupId>
     <artifactId>cibseven-tomcat</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
   
 
@@ -73,10 +73,28 @@
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js</artifactId>
+      <version>${version.graal.js}</version>
+      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js-scriptengine</artifactId>
+      <version>${version.graal.js}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>polyglot</artifactId>
+      <version>${version.graal.js}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.graalvm.sdk</groupId>
+      <artifactId>collections</artifactId>
+      <version>${version.graal.js}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.ibm.icu</groupId>
+      <artifactId>icu4j</artifactId>
+      <version>${version.icu.icu4j}</version>
     </dependency>
 
     <dependency>
@@ -123,6 +141,15 @@
     <dependency>
       <groupId>org.cibseven.spin</groupId>
       <artifactId>cibseven-spin-dataformat-all</artifactId>
+    </dependency>
+
+    <!-- the implementation of the jakarta.activation-api in lib/: Variables.fileValue(File)
+         detects the MIME type with jakarta.activation.MimetypesFileTypeMap, which needs a
+         provider; cibseven-spin-dataformat-all keeps its own copy relocated to spinjar.* -->
+    <dependency>
+      <groupId>org.eclipse.angus</groupId>
+      <artifactId>angus-activation</artifactId>
+      <version>${version.angus-activation}</version>
     </dependency>
 
     <dependency>

@@ -1,0 +1,7 @@
+emptyBean: FAIL DataFormatException
+selfReference: FAIL DataFormatException
+nullValue: OK null
+readOnlyProperty: OK {"sku":"A-1","qty":2,"total":"A-1 x 2"}
+deepNesting400: OK 800 chars
+deepNesting700: OK 1400 chars
+deepNesting1200: FAIL DataFormatException

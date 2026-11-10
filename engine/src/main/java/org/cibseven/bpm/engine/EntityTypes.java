@@ -46,7 +46,17 @@ public class EntityTypes {
   public static final String BATCH = "Batch";
   public static final String DECISION_REQUIREMENTS_DEFINITION = "DecisionRequirementsDefinition";
   public static final String DECISION_INSTANCE = "DecisionInstance";
+  /**
+   * @deprecated The entity type of the deprecated {@link org.cibseven.bpm.engine.authorization.Resources#REPORT}
+   * resource, which nothing in CIB seven checks. It will be removed in a future major version.
+   */
+  @Deprecated
   public static final String REPORT = "Report";
+  /**
+   * @deprecated The entity type of the deprecated {@link org.cibseven.bpm.engine.authorization.Resources#DASHBOARD}
+   * resource, which nothing in CIB seven checks. It will be removed in a future major version.
+   */
+  @Deprecated
   public static final String DASHBOARD = "Dashboard";
   public static final String METRICS = "Metrics";
   public static final String TASK_METRICS = "TaskMetrics";

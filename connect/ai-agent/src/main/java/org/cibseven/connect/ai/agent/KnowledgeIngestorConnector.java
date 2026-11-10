@@ -31,11 +31,15 @@ import org.cibseven.connect.spi.Connector;
  *     <camunda:inputParameter name="pgHost">localhost</camunda:inputParameter>
  *     <camunda:inputParameter name="pgDatabase">postgres</camunda:inputParameter>
  *     <camunda:inputParameter name="pgUser">my_user</camunda:inputParameter>
- *     <camunda:inputParameter name="pgPassword">${pgPassword}</camunda:inputParameter>
  *     <camunda:outputParameter name="ingestedChunks">${chunksIngested}</camunda:outputParameter>
  *   </camunda:inputOutput>
  * </camunda:connector>
  * }</pre>
+ *
+ * <p>The example leaves out {@code pgPassword} and {@code apiKey}: a credential in a process
+ * variable is stored in the database and, with history on, in the history, and one written into
+ * the model is stored in the deployment. Without {@code apiKey} the connector reads the
+ * environment variable {@code OPENAI_API_KEY} of the server.
  *
  * <p>After ingestion, use {@link AgentConnector} with the same pgvector parameters to
  * query the knowledge base via RAG.

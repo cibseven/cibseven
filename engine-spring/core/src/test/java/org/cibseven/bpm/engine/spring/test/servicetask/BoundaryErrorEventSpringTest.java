@@ -21,6 +21,7 @@ import org.cibseven.bpm.engine.spring.test.SpringProcessEngineTestCase;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.springframework.test.context.ContextConfiguration;
+import org.junit.jupiter.api.Test;
 
 /**
  * @see http://jira.codehaus.org/browse/ACT-1166
@@ -31,6 +32,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class BoundaryErrorEventSpringTest extends SpringProcessEngineTestCase {
 
   @Deployment
+  @Test
   public void testCatchErrorThrownByJavaDelegateOnServiceTask() {
     String procId = runtimeService.startProcessInstanceByKey("catchErrorThrownByExpressionDelegateOnServiceTask").getId();
     assertThatErrorHasBeenCaught(procId);
@@ -41,7 +43,7 @@ public class BoundaryErrorEventSpringTest extends SpringProcessEngineTestCase {
     // which is caught on the service task boundary
     assertEquals(1, taskService.createTaskQuery().count(), "No tasks found in task list.");
     Task task = taskService.createTaskQuery().singleResult();
-    assertEquals(task.getName(), "Escalated Task");
+    assertEquals("Escalated Task", task.getName());
 
     // Completing the task will end the process instance
     taskService.complete(task.getId());

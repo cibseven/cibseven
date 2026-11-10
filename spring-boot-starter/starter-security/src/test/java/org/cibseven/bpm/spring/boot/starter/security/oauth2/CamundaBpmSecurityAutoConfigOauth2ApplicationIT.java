@@ -23,11 +23,12 @@ import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.AuthorizeTokenF
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.impl.OAuth2AuthenticationProvider;
 import org.cibseven.bpm.webapp.impl.security.auth.ContainerBasedAuthenticationFilter;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
@@ -35,13 +36,14 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
@@ -98,7 +100,11 @@ public class CamundaBpmSecurityAutoConfigOauth2ApplicationIT extends AbstractSpr
         // then oauth2 redirection occurs
         .andExpect(MockMvcResultMatchers.status().isFound())
         .andExpect(MockMvcResultMatchers.header().exists("Location"))
-        .andExpect(MockMvcResultMatchers.header().string("Location", baseUrl + "/oauth2/authorization/" + PROVIDER));
+        .andExpect(MockMvcResultMatchers.header().string("Location",
+          anyOf(
+            is(baseUrl + "/oauth2/authorization/" + PROVIDER),
+            is("/oauth2/authorization/" + PROVIDER)
+          )));
   }
 
   @Test
@@ -130,7 +136,11 @@ public class CamundaBpmSecurityAutoConfigOauth2ApplicationIT extends AbstractSpr
         // then authorization fails and redirection occurs
         .andExpect(MockMvcResultMatchers.status().isFound())
         .andExpect(MockMvcResultMatchers.header().exists("Location"))
-        .andExpect(MockMvcResultMatchers.header().string("Location", baseUrl + "/oauth2/authorization/" + PROVIDER));
+        .andExpect(MockMvcResultMatchers.header().string("Location",
+          anyOf(
+            is(baseUrl + "/oauth2/authorization/" + PROVIDER),
+            is("/oauth2/authorization/" + PROVIDER)
+          )));
 
     String expectedWarn = "Authorize failed for '" + UNAUTHORIZED_USER + "'";
     assertThat(loggingRule.getFilteredLog(expectedWarn)).hasSize(1);

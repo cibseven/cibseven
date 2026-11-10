@@ -213,6 +213,19 @@ public class AgentConnectorImplCoverageTest {
     assertThat(first).isSameAs(second);
   }
 
+  /**
+   * The parts of the state block are named to the model, the process data among them (CIB7-2179):
+   * what processData holds, and what its two companions say.
+   */
+  @Test
+  public void theAdHocInstructionNamesTheProcessDataOfTheStateBlock() {
+    String content = AgentConnectorImpl.loadAdHocDefaultInstruction();
+    assertThat(content).contains("AD HOC SCOPE STATE")
+        .contains("processData: the current values of the process")
+        .contains("processDataNotSet names those the process has not set")
+        .contains("processDataNote those left out for size");
+  }
+
   // ── createContentRetriever — early-return null paths ────────────────────
 
   @Test
@@ -465,6 +478,32 @@ public class AgentConnectorImplCoverageTest {
         .containsEntry("length", "BPMN models business processes.".length());
   }
 
+  /**
+   * The query of an agentic step is its message, the state block with it: the retrieval event
+   * keeps each value of processData as a marker, as the request event does (CIB7-2179).
+   */
+  @Test
+  public void retrieverLambdaShouldKeepTheProcessDataOfAStateBlockAsMarkers() {
+    RagStubConnector ragConnector = new RagStubConnector();
+    ragConnector.store.matches = List.of();
+    AgentRequest request = ragConnector.createRequest()
+        .pgHost("h").pgPort("5432").pgDatabase("d").pgUser("u").pgPassword("p")
+        .pgTable("t").embeddingDimension(8).maxRagResults(5).minRagScore(0.0);
+    AgentChatListener listener = new AgentChatListener("gpt-5.4-nano", "https://chat/v1");
+    ProcessStarterToolContext.setActiveListener(listener);
+    String message = AgentConnectorImpl.STATE_BLOCK_OPEN + "\n"
+        + "{\"processData\":{\"kunde\":\"Müller GmbH\"}}\n"
+        + AgentConnectorImpl.STATE_BLOCK_CLOSE + "\n\nBearbeite den Auftrag.";
+
+    ragConnector.createContentRetriever(request).retrieve(Query.from(message));
+
+    Map<String, Object> event = listener.events().get(0);
+    assertThat(event).containsEntry("type", "retrieval")
+        .containsEntry("query", AgentChatListener.withProcessDataAsMarkers(message));
+    assertThat(String.valueOf(event.get("query"))).doesNotContain("Müller GmbH")
+        .contains("Bearbeite den Auftrag.");
+  }
+
   @Test
   public void retrieverLambdaShouldUseOpenAiEmbeddingDescriptorWhenModelNameSet() {
     RagStubConnector ragConnector = new RagStubConnector();
@@ -674,6 +713,44 @@ public class AgentConnectorImplCoverageTest {
     }
   }
 
+  // ── buildSystemPrompt — a step of an agentic scope reads its own prompt (CIB7-2235) ─
+
+  @Test
+  public void anAgenticStepWithoutAnInstructionReadsTheAdHocPrompt() throws Exception {
+    String prompt = invokeBuildSystemPrompt(connector.createRequest(), true);
+    assertThat(prompt).isEqualTo(AgentConnectorImpl.loadAdHocDefaultInstruction());
+  }
+
+  @Test
+  public void anAgenticStepUnderAppendPutsTheInstructionAfterTheAdHocPrompt() throws Exception {
+    AgentRequest request = connector.createRequest()
+        .instruction("Return JSON.")
+        .instructionMode(AgentConnectorConstants.INSTRUCTION_MODE_APPEND);
+    String prompt = invokeBuildSystemPrompt(request, true);
+    assertThat(prompt).isEqualTo(AgentConnectorImpl.loadAdHocDefaultInstruction()
+        + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR
+        + "Return JSON.");
+  }
+
+  @Test
+  public void anAgenticStepUnderPrependPutsTheInstructionBeforeTheAdHocPrompt() throws Exception {
+    AgentRequest request = connector.createRequest()
+        .instruction("Return JSON.")
+        .instructionMode(AgentConnectorConstants.INSTRUCTION_MODE_PREPEND);
+    String prompt = invokeBuildSystemPrompt(request, true);
+    assertThat(prompt).isEqualTo("Return JSON."
+        + AgentConnectorConstants.INSTRUCTION_MODE_SEPARATOR
+        + AgentConnectorImpl.loadAdHocDefaultInstruction());
+  }
+
+  @Test
+  public void anAgenticStepUnderReplaceReadsOnlyTheInstruction() throws Exception {
+    AgentRequest request = connector.createRequest()
+        .instruction("Return JSON.")
+        .instructionMode(AgentConnectorConstants.INSTRUCTION_MODE_REPLACE);
+    assertThat(invokeBuildSystemPrompt(request, true)).isEqualTo("Return JSON.");
+  }
+
   // ── buildMcpClient — exercise the real factory body once ────────────────
 
   /**
@@ -738,6 +815,152 @@ public class AgentConnectorImplCoverageTest {
     assertThat(ragConnector.execute(request).getOutput()).isEqualTo("ok");
   }
 
+  // ── execute() — the chat log is flushed when the invocation ends (CIB7-2156) ─
+
+  /**
+   * A retrieval that no model call's end wrote is flushed by execute when the invocation fails,
+   * and the invocation's own exception is the one that leaves it.
+   */
+  @Test
+  public void executeShouldFlushTheChatLogWhenTheModelCallFails() {
+    FlushRecordingListener listener = new FlushRecordingListener(null);
+    AgentConnectorImpl failing = connectorWith(listener, new IllegalStateException("model down"));
+
+    Throwable thrown = org.assertj.core.api.Assertions.catchThrowable(
+        () -> failing.execute(ragRequest(failing)));
+
+    assertThat(innermost(thrown)).hasMessage("model down");
+
+    assertThat(listener.flushes).isEqualTo(1);
+    assertThat(listener.typesAtFlush).containsExactly("retrieval");
+  }
+
+  /** A flush that fails after the invocation failed goes with its exception, not in its place. */
+  @Test
+  public void executeShouldKeepItsOwnExceptionWhenTheFlushFailsToo() {
+    RuntimeException flushFailure = new IllegalStateException("flush failed");
+    FlushRecordingListener listener = new FlushRecordingListener(flushFailure);
+    AgentConnectorImpl failing = connectorWith(listener, new IllegalStateException("model down"));
+
+    Throwable thrown = org.assertj.core.api.Assertions.catchThrowable(
+        () -> failing.execute(ragRequest(failing)));
+
+    assertThat(innermost(thrown)).hasMessage("model down");
+    assertThat(thrown.getSuppressed()).containsExactly(flushFailure);
+  }
+
+  /** A flush that fails after the invocation succeeded is what the invocation fails with. */
+  @Test
+  public void executeShouldFailWithTheFlushWhenTheInvocationSucceeded() {
+    RuntimeException flushFailure = new IllegalStateException("flush failed");
+    FlushRecordingListener listener = new FlushRecordingListener(flushFailure);
+    AgentConnectorImpl succeeding = connectorWith(listener, null);
+
+    assertThatThrownBy(() -> succeeding.execute(ragRequest(succeeding))).isSameAs(flushFailure);
+    assertThat(listener.flushes).isEqualTo(1);
+  }
+
+  /**
+   * The invocation's listener is flushed when the invocation fails after the model was built but
+   * before the MCP clients are, as for a missing required process variable: the listener is taken
+   * as soon as {@code createChatModel} installed it (CIB7-2156).
+   */
+  @Test
+  public void executeShouldFlushTheChatLogWhenItFailsBeforeTheModelIsAsked() {
+    FlushRecordingListener listener = new FlushRecordingListener(null);
+    RagStubConnector base = (RagStubConnector) connectorWith(listener, null);
+    AgentConnectorImpl failing = new RagStubConnector() {
+      @Override
+      protected ChatModel createChatModel(AgentRequest request, String apiKey, String baseUrl,
+          Map<String, String> customHeaders) {
+        return base.createChatModel(request, apiKey, baseUrl, customHeaders);
+      }
+
+      @Override
+      protected List<McpClient> createMcpClients(AgentRequest request) {
+        throw new IllegalStateException("mcp down");
+      }
+    };
+
+    Throwable thrown = org.assertj.core.api.Assertions.catchThrowable(
+        () -> failing.execute(ragRequest(failing)));
+
+    assertThat(innermost(thrown)).hasMessage("mcp down");
+    assertThat(listener.flushes).as("flushed although no model call began").isEqualTo(1);
+  }
+
+  /**
+   * A connector whose model call goes through {@code listener}'s retrieval only: it installs the
+   * listener as {@code createChatModel} does, and its model throws {@code modelFailure} without
+   * telling the listener, as when the invocation fails between a retrieval and the model's
+   * answer. With {@code modelFailure} null the model answers "ok".
+   */
+  private static AgentConnectorImpl connectorWith(AgentChatListener listener,
+      RuntimeException modelFailure) {
+    RagStubConnector connector = new RagStubConnector() {
+      @Override
+      protected ChatModel createChatModel(AgentRequest request, String apiKey, String baseUrl,
+          Map<String, String> customHeaders) {
+        ProcessStarterToolContext.setActiveListener(listener);
+        return new dev.langchain4j.model.chat.ChatModel() {
+          @Override
+          public dev.langchain4j.model.chat.response.ChatResponse doChat(
+              dev.langchain4j.model.chat.request.ChatRequest req) {
+            if (modelFailure != null) {
+              throw modelFailure;
+            }
+            return dev.langchain4j.model.chat.response.ChatResponse.builder()
+                .aiMessage(dev.langchain4j.data.message.AiMessage.from("ok"))
+                .build();
+          }
+        };
+      }
+    };
+    connector.store.matches = List.of(match(0.95, "supporting context"));
+    return connector;
+  }
+
+  /** The innermost cause of {@code thrown}, or {@code thrown} itself when it has none. */
+  private static Throwable innermost(Throwable thrown) {
+    Throwable t = thrown;
+    while (t != null && t.getCause() != null && t.getCause() != t) {
+      t = t.getCause();
+    }
+    return t;
+  }
+
+  private static AgentRequest ragRequest(AgentConnectorImpl connector) {
+    return connector.createRequest()
+        .agentName("agent")
+        .message("question?")
+        .apiKey("test-key")
+        .pgHost("h").pgPort("5432").pgDatabase("d").pgUser("u").pgPassword("p")
+        .pgTable("t").embeddingDimension(8).maxRagResults(5).minRagScore(0.0);
+  }
+
+  /** Records each flush and the events it would write; throws {@code failure} when set. */
+  private static class FlushRecordingListener extends AgentChatListener {
+    private final RuntimeException failure;
+    int flushes;
+    List<Object> typesAtFlush = new ArrayList<>();
+
+    FlushRecordingListener(RuntimeException failure) {
+      this.failure = failure;
+    }
+
+    @Override
+    void flush() {
+      flushes++;
+      for (Map<String, Object> event : events()) {
+        typesAtFlush.add(event.get("type"));
+      }
+      if (failure != null) {
+        throw failure;
+      }
+      super.flush();
+    }
+  }
+
   // ── loadDefaultInstruction — re-prime cache-miss branch ─────────────────
 
   @Test
@@ -754,12 +977,59 @@ public class AgentConnectorImplCoverageTest {
     assertThat(AgentConnectorImpl.loadDefaultInstruction()).isSameAs(repopulated);
   }
 
+  // ── the two bundled prompts, each from its own file and cache (CIB7-2235) ─
+
+  /**
+   * Each loader returns its own file, whichever is loaded first. The caches are emptied first, so
+   * the outcome does not depend on what ran before in the same JVM.
+   */
+  @Test
+  public void eachLoaderReturnsItsOwnFileWhicheverIsLoadedFirst() throws Exception {
+    String serviceTask = resource(AgentConnectorImpl.DEFAULT_INSTRUCTION_RESOURCE);
+    String adHoc = resource(AgentConnectorImpl.AD_HOC_DEFAULT_INSTRUCTION_RESOURCE);
+    assertThat(adHoc).isNotEqualTo(serviceTask);
+
+    emptyPromptCaches();
+    assertThat(AgentConnectorImpl.loadDefaultInstruction()).isEqualTo(serviceTask);
+    assertThat(AgentConnectorImpl.loadAdHocDefaultInstruction()).isEqualTo(adHoc);
+
+    emptyPromptCaches();
+    assertThat(AgentConnectorImpl.loadAdHocDefaultInstruction()).isEqualTo(adHoc);
+    assertThat(AgentConnectorImpl.loadDefaultInstruction()).isEqualTo(serviceTask);
+  }
+
+  private static void emptyPromptCaches() throws Exception {
+    for (String name : new String[] { "defaultInstructionCache", "adHocDefaultInstructionCache" }) {
+      java.lang.reflect.Field cache = AgentConnectorImpl.class.getDeclaredField(name);
+      cache.setAccessible(true);
+      cache.set(null, null);
+    }
+  }
+
+  private static String resource(String name) throws Exception {
+    try (java.io.InputStream in = AgentConnectorImplCoverageTest.class.getResourceAsStream(name)) {
+      assertThat(in).as(name + " on the classpath").isNotNull();
+      return new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+    }
+  }
+
   // ── Reflection helper for buildSystemPrompt ─────────────────────────────
 
+  /** The system prompt of a service task. */
   private String invokeBuildSystemPrompt(AgentRequest request) throws Exception {
-    Method m = AgentConnectorImpl.class.getDeclaredMethod("buildSystemPrompt", AgentRequest.class);
+    return invokeBuildSystemPrompt(request, false);
+  }
+
+  /**
+   * The system prompt; {@code runsAdHocSubProcess} for a step of the agent that runs an ad hoc
+   * sub process.
+   */
+  private String invokeBuildSystemPrompt(AgentRequest request, boolean runsAdHocSubProcess)
+      throws Exception {
+    Method m = AgentConnectorImpl.class.getDeclaredMethod("buildSystemPrompt", AgentRequest.class,
+        boolean.class);
     m.setAccessible(true);
-    return (String) m.invoke(connector, request);
+    return (String) m.invoke(connector, request, runsAdHocSubProcess);
   }
 
   // ── Stubs ────────────────────────────────────────────────────────────────

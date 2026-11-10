@@ -5,7 +5,7 @@
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-parent</artifactId>
     <relativePath>../parent</relativePath>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <groupId>org.cibseven.connect</groupId>
@@ -48,16 +48,19 @@
         <version>${version.httpclient5}</version>
       </dependency>
 
-      <!-- JUnit 5 Jupiter API for unit testing -->
+      <!-- JUnit 5 Jupiter API for unit testing. Test scope by default, so that a dependency without
+           a scope stays off the runtime classpath (CIB7-2586). -->
       <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-api</artifactId>
         <version>${version.junit5}</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-params</artifactId>
         <version>${version.junit5}</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.junit.jupiter</groupId>
@@ -70,6 +73,7 @@
         <groupId>org.assertj</groupId>
         <artifactId>assertj-core</artifactId>
         <version>${version.assertj}</version>
+        <scope>test</scope>
       </dependency>
 
       <dependency>

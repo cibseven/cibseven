@@ -47,6 +47,7 @@ import org.cibseven.spin.plugin.variable.type.SpinValueType;
 import org.cibseven.spin.plugin.variable.value.XmlValue;
 import org.cibseven.spin.plugin.variable.value.builder.XmlValueBuilder;
 import org.cibseven.spin.xml.SpinXmlElement;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -65,6 +66,7 @@ public class XmlValueTest extends PluggableProcessEngineTestCase {
   protected String variableName = "x";
 
   @Deployment(resources = ONE_TASK_PROCESS)
+  @Test
   public void testGetUntypedXmlValue() {
     // given
     XmlValue xmlValue = xmlValue(xmlString).create();
@@ -83,6 +85,7 @@ public class XmlValueTest extends PluggableProcessEngineTestCase {
   }
 
   @Deployment(resources = ONE_TASK_PROCESS)
+  @Test
   public void testGetTypedXmlValue() {
     // given
     XmlValue xmlValue = xmlValue(xmlString).create();
@@ -106,6 +109,7 @@ public class XmlValueTest extends PluggableProcessEngineTestCase {
   }
 
   @Deployment(resources = ONE_TASK_PROCESS)
+  @Test
   public void testBrokenXmlSerialization() {
     // given
     XmlValue value = xmlValue(brokenXmlString).create();
@@ -121,6 +125,7 @@ public class XmlValueTest extends PluggableProcessEngineTestCase {
   }
 
   @Deployment(resources = ONE_TASK_PROCESS)
+  @Test
   public void testFailingDeserialization() {
     // given
     XmlValue value = xmlValue(brokenXmlString).create();
@@ -157,6 +162,7 @@ public class XmlValueTest extends PluggableProcessEngineTestCase {
   }
 
   @Deployment(resources = ONE_TASK_PROCESS)
+  @Test
   public void testFailForNonExistingSerializationFormat() {
     // given
     XmlValueBuilder builder = xmlValue(xmlString).serializationDataFormat("non existing data format");
@@ -184,6 +190,7 @@ public class XmlValueTest extends PluggableProcessEngineTestCase {
   }
 
   @Deployment(resources = "org/cibseven/spin/plugin/xmlConditionProcess.bpmn20.xml")
+  @Test
   public void testXmlValueInCondition() {
     // given
     String xmlString = "<customer age=\"22\" />";
@@ -199,6 +206,7 @@ public class XmlValueTest extends PluggableProcessEngineTestCase {
   }
 
   @Deployment(resources = ONE_TASK_PROCESS)
+  @Test
   public void testTransientXmlValueFluent() {
     // given
     XmlValue xmlValue = xmlValue(xmlString).setTransient(true).create();
@@ -213,6 +221,7 @@ public class XmlValueTest extends PluggableProcessEngineTestCase {
   }
 
   @Deployment(resources = ONE_TASK_PROCESS)
+  @Test
   public void testTransientXmlValue() {
     // given
     XmlValue xmlValue = xmlValue(xmlString, true).create();
@@ -229,6 +238,7 @@ public class XmlValueTest extends PluggableProcessEngineTestCase {
   /**
    * See https://app.camunda.com/jira/browse/CAM-9932
    */
+  @Test
   public void testTransientXmlSpinVariables() {
     // given
     BpmnModelInstance modelInstance = Bpmn.createExecutableProcess("aProcess")
@@ -248,6 +258,7 @@ public class XmlValueTest extends PluggableProcessEngineTestCase {
     assertThat(value).isNull();
   }
 
+  @Test
   public void testApplyValueInfoFromSerializedValue() {
     // given
     Map<String, Object> valueInfo = new HashMap<String, Object>();
@@ -262,6 +273,7 @@ public class XmlValueTest extends PluggableProcessEngineTestCase {
     assertEquals(true, returnedValueInfo.get(ValueType.VALUE_INFO_TRANSIENT));
   }
 
+  @Test
   public void testDeserializeTransientXmlValue() {
     // given
     BpmnModelInstance modelInstance = Bpmn.createExecutableProcess("foo")

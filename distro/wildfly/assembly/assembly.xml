@@ -32,9 +32,6 @@
           <exclude>**/bin/standalone.conf.bat</exclude>
           <!-- exclude wildfly's shipped version of h2database -->
           <exclude>**/h2database/**</exclude>
-          <!-- exclude wildfly's shipped lz4-java (CVE-2026-59949); replaced by the
-               at/yawk/lz4 module from ../modules, see version.lz4-java -->
-          <exclude>**/at/yawk/lz4/**</exclude>
         </excludes>
       </unpackOptions>
     </dependencySet>
@@ -58,8 +55,10 @@
         <include>org.apache.groovy:groovy-datetime:jar:*</include>
         <include>org.graalvm.js:*</include>
         <include>org.graalvm.regex:regex:jar:*</include>
-        <include>org.graalvm.truffle:truffle-api:jar:*</include>
-        <include>org.graalvm.sdk:graal-sdk:jar:*</include>
+        <include>org.graalvm.truffle:*:jar:*</include>
+        <include>org.graalvm.sdk:*:jar:*</include>
+        <include>org.graalvm.polyglot:*:jar:*</include>
+        <include>org.graalvm.shadowed:*:jar:*</include>
         <include>com.ibm.icu:icu4j:jar:*</include>
       </includes>
     </dependencySet>

@@ -3,12 +3,12 @@
   <parent>
     <groupId>org.cibseven.bpm.jboss</groupId>
     <artifactId>cibseven-jboss</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.cibseven.bpm.webapp</groupId>
-  <name>CIB seven - webapp - JBoss</name>
+  <name>CIB seven - webapp - JBoss EAP</name>
   <artifactId>cibseven-webapp-jboss</artifactId>
   <packaging>war</packaging>
   
@@ -43,7 +43,7 @@
   </build>
 
   <description>
-    Description of CIB seven - webapp - JBoss
+    Cockpit, Tasklist and Admin as a war for JBoss EAP 8.1 (Jakarta EE 10); for WildFly use cibseven-webapp-wildfly
   </description>
 
   <licenses>

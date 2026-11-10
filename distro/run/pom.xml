@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-database-settings</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
     <relativePath>../../database</relativePath>
   </parent>
 
@@ -17,18 +17,6 @@
 
   <dependencyManagement>
     <dependencies>
-      <!-- Must stay FIRST, ahead of spring-boot-dependencies: among imported BOMs the earliest
-           declaration wins. Spring Boot manages the JUnit artifacts itself, so without this the
-           Jupiter version follows ${version.junit5} (where a module pins it explicitly) while
-           junit-platform-* stays on Spring Boot's, and surefire dies with
-           "conflicting versions were detected". -->
-      <dependency>
-        <groupId>org.junit</groupId>
-        <artifactId>junit-bom</artifactId>
-        <version>${version.junit5}</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
 
       <!-- Addressing Jackson 2 CVEs coming from v2.21.5
         jackson-core:
@@ -40,6 +28,20 @@
         <groupId>com.fasterxml.jackson</groupId>
         <artifactId>jackson-bom</artifactId>
         <version>${version.jackson}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+
+      <!-- Addressing Jackson 3 CVEs coming from v3.1.5
+        jackson-core:
+        CVE-2026-91776, CVE-2026-91777,
+        CVE-2026-89407, CVE-2026-89425.
+        jackson-databind:
+        CVE-2026-83557, CVE-2026-19032, CVE-2026-83557 -->
+      <dependency>
+        <groupId>tools.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson3}</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -71,26 +73,27 @@
       </dependency>
 
       <!-- Temporary Apache Tomcat CVE overrides (BOM pins a vulnerable version).
-           Remove these once the imported Spring Boot BOM manages fixed versions. -->
+           Remove these once the imported Spring Boot 4 BOM manages fixed versions. -->
       <dependency>
         <groupId>org.apache.tomcat.embed</groupId>
         <artifactId>tomcat-embed-core</artifactId>
-        <version>${version.tomcat10}</version>
+        <version>${version.tomcat}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.tomcat.embed</groupId>
         <artifactId>tomcat-embed-el</artifactId>
-        <version>${version.tomcat10}</version>
+        <version>${version.tomcat}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.tomcat.embed</groupId>
         <artifactId>tomcat-embed-websocket</artifactId>
-        <version>${version.tomcat10}</version>
+        <version>${version.tomcat}</version>
       </dependency>
 
       <dependency>
         <groupId>org.graalvm.js</groupId>
         <artifactId>js</artifactId>
+        <type>pom</type>
         <version>${version.graal.js}</version>
       </dependency>
 
@@ -120,30 +123,6 @@
       </plugins>
     </pluginManagement>
 
-    <plugins>
-
-      <!-- Enforces Java 17 during the build -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.0.0-M1</version>
-        <configuration>
-          <rules>
-            <requireJavaVersion>
-              <version>[17,)</version>
-            </requireJavaVersion>
-          </rules>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-    </plugins>
   </build>
 
   <profiles>
@@ -160,6 +139,7 @@
         <module>modules/example</module>
         <module>modules/webapps</module>
         <module>modules/ai-agent</module>
+        <module>modules/mcp-restapi</module>
         <module>modules/http-client</module>
         <module>modules/soap-http-client</module>
         <module>core</module>

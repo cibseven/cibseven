@@ -8,7 +8,7 @@
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-parent</artifactId>
     <relativePath>../../parent</relativePath>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
 
@@ -17,7 +17,7 @@
       <dependency>
         <groupId>jakarta.platform</groupId>
         <artifactId>jakarta.jakartaee-bom</artifactId>
-        <version>11.0.0</version>
+        <version>${version.jakarta-ee-spec}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>

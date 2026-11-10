@@ -6,11 +6,16 @@
   <parent>
     <groupId>org.cibseven.bpm.springboot.project</groupId>
     <artifactId>qa-plugins-spin</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>qa-plugins-spin-dataformat-json-jackson</artifactId>
   <name>CIB seven - Spring Boot Starter - QA - Plugins - Spin Json Jackson</name>
+
+  <properties>
+    <!-- like spring-boot-starter-parent, so Spin can use the constructor parameter names (SpinConstructorDto) -->
+    <maven.compiler.parameters>true</maven.compiler.parameters>
+  </properties>
 
   <dependencies>
 
@@ -39,6 +44,11 @@
       <artifactId>h2</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <profiles>

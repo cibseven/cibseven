@@ -5,7 +5,7 @@
     <groupId>org.cibseven.bpm.model</groupId>
     <artifactId>cibseven-model-apis</artifactId>
     <relativePath>../</relativePath>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cibseven-xml-model</artifactId>
@@ -22,6 +22,7 @@
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <version>${version.junit5}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>

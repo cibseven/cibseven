@@ -77,8 +77,12 @@ public class DeleteProcessInstancesDto {
     return skipSubprocesses;
   }
 
+  /**
+   * Accepts {@code null} (JSON {@code "skipSubprocesses": null}) and treats it as {@code false},
+   * like the other skip flags of this DTO.
+   */
   public void setSkipSubprocesses(Boolean skipSubprocesses) {
-    this.skipSubprocesses = skipSubprocesses;
+    this.skipSubprocesses = Boolean.TRUE.equals(skipSubprocesses);
   }
 
   public boolean isSkipIoMappings() {

@@ -1,0 +1,587 @@
+/*
+ * Copyright CIB software GmbH and/or licensed to CIB software GmbH
+ * under one or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information regarding copyright
+ * ownership. CIB software licenses this file to you under the Apache License,
+ * Version 2.0; you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+package org.cibseven.connect.ai.agent.impl;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.cibseven.bpm.engine.authorization.Authorization.ANY;
+import static org.cibseven.bpm.engine.authorization.Authorization.AUTH_TYPE_GRANT;
+import static org.cibseven.bpm.engine.authorization.Permissions.CREATE;
+import static org.cibseven.bpm.engine.authorization.Permissions.CREATE_INSTANCE;
+import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE;
+import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION;
+import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_INSTANCE;
+
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import org.cibseven.bpm.engine.AuthorizationService;
+import org.cibseven.bpm.engine.IdentityService;
+import org.cibseven.bpm.engine.ProcessEngine;
+import org.cibseven.bpm.engine.authorization.Authorization;
+import org.cibseven.bpm.engine.authorization.Permission;
+import org.cibseven.bpm.engine.authorization.Resource;
+import org.cibseven.bpm.engine.delegate.DelegateExecution;
+import org.cibseven.bpm.engine.delegate.JavaDelegate;
+import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.engine.impl.cfg.multitenancy.TenantIdProvider;
+import org.cibseven.bpm.engine.impl.cfg.multitenancy.TenantIdProviderCaseInstanceContext;
+import org.cibseven.bpm.engine.impl.cfg.multitenancy.TenantIdProviderHistoricDecisionInstanceContext;
+import org.cibseven.bpm.engine.impl.cfg.multitenancy.TenantIdProviderProcessInstanceContext;
+import org.cibseven.bpm.engine.impl.identity.Authentication;
+import org.cibseven.bpm.engine.runtime.Job;
+import org.cibseven.bpm.engine.runtime.VariableInstance;
+import org.cibseven.bpm.engine.variable.VariableMap;
+import org.cibseven.bpm.engine.variable.Variables;
+import org.cibseven.connect.ai.agent.AgentConnectorConstants;
+import org.cibseven.connect.ai.agent.AgentRequest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.listener.ChatModelListener;
+import dev.langchain4j.model.chat.request.ChatRequest;
+import dev.langchain4j.model.chat.response.ChatResponse;
+
+/**
+ * {@code contextVariables} and {@code documents} read the declared variables as
+ * process data, like any other service task: the same declaration gives the
+ * same result whoever triggered the agent task, and whether it runs
+ * synchronously or as a job. What the model sees is the modeler's decision.
+ *
+ * <p>Runs against an engine with authorization enabled, with a user who may
+ * start the process but not read its variables. Also covers the authentication
+ * the connector hands to {@code ProcessStarterTool}, which still runs under
+ * the engine's authorization.
+ */
+public class ProcessVariableAccessEngineTest {
+
+  private static final String SYNC_KEY = "variableAccessSyncTest";
+  private static final String ASYNC_KEY = "variableAccessAsyncTest";
+  private static final String TENANT = "t1";
+  private static final String TOOL_KEY = "variableAccessToolTest";
+  private static final String OTHER_KEY = "variableAccessOtherTenant";
+  private static final byte[] PDF_BYTES = "%PDF-1.7 body".getBytes();
+
+  static volatile boolean modelCalled;
+  static volatile String systemPromptAtModelCall;
+  static volatile Authentication toolAuthenticationAtModelCall;
+  static volatile List<Object> threadStateAfterRun;
+  static volatile Authentication capturedCaller;
+  static volatile RuntimeException toolFailure;
+
+  /** Built once for the whole class; see ProcessContextEngineTest for why. */
+  private static final ProcessEngine ENGINE = buildInMemoryEngine();
+
+  private static ProcessEngine buildInMemoryEngine() {
+    StandaloneInMemProcessEngineConfiguration configuration =
+        new StandaloneInMemProcessEngineConfiguration();
+    configuration.setJdbcUrl("jdbc:h2:mem:variable-access-test;DB_CLOSE_DELAY=-1");
+    configuration.setJobExecutorActivate(false);
+    configuration.setAuthorizationEnabled(true);
+    configuration.setTenantIdProvider(new VariableTenantIdProvider());
+    return configuration.buildProcessEngine();
+  }
+
+  /**
+   * Puts an instance of a shared definition into the tenant named by its
+   * {@code _tenant} variable, so a synchronous agent task can run in a tenant
+   * its caller is not a member of.
+   */
+  static final class VariableTenantIdProvider implements TenantIdProvider {
+    @Override
+    public String provideTenantIdForProcessInstance(TenantIdProviderProcessInstanceContext ctx) {
+      Object tenant = ctx.getVariables().get("_tenant");
+      return (tenant == null) ? null : tenant.toString();
+    }
+
+    @Override
+    public String provideTenantIdForCaseInstance(TenantIdProviderCaseInstanceContext ctx) {
+      return null;
+    }
+
+    @Override
+    public String provideTenantIdForHistoricDecisionInstance(
+        TenantIdProviderHistoricDecisionInstanceContext ctx) {
+      return null;
+    }
+  }
+
+  static final class StubChatModel implements ChatModel {
+    private final List<ChatModelListener> listeners;
+
+    StubChatModel(ChatModelListener listener) {
+      this.listeners = List.of(listener);
+    }
+
+    @Override
+    public List<ChatModelListener> listeners() {
+      return listeners;
+    }
+
+    @Override
+    public ChatResponse doChat(ChatRequest request) {
+      modelCalled = true;
+      systemPromptAtModelCall = request.messages().stream()
+          .filter(SystemMessage.class::isInstance)
+          .map(message -> ((SystemMessage) message).text())
+          .findFirst().orElse(null);
+      // What a tool called during this turn would see.
+      toolAuthenticationAtModelCall = ProcessStarterToolContext.getAuthentication();
+      return ChatResponse.builder().aiMessage(AiMessage.from("ok")).build();
+    }
+  }
+
+  static final class StubConnector extends AgentConnectorImpl {
+    @Override
+    protected ChatModel createChatModel(AgentRequest request, String apiKey, String baseUrl,
+        Map<String, String> customHeaders) {
+      AgentChatListener listener =
+          new AgentChatListener(request.getModel(), baseUrl, request.getPersistChatLog());
+      ProcessStarterToolContext.setActiveListener(listener);
+      return new StubChatModel(listener);
+    }
+  }
+
+  /** Reads context by default; with {@code _documents} set, attaches documents only. */
+  public static class AgentDelegate implements JavaDelegate {
+    @Override
+    public void execute(DelegateExecution execution) {
+      StubConnector connector = new StubConnector();
+      AgentRequest request = connector.createRequest()
+          .agentName("variable-access-agent")
+          .message("What is the order about?");
+      String documents = (String) execution.getVariable("_documents");
+      if (documents != null) {
+        request.documents(documents);
+      } else {
+        request.contextVariables("orderId");
+      }
+      try {
+        connector.execute(request);
+      } finally {
+        // What the next task on this pooled thread would find.
+        threadStateAfterRun = Arrays.asList(ProcessStarterToolContext.getEngine(),
+            ProcessStarterToolContext.getAuthentication());
+      }
+    }
+  }
+
+  /**
+   * Resolves the authentication exactly as the connector does and hands it to
+   * the real ProcessStarterTool, which starts {@code _startKey} on its own
+   * thread under it. Driving the tool directly keeps the test independent of
+   * how a model phrases a tool call.
+   */
+  public static class ToolDelegate implements JavaDelegate {
+    @Override
+    public void execute(DelegateExecution execution) throws Exception {
+      Method capture = AgentConnectorImpl.class.getDeclaredMethod(
+          "captureCallerAuthentication", ProcessEngine.class);
+      capture.setAccessible(true);
+      Authentication caller = (Authentication) capture.invoke(new AgentConnectorImpl(), ENGINE);
+      capturedCaller = caller;
+      String startKey = (String) execution.getVariable("_startKey");
+      if (startKey == null) {
+        return;
+      }
+      ProcessStarterToolContext.setEngine(ENGINE);
+      ProcessStarterToolContext.setAuthentication(caller);
+      try {
+        new ProcessStarterTool().runProcessByKey(startKey, Map.of(), "", 0, 0L);
+      } catch (RuntimeException e) {
+        toolFailure = e;
+      } finally {
+        ProcessStarterToolContext.clear();
+      }
+    }
+  }
+
+  @BeforeEach
+  public void setUp() {
+    modelCalled = false;
+    systemPromptAtModelCall = null;
+    toolAuthenticationAtModelCall = null;
+    threadStateAfterRun = null;
+    capturedCaller = null;
+    toolFailure = null;
+    deploy(null, SYNC_KEY, false);
+    deploy(null, ASYNC_KEY, true);
+    // What alice needs to start a process at all — deliberately nothing that
+    // would let her read its variables.
+    grant("alice", PROCESS_INSTANCE, ANY, CREATE);
+    grant("alice", PROCESS_DEFINITION, ANY, CREATE_INSTANCE);
+  }
+
+  @AfterEach
+  public void tearDown() {
+    IdentityService identityService = ENGINE.getIdentityService();
+    identityService.clearAuthentication();
+    AuthorizationService authorizationService = ENGINE.getAuthorizationService();
+    authorizationService.createAuthorizationQuery().list()
+        .forEach(authorization -> authorizationService.deleteAuthorization(authorization.getId()));
+    ENGINE.getRepositoryService().createDeploymentQuery().list()
+        .forEach(deployment ->
+            ENGINE.getRepositoryService().deleteDeployment(deployment.getId(), true));
+    identityService.createTenantQuery().list()
+        .forEach(tenant -> identityService.deleteTenant(tenant.getId()));
+    identityService.createUserQuery().list()
+        .forEach(user -> identityService.deleteUser(user.getId()));
+  }
+
+  // ── the declared variables are process data ───────────────────────────────
+
+  /**
+   * Review round 2, point 3: a synchronous agent task used to check the user
+   * who completed the previous step, an asynchronous one the start user. Both
+   * now read what is declared, and the audit records no authorization outcome.
+   */
+  @Test
+  public void shouldReadTheDeclaredVariablesForAUserWithoutAReadPermission() {
+    startAs("alice", SYNC_KEY, context());
+
+    assertThat(modelCalled).isTrue();
+    assertThat(systemPromptAtModelCall).contains("orderId (string) = \"4711\"");
+    assertThat(chatLog()).doesNotContain("\"authorization\"");
+  }
+
+  @Test
+  public void shouldReadTheDeclaredVariablesTheSameWayInAJob() {
+    startAs("alice", ASYNC_KEY, context());
+
+    executeTheJob();
+
+    assertThat(modelCalled).isTrue();
+    assertThat(systemPromptAtModelCall).contains("orderId (string) = \"4711\"");
+  }
+
+  @Test
+  public void shouldReadTheDeclaredVariablesInAJobExecutedByHand() {
+    startAs("alice", ASYNC_KEY, context());
+
+    executeTheJobAs("bob");
+
+    assertThat(modelCalled).isTrue();
+    assertThat(systemPromptAtModelCall).contains("orderId (string) = \"4711\"");
+  }
+
+  @Test
+  public void shouldAttachDocumentsForAUserWithoutAReadPermission() {
+    startAs("alice", SYNC_KEY, Variables.createVariables()
+        .putValue("_documents", "invoice")
+        .putValue("invoice", Variables.fileValue("invoice.pdf")
+            .file(PDF_BYTES).mimeType("application/pdf").create()));
+
+    assertThat(modelCalled).isTrue();
+  }
+
+  /** No tenant check of its own either: the engine already scoped the command. */
+  @Test
+  public void shouldNotCheckTheTenantOfTheInstance() {
+    startAs("alice", SYNC_KEY, context().putValue("_tenant", TENANT));
+
+    assertThat(modelCalled).isTrue();
+  }
+
+  /**
+   * A run must not leave the engine or the tools' authentication on the
+   * thread: on a pooled thread the next, unrelated task would run under this
+   * caller's identity.
+   */
+  @Test
+  public void shouldClearTheToolContextAfterARun() {
+    startAs("alice", ASYNC_KEY, context());
+
+    executeTheJob();
+
+    assertThat(modelCalled).isTrue();
+    assertThat(threadStateAfterRun).as("engine, authentication").containsExactly(null, null);
+  }
+
+  // ── the audit names the user ──────────────────────────────────────────────
+
+  @Test
+  public void shouldNameTheStartUserInTheAuditOfAJob() {
+    startAs("alice", ASYNC_KEY, context());
+
+    executeTheJob();
+
+    assertThat(chatLog()).contains("\"userId\":\"alice\"", "\"userIdSource\":\"startUser\"");
+  }
+
+  @Test
+  public void shouldNameTheAuthenticatedUserInTheAuditOfASynchronousRun() {
+    startAs("alice", SYNC_KEY, context());
+
+    assertThat(chatLog()).contains("\"userId\":\"alice\"", "\"userIdSource\":\"context\"");
+  }
+
+  // ── the authentication ProcessStarterTool runs under ──────────────────────
+
+  /**
+   * A job of a tenant whose instance has no start user (a timer or message
+   * start, history level none). The job executor's user-less (null, null, [t1])
+   * authentication must reach ProcessStarterTool, or it runs without any
+   * authentication — and without one the engine's tenant check is off, so the
+   * tool could start a process of another tenant.
+   */
+  @Test
+  public void shouldKeepTheToolInTheJobsTenantWhenThereIsNoStartUser() {
+    deploy("t1", TOOL_KEY, bpmn(TOOL_KEY, true, ToolDelegate.class));
+    deploy("t2", OTHER_KEY, waitingProcess(OTHER_KEY));
+    ENGINE.getRuntimeService().createProcessInstanceByKey(TOOL_KEY)
+        .processDefinitionTenantId("t1")
+        .setVariables(Variables.createVariables().putValue("_startKey", OTHER_KEY))
+        .execute();
+
+    executeTheJob();
+
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processDefinitionKey(OTHER_KEY).count())
+        .as("instances of tenant t2's process started from a t1 job").isZero();
+    assertThat(toolFailure)
+        .as("the tenant's definition is invisible to the tool's caller")
+        .isInstanceOf(org.cibseven.bpm.engine.ProcessEngineException.class)
+        .hasMessageContaining(OTHER_KEY);
+    assertThat(capturedCaller).isNotNull();
+    assertThat(capturedCaller.getUserId()).isNull();
+    assertThat(capturedCaller.getTenantIds()).containsExactly("t1");
+  }
+
+  /**
+   * A tenant job whose start user has no membership the identity service
+   * knows of — the normal case with LDAP or OAuth2 tenants, whose tenant
+   * queries return nothing. ProcessStarterTool keeps the job's tenant
+   * authentication, so it still starts a process of the job's own tenant.
+   */
+  @Test
+  public void shouldLetTheToolStartAProcessOfTheJobsTenantWithoutAMembership() {
+    deploy(TENANT, TOOL_KEY, bpmn(TOOL_KEY, true, ToolDelegate.class));
+    deploy(TENANT, OTHER_KEY, waitingProcess(OTHER_KEY));
+    startInTenantAs("alice", TOOL_KEY,
+        Variables.createVariables().putValue("_startKey", OTHER_KEY));
+
+    executeTheJob();
+
+    assertThat(toolFailure).isNull();
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processDefinitionKey(OTHER_KEY).tenantIdIn(TENANT).count()).isEqualTo(1);
+    assertThat(capturedCaller.getUserId()).isNull();
+    assertThat(capturedCaller.getTenantIds()).containsExactly(TENANT);
+  }
+
+  /**
+   * The tool stays in the job's tenant even when the start user is a member
+   * of another tenant as well: it does not run under the start user's
+   * memberships.
+   */
+  @Test
+  public void shouldKeepTheToolInTheJobsTenantWhenTheStartUserHasMoreTenants() {
+    deploy(TENANT, TOOL_KEY, bpmn(TOOL_KEY, true, ToolDelegate.class));
+    deploy("t2", OTHER_KEY, waitingProcess(OTHER_KEY));
+    IdentityService identityService = ENGINE.getIdentityService();
+    identityService.saveUser(identityService.newUser("alice"));
+    identityService.saveTenant(identityService.newTenant(TENANT));
+    identityService.saveTenant(identityService.newTenant("t2"));
+    identityService.createTenantUserMembership(TENANT, "alice");
+    identityService.createTenantUserMembership("t2", "alice");
+    startInTenantAs("alice", TOOL_KEY,
+        Variables.createVariables().putValue("_startKey", OTHER_KEY));
+
+    executeTheJob();
+
+    assertThat(ENGINE.getRuntimeService().createProcessInstanceQuery()
+        .processDefinitionKey(OTHER_KEY).count())
+        .as("instances of tenant t2's process started from a job of " + TENANT).isZero();
+    assertThat(toolFailure)
+        .as("the other tenant's definition is invisible to the tool")
+        .isInstanceOf(org.cibseven.bpm.engine.ProcessEngineException.class)
+        .hasMessageContaining(OTHER_KEY);
+    assertThat(capturedCaller.getTenantIds()).containsExactly(TENANT);
+  }
+
+  /** The same in {@code execute()} itself, not just in the caller capture. */
+  @Test
+  public void shouldHandTheToolsTheJobsAuthenticationForATenantJob() {
+    deploy(TENANT, ASYNC_KEY, true);
+    startInTenantAs("alice", ASYNC_KEY, context());
+
+    executeTheJob();
+
+    assertThat(modelCalled).isTrue();
+    assertThat(toolAuthenticationAtModelCall).isNotNull()
+        .isNotInstanceOf(StartUserAuthentication.class);
+    assertThat(toolAuthenticationAtModelCall.getUserId()).isNull();
+    assertThat(toolAuthenticationAtModelCall.getTenantIds()).containsExactly(TENANT);
+  }
+
+  /**
+   * For a job without a tenant the tool gets the marked start user, so an
+   * agent task in a process the tool starts records it as derived rather than
+   * as a login.
+   */
+  @Test
+  public void shouldHandTheToolAMarkedStartUserForAJob() {
+    deploy(null, TOOL_KEY, bpmn(TOOL_KEY, true, ToolDelegate.class));
+    startAs("alice", TOOL_KEY, Variables.createVariables());
+
+    executeTheJob();
+
+    assertThat(capturedCaller).isInstanceOf(StartUserAuthentication.class);
+    assertThat(capturedCaller.getUserId()).isEqualTo("alice");
+  }
+
+  // ── helpers ────────────────────────────────────────────────────────────────
+
+  private static VariableMap context() {
+    return Variables.createVariables().putValue("orderId", "4711");
+  }
+
+  private static void startAs(String userId, String key, VariableMap variables) {
+    ENGINE.getIdentityService().setAuthentication(userId, List.of());
+    try {
+      ENGINE.getRuntimeService().startProcessInstanceByKey(key, variables);
+    } finally {
+      ENGINE.getIdentityService().clearAuthentication();
+    }
+  }
+
+  private static void startInTenantAs(String userId, String key, VariableMap variables) {
+    ENGINE.getIdentityService().setAuthentication(userId, List.of(), List.of(TENANT));
+    try {
+      ENGINE.getRuntimeService().createProcessInstanceByKey(key)
+          .processDefinitionTenantId(TENANT)
+          .setVariables(variables)
+          .execute();
+    } finally {
+      ENGINE.getIdentityService().clearAuthentication();
+    }
+  }
+
+  /**
+   * Runs the async task the way the job executor does (ExecuteJobsCmd): without
+   * a user, and for a job of a tenant under an authentication that names only
+   * that tenant.
+   */
+  private static void executeTheJob() {
+    Job job = ENGINE.getManagementService().createJobQuery().singleResult();
+    if (job.getTenantId() != null) {
+      ENGINE.getIdentityService().setAuthentication(null, null, List.of(job.getTenantId()));
+    }
+    try {
+      ENGINE.getManagementService().executeJob(job.getId());
+    } finally {
+      ENGINE.getIdentityService().clearAuthentication();
+    }
+  }
+
+  /**
+   * Executes the job by hand, as a user does through the API or REST, with the
+   * UPDATE permission that takes.
+   */
+  private static void executeTheJobAs(String userId) {
+    grant(userId, PROCESS_INSTANCE, ANY, UPDATE);
+    Job job = ENGINE.getManagementService().createJobQuery().singleResult();
+    ENGINE.getIdentityService().setAuthentication(userId, List.of());
+    try {
+      ENGINE.getManagementService().executeJob(job.getId());
+    } finally {
+      ENGINE.getIdentityService().clearAuthentication();
+    }
+  }
+
+  private static void grant(String userId, Resource resource, String resourceId,
+      Permission permission) {
+    AuthorizationService authorizationService = ENGINE.getAuthorizationService();
+    // One grant per user and resource is all the schema allows, so extend it.
+    Authorization authorization = authorizationService.createAuthorizationQuery()
+        .userIdIn(userId)
+        .resourceType(resource)
+        .resourceId(resourceId)
+        .singleResult();
+    if (authorization == null) {
+      authorization = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
+      authorization.setUserId(userId);
+      authorization.setResource(resource);
+      authorization.setResourceId(resourceId);
+    }
+    authorization.addPermission(permission);
+    authorizationService.saveAuthorization(authorization);
+  }
+
+  private static String chatLog() {
+    List<VariableInstance> variables = ENGINE.getRuntimeService()
+        .createVariableInstanceQuery()
+        .variableNameLike(AgentConnectorConstants.AGENT_CONNECTOR_LOG_PREFIX + "%")
+        .list();
+    assertThat(variables).as("chat-log variable").hasSize(1);
+    return (String) variables.get(0).getValue();
+  }
+
+  private static void deploy(String tenantId, String key, boolean async) {
+    deploy(tenantId, key, bpmn(key, async, AgentDelegate.class));
+  }
+
+  private static void deploy(String tenantId, String key, String bpmn) {
+    ENGINE.getRepositoryService().createDeployment()
+        .tenantId(tenantId)
+        .addString(key + ".bpmn20.xml", bpmn)
+        .deploy();
+  }
+
+  /** A process that only waits — what ProcessStarterTool is pointed at. */
+  private static String waitingProcess(String key) {
+    return ""
+        + "<?xml version='1.0' encoding='UTF-8'?>"
+        + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
+        + "             xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
+        + "             targetNamespace='http://cibseven.org/test'>"
+        + "  <process id='" + key + "' isExecutable='true'"
+        + "           camunda:historyTimeToLive='1'>"
+        + "    <startEvent id='start'/>"
+        + "    <sequenceFlow id='f1' sourceRef='start' targetRef='wait'/>"
+        + "    <userTask id='wait'/>"
+        + "    <sequenceFlow id='f2' sourceRef='wait' targetRef='end'/>"
+        + "    <endEvent id='end'/>"
+        + "  </process>"
+        + "</definitions>";
+  }
+
+  private static String bpmn(String key, boolean async, Class<?> delegate) {
+    return ""
+        + "<?xml version='1.0' encoding='UTF-8'?>"
+        + "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'"
+        + "             xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
+        + "             targetNamespace='http://cibseven.org/test'>"
+        + "  <process id='" + key + "' isExecutable='true'"
+        + "           camunda:historyTimeToLive='1'>"
+        + "    <startEvent id='start'/>"
+        + "    <sequenceFlow id='f1' sourceRef='start' targetRef='agent'/>"
+        + "    <serviceTask id='agent' camunda:asyncBefore='" + async + "'"
+        + "                 camunda:class='" + delegate.getName() + "'/>"
+        + "    <sequenceFlow id='f2' sourceRef='agent' targetRef='wait'/>"
+        + "    <userTask id='wait'/>"
+        + "    <sequenceFlow id='f3' sourceRef='wait' targetRef='end'/>"
+        + "    <endEvent id='end'/>"
+        + "  </process>"
+        + "</definitions>";
+  }
+}
