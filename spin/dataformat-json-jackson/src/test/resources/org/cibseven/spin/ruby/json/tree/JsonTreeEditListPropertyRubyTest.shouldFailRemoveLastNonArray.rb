@@ -1,3 +1,3 @@
 node = S($input, "application/json")
 
-node.remove("test")
+node.removeLast("test")
