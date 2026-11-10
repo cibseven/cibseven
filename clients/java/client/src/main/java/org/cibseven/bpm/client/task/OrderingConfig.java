@@ -68,8 +68,8 @@ public class OrderingConfig {
       throw LOG.doubleDirectionConfigException();
     }
 
+    // the property is already the last element of the list: only set its direction
     lastConfiguredProperty.setDirection(direction);
-    orderingProperties.add(lastConfiguredProperty);
   }
 
   /**
