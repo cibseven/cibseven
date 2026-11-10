@@ -81,8 +81,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.restassured.http.ContentType;
 
 /**
@@ -130,7 +130,7 @@ public class AuthorizationRestServiceInteractionTest extends AbstractRestService
   }
 
   protected AuthorizationRestServiceImpl createAuthorizationRestService() {
-    return new AuthorizationRestServiceImpl(MockProvider.EXAMPLE_PROCESS_ENGINE_NAME, new ObjectMapper());
+    return new AuthorizationRestServiceImpl(MockProvider.EXAMPLE_PROCESS_ENGINE_NAME, new JsonMapper());
   }
 
   @Test

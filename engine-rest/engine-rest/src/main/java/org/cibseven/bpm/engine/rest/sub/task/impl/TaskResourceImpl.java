@@ -63,7 +63,7 @@ import org.cibseven.bpm.engine.task.IdentityLink;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.variable.VariableMap;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class TaskResourceImpl implements TaskResource {
 

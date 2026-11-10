@@ -40,7 +40,7 @@ import org.cibseven.bpm.engine.rest.impl.AbstractRestProcessEngineAware;
 import org.cibseven.bpm.engine.rest.sub.repository.DeploymentResource;
 import org.cibseven.bpm.engine.rest.sub.repository.DeploymentResourcesResource;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class DeploymentResourceImpl extends AbstractRestProcessEngineAware implements DeploymentResource {
 

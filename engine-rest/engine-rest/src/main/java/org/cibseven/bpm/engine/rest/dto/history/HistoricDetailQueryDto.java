@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.dto.history;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.history.HistoricDetailQuery;
 import org.cibseven.bpm.engine.rest.dto.AbstractQueryDto;

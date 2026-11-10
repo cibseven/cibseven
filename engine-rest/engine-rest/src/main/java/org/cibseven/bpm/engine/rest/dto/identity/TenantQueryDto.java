@@ -28,7 +28,7 @@ import org.cibseven.bpm.engine.rest.dto.AbstractQueryDto;
 import org.cibseven.bpm.engine.rest.dto.CamundaQueryParam;
 import org.cibseven.bpm.engine.rest.dto.converter.BooleanConverter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class TenantQueryDto extends AbstractQueryDto<TenantQuery> {
 

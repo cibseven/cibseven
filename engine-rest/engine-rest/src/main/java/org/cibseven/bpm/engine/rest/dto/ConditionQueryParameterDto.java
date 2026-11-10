@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.dto;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.engine.impl.QueryOperator;
 
 import java.util.Date;

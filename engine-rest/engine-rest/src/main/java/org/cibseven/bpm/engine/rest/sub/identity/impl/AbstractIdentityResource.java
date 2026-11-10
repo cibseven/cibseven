@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.sub.identity.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.authorization.Resource;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
