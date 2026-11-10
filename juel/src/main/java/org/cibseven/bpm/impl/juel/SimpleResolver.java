@@ -16,7 +16,6 @@
 package org.cibseven.bpm.impl.juel;
 
 import jakarta.el.ArrayELResolver;
-import jakarta.el.BeanELResolver;
 import jakarta.el.CompositeELResolver;
 import jakarta.el.ELContext;
 import jakarta.el.ELResolver;
@@ -38,7 +37,7 @@ public class SimpleResolver extends ELResolver {
 			add(new ListELResolver(true));
 			add(new MapELResolver(true));
 			add(new ResourceBundleELResolver());
-			add(new BeanELResolver(true));
+			add(new JuelBeanELResolver(true));
 		}
 	};
 	private static final ELResolver DEFAULT_RESOLVER_READ_WRITE = new CompositeELResolver() {
@@ -47,7 +46,7 @@ public class SimpleResolver extends ELResolver {
 			add(new ListELResolver(false));
 			add(new MapELResolver(false));
 			add(new ResourceBundleELResolver());
-			add(new BeanELResolver(false));
+			add(new JuelBeanELResolver(false));
 		}
 	};
 

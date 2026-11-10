@@ -98,6 +98,20 @@ public class JsonUtilTest {
   }
 
   @Test
+  public void shouldReadJsonNestedExactlyMaxDepth() {
+    JsonArray array = JsonUtil.fromJson(nestedArray(JsonUtil.MAX_JSON_NESTING_DEPTH), JsonArray.class);
+
+    assertThat(depth(array)).isEqualTo(JsonUtil.MAX_JSON_NESTING_DEPTH);
+  }
+
+  @Test
+  public void shouldRejectJsonNestedOneLevelDeeperThanMaxDepth() {
+    assertThatThrownBy(() -> JsonUtil.fromJson(nestedArray(JsonUtil.MAX_JSON_NESTING_DEPTH + 1), JsonArray.class))
+        .isInstanceOf(JsonSyntaxException.class)
+        .hasMessageContaining("Nesting limit 1000 reached");
+  }
+
+  @Test
   public void shouldReadLikeGson() {
     // lenient
     assertThat(JsonUtil.fromJson("{a:1, 'b':'x'}", JsonObject.class).toString()).isEqualTo("{\"a\":1,\"b\":\"x\"}");
