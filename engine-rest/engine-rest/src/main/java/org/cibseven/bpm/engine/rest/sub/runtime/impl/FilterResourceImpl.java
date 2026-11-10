@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.sub.runtime.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.engine.EntityTypes;
 import org.cibseven.bpm.engine.FilterService;
 import org.cibseven.bpm.engine.ProcessEngineException;
@@ -46,7 +46,7 @@ import org.cibseven.bpm.engine.rest.impl.AbstractAuthorizedRestResource;
 import org.cibseven.bpm.engine.rest.sub.runtime.FilterResource;
 import org.cibseven.bpm.engine.runtime.VariableInstance;
 import org.cibseven.bpm.engine.task.Task;
-
+import tools.jackson.core.JacksonException;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
@@ -54,7 +54,6 @@ import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.core.Variant;
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -423,7 +422,7 @@ public class FilterResourceImpl extends AbstractAuthorizedRestResource implement
       } else {
         throw new InvalidRequestException(Status.BAD_REQUEST, "Queries for resource type '" + resourceType + "' are currently not supported by filters.");
       }
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new InvalidRequestException(Status.BAD_REQUEST, e, "Invalid query for resource type '" + resourceType + "'");
     }
   }

@@ -31,7 +31,7 @@ import org.cibseven.bpm.engine.rest.sub.runtime.EventSubscriptionResource;
 import org.cibseven.bpm.engine.runtime.EventSubscription;
 import org.cibseven.bpm.engine.variable.VariableMap;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class MessageEventSubscriptionResource implements EventSubscriptionResource {
 

@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -41,7 +40,8 @@ import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.impl.NamedProcessEngineRestServiceImpl;
 import org.cibseven.bpm.engine.rest.util.EngineUtil;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * <p>
@@ -145,7 +145,7 @@ public class ProcessEngineAuthenticationFilter implements Filter {
       ExceptionDto exceptionDto = new ExceptionDto();
       exceptionDto.setType(InvalidRequestException.class.getSimpleName());
       exceptionDto.setMessage("Process engine " + engineName + " not available");
-      ObjectMapper objectMapper = new ObjectMapper();
+      ObjectMapper objectMapper = JsonMapper.builderWithJackson2Defaults().build();
 
       resp.setContentType(MediaType.APPLICATION_JSON);
       objectMapper.writer().writeValue(resp.getWriter(), exceptionDto);

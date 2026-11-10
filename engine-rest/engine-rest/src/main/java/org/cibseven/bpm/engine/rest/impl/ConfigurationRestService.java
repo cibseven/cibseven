@@ -23,7 +23,7 @@ import jakarta.ws.rs.core.MediaType;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.rest.dto.ProcessEngineConfigurationDto;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 @Produces(MediaType.APPLICATION_JSON)
 public class ConfigurationRestService extends AbstractRestProcessEngineAware {

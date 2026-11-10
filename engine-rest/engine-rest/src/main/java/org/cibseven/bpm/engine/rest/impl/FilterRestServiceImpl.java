@@ -20,7 +20,7 @@ import static org.cibseven.bpm.engine.authorization.Authorization.ANY;
 import static org.cibseven.bpm.engine.authorization.Permissions.CREATE;
 import static org.cibseven.bpm.engine.authorization.Resources.FILTER;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;

@@ -37,7 +37,7 @@ import org.cibseven.bpm.engine.rest.SetupRestService;
 import org.cibseven.bpm.engine.rest.dto.identity.UserDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class SetupRestServiceImpl extends AbstractRestProcessEngineAware  implements SetupRestService {
 

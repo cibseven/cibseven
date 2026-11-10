@@ -25,7 +25,7 @@ import org.cibseven.bpm.engine.rest.sub.impl.AbstractVariablesResource;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * @author Daniel Meyer

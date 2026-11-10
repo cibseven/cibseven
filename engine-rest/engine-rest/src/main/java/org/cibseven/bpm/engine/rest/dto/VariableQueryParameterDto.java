@@ -19,7 +19,7 @@ package org.cibseven.bpm.engine.rest.dto;
 import org.cibseven.bpm.engine.impl.TaskQueryVariableValue;
 import org.cibseven.bpm.engine.variable.Variables;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class VariableQueryParameterDto extends ConditionQueryParameterDto {
 

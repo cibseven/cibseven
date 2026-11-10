@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.Response.Status;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;

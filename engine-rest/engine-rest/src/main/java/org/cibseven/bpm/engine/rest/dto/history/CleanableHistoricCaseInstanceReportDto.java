@@ -29,7 +29,7 @@ import org.cibseven.bpm.engine.rest.dto.CamundaQueryParam;
 import org.cibseven.bpm.engine.rest.dto.converter.BooleanConverter;
 import org.cibseven.bpm.engine.rest.dto.converter.StringArrayConverter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class CleanableHistoricCaseInstanceReportDto extends AbstractQueryDto<CleanableHistoricCaseInstanceReport> {
 

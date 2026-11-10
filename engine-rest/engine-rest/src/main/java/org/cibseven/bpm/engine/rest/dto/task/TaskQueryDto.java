@@ -59,7 +59,7 @@ import org.cibseven.bpm.engine.variable.type.ValueTypeResolver;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 @JsonInclude(Include.NON_NULL)
 public class TaskQueryDto extends AbstractQueryDto<TaskQuery> {
