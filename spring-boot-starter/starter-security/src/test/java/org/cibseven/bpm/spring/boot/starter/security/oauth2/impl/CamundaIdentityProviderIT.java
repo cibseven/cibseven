@@ -126,52 +126,6 @@ public class CamundaIdentityProviderIT extends AbstractSpringSecurityIT {
     assertThat(entity.getBody()).contains(newGroup.getId());
   }
 
-  @Test
-  public void testIdentityProviderForUsersWithSpringSecurity() throws Exception {
-    // given spring security context
-    ResultCaptor<UserQuery> resultCaptor = new ResultCaptor<>();
-    doAnswer(resultCaptor).when(spiedIdentityProvider).createUserQuery();
-    OAuth2AuthenticationToken authenticationToken = createToken(AUTHORIZED_USER);
-    createAuthorizedClient(authenticationToken, registrations, authorizedClientService);
-
-    // when calling webapp api
-    mockMvc.perform(MockMvcRequestBuilders.get(baseUrl + "/camunda/api/engine/engine/default/user")
-            .accept(MediaType.APPLICATION_JSON)
-            .with(authentication(authenticationToken)))
-        .andDo(MockMvcResultHandlers.print())
-        .andExpect(MockMvcResultMatchers.status().isOk());
-
-    // then identity provider handles oauth2 authentication
-    verify(spiedIdentityProvider, atLeastOnce()).createUserQuery();
-    UserQuery userQueryResult = resultCaptor.result;
-    assertThat(userQueryResult).isInstanceOf(OAuth2IdentityProvider.OAuth2UserQuery.class);
-    assertThat(userQueryResult).isNotNull();
-    assertThat(((OAuth2IdentityProvider.OAuth2UserQuery) userQueryResult).getId()).isEqualTo(AUTHORIZED_USER);
-  }
-
-  @Test
-  public void testIdentityProviderForGroupsWithSpringSecurity() throws Exception {
-    // given spring security context
-    ResultCaptor<GroupQuery> resultCaptor = new ResultCaptor<>();
-    doAnswer(resultCaptor).when(spiedIdentityProvider).createGroupQuery();
-    OAuth2AuthenticationToken authenticationToken = createToken(AUTHORIZED_USER);
-    createAuthorizedClient(authenticationToken, registrations, authorizedClientService);
-
-    // when calling webapp api
-    mockMvc.perform(MockMvcRequestBuilders.get(baseUrl + "/camunda/api/engine/engine/default/user")
-            .accept(MediaType.APPLICATION_JSON)
-            .with(authentication(authenticationToken)))
-        .andDo(MockMvcResultHandlers.print())
-        .andExpect(MockMvcResultMatchers.status().isOk());
-
-    // then identity provider handles oauth2 authentication
-    verify(spiedIdentityProvider, atLeastOnce()).createGroupQuery();
-    GroupQuery groupQueryResult = resultCaptor.result;
-    assertThat(groupQueryResult).isInstanceOf(OAuth2IdentityProvider.OAuth2GroupQuery.class);
-    assertThat(groupQueryResult).isNotNull();
-    assertThat(((OAuth2IdentityProvider.OAuth2GroupQuery) groupQueryResult).getUserId()).isEqualTo(AUTHORIZED_USER);
-  }
-
   private static void mockIdentityProviderFactory() {
     // mocks methods of all instances of OAuth2IdentityProviderFactory so instead of always
     // returning a new instance of the identity provider, it always returns our spy object

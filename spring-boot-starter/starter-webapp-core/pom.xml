@@ -27,13 +27,6 @@
 
     <dependency>
       <groupId>org.cibseven.bpm.webapp</groupId>
-      <artifactId>cibseven-webapp</artifactId>
-      <type>jar</type>
-      <classifier>classes</classifier>
-    </dependency>
-
-    <dependency>
-      <groupId>org.cibseven.bpm.webapp</groupId>
       <artifactId>cibseven-webapp-webjar</artifactId>
       <scope>test</scope>
     </dependency>
@@ -115,12 +108,6 @@
           <configuration>
             <!-- See CAM-11901 -->
             <useManifestOnlyJar>false</useManifestOnlyJar>
-            <excludes>
-              <!-- TODO: adjust test to cibseven webclient (if possible) and remove the exclusions -->
-              <exclude>**/ChangedAppPathIT.java</exclude>
-              <exclude>**/ChangedAppPathContainerBasedAuthIT.java</exclude>
-              <exclude>**/EmptyAppPathIT.java</exclude>
-            </excludes>
           </configuration>
         </plugin>
       </plugins>

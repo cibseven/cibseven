@@ -37,6 +37,12 @@
           <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+          <groupId>org.cibseven.bpm.springboot</groupId>
+          <artifactId>cibseven-bpm-spring-boot-starter-webapp-legacy</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+
         <!-- REST API -->
         <dependency>
           <groupId>org.cibseven.bpm.springboot</groupId>

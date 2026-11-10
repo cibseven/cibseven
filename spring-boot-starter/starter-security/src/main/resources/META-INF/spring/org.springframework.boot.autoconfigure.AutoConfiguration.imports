@@ -1,4 +1,3 @@
 org.cibseven.bpm.spring.boot.starter.security.oauth2.CamundaBpmSpringSecurityDisableAutoConfiguration
 org.cibseven.bpm.spring.boot.starter.security.oauth2.CamundaSpringSecurityOAuth2CommonAutoConfiguration
-org.cibseven.bpm.spring.boot.starter.security.oauth2.CamundaSpringSecurityOAuth2WebappAutoConfiguration
 org.cibseven.bpm.spring.boot.starter.security.oauth2.CamundaSpringSecurityOAuth2EngineAutoConfiguration

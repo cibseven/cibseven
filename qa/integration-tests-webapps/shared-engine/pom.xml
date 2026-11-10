@@ -52,7 +52,7 @@
         <dependency>
           <groupId>org.cibseven.bpm.webapp</groupId>
           <artifactId>cibseven-webapp-wildfly</artifactId>
-          <version>${project.version}</version>
+          <version>${version.legacy-webapps}</version>
           <type>war</type>
           <scope>test</scope>
         </dependency>
@@ -203,8 +203,8 @@
         </dependency>
         <dependency>
           <groupId>org.cibseven.bpm.webapp</groupId>
-          <artifactId>cibseven-webapp-tomcat</artifactId>
-          <version>${project.version}</version>
+          <artifactId>cibseven-webapp-tomcat-jakarta</artifactId>
+          <version>${version.legacy-webapps}</version>
           <type>war</type>
           <scope>test</scope>
         </dependency>
@@ -277,7 +277,7 @@
                 </deployable>
                 <deployable>
                   <groupId>org.cibseven.bpm.webapp</groupId>
-                  <artifactId>cibseven-webapp-tomcat</artifactId>
+                  <artifactId>cibseven-webapp-tomcat-jakarta</artifactId>
                   <type>war</type>
                   <pingURL>http://localhost:${tomcat.connector.http.port}/camunda</pingURL>
                   <pingTimeout>${cargo.deploy.timeout}</pingTimeout>
@@ -325,8 +325,8 @@
         </dependency>
         <dependency>
           <groupId>org.cibseven.bpm.webapp</groupId>
-          <artifactId>cibseven-webapp-tomcat</artifactId>
-          <version>${project.version}</version>
+          <artifactId>cibseven-webapp-tomcat-jakarta</artifactId>
+          <version>${version.legacy-webapps}</version>
           <type>war</type>
           <scope>test</scope>
         </dependency>
@@ -408,7 +408,7 @@
                 </deployable>
                 <deployable>
                   <groupId>org.cibseven.bpm.webapp</groupId>
-                  <artifactId>cibseven-webapp-tomcat</artifactId>
+                  <artifactId>cibseven-webapp-tomcat-jakarta</artifactId>
                   <type>war</type>
                   <pingURL>http://localhost:${tomcat.connector.http.port}/camunda</pingURL>
                   <pingTimeout>${cargo.deploy.timeout}</pingTimeout>
