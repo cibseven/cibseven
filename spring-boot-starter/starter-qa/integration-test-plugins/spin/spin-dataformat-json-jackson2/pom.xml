@@ -38,19 +38,9 @@
       <artifactId>cibseven-spin-dataformat-json-jackson2</artifactId>
     </dependency>
 
-    <!-- the Jackson 2 modules the starter registers with the Jackson 2 variant of Spin -->
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jsr310</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jdk8</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.module</groupId>
-      <artifactId>jackson-module-parameter-names</artifactId>
-    </dependency>
+    <!-- The Jackson 2 modules the starter registers with the Jackson 2 variant of Spin (jsr310, jdk8,
+         parameter names) come with cibseven-spin-dataformat-json-jackson2. They are not declared here on
+         purpose: an application gets them the same way (CIB7-2681). -->
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
