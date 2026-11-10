@@ -21,7 +21,7 @@ import java.util.List;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.runtime.ProcessInstanceModificationBuilder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * @author Thorben Lindhauer

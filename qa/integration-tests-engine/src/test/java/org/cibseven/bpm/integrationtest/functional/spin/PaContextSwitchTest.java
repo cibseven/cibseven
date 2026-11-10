@@ -17,8 +17,8 @@
 package org.cibseven.bpm.integrationtest.functional.spin;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.application.ProcessApplicationContext;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.variable.value.SerializableValue;

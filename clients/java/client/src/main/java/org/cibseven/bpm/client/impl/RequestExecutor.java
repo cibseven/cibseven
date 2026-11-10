@@ -16,10 +16,6 @@
  */
 package org.cibseven.bpm.client.impl;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -39,6 +35,11 @@ import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.cibseven.bpm.client.exception.RestException;
 import org.cibseven.commons.utils.IoUtil;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * @author Tassilo Weidner
@@ -153,13 +154,13 @@ public class RequestExecutor {
       inputStream = httpEntity.getContent();
       return objectMapper.readValue(inputStream, responseClass);
 
-    } catch (JsonParseException e) {
+    } catch (StreamReadException e) {
       throw LOG.exceptionWhileParsingJsonObject(responseClass, e);
 
-    } catch (JsonMappingException e) {
+    } catch (DatabindException e) {
       throw LOG.exceptionWhileMappingJsonObject(responseClass, e);
 
-    } catch (IOException e) {
+    } catch (JacksonException | IOException e) {
       throw LOG.exceptionWhileDeserializingJsonObject(responseClass, e);
 
     } finally {
@@ -173,7 +174,7 @@ public class RequestExecutor {
 
     try {
       serializedRequest = objectMapper.writeValueAsBytes(dto);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw LOG.exceptionWhileSerializingJsonObject(dto, e);
     }
 

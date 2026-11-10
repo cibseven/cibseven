@@ -27,7 +27,7 @@ import org.cibseven.bpm.engine.runtime.ProcessInstanceModificationInstantiationB
 import org.cibseven.bpm.engine.runtime.ProcessInstantiationBuilder;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * @author Thorben Lindhauer

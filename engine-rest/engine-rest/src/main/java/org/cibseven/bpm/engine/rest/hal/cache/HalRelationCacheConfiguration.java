@@ -15,24 +15,23 @@
  * limitations under the License.
  */
 package org.cibseven.bpm.engine.rest.hal.cache;
-
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.cibseven.bpm.engine.rest.cache.Cache;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class HalRelationCacheConfiguration {
 
   public final static String CONFIG_CACHE_IMPLEMENTATION = "cacheImplementation";
   public static final String CONFIG_CACHES = "caches";
 
-  protected ObjectMapper objectMapper = new ObjectMapper();
+  protected ObjectMapper objectMapper = JsonMapper.builderWithJackson2Defaults().build();
   protected Class<? extends Cache> cacheImplementationClass;
   protected Map<Class<?>, Map<String, Object>> cacheConfigurations;
 
@@ -75,7 +74,7 @@ public class HalRelationCacheConfiguration {
     try {
       JsonNode jsonConfiguration = objectMapper.readTree(configuration);
       parseConfiguration(jsonConfiguration);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new HalRelationCacheConfigurationException("Unable to parse cache configuration", e);
     }
   }
@@ -88,7 +87,7 @@ public class HalRelationCacheConfiguration {
   protected void parseCacheImplementationClass(JsonNode jsonConfiguration) {
     JsonNode jsonNode = jsonConfiguration.get(CONFIG_CACHE_IMPLEMENTATION);
     if (jsonNode != null) {
-      String cacheImplementationClassName = jsonNode.textValue();
+      String cacheImplementationClassName = jsonNode.stringValue(null);
       Class<?> cacheImplementationClass = loadClass(cacheImplementationClassName);
       setCacheImplementationClass(cacheImplementationClass);
     }
@@ -100,7 +99,7 @@ public class HalRelationCacheConfiguration {
   protected void parseCacheConfigurations(JsonNode jsonConfiguration) {
     JsonNode jsonNode = jsonConfiguration.get(CONFIG_CACHES);
     if (jsonNode != null) {
-      Iterator<Entry<String, JsonNode>> cacheConfigurations = jsonNode.fields();
+      Iterator<Entry<String, JsonNode>> cacheConfigurations = jsonNode.properties().iterator();
       while (cacheConfigurations.hasNext()) {
         Entry<String, JsonNode> cacheConfiguration = cacheConfigurations.next();
         parseCacheConfiguration(cacheConfiguration.getKey(), cacheConfiguration.getValue());
@@ -114,7 +113,7 @@ public class HalRelationCacheConfiguration {
       Class<?> halResourceClass = loadClass(halResourceClassName);
       Map<String, Object> configuration = objectMapper.treeToValue(jsonConfiguration, Map.class);
       addCacheConfiguration(halResourceClass, configuration);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new HalRelationCacheConfigurationException("Unable to parse cache configuration for HAL resource " + halResourceClassName);
     }
   }

@@ -27,6 +27,7 @@ import jakarta.servlet.ServletRegistration;
 import jakarta.servlet.SessionTrackingMode;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Map;
 import org.cibseven.bpm.admin.impl.web.AdminApplication;
 import org.cibseven.bpm.admin.impl.web.bootstrap.AdminContainerBootstrap;
@@ -64,6 +65,19 @@ public class CamundaBpmWebappInitializer implements ServletContextInitializer {
   private static final Logger log = LoggerFactory.getLogger(CamundaBpmWebappInitializer.class);
 
   private static final EnumSet<DispatcherType> DISPATCHER_TYPES = EnumSet.of(DispatcherType.REQUEST);
+
+  /**
+   * Jersey property naming the one JSON feature that may configure itself. The JAX-RS applications
+   * of the web applications register the Jackson 3 provider of the REST API
+   * (CibsevenJacksonJsonProvider); with this property, no JSON feature of Jersey (the Jackson 2
+   * JacksonFeature, JSON-B, MOXy) configures itself even if an application brings it back.
+   */
+  protected static final String JERSEY_SERVER_JSON_FEATURE = "jersey.config.server.jsonFeature";
+
+  /**
+   * Value of {@link #JERSEY_SERVER_JSON_FEATURE}, as in the REST API of the REST starter.
+   */
+  protected static final String JSON_FEATURE = "CibsevenJacksonJsonProvider";
 
   private ServletContext servletContext;
 
@@ -184,7 +198,10 @@ public class CamundaBpmWebappInitializer implements ServletContextInitializer {
     if (servletRegistration == null) {
       servletRegistration = servletContext.addServlet(servletName, ServletContainer.class);
       servletRegistration.addMapping(urlPatterns);
-      servletRegistration.setInitParameters(singletonMap(JAXRS_APPLICATION_CLASS, applicationClass.getName()));
+      Map<String, String> initParameters = new HashMap<>();
+      initParameters.put(JAXRS_APPLICATION_CLASS, applicationClass.getName());
+      initParameters.put(JERSEY_SERVER_JSON_FEATURE, JSON_FEATURE);
+      servletRegistration.setInitParameters(initParameters);
 
       log.debug("Servlet {} for URL {} registered.", servletName, urlPatterns);
     }

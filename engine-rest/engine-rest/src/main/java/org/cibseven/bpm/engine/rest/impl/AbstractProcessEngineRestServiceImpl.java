@@ -60,7 +60,7 @@ import org.cibseven.bpm.engine.rest.impl.history.HistoryRestServiceImpl;
 import org.cibseven.bpm.engine.rest.impl.optimize.OptimizeRestService;
 import org.cibseven.bpm.engine.rest.util.ProvidersUtil;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * <p>Abstract process engine resource that provides instantiations of all REST resources.</p>

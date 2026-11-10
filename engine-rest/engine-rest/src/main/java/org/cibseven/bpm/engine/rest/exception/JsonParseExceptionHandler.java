@@ -16,9 +16,8 @@
  */
 package org.cibseven.bpm.engine.rest.exception;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import org.cibseven.bpm.engine.rest.dto.ExceptionDto;
-
+import tools.jackson.core.exc.StreamReadException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
@@ -30,10 +29,10 @@ import jakarta.ws.rs.ext.Provider;
  *
  */
 @Provider
-public class JsonParseExceptionHandler implements ExceptionMapper<JsonParseException> {
+public class JsonParseExceptionHandler implements ExceptionMapper<StreamReadException> {
 
   @Override
-  public Response toResponse(JsonParseException exception) {
+  public Response toResponse(StreamReadException exception) {
     InvalidRequestException badRequestException = new InvalidRequestException(Status.BAD_REQUEST,
                                                                               exception, "");
     return ExceptionHandlerHelper.getInstance().getResponse(badRequestException);

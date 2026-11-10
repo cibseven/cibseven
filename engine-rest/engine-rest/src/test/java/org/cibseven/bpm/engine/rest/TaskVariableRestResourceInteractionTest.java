@@ -79,8 +79,9 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.type.TypeFactory;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 
@@ -1003,9 +1004,9 @@ public class TaskVariableRestResourceInteractionTest extends
     ArrayList<String> serializable = new ArrayList<String>();
     serializable.add("foo");
 
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = new JsonMapper();
     String jsonBytes = mapper.writeValueAsString(serializable);
-    String typeName = TypeFactory.defaultInstance().constructType(serializable.getClass()).toCanonical();
+    String typeName = TypeFactory.createDefaultInstance().constructType(serializable.getClass()).toCanonical();
 
     String variableKey = "aVariableKey";
 
@@ -1029,9 +1030,9 @@ public class TaskVariableRestResourceInteractionTest extends
     ArrayList<String> serializable = new ArrayList<String>();
     serializable.add("foo");
 
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = new JsonMapper();
     String jsonBytes = mapper.writeValueAsString(serializable);
-    String typeName = TypeFactory.defaultInstance().constructType(serializable.getClass()).toCanonical();
+    String typeName = TypeFactory.createDefaultInstance().constructType(serializable.getClass()).toCanonical();
 
     String variableKey = "aVariableKey";
 

@@ -16,15 +16,15 @@
  */
 package org.cibseven.bpm.engine.rest.converter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.engine.impl.calendar.DateTimeUtil;
 import org.cibseven.bpm.engine.rest.dto.converter.DateConverter;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -59,7 +59,7 @@ public class DateConverterTest {
 	}
 
   @Test
-  public void shouldConvertDate() throws JsonProcessingException {
+  public void shouldConvertDate() {
     //given
     String value = "2014-01-01T00:00:00+0200";
     ObjectMapper mock = mock(ObjectMapper.class);

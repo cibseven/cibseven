@@ -1,0 +1,2 @@
+HTTP 500
+{"type":"StreamConstraintsException","message":"Document nesting depth (1001) exceeds the maximum allowed (1000, from `StreamReadConstraints.getMaxNestingDepth()`)","code":null}
