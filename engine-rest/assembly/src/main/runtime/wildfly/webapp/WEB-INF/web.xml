@@ -5,16 +5,24 @@
 
   <display-name>Camunda Platform rest api</display-name>
 
-  <!-- Ensure RESTEasy uses the Jackson provider registered by DefaultApplication
-       (com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider) instead of the
-       WildFly default JSON-B (Yasson) provider. JSON-B ignores JAX-RS
-       ContextResolver<ObjectMapper> (our JacksonConfigurator) and Jackson
+  <!-- Ensure RESTEasy uses the Jackson 3 provider registered by DefaultApplication
+       (org.cibseven.bpm.engine.rest.mapper.CibsevenJacksonJsonProvider, bundled in
+       WEB-INF/lib) instead of the WildFly default JSON-B (Yasson) provider. JSON-B ignores
+       JAX-RS ContextResolver<ObjectMapper> (our JacksonConfigurator) and Jackson
        annotations such as @JsonIgnore / @JsonTypeInfo, which breaks date
        formatting, polymorphic @class serialization, and causes 500 errors when
        serializing DTOs that hold an ObjectMapper field (AbstractSearchQueryDto). -->
   <context-param>
     <param-name>resteasy.preferJacksonOverJsonB</param-name>
     <param-value>true</param-value>
+  </context-param>
+
+  <!-- Second line of defence next to the module exclusions in jboss-deployment-structure.xml:
+       never register the server's Jackson 2 provider of RESTEasy (resteasy-jackson2-provider),
+       it would write JSON with a Jackson 2 mapper without our settings. -->
+  <context-param>
+    <param-name>resteasy.disable.providers</param-name>
+    <param-value>org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider</param-value>
   </context-param>
 
 
