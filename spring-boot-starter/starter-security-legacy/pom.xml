@@ -23,10 +23,12 @@
       <artifactId>cibseven-bpm-spring-boot-starter-security</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <!-- provided: the legacy webapps come with the Run webapps module; the oauth2 module alone must not start them -->
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>cibseven-bpm-spring-boot-starter-webapp-legacy</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
