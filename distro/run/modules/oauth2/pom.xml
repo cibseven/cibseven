@@ -41,13 +41,6 @@
           <groupId>org.cibseven.bpm.springboot</groupId>
           <artifactId>cibseven-bpm-spring-boot-starter-security-legacy</artifactId>
           <version>${project.version}</version>
-          <exclusions>
-            <!-- the legacy webapps come with the webapps module; the oauth2 option alone must not start them -->
-            <exclusion>
-              <groupId>org.cibseven.bpm.springboot</groupId>
-              <artifactId>cibseven-bpm-spring-boot-starter-webapp-legacy</artifactId>
-            </exclusion>
-          </exclusions>
         </dependency>
       </dependencies>
     </profile>
