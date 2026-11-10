@@ -138,6 +138,24 @@ public class JsonSerializationTest {
 
   @Test
   @Deployment(resources = ONE_TASK_PROCESS)
+  public void testListWithNullFirstElementSerializationAsJson() throws JSONException {
+    ProcessInstance instance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
+
+    List<JsonSerializable> beans = new ArrayList<>();
+    beans.add(null);
+    beans.add(new JsonSerializable("a String", 42, true));
+
+    // the object type name is taken from the first element that is not null (CIB7-2632)
+    runtimeService.setVariable(instance.getId(), "simpleBeans", objectValue(beans).serializationDataFormat(JSON_FORMAT_NAME).create());
+
+    ObjectValue typedValue = runtimeService.getVariableTyped(instance.getId(), "simpleBeans");
+    assertEquals(beans, typedValue.getValue());
+    assertEquals("java.util.ArrayList<" + JsonSerializable.class.getName() + ">", typedValue.getObjectTypeName());
+    JSONAssert.assertEquals("[null," + beans.get(1).toExpectedJsonString() + "]", new String(typedValue.getValueSerialized()), true);
+  }
+
+  @Test
+  @Deployment(resources = ONE_TASK_PROCESS)
   public void testFailingSerialization() {
     ProcessInstance instance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
 
