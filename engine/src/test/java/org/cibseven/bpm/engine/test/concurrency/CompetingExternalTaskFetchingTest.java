@@ -33,6 +33,8 @@ import org.cibseven.bpm.engine.history.HistoricExternalTaskLog;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cmd.FetchExternalTasksCmd;
 import org.cibseven.bpm.engine.impl.externaltask.TopicFetchInstruction;
+import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
+import org.cibseven.bpm.engine.impl.persistence.entity.ExternalTaskEntity;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
@@ -77,7 +79,8 @@ public class CompetingExternalTaskFetchingTest {
     protected String topic;
 
     protected List<LockedExternalTask> fetchedTasks = Collections.emptyList();
-    protected OptimisticLockingException exception;
+    /** any exception of the fetch, not only an {@link OptimisticLockingException} */
+    protected RuntimeException exception;
 
     public ExternalTaskFetcherThread(String workerId, int results, String topic) {
       this.workerId = workerId;
@@ -91,15 +94,38 @@ public class CompetingExternalTaskFetchingTest {
       TopicFetchInstruction instruction = new TopicFetchInstruction(topic, 10000L);
       instructions.put(topic, instruction);
 
-      ControlledCommand<List<LockedExternalTask>> cmd = new ControlledCommand<>(
-          (ControllableThread) Thread.currentThread(), 
-          new FetchExternalTasksCmd(workerId, results, instructions));
-      
       try {
-        fetchedTasks = processEngineConfiguration.getCommandExecutorTxRequired().execute(cmd);
-      } catch (OptimisticLockingException e) {
+        fetchedTasks = processEngineConfiguration.getCommandExecutorTxRequired()
+            .execute(new ControlledFetchExternalTasksCmd(this, workerId, results, instructions));
+      } catch (RuntimeException e) {
         exception = e;
       }
+    }
+  }
+
+  /**
+   * Returns control to the test thread after the tasks are locked in memory, but before
+   * anything is flushed. With history level FULL the command flushes the locks itself
+   * (before it writes the 'fetched' log), so pausing after {@code execute()} - as
+   * {@link ControlledCommand} does - would be too late: the second thread would block
+   * on the row lock of the first one.
+   */
+  public static class ControlledFetchExternalTasksCmd extends FetchExternalTasksCmd {
+
+    protected ControllableThread controllableThread;
+
+    public ControlledFetchExternalTasksCmd(ControllableThread controllableThread, String workerId,
+                                           int maxResults, Map<String, TopicFetchInstruction> instructions) {
+      super(workerId, maxResults, instructions);
+      this.controllableThread = controllableThread;
+    }
+
+    @Override
+    protected void produceFetchedEvents(CommandContext commandContext,
+                                        List<ExternalTaskEntity> fetchedEventTasks,
+                                        List<LockedExternalTask> result) {
+      controllableThread.returnControlToTestThreadAndWait();
+      super.produceFetchedEvents(commandContext, fetchedEventTasks, result);
     }
   }
 
@@ -141,6 +167,8 @@ public class CompetingExternalTaskFetchingTest {
 
     thread1.proceedAndWaitTillDone();
     thread2.proceedAndWaitTillDone();
+    assertNull(thread1.exception);
+    assertNull(thread2.exception);
     assertEquals(1, thread1.fetchedTasks.size());
     assertEquals(0, thread2.fetchedTasks.size());
 

@@ -84,6 +84,7 @@ public class HistoricExternalTaskLogTest {
     for (ExternalTask externalTask : list) {
       externalTaskService.unlock(externalTask.getId());
     }
+    ClockUtil.reset();
   }
 
   @Test
@@ -494,11 +495,70 @@ public class HistoricExternalTaskLogTest {
     assertTrue(loggedTaskId.equals(fetchedTask.getId()) || loggedTaskId.equals(otherTask.getId()));
   }
 
-  /**
-   * Only valid if the event is fired in ExternalTaskEntity#lock(),
-   * which is also used by ExternalTaskService#lock(...).
-   * Remove this test if the event is fired in FetchExternalTasksCmd only.
-   */
+  @Test
+  public void testNoFetchedLogWhenOwnerLocksAgain() {
+
+    // given a task locked by the worker
+    ExternalTask task = startExternalTaskProcess();
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // when the same worker locks it again while the lock is still valid
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // then the lock is only extended, no second 'fetched' entry
+    assertEquals(1, historyService.createHistoricExternalTaskLogQuery().fetchedLog().count());
+  }
+
+  @Test
+  public void testNoFetchedLogWhenOwnerLocksFetchedTaskAgain() {
+
+    // given a task fetched by the worker
+    ExternalTask task = startExternalTaskProcess();
+    fetchExternalTasks();
+
+    // when the worker extends the lock through lock(...)
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // then
+    assertEquals(1, historyService.createHistoricExternalTaskLogQuery().fetchedLog().count());
+  }
+
+  @Test
+  public void testFetchedLogWhenOwnerLocksAgainAfterExpiry() {
+
+    // given a task locked by the worker
+    ExternalTask task = startExternalTaskProcess();
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // when the lock expired and the worker locks the task again
+    ClockUtil.setCurrentTime(new Date(ClockUtil.getCurrentTime().getTime() + LOCK_DURATION + 1000L));
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // then it counts as a new fetch
+    assertEquals(2, historyService.createHistoricExternalTaskLogQuery().fetchedLog().count());
+  }
+
+  @Test
+  public void testFetchedLogWhenOtherWorkerLocksAfterExpiry() {
+
+    // given a task locked by another worker
+    ExternalTask task = startExternalTaskProcess();
+    externalTaskService.lock(task.getId(), "anotherWorkerId", LOCK_DURATION);
+
+    // when the lock expired and the worker locks the task
+    ClockUtil.setCurrentTime(new Date(ClockUtil.getCurrentTime().getTime() + LOCK_DURATION + 1000L));
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // then both locks are logged
+    List<HistoricExternalTaskLog> logs = historyService.createHistoricExternalTaskLogQuery()
+        .fetchedLog()
+        .orderByWorkerId().asc()
+        .list();
+    assertEquals(2, logs.size());
+    assertEquals(WORKER_ID, logs.get(0).getWorkerId());
+    assertEquals("anotherWorkerId", logs.get(1).getWorkerId());
+  }
+
   @Test
   public void testFetchedLogWhenLockedById() {
 

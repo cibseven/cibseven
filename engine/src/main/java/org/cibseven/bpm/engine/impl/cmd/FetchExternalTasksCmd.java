@@ -29,21 +29,18 @@ import java.util.Set;
 import org.cibseven.bpm.engine.externaltask.LockedExternalTask;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.QueryOrderingProperty;
-import org.cibseven.bpm.engine.impl.cfg.TransactionState;
 import org.cibseven.bpm.engine.impl.db.DbEntity;
 import org.cibseven.bpm.engine.impl.db.EnginePersistenceLogger;
 import org.cibseven.bpm.engine.impl.db.entitymanager.OptimisticLockingListener;
 import org.cibseven.bpm.engine.impl.db.entitymanager.OptimisticLockingResult;
 import org.cibseven.bpm.engine.impl.db.entitymanager.operation.DbEntityOperation;
 import org.cibseven.bpm.engine.impl.db.entitymanager.operation.DbOperation;
-import org.cibseven.bpm.engine.impl.externaltask.ExternalTaskLogger;
 import org.cibseven.bpm.engine.impl.externaltask.LockedExternalTaskImpl;
 import org.cibseven.bpm.engine.impl.externaltask.TopicFetchInstruction;
 import org.cibseven.bpm.engine.impl.history.HistoryLevel;
 import org.cibseven.bpm.engine.impl.history.event.HistoryEventTypes;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
-import org.cibseven.bpm.engine.impl.interceptor.CommandExecutor;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExternalTaskEntity;
 import org.cibseven.bpm.engine.impl.util.EnsureUtil;
@@ -56,7 +53,6 @@ import org.cibseven.bpm.engine.impl.util.EnsureUtil;
 public class FetchExternalTasksCmd implements Command<List<LockedExternalTask>> {
 
   protected static final EnginePersistenceLogger LOG = ProcessEngineLogger.PERSISTENCE_LOGGER;
-  protected static final ExternalTaskLogger EXTERNAL_TASK_LOG = ProcessEngineLogger.EXTERNAL_TASK_LOGGER;
 
   protected String workerId;
   protected int maxResults;
@@ -128,7 +124,7 @@ public class FetchExternalTasksCmd implements Command<List<LockedExternalTask>> 
     }
 
     filterOnOptimisticLockingFailure(commandContext, result);
-    produceFetchedEventsAfterCommit(commandContext, fetchedEventTasks, result);
+    produceFetchedEvents(commandContext, fetchedEventTasks, result);
 
     return result;
   }
@@ -136,52 +132,35 @@ public class FetchExternalTasksCmd implements Command<List<LockedExternalTask>> 
   /**
    * Writes the 'fetched' history log only for the tasks this worker actually locked.
    *
-   * A lock lost to a concurrent worker (or to a concurrent complete/delete) is removed from
-   * the result by {@link #filterOnOptimisticLockingFailure} and the failed update is ignored.
-   * That happens during the flush, where all inserts are executed before the updates - a
-   * history event created together with the lock would therefore be committed even for a
-   * lost lock. Hence the events are written after the commit in a separate transaction.
+   * A lock lost to a concurrent worker (or to a concurrent complete/delete) only shows up
+   * during the flush: the update affects no row, {@link #filterOnOptimisticLockingFailure}
+   * removes the task from the result and the failure is ignored. As a flush executes all
+   * inserts before the updates, a history event created together with the lock would be
+   * written even for a lost lock.
+   *
+   * Hence the locks are flushed first, and the events are created afterwards for the tasks
+   * that are still in the result. The regular flush at the end of the command then writes
+   * the events in the same transaction, so no second database connection is needed.
    */
-  protected void produceFetchedEventsAfterCommit(CommandContext commandContext,
-                                                 final List<ExternalTaskEntity> fetchedEventTasks,
-                                                 final List<LockedExternalTask> result) {
+  protected void produceFetchedEvents(CommandContext commandContext,
+                                      List<ExternalTaskEntity> fetchedEventTasks,
+                                      List<LockedExternalTask> result) {
     if (fetchedEventTasks.isEmpty()) {
       return;
     }
 
-    final CommandExecutor commandExecutor = commandContext.getProcessEngineConfiguration()
-        .getCommandExecutorTxRequiresNew();
+    commandContext.getDbEntityManager().flushIntermediate();
 
-    commandContext.getTransactionContext().addTransactionListener(TransactionState.COMMITTED, context -> {
-      // evaluated after the flush: the result no longer contains tasks with a lost lock
-      Set<String> lockedTaskIds = new HashSet<>();
-      for (LockedExternalTask lockedTask : result) {
-        lockedTaskIds.add(lockedTask.getId());
-      }
+    Set<String> lockedTaskIds = new HashSet<>();
+    for (LockedExternalTask lockedTask : result) {
+      lockedTaskIds.add(lockedTask.getId());
+    }
 
-      final List<ExternalTaskEntity> lockedTasks = new ArrayList<>();
-      for (ExternalTaskEntity task : fetchedEventTasks) {
-        if (lockedTaskIds.contains(task.getId())) {
-          lockedTasks.add(task);
-        }
+    for (ExternalTaskEntity task : fetchedEventTasks) {
+      if (lockedTaskIds.contains(task.getId())) {
+        task.produceHistoricExternalTaskFetchedEvent();
       }
-
-      if (lockedTasks.isEmpty()) {
-        return;
-      }
-
-      try {
-        commandExecutor.execute(newCommandContext -> {
-          for (ExternalTaskEntity task : lockedTasks) {
-            task.produceHistoricExternalTaskFetchedEvent();
-          }
-          return null;
-        });
-      } catch (RuntimeException e) {
-        // the locks are committed already, so the worker must still get its tasks
-        EXTERNAL_TASK_LOG.couldNotProduceFetchedEvents(workerId, e);
-      }
-    });
+    }
   }
 
   protected void filterOnOptimisticLockingFailure(CommandContext commandContext, final List<LockedExternalTask> tasks) {

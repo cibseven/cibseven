@@ -673,6 +673,7 @@ public class HistoricExternalTaskLogRestServiceQueryTest extends AbstractRestSer
 
     parameters.put("creationLog", MockProvider.EXAMPLE_HISTORIC_EXTERNAL_TASK_LOG_IS_CREATION_LOG);
     parameters.put("failureLog", MockProvider.EXAMPLE_HISTORIC_EXTERNAL_TASK_LOG_IS_FAILURE_LOG);
+    parameters.put("fetchedLog", MockProvider.EXAMPLE_HISTORIC_EXTERNAL_TASK_LOG_IS_FETCHED_LOG);
     parameters.put("successLog", MockProvider.EXAMPLE_HISTORIC_EXTERNAL_TASK_LOG_IS_SUCCESS_LOG);
     parameters.put("deletionLog", MockProvider.EXAMPLE_HISTORIC_EXTERNAL_TASK_LOG_IS_DELETION_LOG);
 
@@ -682,6 +683,7 @@ public class HistoricExternalTaskLogRestServiceQueryTest extends AbstractRestSer
   protected void verifyBooleanParameterQueryInvocations() {
     verify(mockedQuery).creationLog();
     verify(mockedQuery).failureLog();
+    verify(mockedQuery).fetchedLog();
     verify(mockedQuery).successLog();
     verify(mockedQuery).deletionLog();
     verify(mockedQuery).list();

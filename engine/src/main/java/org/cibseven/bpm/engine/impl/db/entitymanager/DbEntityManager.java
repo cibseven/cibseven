@@ -295,6 +295,19 @@ public class DbEntityManager implements Session, EntityLoadListener {
     flushDbOperationManager();
   }
 
+  /**
+   * Flushes within a command, before the regular flush at the end of the command.
+   *
+   * A plain {@link #flush()} keeps the executed operations in the operation manager,
+   * so the regular flush would execute them a second time. Here they are discarded
+   * after the flush, so the regular flush only executes the operations added afterwards.
+   * The entity cache needs no reset: it already takes a new copy of each flushed entity.
+   */
+  public void flushIntermediate() {
+    flush();
+    dbOperationManager = new DbOperationManager();
+  }
+
   public void setIgnoreForeignKeysForNextFlush(boolean ignoreForeignKeysForNextFlush) {
     isIgnoreForeignKeysForNextFlush = ignoreForeignKeysForNextFlush;
   }
