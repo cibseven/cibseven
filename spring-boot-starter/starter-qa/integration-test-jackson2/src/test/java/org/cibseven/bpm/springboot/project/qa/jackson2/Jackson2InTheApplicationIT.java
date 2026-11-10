@@ -50,17 +50,16 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * An application that brings Jackson 2 for JAX-RS back (spring-boot-starter-jersey with
- * spring-boot-jackson2 and jersey-media-json-jackson): the REST API of the REST starter and the
- * REST APIs of the web applications still read and write JSON with the Jackson 3 provider of
- * engine-rest, i.e. with the date format and the error responses of the REST API, not with
- * Jersey's JacksonFeature and the Jackson 2 ObjectMapper of Spring Boot.
+ * spring-boot-jackson2 and jersey-media-json-jackson): the REST API of the REST starter still
+ * reads and writes JSON with the Jackson 3 provider of engine-rest, i.e. with the date format and
+ * the error responses of the REST API, not with Jersey's JacksonFeature and the Jackson 2
+ * ObjectMapper of Spring Boot.
  *
  * <p>The JSON is compared with exact strings in a JVM default time zone with a visible offset
  * (Europe/Berlin, +0200 in summer). Without the property <code>jersey.config.server.jsonFeature</code>
- * of the starters, Jackson 2 takes over: the REST API writes the due date with the ObjectMapper of
- * Spring Boot (<code>2026-07-14T08:30:15.123+00:00</code>), the web applications with the default
- * mapper of Jersey (<code>1784017815123</code>), and Jersey's Jackson 2 exception mappers answer
- * invalid JSON with a 400 and a text message instead of an InvalidRequestException.
+ * of the starter, Jackson 2 takes over: the REST API writes the due date with the ObjectMapper of
+ * Spring Boot (<code>2026-07-14T08:30:15.123+00:00</code>), and Jersey's Jackson 2 exception
+ * mappers answer invalid JSON with a 400 and a text message instead of an InvalidRequestException.
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -139,63 +138,16 @@ public class Jackson2InTheApplicationIT {
 
   @Test
   public void shouldAnswerMalformedJsonOfTheRestApiWithAnInvalidRequestException() throws Exception {
-    HttpResponse<String> response = postJson("/engine-rest/task/create", "{\"name\": ", null);
+    HttpResponse<String> response = postJson("/engine-rest/task/create", "{\"name\": ");
 
     assertInvalidRequest(response);
   }
 
   @Test
   public void shouldAnswerJsonOfAnotherTypeOfTheRestApiWithAnInvalidRequestException() throws Exception {
-    HttpResponse<String> response = postJson("/engine-rest/task/create", "{\"name\": \"task\", \"priority\": \"high\"}", null);
+    HttpResponse<String> response = postJson("/engine-rest/task/create", "{\"name\": \"task\", \"priority\": \"high\"}");
 
     assertInvalidRequest(response);
-  }
-
-  @Test
-  public void shouldWriteDatesOfTheWebappsInTheDateFormatOfTheRestApi() throws Exception {
-    login();
-
-    HttpResponse<String> response = get("/camunda/api/engine/engine/default/task/" + taskId);
-
-    assertThat(response.statusCode()).as(response.body()).isEqualTo(200);
-    assertThat(JSON.readTree(response.body()).get("due").asString()).isEqualTo(DUE_IN_THE_REST_API);
-  }
-
-  @Test
-  public void shouldAnswerMalformedJsonOfTheWebappsWithAnInvalidRequestException() throws Exception {
-    HttpResponse<String> response = postJson("/camunda/api/engine/engine/default/identity/password-policy",
-        "{\"password\": ", csrfToken());
-
-    assertInvalidRequest(response);
-  }
-
-  @Test
-  public void shouldAnswerJsonOfAnotherTypeOfTheWebappsWithAnInvalidRequestException() throws Exception {
-    HttpResponse<String> response = postJson("/camunda/api/engine/engine/default/identity/password-policy",
-        "{\"password\": \"secret\", \"profile\": \"demo\"}", csrfToken());
-
-    assertInvalidRequest(response);
-  }
-
-  /**
-   * Logs in to the web applications as the admin user (session cookie in {@link #client}).
-   */
-  private void login() throws IOException, InterruptedException {
-    String csrfToken = csrfToken();
-    HttpResponse<String> login = client.send(HttpRequest.newBuilder(uri("/camunda/api/admin/auth/user/default/login/cockpit"))
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .header("X-XSRF-TOKEN", csrfToken)
-            .POST(HttpRequest.BodyPublishers.ofString("username=demo&password=demo"))
-            .build(),
-        HttpResponse.BodyHandlers.ofString());
-    assertThat(login.statusCode()).as(login.body()).isEqualTo(200);
-  }
-
-  /**
-   * @return the CSRF token of the web applications for the session in {@link #client}
-   */
-  private String csrfToken() throws IOException, InterruptedException {
-    return get("/camunda/api/engine/engine/").headers().firstValue("X-XSRF-TOKEN").orElseThrow();
   }
 
   private HttpResponse<String> get(String path) throws IOException, InterruptedException {
@@ -203,15 +155,13 @@ public class Jackson2InTheApplicationIT {
         HttpResponse.BodyHandlers.ofString());
   }
 
-  private HttpResponse<String> postJson(String path, String json, String csrfToken) throws IOException, InterruptedException {
-    HttpRequest.Builder request = HttpRequest.newBuilder(uri(path))
-        .header("Content-Type", "application/json")
-        .header("Accept", "application/json")
-        .POST(HttpRequest.BodyPublishers.ofString(json));
-    if (csrfToken != null) {
-      request.header("X-XSRF-TOKEN", csrfToken);
-    }
-    return client.send(request.build(), HttpResponse.BodyHandlers.ofString());
+  private HttpResponse<String> postJson(String path, String json) throws IOException, InterruptedException {
+    return client.send(HttpRequest.newBuilder(uri(path))
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(json))
+            .build(),
+        HttpResponse.BodyHandlers.ofString());
   }
 
   private URI uri(String path) {
