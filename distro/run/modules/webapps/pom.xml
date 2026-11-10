@@ -38,6 +38,19 @@
     </plugins>
   </build>
 
+  <profiles>
+    <profile>
+      <id>legacy-webapps</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.cibseven.bpm.springboot</groupId>
+          <artifactId>cibseven-bpm-spring-boot-starter-webapp-legacy</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+
   <description>
     Description of CIB seven - Run - Module Webapps
   </description>

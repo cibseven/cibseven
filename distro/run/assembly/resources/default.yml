@@ -165,8 +165,6 @@ cibseven:
     datasource:
       fileValue:
         enabled: false
-    cockpit:
-      url: /camunda/app/cockpit/default/
     theme: cib
 
     services:

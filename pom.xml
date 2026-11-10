@@ -45,6 +45,8 @@
     <!-- The Spring Framework 7 / Spring Boot 4 trees run on JUnit 6; spring-test 7 is
          compiled against it and calls ExtensionContext.Store.computeIfAbsent, absent from JUnit 5. -->
     <version.junit6>6.0.3</version.junit6>
+    <!-- last open source release of the legacy webapps, used only by the tests (see webapps/README.md) -->
+    <version.legacy-webapps>2.2.0</version.legacy-webapps>
   </properties>
 
   <build>
@@ -134,7 +136,6 @@
         <module>engine-plugins</module>
 
         <module>distro/license-book</module>
-        <module>distro/jboss</module>
         <module>distro/tomcat</module>
         <module>distro/sql-script</module>
         <module>distro/run</module>
@@ -288,8 +289,6 @@
         <module>freemarker-template-engine</module>
 
         <module>javaee/ejb-client</module>
-
-        <module>webapps</module>
 
         <module>engine-plugins</module>
 

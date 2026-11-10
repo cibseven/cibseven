@@ -312,13 +312,36 @@ pipeline {
                 stage('Run Integration') {
                     when { expression { params.QA_RUN_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f distro/run/pom.xml clean install -Pintegration-test-run" }}
+                        // TODO: remove the legacy-webapps builds after complete migration from webapp tests to webclient tests.
+                        // The tests run against the legacy webapps, so they are installed locally first; the finally block
+                        // puts the regular webjar and Run back, even when the tests fail. Its "clean" deletes the test
+                        // reports of distro/run, so they are published right after the test run.
+                        script {
+                            try {
+                                withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests -Plegacy-webapps" }
+                                withMaven { sh "mvn -f distro/run/pom.xml clean install -DskipTests -Plegacy-webapps" }
+
+                                mvnWithTestReports("-f distro/run/pom.xml clean install -Pintegration-test-run", "distro/run")
+                            } finally {
+                                withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests" }
+                                withMaven { sh "mvn -f distro/run/pom.xml clean install -DskipTests" }
+                            }
+                        }
                     }
                 }
                 stage('Spring Boot Integration') {
                     when { expression { params.QA_SPRING_IT || params.QA_TEST_SUITE == 'ALL' }}
                     steps {
-                        script { withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }}
+                        // TODO: remove the legacy-webapps build after complete migration from webapp tests to webclient tests
+                        script {
+                            try {
+                                withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests -Plegacy-webapps" }
+
+                                withMaven { sh "mvn -f spring-boot-starter/pom.xml clean install -Pintegration-test-spring-boot-starter" }
+                            } finally {
+                                withMaven { sh "mvn -f distro/webjar/pom.xml clean install -DskipTests" }
+                            }
+                        }
                     }
                 }
                 stage('Performance') {
