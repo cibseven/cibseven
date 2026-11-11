@@ -492,6 +492,36 @@
       </properties>
     </profile>
 
+    <!--
+      Databases that are hosted externally (AWS) instead of being started by Testcontainers.
+      They are reached over a plain JDBC connection, so they are combined with the `database`
+      profile, which drops the schema before and after the test run, and with the profile of
+      the underlying database technology, which provides the driver and the dialect:
+
+        mvn test -Pdatabase,postgresql,aurora15 -Ddatabase.host=... -Ddatabase.username=... -Ddatabase.password=...
+        mvn test -Pdatabase,sqlserver,azuresql  -Ddatabase.host=... -Ddatabase.username=... -Ddatabase.password=...
+
+      Declared after the profiles they refine, so that `database.url` wins over the
+      `jdbc:tc:` URL defined there. Only the host is confidential; port, database name and
+      the connection parameters are kept here next to the rest of the database settings.
+      See also the "What about database technology X in environment Y?" section in TESTING.md.
+    -->
+    <profile>
+      <!-- Amazon Aurora PostgreSQL 15 -->
+      <id>aurora15</id>
+      <properties>
+        <database.url>jdbc:postgresql://${database.host}:${database.port}/${database.name}?sslmode=require</database.url>
+      </properties>
+    </profile>
+
+    <profile>
+      <!-- Azure SQL Database -->
+      <id>azuresql</id>
+      <properties>
+        <database.url>jdbc:sqlserver://${database.host}:${database.port};databaseName=${database.name};encrypt=true;trustServerCertificate=false</database.url>
+      </properties>
+    </profile>
+
     <profile>
       <id>testcontainers</id>
       <dependencyManagement>
