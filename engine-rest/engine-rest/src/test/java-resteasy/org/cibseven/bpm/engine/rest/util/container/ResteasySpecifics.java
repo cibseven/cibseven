@@ -16,10 +16,14 @@
  */
 package org.cibseven.bpm.engine.rest.util.container;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.core.Application;
 
 import org.cibseven.bpm.engine.rest.CustomJacksonDateFormatTest;
 import org.cibseven.bpm.engine.rest.ExceptionHandlerTest;
@@ -28,10 +32,10 @@ import org.cibseven.bpm.engine.rest.standalone.NoServletAuthenticationFilterTest
 import org.cibseven.bpm.engine.rest.standalone.NoServletEmptyBodyFilterTest;
 import org.cibseven.bpm.engine.rest.standalone.ServletAuthenticationFilterTest;
 import org.cibseven.bpm.engine.rest.standalone.ServletEmptyBodyFilterTest;
-import org.junit.rules.ExternalResource;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TemporaryFolder;
-import org.junit.rules.TestRule;
+import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.Extension;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * @author Thorben Lindhauer
@@ -40,7 +44,7 @@ import org.junit.rules.TestRule;
 public class ResteasySpecifics implements ContainerSpecifics {
 
   protected static final TestRuleFactory DEFAULT_RULE_FACTORY =
-      new EmbeddedServerRuleFactory(new JaxrsApplication());
+      new EmbeddedServerRuleFactory(new JakartarsApplication());
 
   protected static final Map<Class<?>, TestRuleFactory> TEST_RULE_FACTORIES =
       new HashMap<Class<?>, TestRuleFactory>();
@@ -54,14 +58,15 @@ public class ResteasySpecifics implements ContainerSpecifics {
     TEST_RULE_FACTORIES.put(CustomJacksonDateFormatTest.class, new ServletContainerRuleFactory("custom-date-format-web.xml"));
   }
 
-  public TestRule getTestRule(Class<?> testClass) {
+  @Override
+  public Extension getTestExtension(Class<?> testClass) {
     TestRuleFactory ruleFactory = DEFAULT_RULE_FACTORY;
 
     if (TEST_RULE_FACTORIES.containsKey(testClass)) {
       ruleFactory = TEST_RULE_FACTORIES.get(testClass);
     }
 
-    return ruleFactory.createTestRule();
+    return ruleFactory.createExtension();
   }
 
   public static class EmbeddedServerRuleFactory implements TestRuleFactory {
@@ -72,16 +77,18 @@ public class ResteasySpecifics implements ContainerSpecifics {
       this.jaxRsApplication = jaxRsApplication;
     }
 
-    public TestRule createTestRule() {
-      return new ExternalResource() {
+    public Extension createExtension() {
+      return new BeforeAfterExtension() {
 
         ResteasyServerBootstrap bootstrap = new ResteasyServerBootstrap(jaxRsApplication);
 
-        protected void before() throws Throwable {
+        @Override
+        protected void before() throws Exception {
           bootstrap.start();
         }
 
-        protected void after() {
+        @Override
+        protected void after() throws Exception {
           bootstrap.stop();
         }
       };
@@ -96,27 +103,45 @@ public class ResteasySpecifics implements ContainerSpecifics {
       this.webXmlResource = webXmlResource;
     }
 
-    public TestRule createTestRule() {
-      final TemporaryFolder tempFolder = new TemporaryFolder();
+    public Extension createExtension() {
+      return new BeforeAfterExtension() {
 
-      return RuleChain
-        .outerRule(tempFolder)
-        .around(new ExternalResource() {
+        Path tempFolder;
+        TomcatServerBootstrap bootstrap = new ResteasyTomcatServerBootstrap(webXmlResource);
 
-          ResteasyTomcatServerBootstrap bootstrap = new ResteasyTomcatServerBootstrap(webXmlResource);
+        @Override
+        protected void before() throws Exception {
+          tempFolder = Files.createTempDirectory("junit-temp");
+          bootstrap.setWorkingDir(tempFolder.toAbsolutePath().toString());
+          bootstrap.start();
+        }
 
-          protected void before() throws Throwable {
-            bootstrap.setWorkingDir(tempFolder.getRoot().getAbsolutePath());
-            bootstrap.start();
+        @Override
+        protected void after() throws Exception {
+          bootstrap.stop();
+          if (tempFolder != null) {
+            Files.walk(tempFolder)
+              .sorted(Comparator.reverseOrder())
+              .map(Path::toFile)
+              .forEach(File::delete);
           }
-
-          protected void after() {
-            bootstrap.stop();
-          }
-        });
+        }
+      };
     }
 
   }
 
-
+  // Abstract helper for JUnit 5 before/after logic
+  abstract static class BeforeAfterExtension implements Extension, BeforeAllCallback, AfterAllCallback {
+    protected abstract void before() throws Exception;
+    protected abstract void after() throws Exception;
+    @Override
+    public void beforeAll(ExtensionContext context) throws Exception {
+      before();
+    }
+    @Override
+    public void afterAll(ExtensionContext context) throws Exception {
+      after();
+    }
+  }
 }

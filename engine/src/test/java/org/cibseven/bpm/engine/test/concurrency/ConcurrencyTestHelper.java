@@ -16,27 +16,28 @@
  */
 package org.cibseven.bpm.engine.test.concurrency;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.List;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.util.ExceptionUtil;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 
 public abstract class ConcurrencyTestHelper {
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected List<ControllableCommand<?>> controllableCommands;
 
-  @Before
+  @BeforeEach
   public void init() {
     controllableCommands = new ArrayList<>();
   }
 
-  @After
+  @AfterEach
   public void cleanUp() throws Exception {
 
     // wait for all spawned threads to end

@@ -16,10 +16,10 @@
  */
 package org.cibseven.bpm.dmn.feel.impl.juel;
 
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELException;
-import org.cibseven.bpm.impl.juel.jakarta.el.ExpressionFactory;
-import org.cibseven.bpm.impl.juel.jakarta.el.ValueExpression;
+import jakarta.el.ELContext;
+import jakarta.el.ELException;
+import jakarta.el.ExpressionFactory;
+import jakarta.el.ValueExpression;
 
 import org.cibseven.bpm.dmn.feel.impl.FeelEngine;
 import org.cibseven.bpm.dmn.feel.impl.juel.el.ElContextFactory;

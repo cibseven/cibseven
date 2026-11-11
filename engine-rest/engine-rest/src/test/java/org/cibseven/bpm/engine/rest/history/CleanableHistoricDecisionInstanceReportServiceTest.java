@@ -32,7 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.history.CleanableHistoricDecisionInstanceReport;
@@ -40,10 +40,10 @@ import org.cibseven.bpm.engine.history.CleanableHistoricDecisionInstanceReportRe
 import org.cibseven.bpm.engine.rest.AbstractRestServiceTest;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -66,7 +66,7 @@ public class CleanableHistoricDecisionInstanceReportServiceTest extends Abstract
   protected static final String ANOTHER_EXAMPLE_TENANT_ID = "anotherTenantId";
 
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String HISTORY_URL = TEST_RESOURCE_ROOT_PATH + "/history/decision-definition";
@@ -75,7 +75,7 @@ public class CleanableHistoricDecisionInstanceReportServiceTest extends Abstract
 
   private CleanableHistoricDecisionInstanceReport historicDecisionInstanceReport;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     setupHistoryReportMock();
   }
@@ -147,8 +147,8 @@ public class CleanableHistoricDecisionInstanceReportServiceTest extends Abstract
 
     String content = response.asString();
     List<String> reportResults = from(content).getList("");
-    Assert.assertEquals("There should be two report results returned.", 2, reportResults.size());
-    Assert.assertNotNull(reportResults.get(0));
+    Assertions.assertEquals( 2, reportResults.size(), "There should be two report results returned.");
+    Assertions.assertNotNull(reportResults.get(0));
 
     String returnedDefinitionId = from(content).getString("[0].decisionDefinitionId");
     String returnedDefinitionKey = from(content).getString("[0].decisionDefinitionKey");
@@ -159,14 +159,14 @@ public class CleanableHistoricDecisionInstanceReportServiceTest extends Abstract
     long returnedCleanableCount = from(content).getLong("[0].cleanableDecisionInstanceCount");
     String returnedTenantId = from(content).getString("[0].tenantId");
 
-    Assert.assertEquals(EXAMPLE_DD_ID, returnedDefinitionId);
-    Assert.assertEquals(EXAMPLE_DD_KEY, returnedDefinitionKey);
-    Assert.assertEquals(EXAMPLE_DD_NAME, returnedDefinitionName);
-    Assert.assertEquals(EXAMPLE_DD_VERSION, returnedDefinitionVersion);
-    Assert.assertEquals(EXAMPLE_TTL, returnedTTL);
-    Assert.assertEquals(EXAMPLE_FINISHED_DI_COUNT, returnedFinishedCount);
-    Assert.assertEquals(EXAMPLE_CLEANABLE_DI_COUNT, returnedCleanableCount);
-    Assert.assertEquals(EXAMPLE_TENANT_ID, returnedTenantId);
+    Assertions.assertEquals(EXAMPLE_DD_ID, returnedDefinitionId);
+    Assertions.assertEquals(EXAMPLE_DD_KEY, returnedDefinitionKey);
+    Assertions.assertEquals(EXAMPLE_DD_NAME, returnedDefinitionName);
+    Assertions.assertEquals(EXAMPLE_DD_VERSION, returnedDefinitionVersion);
+    Assertions.assertEquals(EXAMPLE_TTL, returnedTTL);
+    Assertions.assertEquals(EXAMPLE_FINISHED_DI_COUNT, returnedFinishedCount);
+    Assertions.assertEquals(EXAMPLE_CLEANABLE_DI_COUNT, returnedCleanableCount);
+    Assertions.assertEquals(EXAMPLE_TENANT_ID, returnedTenantId);
   }
 
   @Test

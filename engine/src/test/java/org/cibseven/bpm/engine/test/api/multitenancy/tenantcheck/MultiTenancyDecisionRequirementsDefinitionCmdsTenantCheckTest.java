@@ -30,10 +30,12 @@ import org.cibseven.bpm.engine.repository.DecisionRequirementsDefinition;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 /**
  *
@@ -46,12 +48,10 @@ public class MultiTenancyDecisionRequirementsDefinitionCmdsTenantCheckTest {
   protected static final String TENANT_ONE = "tenant1";
   protected static final String DRG_DMN = "org/cibseven/bpm/engine/test/api/multitenancy/DecisionRequirementsGraph.dmn";
   protected static final String DRD_DMN = "org/cibseven/bpm/engine/test/api/multitenancy/DecisionRequirementsGraph.png";
-
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected String decisionRequirementsDefinitionId;
 
@@ -59,7 +59,7 @@ public class MultiTenancyDecisionRequirementsDefinitionCmdsTenantCheckTest {
   protected IdentityService identityService;
   protected ProcessEngineConfiguration processEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     repositoryService = engineRule.getRepositoryService();

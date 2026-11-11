@@ -16,41 +16,18 @@
  */
 package org.cibseven.bpm.spring.boot.starter.property;
 
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
-
 import static org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties.joinOn;
 
 public class WebappProperty {
-	
-  public static final String LEGACY_APP_PATH = "/camunda";
-  
   public static final String DEFAULT_APP_PATH = "/webapp";
 
   public static final String PREFIX = CamundaBpmProperties.PREFIX + ".webapp";
-  
+
   protected boolean indexRedirectEnabled = true;
 
-  protected String securityConfigFile = "/securityFilterRules.json";
-  
-  protected String legacyWebjarClasspath = "/META-INF/resources/webjars" + LEGACY_APP_PATH;
-  
   protected String webjarClasspath = "/META-INF/resources/webjars" + DEFAULT_APP_PATH;
 
   protected String applicationPath = DEFAULT_APP_PATH;
-  
-  protected String legacyApplicationPath = LEGACY_APP_PATH;
-
-  @NestedConfigurationProperty
-  private CsrfProperties csrf = new CsrfProperties();
-  
-  @NestedConfigurationProperty
-  private SessionCookieProperties sessionCookie = new SessionCookieProperties();
-
-  @NestedConfigurationProperty
-  protected HeaderSecurityProperties headerSecurity = new HeaderSecurityProperties();
-
-  @NestedConfigurationProperty
-  protected AuthenticationProperties auth = new AuthenticationProperties();
 
   public boolean isIndexRedirectEnabled() {
     return indexRedirectEnabled;
@@ -60,36 +37,12 @@ public class WebappProperty {
     this.indexRedirectEnabled = indexRedirectEnabled;
   }
 
-  public String getLegacyWebjarClasspath() {
-	return legacyWebjarClasspath;
-  }
-  
-  public void setLegacyWebjarClasspath(String legacyWebjarClasspath) {
-	  this.legacyWebjarClasspath = legacyWebjarClasspath;
-  }
-  
   public String getWebjarClasspath() {
     return webjarClasspath;
   }
 
   public void setWebjarClasspath(String webjarClasspath) {
     this.webjarClasspath = webjarClasspath;
-  }
-
-  public String getSecurityConfigFile() {
-    return securityConfigFile;
-  }
-
-  public void setSecurityConfigFile(String securityConfigFile) {
-    this.securityConfigFile = securityConfigFile;
-  }
-  
-  public String getLegacyApplicationPath() {
-	return legacyApplicationPath;
-  }
-  
-  public void setLegacyApplicationPath(String legacyApplicationPath) {
-	this.legacyApplicationPath = sanitizeApplicationPath(legacyApplicationPath);
   }
 
   public String getApplicationPath() {
@@ -100,7 +53,7 @@ public class WebappProperty {
     this.applicationPath = sanitizeApplicationPath(applicationPath);
   }
 
-  protected String sanitizeApplicationPath(String applicationPath) {
+  public static String sanitizeApplicationPath(String applicationPath) {
     if (applicationPath == null || applicationPath.isEmpty()) {
       return "";
     }
@@ -116,49 +69,12 @@ public class WebappProperty {
     return applicationPath;
   }
 
-  public CsrfProperties getCsrf() {
-    return csrf;
-  }
-
-  public void setCsrf(CsrfProperties csrf) {
-    this.csrf = csrf;
-  }
-  
-  public SessionCookieProperties getSessionCookie() {
-    return sessionCookie;
-  }
-  
-  public void setSessionCookie(SessionCookieProperties sessionCookie) {
-    this.sessionCookie = sessionCookie;
-  }
-
-  public HeaderSecurityProperties getHeaderSecurity() {
-    return headerSecurity;
-  }
-
-  public void setHeaderSecurity(HeaderSecurityProperties headerSecurity) {
-    this.headerSecurity = headerSecurity;
-  }
-
-  public AuthenticationProperties getAuth() {
-    return auth;
-  }
-
-  public void setAuth(AuthenticationProperties authentication) {
-    this.auth = authentication;
-  }
-
   @Override
   public String toString() {
     return joinOn(this.getClass())
       .add("indexRedirectEnabled=" + indexRedirectEnabled)
       .add("webjarClasspath='" + webjarClasspath + '\'')
-      .add("securityConfigFile='" + securityConfigFile + '\'')
       .add("webappPath='" + applicationPath + '\'')
-      .add("csrf='" + csrf + '\'')
-      .add("headerSecurityProperties='" + headerSecurity + '\'')
-      .add("sessionCookie='" + sessionCookie + '\'')
-      .add("auth='" + auth + '\'')
       .toString();
   }
 }

@@ -18,13 +18,12 @@ package org.cibseven.bpm.run.qa;
 
 import io.restassured.response.Response;
 import org.cibseven.bpm.run.qa.util.SpringBootManagedContainer;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.AfterParam;
-import org.junit.runners.Parameterized.BeforeParam;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.AfterParameterizedClassInvocation;
+import org.junit.jupiter.params.BeforeParameterizedClassInvocation;
+import org.junit.jupiter.params.Parameter;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,7 +35,8 @@ import static org.hamcrest.CoreMatchers.is;
 /**
  * Test cases for ensuring connectivity to REST API based on startup parameters
  */
-@RunWith(Parameterized.class)
+@ParameterizedClass(name = "Test instance: {index}. Rest: {1}, Webapps: {2}, Example: {3}")
+@MethodSource("commands")
 public class ComponentAvailabilityIT {
 
   @Parameter(0)
@@ -48,7 +48,6 @@ public class ComponentAvailabilityIT {
   @Parameter(3)
   public boolean exampleAvailable;
 
-  @Parameters(name = "Test instance: {index}. Rest: {1}, Webapps: {2}, Example: {3}")
   public static Collection<Object[]> commands() {
     return Arrays.asList(new Object[][] {
       { new String[0], true, true, true },
@@ -64,7 +63,12 @@ public class ComponentAvailabilityIT {
 
   private static SpringBootManagedContainer container;
 
-  @BeforeParam
+  /**
+   * Starts the application once per parameter set, not once per test, which is why this is
+   * {@link BeforeParameterizedClassInvocation} rather than a call from each test method:
+   * 8 startups instead of 24.
+   */
+  @BeforeParameterizedClassInvocation
   public static void runStartScript(String[] commands, boolean restAvailable, boolean webappsAvailable, boolean exampleAvailable) {
     container = new SpringBootManagedContainer(commands);
     try {
@@ -74,7 +78,7 @@ public class ComponentAvailabilityIT {
     }
   }
 
-  @AfterParam
+  @AfterParameterizedClassInvocation
   public static void stopApp() {
     try {
       if (container != null) {

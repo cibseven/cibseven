@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.test.api.runtime.migration.history;
 
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.List;
@@ -36,11 +36,12 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.runtime.migration.MigrationTestRule;
 import org.cibseven.bpm.engine.test.api.runtime.migration.models.ProcessModels;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 /**
  * @author Thorben Lindhauer
@@ -48,17 +49,15 @@ import org.junit.rules.RuleChain;
  */
 public class MigrationHistoricActivityInstanceTest {
 
-
+  @RegisterExtension
   protected ProcessEngineRule rule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   protected MigrationTestRule testHelper = new MigrationTestRule(rule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(rule).around(testHelper);
 
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
 
-  @Before
+  @BeforeEach
   public void initServices() {
     historyService = rule.getHistoryService();
     runtimeService = rule.getRuntimeService();
@@ -135,7 +134,7 @@ public class MigrationHistoricActivityInstanceTest {
         .asc()
         .list();
 
-    Assert.assertEquals(2, historicInstances.size());
+    Assertions.assertEquals(2, historicInstances.size());
 
     assertMigratedTo(historicInstances.get(0), processDefinition, "subProcess");
     assertMigratedTo(historicInstances.get(1), processDefinition, "userTask");
@@ -173,7 +172,7 @@ public class MigrationHistoricActivityInstanceTest {
         .asc()
         .list();
 
-    Assert.assertEquals(2, historicInstances.size());
+    Assertions.assertEquals(2, historicInstances.size());
 
     assertMigratedTo(historicInstances.get(0), targetDefinition, "newSubProcess");
     assertMigratedTo(historicInstances.get(1), targetDefinition, "userTask");
@@ -209,7 +208,7 @@ public class MigrationHistoricActivityInstanceTest {
         .asc()
         .list();
 
-    Assert.assertEquals(1, historicInstances.size());
+    Assertions.assertEquals(1, historicInstances.size());
 
     assertMigratedTo(historicInstances.get(0), targetDefinition, "userTask");
     assertEquals(processInstance.getId(), historicInstances.get(0).getParentActivityInstanceId());
@@ -243,7 +242,7 @@ public class MigrationHistoricActivityInstanceTest {
         .asc()
         .list();
 
-    Assert.assertEquals(2, historicInstances.size());
+    Assertions.assertEquals(2, historicInstances.size());
 
     assertMigratedTo(historicInstances.get(0), targetDefinition, "subProcess");
     assertMigratedTo(historicInstances.get(1), targetDefinition, "userTask");
@@ -252,9 +251,9 @@ public class MigrationHistoricActivityInstanceTest {
   }
 
   protected void assertMigratedTo(HistoricActivityInstance activityInstance, ProcessDefinition processDefinition, String activityId) {
-    Assert.assertEquals(processDefinition.getId(), activityInstance.getProcessDefinitionId());
-    Assert.assertEquals(processDefinition.getKey(), activityInstance.getProcessDefinitionKey());
-    Assert.assertEquals(activityId, activityInstance.getActivityId());
+    Assertions.assertEquals(processDefinition.getId(), activityInstance.getProcessDefinitionId());
+    Assertions.assertEquals(processDefinition.getKey(), activityInstance.getProcessDefinitionKey());
+    Assertions.assertEquals(activityId, activityInstance.getActivityId());
   }
 
 }

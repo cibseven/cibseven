@@ -26,8 +26,8 @@ import static org.mockito.Mockito.reset;
 
 import java.util.*;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.externaltask.ExternalTask;
 import org.cibseven.bpm.engine.externaltask.ExternalTaskQuery;
@@ -36,10 +36,10 @@ import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.OrderingBuilder;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -52,7 +52,7 @@ import io.restassured.response.Response;
  */
 public class ExternalTaskRestServiceQueryTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String EXTERNAL_TASK_QUERY_URL = TEST_RESOURCE_ROOT_PATH + "/external-task";
@@ -65,7 +65,7 @@ public class ExternalTaskRestServiceQueryTest extends AbstractRestServiceTest {
 
   protected ExternalTaskQuery mockQuery;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     mockQuery = setUpMockExternalTaskQuery(MockProvider.createMockExternalTasks());
   }
@@ -121,8 +121,8 @@ public class ExternalTaskRestServiceQueryTest extends AbstractRestServiceTest {
 
     String content = response.asString();
     List<String> instances = from(content).getList("");
-    Assert.assertEquals("There should be one external task returned.", 1, instances.size());
-    Assert.assertNotNull("The returned external task should not be null.", instances.get(0));
+    Assertions.assertEquals( 1, instances.size(), "There should be one external task returned.");
+    Assertions.assertNotNull(instances.get(0), "The returned external task should not be null.");
 
     String activityId = from(content).getString("[0].activityId");
     String activityInstanceId = from(content).getString("[0].activityInstanceId");
@@ -143,24 +143,24 @@ public class ExternalTaskRestServiceQueryTest extends AbstractRestServiceTest {
     long priority = from(content).getLong("[0].priority");
     String businessKey = from(content).getString("[0].businessKey");
 
-    Assert.assertEquals(MockProvider.EXAMPLE_ACTIVITY_ID, activityId);
-    Assert.assertEquals(MockProvider.EXAMPLE_ACTIVITY_INSTANCE_ID, activityInstanceId);
-    Assert.assertEquals(MockProvider.EXTERNAL_TASK_ERROR_MESSAGE, errorMessage);
-    Assert.assertEquals(MockProvider.EXAMPLE_EXECUTION_ID, executionId);
-    Assert.assertEquals(MockProvider.EXTERNAL_TASK_ID, id);
-    Assert.assertEquals(MockProvider.EXTERNAL_TASK_LOCK_EXPIRATION_TIME, lockExpirationTime);
-    Assert.assertEquals(MockProvider.EXTERNAL_TASK_CREATE_TIME, createTime);
-    Assert.assertEquals(MockProvider.EXAMPLE_PROCESS_DEFINITION_ID, processDefinitionId);
-    Assert.assertEquals(MockProvider.EXAMPLE_PROCESS_DEFINITION_KEY, processDefinitionKey);
-    Assert.assertEquals(MockProvider.EXAMPLE_PROCESS_DEFINITION_VERSION_TAG, processDefinitionVersionTag);
-    Assert.assertEquals(MockProvider.EXAMPLE_PROCESS_INSTANCE_ID, processInstanceId);
-    Assert.assertEquals(MockProvider.EXTERNAL_TASK_RETRIES, retries);
-    Assert.assertEquals(MockProvider.EXTERNAL_TASK_SUSPENDED, suspended);
-    Assert.assertEquals(MockProvider.EXTERNAL_TASK_TOPIC_NAME, topicName);
-    Assert.assertEquals(MockProvider.EXTERNAL_TASK_WORKER_ID, workerId);
-    Assert.assertEquals(MockProvider.EXAMPLE_TENANT_ID, tenantId);
-    Assert.assertEquals(MockProvider.EXTERNAL_TASK_PRIORITY, priority);
-    Assert.assertEquals(MockProvider.EXAMPLE_PROCESS_INSTANCE_BUSINESS_KEY, businessKey);
+    Assertions.assertEquals(MockProvider.EXAMPLE_ACTIVITY_ID, activityId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_ACTIVITY_INSTANCE_ID, activityInstanceId);
+    Assertions.assertEquals(MockProvider.EXTERNAL_TASK_ERROR_MESSAGE, errorMessage);
+    Assertions.assertEquals(MockProvider.EXAMPLE_EXECUTION_ID, executionId);
+    Assertions.assertEquals(MockProvider.EXTERNAL_TASK_ID, id);
+    Assertions.assertEquals(MockProvider.EXTERNAL_TASK_LOCK_EXPIRATION_TIME, lockExpirationTime);
+    Assertions.assertEquals(MockProvider.EXTERNAL_TASK_CREATE_TIME, createTime);
+    Assertions.assertEquals(MockProvider.EXAMPLE_PROCESS_DEFINITION_ID, processDefinitionId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_PROCESS_DEFINITION_KEY, processDefinitionKey);
+    Assertions.assertEquals(MockProvider.EXAMPLE_PROCESS_DEFINITION_VERSION_TAG, processDefinitionVersionTag);
+    Assertions.assertEquals(MockProvider.EXAMPLE_PROCESS_INSTANCE_ID, processInstanceId);
+    Assertions.assertEquals(MockProvider.EXTERNAL_TASK_RETRIES, retries);
+    Assertions.assertEquals(MockProvider.EXTERNAL_TASK_SUSPENDED, suspended);
+    Assertions.assertEquals(MockProvider.EXTERNAL_TASK_TOPIC_NAME, topicName);
+    Assertions.assertEquals(MockProvider.EXTERNAL_TASK_WORKER_ID, workerId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_TENANT_ID, tenantId);
+    Assertions.assertEquals(MockProvider.EXTERNAL_TASK_PRIORITY, priority);
+    Assertions.assertEquals(MockProvider.EXAMPLE_PROCESS_INSTANCE_BUSINESS_KEY, businessKey);
   }
 
   @Test

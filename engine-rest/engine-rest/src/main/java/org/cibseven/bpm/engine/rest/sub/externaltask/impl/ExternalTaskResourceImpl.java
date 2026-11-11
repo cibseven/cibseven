@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.sub.externaltask.impl;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.ExternalTaskService;
@@ -37,7 +37,7 @@ import org.cibseven.bpm.engine.rest.exception.RestException;
 import org.cibseven.bpm.engine.rest.sub.externaltask.ExternalTaskResource;
 import org.cibseven.bpm.engine.variable.VariableMap;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * @author Thorben Lindhauer

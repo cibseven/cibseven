@@ -17,23 +17,21 @@
 package org.cibseven.bpm.spring.boot.starter.property;
 
 import org.cibseven.bpm.engine.identity.User;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class AdminUserPropertyTest {
 
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void fillMissingFields_fail_no_id() throws Exception {
-    thrown.expect(NullPointerException.class);
-    thrown.expectMessage("missing field: camunda.bpm.admin-user.id");
 
-    adminUser(null, null, null, null, null).init();
+    assertThatThrownBy(() -> {
+      adminUser(null, null, null, null, null).init();
+    }).isInstanceOf(NullPointerException.class)
+    .hasMessageContaining("missing field: camunda.bpm.admin-user.id");
   }
 
   @Test

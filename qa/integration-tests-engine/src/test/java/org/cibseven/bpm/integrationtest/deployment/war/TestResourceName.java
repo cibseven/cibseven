@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.deployment.war;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.cdi.impl.util.ProgrammaticBeanLookup;
@@ -26,20 +28,20 @@ import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.cibseven.bpm.integrationtest.util.TestHelper;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Roman Smirnov
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TestResourceName extends AbstractFoxPlatformIntegrationTest {
 
   public final static String PROCESSES_XML =
@@ -150,29 +152,29 @@ public class TestResourceName extends AbstractFoxPlatformIntegrationTest {
   @Test
   public void testResourceName() {
     ProcessEngine processEngine = ProgrammaticBeanLookup.lookup(ProcessEngine.class);
-    Assert.assertNotNull(processEngine);
+    Assertions.assertNotNull(processEngine);
 
     RepositoryService repositoryService = processEngine.getRepositoryService();
 
     ProcessDefinitionQuery query = repositoryService.createProcessDefinitionQuery();
 
     ProcessDefinition definition = query.processDefinitionKey("process-0").singleResult();
-    Assert.assertEquals("process0.bpmn", definition.getResourceName());
+    assertThat(definition.getResourceName()).isEqualTo("process0.bpmn");
 
     definition = query.processDefinitionKey("process-1").singleResult();
-    Assert.assertEquals("processes/process1.bpmn", definition.getResourceName());
+    assertThat(definition.getResourceName()).isEqualTo("processes/process1.bpmn");
 
     definition = query.processDefinitionKey("process-2").singleResult();
-    Assert.assertEquals("process2.bpmn", definition.getResourceName());
+    assertThat(definition.getResourceName()).isEqualTo("process2.bpmn");
 
     definition = query.processDefinitionKey("process-3").singleResult();
-    Assert.assertEquals("subDirectory/process3.bpmn", definition.getResourceName());
+    assertThat(definition.getResourceName()).isEqualTo("subDirectory/process3.bpmn");
 
     definition = query.processDefinitionKey("process-4").singleResult();
-    Assert.assertEquals("process4.bpmn", definition.getResourceName());
+    assertThat(definition.getResourceName()).isEqualTo("process4.bpmn");
 
     definition = query.processDefinitionKey("process-5").singleResult();
-    Assert.assertEquals("subDirectory/process5.bpmn", definition.getResourceName());
+    assertThat(definition.getResourceName()).isEqualTo("subDirectory/process5.bpmn");
   }
 
 }

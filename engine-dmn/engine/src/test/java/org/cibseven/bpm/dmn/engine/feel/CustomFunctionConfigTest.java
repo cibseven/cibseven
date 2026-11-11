@@ -22,7 +22,7 @@ import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
 import org.cibseven.bpm.dmn.engine.test.DecisionResource;
 import org.cibseven.bpm.dmn.engine.test.DmnEngineTest;
 import org.cibseven.bpm.dmn.feel.impl.scala.function.FeelCustomFunctionProvider;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;

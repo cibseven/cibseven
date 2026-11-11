@@ -96,13 +96,12 @@ public class CamundaEngineProcessor {
   @Record(RUNTIME_INIT)
   protected void processEngineConfiguration(CamundaEngineRecorder recorder,
                                             BeanContainerBuildItem beanContainerBuildItem,
-                                            CamundaEngineConfig camundaEngineConfig,
                                             BuildProducer<ProcessEngineConfigurationBuildItem> configurationProducer) {
 
     BeanContainer beanContainer = beanContainerBuildItem.getValue();
     recorder.configureProcessEngineCdiBeans(beanContainer);
     RuntimeValue<ProcessEngineConfigurationImpl> processEngineConfiguration =
-        recorder.createProcessEngineConfiguration(beanContainer, camundaEngineConfig);
+        recorder.createProcessEngineConfiguration(beanContainer);
     configurationProducer.produce(new ProcessEngineConfigurationBuildItem(processEngineConfiguration));
   }
 

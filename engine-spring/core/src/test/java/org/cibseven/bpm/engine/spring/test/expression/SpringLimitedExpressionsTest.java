@@ -16,12 +16,16 @@
  */
 package org.cibseven.bpm.engine.spring.test.expression;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.fail;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.spring.test.SpringProcessEngineTestCase;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.springframework.test.context.ContextConfiguration;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -33,6 +37,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class SpringLimitedExpressionsTest extends SpringProcessEngineTestCase {
 
   @Deployment
+  @Test
   public void testLimitedBeansExposed() throws Exception {
     // Start process, which has a service-task which calls 'bean1', which is exposed
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("limitedExpressionProcess");

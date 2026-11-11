@@ -55,10 +55,16 @@ public class CycleBusinessCalendar implements BusinessCalendar {
       if (duedateDescription.startsWith("R")) {
         DurationHelper durationHelper = new DurationHelper(duedateDescription, startDate);
         durationHelper.setRepeatOffset(repeatOffset);
+        // see RepeatedHourUtil, skipped repetitions do not count
+        durationHelper.setSkipRepeatedHour(true);
         return durationHelper.getDateAfter(startDate);
       } else {
         CronTimer cronTimer = CronTimer.parse(duedateDescription, CronType.valueOf(cronType), supportLegacyQuartzSyntax);
-        return cronTimer.getDueDate(startDate == null ? ClockUtil.getCurrentTime() : startDate);
+        Date duedate = cronTimer.getDueDate(startDate == null ? ClockUtil.getCurrentTime() : startDate);
+        // see RepeatedHourUtil
+        Date endOfRepeatedHour = RepeatedHourUtil.getEndOfRepeatedHour(duedate);
+        // getDueDate is strictly after its argument, start just before the end to keep it a candidate
+        return endOfRepeatedHour == null ? duedate : cronTimer.getDueDate(new Date(endOfRepeatedHour.getTime() - 1));
       }
 
     }

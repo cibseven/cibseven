@@ -3,7 +3,7 @@
   <@lib.endpointInfo
       id = "getHistoricActivityInstancesCount"
       tag = "Historic Activity Instance"
-      summary = "Get List Count"
+      summary = "Get Historic Activity Instance List Count"
       desc = "Queries for the number of historic activity instances that fulfill the given parameters.
               Takes the same parameters as the [Get Historic Activity Instance](${docsUrl}/reference/rest/history/activity-instance/get-activity-instance-query/)  method." />
 

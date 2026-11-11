@@ -17,8 +17,8 @@
 package org.cibseven.bpm.model.bpmn;
 
 import org.cibseven.bpm.model.bpmn.instance.*;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 
@@ -31,7 +31,7 @@ public class DataObjectsTest {
 
   private static BpmnModelInstance modelInstance;
 
-  @BeforeClass
+  @BeforeAll
   public static void parseModel() {
     modelInstance = Bpmn.readModelFromStream(DataObjectsTest.class.getResourceAsStream("DataObjectTest.bpmn"));
   }

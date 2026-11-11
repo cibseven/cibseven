@@ -21,14 +21,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.cibseven.connect.ai.agent.impl.AgentConnectorImpl;
 import org.cibseven.connect.ai.agent.impl.AgentConnectorException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class AgentConnectorTest {
 
   private AgentConnectorImpl connector;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     connector = new AgentConnectorImpl();
   }

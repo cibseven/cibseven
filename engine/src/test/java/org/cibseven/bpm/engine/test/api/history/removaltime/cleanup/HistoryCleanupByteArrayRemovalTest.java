@@ -36,24 +36,27 @@ import org.cibseven.bpm.engine.impl.history.event.HistoricJobLogEvent;
 import org.cibseven.bpm.engine.impl.jobexecutor.historycleanup.HistoryCleanupJobHandler;
 import org.cibseven.bpm.engine.impl.jobexecutor.historycleanup.HistoryCleanupRemovalTime;
 import org.cibseven.bpm.engine.impl.persistence.entity.ByteArrayEntity;
-import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.resources.GetByteArrayCommand;
 import org.cibseven.bpm.engine.test.util.EntityRemoveRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
+import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.RemoveAfter;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 @RequiredHistoryLevel(HISTORY_FULL)
 public class HistoryCleanupByteArrayRemovalTest {
 
-  private ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(config -> {
+  @RegisterExtension
+  @Order(1) private ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(config -> {
 
     config.setHistoryRemovalTimeStrategy(HISTORY_REMOVAL_TIME_STRATEGY_END)
         .setHistoryRemovalTimeProvider(new DefaultHistoryRemovalTimeProvider())
@@ -76,30 +79,27 @@ public class HistoryCleanupByteArrayRemovalTest {
     config.initHistoryCleanup();
   });
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
   protected EntityRemoveRule entityRemoveRule = EntityRemoveRule.ofLazyRule(() -> testRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule)
-      .around(engineRule)
-      .around(testRule)
-      .around(entityRemoveRule);
 
   private ManagementService managementService;
   private HistoryService historyService;
   private ProcessEngineConfigurationImpl engineConfiguration;
+  private ProcessEngine processEngine = null;
 
-  @Before
+  @BeforeEach
   public void init() {
-    ProcessEngine processEngine = bootstrapRule.getProcessEngine();
-
+    processEngine = engineRule.getProcessEngine();
     managementService = processEngine.getManagementService();
     historyService = processEngine.getHistoryService();
     engineConfiguration = (ProcessEngineConfigurationImpl) processEngine.getProcessEngineConfiguration();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     restoreCleanupJobHandler();
     testRule.deleteHistoryCleanupJobs();

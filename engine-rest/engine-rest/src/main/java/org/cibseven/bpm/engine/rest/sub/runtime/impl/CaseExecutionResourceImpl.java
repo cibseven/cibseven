@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.sub.runtime.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.engine.CaseService;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineException;
@@ -35,7 +35,7 @@ import org.cibseven.bpm.engine.runtime.CaseExecution;
 import org.cibseven.bpm.engine.runtime.CaseExecutionCommandBuilder;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 import java.util.List;
 import java.util.Map;
 

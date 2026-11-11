@@ -16,24 +16,25 @@
  */
 package org.cibseven.bpm.integrationtest.functional.classloading.jobexecution;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.List;
 
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * See CAM-10258
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class ClassloadingDuringJobExecutionTest extends AbstractFoxPlatformIntegrationTest {
   protected static String process =
       "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
@@ -81,8 +82,9 @@ public class ClassloadingDuringJobExecutionTest extends AbstractFoxPlatformInteg
     assertTrue(failedJobs.size() > 0);
     for (Job job : failedJobs) {
       String jobExceptionStacktrace = managementService.getJobExceptionStacktrace(job.getId());
-      assertFalse(jobExceptionStacktrace.contains("ClassNotFoundException"));
-      assertTrue(jobExceptionStacktrace.contains("Test error thrown"));
+      assertThat(jobExceptionStacktrace.contains("ClassNotFoundException")).isFalse();
+      
+      assertThat(jobExceptionStacktrace.contains("Test error thrown")).isTrue();
     }
     // clean up
     repositoryService.deleteDeployment(deploymentId, true);

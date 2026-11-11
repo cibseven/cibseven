@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.cmmn.operation;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.cibseven.bpm.engine.impl.cmmn.behavior.StageActivityBehavior;
 import org.cibseven.bpm.engine.impl.cmmn.execution.CmmnActivityExecution;
@@ -25,7 +25,7 @@ import org.cibseven.bpm.engine.impl.cmmn.handler.ItemHandler;
 import org.cibseven.bpm.engine.impl.cmmn.model.CaseDefinitionBuilder;
 import org.cibseven.bpm.engine.impl.cmmn.model.CmmnCaseDefinition;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov

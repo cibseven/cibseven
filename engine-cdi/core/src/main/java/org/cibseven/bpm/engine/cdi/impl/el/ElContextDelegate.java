@@ -17,10 +17,11 @@
 package org.cibseven.bpm.engine.cdi.impl.el;
 
 import java.util.Locale;
-import javax.el.ELContext;
-import javax.el.ELResolver;
-import javax.el.FunctionMapper;
-import javax.el.VariableMapper;
+import jakarta.el.ELContext;
+import jakarta.el.ELException;
+import jakarta.el.ELResolver;
+import jakarta.el.FunctionMapper;
+import jakarta.el.VariableMapper;
 
 /**
  * @author Daniel Meyer
@@ -28,11 +29,11 @@ import javax.el.VariableMapper;
  */
 public class ElContextDelegate extends ELContext {
 
-  protected final org.cibseven.bpm.impl.juel.jakarta.el.ELContext delegateContext;
+  protected final ELContext delegateContext;
 
   protected final ELResolver elResolver;
 
-  public ElContextDelegate(org.cibseven.bpm.impl.juel.jakarta.el.ELContext delegateContext, ELResolver elResolver) {
+  public ElContextDelegate(ELContext delegateContext, ELResolver elResolver) {
     this.delegateContext = delegateContext;
     this.elResolver = elResolver;
   }
@@ -89,6 +90,32 @@ public class ElContextDelegate extends ELContext {
   @Override
   public void setPropertyResolved(boolean resolved) {
     delegateContext.setPropertyResolved(resolved);
+  }
+
+  /**
+   * Asks this wrapper's resolver first, as {@link ELContext#convertToType(Object, Class)} does,
+   * then the wrapped context, which converts with JUEL on every EL API (CIB7-2609).
+   */
+  @Override
+  public <T> T convertToType(Object obj, Class<T> type) {
+    boolean propertyResolved = isPropertyResolved();
+    try {
+      setPropertyResolved(false);
+      ELResolver resolver = getELResolver();
+      if (resolver != null) {
+        T result = resolver.convertToType(this, obj, type);
+        if (isPropertyResolved()) {
+          return result;
+        }
+      }
+    } catch (ELException e) {
+      throw e;
+    } catch (RuntimeException e) {
+      throw new ELException(e);
+    } finally {
+      setPropertyResolved(propertyResolved);
+    }
+    return delegateContext.convertToType(obj, type);
   }
 
 }

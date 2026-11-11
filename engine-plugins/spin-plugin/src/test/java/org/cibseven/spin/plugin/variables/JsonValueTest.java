@@ -16,7 +16,13 @@
  */
 package org.cibseven.spin.plugin.variables;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.spin.DataFormats.json;
 import static org.cibseven.spin.plugin.variable.SpinValues.jsonValue;
 import static org.cibseven.spin.plugin.variable.type.SpinValueType.JSON;
@@ -43,6 +49,7 @@ import org.cibseven.spin.plugin.variable.value.JsonValue;
 import org.cibseven.spin.plugin.variable.value.builder.JsonValueBuilder;
 import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONAssert;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -61,6 +68,7 @@ public class JsonValueTest extends PluggableProcessEngineTestCase {
   protected String variableName = "x";
 
   @Deployment(resources = ONE_TASK_PROCESS)
+  @Test
   public void testGetUntypedJsonValue() throws JSONException {
     // given
     JsonValue jsonValue = jsonValue(jsonString).create();
@@ -77,6 +85,7 @@ public class JsonValueTest extends PluggableProcessEngineTestCase {
   }
 
   @Deployment(resources = ONE_TASK_PROCESS)
+  @Test
   public void testGetNullJsonValue() {
     // given
     JsonValue jsonValue = jsonValue((String) null).create();
@@ -92,6 +101,7 @@ public class JsonValueTest extends PluggableProcessEngineTestCase {
   }
 
   @Deployment(resources = ONE_TASK_PROCESS)
+  @Test
   public void testGetTypedJsonValue() throws JSONException {
     // given
     JsonValue jsonValue = jsonValue(jsonString).create();
@@ -113,6 +123,7 @@ public class JsonValueTest extends PluggableProcessEngineTestCase {
   }
 
   @Deployment(resources = ONE_TASK_PROCESS)
+  @Test
   public void testBrokenJsonSerialization() {
     // given
     JsonValue value = jsonValue(brokenJsonString).create();
@@ -128,6 +139,7 @@ public class JsonValueTest extends PluggableProcessEngineTestCase {
   }
 
   @Deployment(resources = ONE_TASK_PROCESS)
+  @Test
   public void testFailingDeserialization() {
     // given
     JsonValue value = jsonValue(brokenJsonString).create();
@@ -164,6 +176,7 @@ public class JsonValueTest extends PluggableProcessEngineTestCase {
   }
 
   @Deployment(resources = ONE_TASK_PROCESS)
+  @Test
   public void testFailForNonExistingSerializationFormat() {
     // given
     JsonValueBuilder builder = jsonValue(jsonString).serializationDataFormat("non existing data format");
@@ -191,6 +204,7 @@ public class JsonValueTest extends PluggableProcessEngineTestCase {
   }
 
   @Deployment(resources = "org/cibseven/spin/plugin/jsonConditionProcess.bpmn20.xml")
+  @Test
   public void testJsonValueInCondition() {
     // given
     String jsonString = "{\"age\": 22 }";
@@ -206,6 +220,7 @@ public class JsonValueTest extends PluggableProcessEngineTestCase {
   }
 
   @Deployment(resources = ONE_TASK_PROCESS)
+  @Test
   public void testTransientJsonValueFluent() {
     // given
     JsonValue jsonValue = jsonValue(jsonString).setTransient(true).create();
@@ -220,6 +235,7 @@ public class JsonValueTest extends PluggableProcessEngineTestCase {
   }
 
   @Deployment(resources = ONE_TASK_PROCESS)
+  @Test
   public void testTransientJsonValue() {
     // given
     JsonValue jsonValue = jsonValue(jsonString, true).create();
@@ -233,6 +249,7 @@ public class JsonValueTest extends PluggableProcessEngineTestCase {
     assertEquals(0, variableInstances.size());
   }
 
+  @Test
   public void testApplyValueInfoFromSerializedValue() {
     // given
     Map<String, Object> valueInfo = new HashMap<>();
@@ -250,6 +267,7 @@ public class JsonValueTest extends PluggableProcessEngineTestCase {
   /**
    * See https://app.camunda.com/jira/browse/CAM-9932
    */
+  @Test
   public void testTransientJsonSpinVariables() {
     // given
     BpmnModelInstance modelInstance = Bpmn.createExecutableProcess("aProcess")
@@ -269,6 +287,7 @@ public class JsonValueTest extends PluggableProcessEngineTestCase {
     assertThat(value).isNull();
   }
 
+  @Test
   public void testDeserializeTransientJsonValue() {
     // given
     BpmnModelInstance modelInstance = Bpmn.createExecutableProcess("foo")

@@ -5,22 +5,13 @@
   <parent>
     <groupId>org.cibseven.bpm.run</groupId>
     <artifactId>cibseven-bpm-run-root</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
 
   <artifactId>cibseven-bpm-run-core</artifactId>
   <name>CIB seven - Run - Core</name>
   <packaging>jar</packaging>
-
-  <properties>
-    <!-- generate a bom of compile time dependencies for the license book.
-    Note: Every compile time dependency will end up in the license book. Please
-    declare only dependencies that are actually needed -->
-    <skip-third-party-bom>false</skip-third-party-bom>
-    <!-- snakeyaml is in Spring Boot's runtime scope and then included in our uberjar -->
-    <third-party-bom-scopes>compile|runtime</third-party-bom-scopes>
-  </properties>
 
   <dependencies>
 
@@ -52,6 +43,18 @@
     <dependency>
       <groupId>org.cibseven.bpm.identity</groupId>
       <artifactId>cibseven-identity-scim</artifactId>
+      <!-- the plugin jar shades Jackson 2 (scimplugin.*); its dependency-reduced pom drops it, but
+           not inside a reactor build, where enforce-no-jackson2-in-rest would see Jackson 2 -->
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -62,6 +65,11 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
 
     <dependency>
@@ -88,22 +96,22 @@
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js</artifactId>
+      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js-scriptengine</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.ibm.icu</groupId>
+      <artifactId>icu4j</artifactId>
+      <version>${version.icu.icu4j}</version>
     </dependency>
 
     <!-- Testing -->
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
 
@@ -118,11 +126,16 @@
         </exclusion>
       </exclusions>
     </dependency>
-    
-    <!-- Required to Run JUnit4 tests -->
+    <!-- TestRestTemplate moved to spring-boot-resttestclient in Spring Boot 4,
+         which requires spring-boot-restclient for RestTemplateBuilder -->
     <dependency>
-      <groupId>org.junit.vintage</groupId>
-      <artifactId>junit-vintage-engine</artifactId>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-restclient</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-resttestclient</artifactId>
       <scope>test</scope>
     </dependency>
 
@@ -147,6 +160,41 @@
             <goals>
               <goal>repackage</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- The REST API of Run uses Jackson 3 only (see cibseven-bpm-spring-boot-starter-rest).
+           Jackson 2 is no part of the core uberjar; the web client (internal/webapps/) and the
+           AI agent connector (configuration/userlib-ai/) bring their own Jackson 2 jars. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-no-jackson2-in-rest</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <fail>true</fail>
+              <rules>
+                <bannedDependencies>
+                  <searchTransitive>true</searchTransitive>
+                  <excludes>
+                    <exclude>org.springframework.boot:spring-boot-jackson2</exclude>
+                    <exclude>org.glassfish.jersey.media:jersey-media-json-jackson</exclude>
+                    <exclude>com.fasterxml.jackson.core:jackson-databind</exclude>
+                  </excludes>
+                  <message>
+                    The REST API of Run uses Jackson 3 (tools.jackson) only. Jackson 2 came back into
+                    the dependency graph of the Run core: exclude spring-boot-jackson2 and
+                    jersey-media-json-jackson from spring-boot-starter-jersey, and Jackson 2 databind
+                    at the dependency that brings it.
+                  </message>
+                </bannedDependencies>
+              </rules>
+            </configuration>
           </execution>
         </executions>
       </plugin>

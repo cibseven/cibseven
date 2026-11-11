@@ -22,17 +22,17 @@ import static org.cibseven.bpm.engine.authorization.Permissions.READ_INSTANCE;
 import static org.cibseven.bpm.engine.authorization.Resources.DEPLOYMENT;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_INSTANCE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import org.cibseven.bpm.engine.management.DeploymentStatistics;
 import org.cibseven.bpm.engine.management.DeploymentStatisticsQuery;
 import org.cibseven.bpm.engine.management.IncidentStatistics;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -49,7 +49,7 @@ public class DeploymentStatisticsAuthorizationTest extends AuthorizationTest {
   protected String thirdDeploymentId;
 
   @Override
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     firstDeploymentId = createDeployment("first", "org/cibseven/bpm/engine/test/api/authorization/oneIncidentProcess.bpmn20.xml").getId();
     secondDeploymentId = createDeployment("second", "org/cibseven/bpm/engine/test/api/authorization/timerStartEventProcess.bpmn20.xml").getId();
@@ -58,7 +58,7 @@ public class DeploymentStatisticsAuthorizationTest extends AuthorizationTest {
   }
 
   @Override
-  @After
+  @AfterEach
   public void tearDown() {
     super.tearDown();
     deleteDeployment(firstDeploymentId);
@@ -796,16 +796,16 @@ public class DeploymentStatisticsAuthorizationTest extends AuthorizationTest {
   // helper ///////////////////////////////////////////////////////////////////////////
 
   protected void verifyStatisticsResult(DeploymentStatistics statistics, int instances, int failedJobs, int incidents) {
-    assertEquals("Instances", instances, statistics.getInstances());
-    assertEquals("Failed Jobs", failedJobs, statistics.getFailedJobs());
+    assertEquals(instances, statistics.getInstances(), "Instances");
+    assertEquals(failedJobs, statistics.getFailedJobs(), "Failed Jobs");
 
     List<IncidentStatistics> incidentStatistics = statistics.getIncidentStatistics();
     if (incidents == 0) {
-      assertTrue("Incidents supposed to be empty", incidentStatistics.isEmpty());
+      assertTrue(incidentStatistics.isEmpty(), "Incidents supposed to be empty");
     }
     else {
       // the test does have only one type of incidents
-      assertEquals("Incidents", incidents, incidentStatistics.get(0).getIncidentCount());
+      assertEquals(incidents, incidentStatistics.get(0).getIncidentCount(), "Incidents");
     }
   }
 

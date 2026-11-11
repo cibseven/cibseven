@@ -1,19 +1,24 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base"
+    "config:recommended",
+    // TEMPORARY: the raw "dependencyDashboard": false option turned out to be unreliable (a
+    // Dependency Dashboard issue still got created once). This preset is the documented, more
+    // robust way to fully disable it. Remove this entry to re-enable the dashboard.
+    // ":disableDependencyDashboard"
   ],
-  "branchName": "{{{baseBranch}}}-{{{branchTopic}}}",
+  "branchPrefix": "renovate/",
   "addLabels": [
     "dependencies"
   ],
   "prConcurrentLimit": 10,
+  "prHourlyLimit": 5,
+  "reviewers": [
+    "fernando-m-g",
+    "vladgrind"
+  ],
   "baseBranchPatterns": [
-    "/!^master$/",
-    "7.24",
-    "7.23",
-    "7.22",
-    "7.21"
+    "main"
   ],
   "ignorePaths": [
     "**/qa/**"
@@ -21,9 +26,10 @@
   "vulnerabilityAlerts": {
     "enabled": false
   },
+  // TEMPORARY: lock file maintenance paused for the initial rollout
+  // To re-enable, set "enabled" back to true.
   "lockFileMaintenance": {
-    //"automerge": true // auto-merge will be activated in a second step
-    "enabled": true,
+    "enabled": false,
     "addLabels": [
       "automerge",
       "ci:e2e",
@@ -31,40 +37,48 @@
     ],
   },
   "packageRules": [
+    // Disable all packages by default; later rules explicitly re-enable trusted packages.
     {
       "matchPackageNames": [
-        "*",
-        "!/^org.springframework/",
-        "!/^org.apache.tomcat/",
-        "!/^commons-fileupload/",
-        "!/^org.apache.commons:commons-lang3/",
-        "!/^net.minidev:json-smart/",
-        "!/^com.jayway.jsonpath:json-path/",
-        "!/^org.apache.httpcomponents.client5/",
-        "!/^com.fasterxml.uuid/",
-        "!/^com.fasterxml.jackson/",
-        "!/^org.camunda.feel/",
-        "!/^io.quarkus/",
-        "!/^ch.qos.logback/",
-        "!/^org.graalvm/",
-        "!/^com.google.code.gson/",
-        "!/^org.postgresql/",
-        "!/^com.h2database/",
-        "!/^com.mysql/",
-        "!/^org.jboss.resteasy/",
-        "!/^org.apache.groovy/"
+        "*"
       ],
       "enabled": false
     },
+    // Re-enable only the trusted dependency families.
     {
-      //"automerge": true // auto-merge will be activated in a second step
+      "matchPackageNames": [
+        "/^org.springframework/",
+        "/^org.apache.tomcat/",
+        "/^commons-fileupload/",
+        "/^org.apache.commons:commons-lang3/",
+        "/^net.minidev:json-smart/",
+        "/^com.jayway.jsonpath:json-path/",
+        "/^org.apache.httpcomponents.client5/",
+        "/^org.apache.httpcomponents.core5/",
+        "/^com.fasterxml.uuid/",
+        "/^com.fasterxml.jackson/",
+        "/^org.camunda.feel/",
+        "/^io.quarkus/",
+        "/^ch.qos.logback/",
+        "/^org.graalvm/",
+        "/^com.google.code.gson/",
+        "/^org.postgresql/",
+        "/^com.h2database/",
+        "/^com.mysql/",
+        "/^org.jboss.resteasy/",
+        "/^org.apache.groovy/"
+      ],
+      "enabled": true
+    },
+    // Add labels to eligible patch PRs; the automerge label is consumed by the auto-merge workflow.
+    {
       "matchUpdateTypes": [
         "patch"
       ],
       "addLabels": [
-        "automerge",
-        "ci:all"
-      ],
+        "ci:default-build",
+        "automerge"
+      ]
     },
     {
       "matchUpdateTypes": [
@@ -74,8 +88,20 @@
       "addLabels": [
         "ci:all"
       ],
-      "automerge": false,
       "dependencyDashboardApproval": true
+    },
+    {
+      "matchPackageNames": [
+        "org.cibseven:release-parent"
+      ],
+      "matchDepTypes": [
+        "parent"
+      ],
+      "enabled": true,
+      "addLabels": [
+        "ci:default-build",
+        "automerge"
+      ]
     }
   ]
 }

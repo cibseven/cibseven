@@ -20,7 +20,9 @@ import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.spring.test.SpringProcessEngineTestCase;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.springframework.test.context.ContextConfiguration;
-
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Joram Barrez
@@ -29,6 +31,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class ServiceTaskSpringDelegationTest extends SpringProcessEngineTestCase {
   
   @Deployment
+  @Test
   public void testDelegateExpression() {
     ProcessInstance procInst = runtimeService.startProcessInstanceByKey("delegateExpressionToSpringBean");
     assertEquals("Activiti BPMN 2.0 process engine", runtimeService.getVariable(procInst.getId(), "myVar"));
@@ -36,6 +39,7 @@ public class ServiceTaskSpringDelegationTest extends SpringProcessEngineTestCase
   }
 
   @Deployment
+  @Test
   public void testDelegateClass() {
     ProcessInstance procInst = runtimeService.startProcessInstanceByKey("delegateClassToSpringBean");
     assertEquals("Activiti BPMN 2.0 process engine", runtimeService.getVariable(procInst.getId(), "myVar"));
@@ -43,6 +47,7 @@ public class ServiceTaskSpringDelegationTest extends SpringProcessEngineTestCase
   }
 
   @Deployment
+  @Test
   public void testDelegateClassNotABean() {
     ProcessInstance procInst = runtimeService.startProcessInstanceByKey("delegateClassToSpringBean");
     assertEquals("DelegateClassNotABean was called", runtimeService.getVariable(procInst.getId(), "message"));
@@ -50,12 +55,14 @@ public class ServiceTaskSpringDelegationTest extends SpringProcessEngineTestCase
   }
   
   @Deployment
+  @Test
   public void testMethodExpressionOnSpringBean() {
     ProcessInstance procInst = runtimeService.startProcessInstanceByKey("methodExpressionOnSpringBean");
     assertEquals("ACTIVITI BPMN 2.0 PROCESS ENGINE", runtimeService.getVariable(procInst.getId(), "myVar"));
   }
 
   @Deployment
+  @Test
   public void testExecutionAndTaskListenerDelegationExpression() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("executionAndTaskListenerDelegation");
     assertEquals("working", runtimeService.getVariable(processInstance.getId(), "executionListenerVar"));

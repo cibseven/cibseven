@@ -17,12 +17,12 @@
 package org.cibseven.spin.plugin.variables;
 
 import org.cibseven.bpm.engine.runtime.DeserializationTypeValidator;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
 
 public class JsonSerializationWithValidationTest extends JsonSerializationTest {
 
-  @Before
+  @BeforeEach
   public void setUpValidator() {
     DeserializationTypeValidator validatorMock = Mockito.mock(DeserializationTypeValidator.class);
     Mockito.when(validatorMock.validate(Mockito.anyString())).thenReturn(true);

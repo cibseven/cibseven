@@ -22,10 +22,10 @@ import java.util.logging.Logger;
 
 import javax.naming.NamingException;
 import javax.naming.Reference;
-import javax.resource.Referenceable;
-import javax.resource.spi.work.WorkException;
-import javax.resource.spi.work.WorkManager;
-import javax.resource.spi.work.WorkRejectedException;
+import jakarta.resource.Referenceable;
+import jakarta.resource.spi.work.WorkException;
+import jakarta.resource.spi.work.WorkManager;
+import jakarta.resource.spi.work.WorkRejectedException;
 
 import org.cibseven.bpm.container.ExecutorService;
 import org.cibseven.bpm.container.impl.threading.ra.inflow.JcaInflowExecuteJobsRunnable;

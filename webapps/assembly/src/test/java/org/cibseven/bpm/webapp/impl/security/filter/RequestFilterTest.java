@@ -21,15 +21,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  *
  * @author nico.rehwaldt
  */
-@RunWith(Parameterized.class)
 public class RequestFilterTest {
 
   protected static final String EMPTY_PATH = "";
@@ -39,22 +37,16 @@ public class RequestFilterTest {
 
   private Map<String, String> matchResult;
 
-  protected String applicationPath;
-
-  @Parameterized.Parameters
   public static Collection<String> data() {
     return Arrays.asList(EMPTY_PATH, CUSTOM_APP_PATH);
   }
 
-  public RequestFilterTest(String applicationPath) {
-    this.applicationPath = applicationPath;
-  }
-
-  @Test
-  public void shouldMatchMethod() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldMatchMethod(String applicationPath) {
 
     // given
-    matcher = newMatcher("/foo/bar", "POST", "PUT");
+    matcher = newMatcher(applicationPath, "/foo/bar", "POST", "PUT");
 
     // when
     matchResult = matcher.match("GET", applicationPath + "/foo/bar");
@@ -63,11 +55,12 @@ public class RequestFilterTest {
     assertThat(matchResult).isNull();
   }
 
-  @Test
-  public void shouldNotMatchUri() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldNotMatchUri(String applicationPath) {
 
     // given
-    matcher = newMatcher("/foo/bar", "GET");
+    matcher = newMatcher(applicationPath, "/foo/bar", "GET");
 
     // when
     matchResult = matcher.match("GET", applicationPath + "/not-matching/");
@@ -76,11 +69,12 @@ public class RequestFilterTest {
     assertThat(matchResult).isNull();
   }
 
-  @Test
-  public void shouldMatch() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldMatch(String applicationPath) {
 
     // given
-    matcher = newMatcher("/foo/bar", "GET");
+    matcher = newMatcher(applicationPath, "/foo/bar", "GET");
 
     // when
     matchResult = matcher.match("GET", applicationPath + "/foo/bar");
@@ -89,11 +83,12 @@ public class RequestFilterTest {
     assertThat(matchResult).isNotNull();
   }
 
-  @Test
-  public void shouldExtractNamedUriParts() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldExtractNamedUriParts(String applicationPath) {
 
     // given
-    matcher = newMatcher("/{foo}/{bar}", "GET");
+    matcher = newMatcher(applicationPath, "/{foo}/{bar}", "GET");
 
     // when
     matchResult = matcher.match("GET", applicationPath + "/foo/bar");
@@ -105,11 +100,12 @@ public class RequestFilterTest {
         .containsEntry("bar", "bar");
   }
 
-  @Test
-  public void shouldExtractNamedMatchAllUriPart() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void shouldExtractNamedMatchAllUriPart(String applicationPath) {
 
     // given
-    matcher = newMatcher("/{foo}/{bar:.*}", "GET");
+    matcher = newMatcher(applicationPath, "/{foo}/{bar:.*}", "GET");
 
     // when
     matchResult = matcher.match("GET", applicationPath + "/foo/bar/asdf/asd");
@@ -120,7 +116,7 @@ public class RequestFilterTest {
         .containsEntry("bar", "bar/asdf/asd");
   }
 
-  private RequestFilter newMatcher(String uri, String ... methods) {
+  private RequestFilter newMatcher(String applicationPath, String uri, String ... methods) {
     return new RequestFilter(uri, applicationPath, methods);
   }
 }

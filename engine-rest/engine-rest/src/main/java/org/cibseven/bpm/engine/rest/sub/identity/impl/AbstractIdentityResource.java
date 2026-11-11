@@ -16,13 +16,13 @@
  */
 package org.cibseven.bpm.engine.rest.sub.identity.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.authorization.Resource;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.impl.AbstractAuthorizedRestResource;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 /**
  * @author Daniel Meyer

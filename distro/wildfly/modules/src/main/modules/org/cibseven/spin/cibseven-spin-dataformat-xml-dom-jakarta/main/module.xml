@@ -1,16 +1,6 @@
-<module xmlns="urn:jboss:module:1.0" name="org.cibseven.spin.cibseven-spin-dataformat-xml-dom-jakarta">
-  <resources>
-    <resource-root path="cibseven-spin-dataformat-xml-dom-jakarta-@project.version@.jar" />
-  </resources>
-
-  <dependencies>
-    <module name="java.base" />
-    <module name="java.desktop" />
-    <module name="jakarta.xml.bind.api"/>
-    <module name="org.cibseven.spin.cibseven-spin-core" />
-    <module name="org.cibseven.commons.cibseven-commons-logging" />
-    <module name="org.cibseven.commons.cibseven-commons-utils" />
-    <module name="org.cibseven.commons.cibseven-commons-typed-values" />
-  </dependencies>
-
-</module>
+<!-- DEPRECATED: until CIB seven 2.x this module was named
+     org.cibseven.spin.cibseven-spin-dataformat-xml-dom-jakarta. The alias keeps deployments working
+     that still name it in a jboss-deployment-structure.xml or a MANIFEST "Dependencies:" entry;
+     change such references to org.cibseven.spin.cibseven-spin-dataformat-xml-dom.
+     module-alias needs urn:jboss:module:1.1 or later. -->
+<module-alias xmlns="urn:jboss:module:1.9" name="org.cibseven.spin.cibseven-spin-dataformat-xml-dom-jakarta" target-name="org.cibseven.spin.cibseven-spin-dataformat-xml-dom" />

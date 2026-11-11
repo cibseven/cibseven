@@ -18,7 +18,7 @@ package org.cibseven.bpm.run.test.config.identity;
 
 import org.cibseven.bpm.run.property.CamundaBpmRunAuthenticationProperties;
 import org.cibseven.bpm.run.test.AbstractRestTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;

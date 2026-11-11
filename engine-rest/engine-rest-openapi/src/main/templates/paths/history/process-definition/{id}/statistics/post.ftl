@@ -3,7 +3,7 @@
   <@lib.endpointInfo
       id = "queryHistoricActivityStatistics"
       tag = "Historic Process Definition"
-      summary = "Get Historic Activity Statistics (POST)"
+      summary = "Get Historic Activity Statistics"
       desc = "Retrieves historic statistics of a given process definition, grouped by activities.
               These statistics include the number of running activity instances and,
               optionally, the number of canceled activity instances, finished

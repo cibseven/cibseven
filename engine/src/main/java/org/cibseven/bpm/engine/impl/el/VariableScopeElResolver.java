@@ -21,13 +21,13 @@ import org.cibseven.bpm.engine.delegate.VariableScope;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.ExternalTaskActivityBehavior;
 import org.cibseven.bpm.engine.impl.cmmn.entity.runtime.CaseExecutionEntity;
 import org.cibseven.bpm.engine.impl.context.Context;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExternalTaskEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity;
-import java.beans.FeatureDescriptor;
-import java.util.Iterator;
+
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
+
 import java.util.List;
 
 
@@ -119,10 +119,6 @@ public class VariableScopeElResolver extends ELResolver {
 
   public Class< ? > getCommonPropertyType(ELContext arg0, Object arg1) {
     return Object.class;
-  }
-
-  public Iterator<FeatureDescriptor> getFeatureDescriptors(ELContext arg0, Object arg1) {
-    return null;
   }
 
   public Class< ? > getType(ELContext arg0, Object arg1, Object arg2) {

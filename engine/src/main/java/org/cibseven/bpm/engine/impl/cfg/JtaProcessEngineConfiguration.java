@@ -16,57 +16,12 @@
  */
 package org.cibseven.bpm.engine.impl.cfg;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.transaction.TransactionManager;
-import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
-import org.cibseven.bpm.engine.impl.cfg.jta.JtaTransactionContextFactory;
-import org.cibseven.bpm.engine.impl.interceptor.CommandInterceptor;
-import org.cibseven.bpm.engine.impl.interceptor.JtaTransactionInterceptor;
-
-
 /**
- * JTA-based implementation of the {@link AbstractTransactionProcessEngineConfiguration}
- *
- * @author Tom Baeyens
+ * @deprecated Use {@link JakartaTransactionProcessEngineConfiguration} instead.
+ *             This class extends it and is kept only so existing subclasses and
+ *             reflectively-instantiated {@code bpm-platform.xml} configurations
+ *             referencing {@code JtaProcessEngineConfiguration} keep working.
  */
-public class JtaProcessEngineConfiguration extends AbstractTransactionProcessEngineConfiguration {
-
-  private final static ConfigurationLogger LOG = ProcessEngineLogger.CONFIG_LOGGER;
-
-  protected TransactionManager transactionManager;
-
-  @Override
-  protected CommandInterceptor createTransactionInterceptor(boolean requiresNew) {
-    return new JtaTransactionInterceptor(transactionManager, requiresNew, this);
-  }
-
-  @Override
-  protected void initTransactionManager() {
-    if(transactionManager == null){
-      if(transactionManagerJndiName == null || transactionManagerJndiName.length() == 0) {
-        throw LOG.invalidConfigTransactionManagerIsNull();
-      }
-      try {
-        transactionManager = (TransactionManager) new InitialContext().lookup(transactionManagerJndiName);
-      } catch(NamingException e) {
-        throw LOG.invalidConfigCannotFindTransactionManger(transactionManagerJndiName+"'.", e);
-      }
-    }
-  }
-
-  @Override
-  protected void initTransactionContextFactory() {
-    if(transactionContextFactory == null) {
-      transactionContextFactory = new JtaTransactionContextFactory(transactionManager);
-    }
-  }
-
-  public TransactionManager getTransactionManager() {
-    return transactionManager;
-  }
-
-  public void setTransactionManager(TransactionManager transactionManager) {
-    this.transactionManager = transactionManager;
-  }
+@Deprecated
+public class JtaProcessEngineConfiguration extends JakartaTransactionProcessEngineConfiguration {
 }

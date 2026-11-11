@@ -16,29 +16,35 @@
  */
 package org.cibseven.bpm.engine.test.concurrency;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.OptimisticLockingException;
+import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.externaltask.LockedExternalTask;
+import org.cibseven.bpm.engine.history.HistoricExternalTaskLog;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cmd.FetchExternalTasksCmd;
 import org.cibseven.bpm.engine.impl.externaltask.TopicFetchInstruction;
 import org.cibseven.bpm.engine.test.Deployment;
+import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
+
+import org.junit.jupiter.api.Test;
+
 
 /**
  * @author Thorben Lindhauer
@@ -46,21 +52,22 @@ import org.junit.rules.RuleChain;
  */
 public class CompetingExternalTaskFetchingTest {
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule();
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule();
+  @RegisterExtension
+  @Order(7) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(9) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RuntimeService runtimeService;
+  protected HistoryService historyService;
 
-  @Before
+  @BeforeEach
   public void initializeServices() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     runtimeService = engineRule.getRuntimeService();
+    historyService = engineRule.getHistoryService();
   }
 
   public class ExternalTaskFetcherThread extends ControllableThread {
@@ -118,5 +125,53 @@ public class CompetingExternalTaskFetchingTest {
     assertEquals(0, thread2.fetchedTasks.size());
     // but does not fail with an OptimisticLockingException
     assertNull(thread2.exception);
+  }
+
+  @Deployment(resources = "org/cibseven/bpm/engine/test/concurrency/CompetingExternalTaskFetchingTest.testCompetingExternalTaskFetching.bpmn20.xml")
+  @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
+  @Test
+  public void testCompetingExternalTaskFetchingWritesFetchedLogOnlyForWinner() {
+    runtimeService.startProcessInstanceByKey("oneExternalTaskProcess");
+
+    ExternalTaskFetcherThread thread1 = new ExternalTaskFetcherThread("thread1", 5, "externalTaskTopic");
+    ExternalTaskFetcherThread thread2 = new ExternalTaskFetcherThread("thread2", 5, "externalTaskTopic");
+
+    thread1.startAndWaitUntilControlIsReturned();
+    thread2.startAndWaitUntilControlIsReturned();
+
+    thread1.proceedAndWaitTillDone();
+    thread2.proceedAndWaitTillDone();
+    assertEquals(1, thread1.fetchedTasks.size());
+    assertEquals(0, thread2.fetchedTasks.size());
+
+    // only the worker that got the lock is logged
+    List<HistoricExternalTaskLog> fetchedLogs = historyService.createHistoricExternalTaskLogQuery()
+        .fetchedLog()
+        .list();
+    assertEquals(1, fetchedLogs.size());
+    assertEquals("thread1", fetchedLogs.get(0).getWorkerId());
+  }
+
+  @Deployment(resources = "org/cibseven/bpm/engine/test/concurrency/CompetingExternalTaskFetchingTest.testCompetingExternalTaskFetching.bpmn20.xml")
+  @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
+  @Test
+  public void testFetchingConcurrentlyDeletedExternalTaskWritesNoFetchedLog() {
+    String processInstanceId = runtimeService.startProcessInstanceByKey("oneExternalTaskProcess").getId();
+
+    ExternalTaskFetcherThread thread = new ExternalTaskFetcherThread("thread1", 5, "externalTaskTopic");
+
+    // the thread selects the task and waits before flushing the lock
+    thread.startAndWaitUntilControlIsReturned();
+
+    // meanwhile the task is deleted
+    runtimeService.deleteProcessInstance(processInstanceId, null);
+
+    thread.proceedAndWaitTillDone();
+    assertNull(thread.exception);
+    assertEquals(0, thread.fetchedTasks.size());
+
+    // no 'fetched' entry after 'deleted'
+    assertEquals(0, historyService.createHistoricExternalTaskLogQuery().fetchedLog().count());
+    assertEquals(1, historyService.createHistoricExternalTaskLogQuery().deletionLog().count());
   }
 }

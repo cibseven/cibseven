@@ -27,11 +27,9 @@ import org.cibseven.bpm.engine.authorization.Permission;
 import org.cibseven.bpm.engine.authorization.Resources;
 import org.cibseven.bpm.engine.authorization.TaskPermissions;
 import org.cibseven.bpm.engine.identity.User;
-import org.cibseven.bpm.engine.impl.db.sql.DbSqlSessionFactory;
 import org.cibseven.bpm.engine.impl.errorcode.BuiltinExceptionCode;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
-import org.cibseven.bpm.engine.impl.test.RequiredDatabase;
 import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
@@ -39,11 +37,14 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
 
 import java.util.List;
 
@@ -53,29 +54,29 @@ import static org.cibseven.bpm.engine.authorization.Authorization.AUTH_TYPE_GRAN
 
 public class ExceptionBuiltinCodesTest {
 
-  @Rule
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
+  @RegisterExtension
+  @Order(7) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch("org.cibseven.bpm.engine.cmd")
       .level(Level.WARN);
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(engineTestRule);
 
   protected RuntimeService runtimeService;
   protected IdentityService identityService;
   protected AuthorizationService authorizationService;
 
-  @Before
+  @BeforeEach
   public void assignServices() {
     runtimeService = engineRule.getRuntimeService();
     identityService = engineRule.getIdentityService();
     authorizationService = engineRule.getAuthorizationService();
   }
 
-  @After
+  @AfterEach
   public void clear() {
     engineRule.getIdentityService().deleteUser("kermit");
     engineRule.getAuthorizationService().createAuthorizationQuery().list()
@@ -98,8 +99,8 @@ public class ExceptionBuiltinCodesTest {
 
     // when/then
     assertThatThrownBy(() -> runtimeService.startProcessInstanceByKey("process", businessKey))
-        .extracting("code")
-          .contains(BuiltinExceptionCode.COLUMN_SIZE_TOO_SMALL.getCode());
+      .satisfies(ex -> assertThat(ex)
+        .hasFieldOrPropertyWithValue("code", BuiltinExceptionCode.COLUMN_SIZE_TOO_SMALL.getCode()));
   }
 
   @Test
@@ -121,8 +122,8 @@ public class ExceptionBuiltinCodesTest {
 
     // when/then
     assertThatThrownBy(() -> authorizationService.saveAuthorization(authorizationTwo))
-        .extracting("code")
-        .contains(BuiltinExceptionCode.FALLBACK.getCode());
+        .satisfies(ex -> assertThat(ex)
+            .hasFieldOrPropertyWithValue("code", BuiltinExceptionCode.FALLBACK.getCode()));
     assertThat(loggingRule.getLog()).isEmpty();
   }
 
@@ -143,8 +144,10 @@ public class ExceptionBuiltinCodesTest {
     // when/then
     assertThatThrownBy(() -> identityService.saveUser(user2))
         .isInstanceOf(OptimisticLockingException.class)
-        .extracting("code")
-        .contains(BuiltinExceptionCode.OPTIMISTIC_LOCKING.getCode());
+        .satisfies(ex -> assertThat(ex)
+            .hasFieldOrPropertyWithValue("code", BuiltinExceptionCode.OPTIMISTIC_LOCKING.getCode()));
+
+    
   }
 
   @Test
@@ -183,8 +186,8 @@ public class ExceptionBuiltinCodesTest {
 
     assertThatThrownBy(() -> runtimeService.deleteProcessInstance(processInstanceId, ""))
         .isInstanceOf(ProcessEngineException.class)
-        .extracting("code")
-        .contains(BuiltinExceptionCode.FOREIGN_KEY_CONSTRAINT_VIOLATION.getCode());
+        .satisfies(ex -> assertThat(ex)
+            .hasFieldOrPropertyWithValue("code", BuiltinExceptionCode.FOREIGN_KEY_CONSTRAINT_VIOLATION.getCode()));
   }
 
   // helper ////////////////////////////////////////////////////////////////////////////////////////

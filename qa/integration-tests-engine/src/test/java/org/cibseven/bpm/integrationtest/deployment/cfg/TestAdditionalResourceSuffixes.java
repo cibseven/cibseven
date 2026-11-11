@@ -24,19 +24,18 @@ import org.cibseven.bpm.engine.repository.Resource;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * @author Sebastian Menski
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TestAdditionalResourceSuffixes extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -63,7 +62,7 @@ public class TestAdditionalResourceSuffixes extends AbstractFoxPlatformIntegrati
     ProcessDefinitionQuery processDefinitionQuery = repositoryService.createProcessDefinitionQuery()
       .processDefinitionKey("invoice-it");
 
-    assertEquals(1, processDefinitionQuery.count());
+    assertThat(processDefinitionQuery.count()).isEqualTo(1);
     ProcessDefinition processDefinition = processDefinitionQuery.singleResult();
 
     String deploymentId = repositoryService.createDeploymentQuery()
@@ -71,7 +70,7 @@ public class TestAdditionalResourceSuffixes extends AbstractFoxPlatformIntegrati
       .singleResult()
       .getId();
     List<Resource> deploymentResources = repositoryService.getDeploymentResources(deploymentId);
-    assertEquals(3, deploymentResources.size());
+    assertThat(deploymentResources.size()).isEqualTo(3);
   }
 
 }

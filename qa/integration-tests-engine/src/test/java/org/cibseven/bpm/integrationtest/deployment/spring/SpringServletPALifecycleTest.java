@@ -20,35 +20,39 @@ import org.cibseven.bpm.BpmPlatform;
 import org.cibseven.bpm.ProcessApplicationService;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
+import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class SpringServletPALifecycleTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
   public static WebArchive processArchive() {
-    return ShrinkWrap.create(WebArchive.class, "test.war")
+    WebArchive testJar = ShrinkWrap.create(WebArchive.class, "test.war")
       .addClass(AbstractFoxPlatformIntegrationTest.class)
       .addClass(CustomSpringServletProcessApplication.class)
       .addAsWebInfResource("org/cibseven/bpm/integrationtest/deployment/spring/SpringServletPALifecycleTest-context.xml", "applicationContext.xml")
-      .addAsLibraries(DeploymentHelper.getEngineSpring())
-      .addAsWebInfResource("org/cibseven/bpm/integrationtest/deployment/spring/web.xml", "web.xml");
+      .addAsLibraries(DeploymentHelper.getEngineSpring());
+    TestContainer.addContainerSpecificResourcesForNonPa(testJar);
+    // must come after the container resources, which bring a web.xml of their own
+    testJar.addAsWebInfResource("org/cibseven/bpm/integrationtest/deployment/spring/web.xml", "web.xml");
+    return testJar;
   }
 
   @Test
   public void test() {
     ProcessApplicationService processApplicationService = BpmPlatform.getProcessApplicationService();
-    Assert.assertNotNull(processApplicationService.getProcessApplicationInfo("pa"));
+    Assertions.assertNotNull(processApplicationService.getProcessApplicationInfo("pa"));
   }
 
 }

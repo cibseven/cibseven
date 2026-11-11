@@ -18,8 +18,8 @@ package org.cibseven.bpm.engine.test.standalone.history;
 
 import static org.cibseven.bpm.engine.ProcessEngineConfiguration.DB_SCHEMA_UPDATE_CREATE_DROP;
 import static org.cibseven.bpm.engine.ProcessEngineConfiguration.HISTORY_CLEANUP_STRATEGY_END_TIME_BASED;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,21 +57,15 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
 public class CustomHistoryLevelIncidentTest {
 
-  @Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
       new Object[]{ Arrays.asList(HistoryEventTypes.INCIDENT_CREATE) },
@@ -80,13 +74,10 @@ public class CustomHistoryLevelIncidentTest {
     });
   }
 
-  @Parameter(0)
-  public static List<HistoryEventTypes> eventTypes;
+  static CustomHistoryLevelIncident customHistoryLevelIncident = new CustomHistoryLevelIncident(null);
 
-  static CustomHistoryLevelIncident customHistoryLevelIncident = new CustomHistoryLevelIncident(eventTypes);
-
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
+  @RegisterExtension
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration -> {
     configuration.setJdbcUrl("jdbc:h2:mem:" + CustomHistoryLevelIncident.class.getSimpleName());
     List<HistoryLevel> levels = new ArrayList<>();
     levels.add(customHistoryLevelIncident);
@@ -94,13 +85,13 @@ public class CustomHistoryLevelIncidentTest {
     configuration.setHistory("aCustomHistoryLevelIncident");
     configuration.setDatabaseSchemaUpdate(DB_SCHEMA_UPDATE_CREATE_DROP);
   });
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
+  @RegisterExtension
+  @Order(5) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(7) protected MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
+  @RegisterExtension
+  @Order(9) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
   protected BatchMigrationHelper migrationHelper = new BatchMigrationHelper(engineRule, migrationRule);
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(migrationRule);
 
   protected HistoryService historyService;
   protected RuntimeService runtimeService;
@@ -110,6 +101,9 @@ public class CustomHistoryLevelIncidentTest {
   protected ProcessEngineConfigurationImpl configuration;
 
   DeploymentWithDefinitions deployment;
+  
+  // Field to store current test's eventTypes - set by each parameterized test
+  private List<HistoryEventTypes> eventTypes;
 
   public static String PROCESS_DEFINITION_KEY = "oneFailingServiceTaskProcess";
   public static BpmnModelInstance FAILING_SERVICE_TASK_MODEL  = Bpmn.createExecutableProcess(PROCESS_DEFINITION_KEY)
@@ -120,7 +114,7 @@ public class CustomHistoryLevelIncidentTest {
     .endEvent("end")
     .done();
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     runtimeService = engineRule.getRuntimeService();
     historyService = engineRule.getHistoryService();
@@ -128,12 +122,10 @@ public class CustomHistoryLevelIncidentTest {
     repositoryService = engineRule.getRepositoryService();
     taskService = engineRule.getTaskService();
     configuration = engineRule.getProcessEngineConfiguration();
-
-    customHistoryLevelIncident.setEventTypes(eventTypes);
     configuration.setHistoryCleanupStrategy(HISTORY_CLEANUP_STRATEGY_END_TIME_BASED);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     customHistoryLevelIncident.setEventTypes(null);
     if (deployment != null) {
@@ -162,9 +154,12 @@ public class CustomHistoryLevelIncidentTest {
     });
   }
 
-  @Test
-  public void testDeleteHistoricIncidentByProcDefId() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testDeleteHistoricIncidentByProcDefId(List<HistoryEventTypes> eventTypes) {
     // given
+    this.eventTypes = eventTypes;
+    customHistoryLevelIncident.setEventTypes(eventTypes);
     deployment = repositoryService.createDeployment().addModelInstance("process.bpmn", FAILING_SERVICE_TASK_MODEL).deployWithResult();
     String processDefinitionId = deployment.getDeployedProcessDefinitions().get(0).getId();
 
@@ -188,9 +183,12 @@ public class CustomHistoryLevelIncidentTest {
     assertEquals(0, incidents.size());
   }
 
-  @Test
-  public void testDeleteHistoricIncidentByBatchId() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testDeleteHistoricIncidentByBatchId(List<HistoryEventTypes> eventTypes) {
     // given
+    this.eventTypes = eventTypes;
+    customHistoryLevelIncident.setEventTypes(eventTypes);
     initBatchOperationHistoryTimeToLive();
     ClockUtil.setCurrentTime(DateUtils.addDays(new Date(), -11));
 
@@ -227,9 +225,12 @@ public class CustomHistoryLevelIncidentTest {
     assertEquals(0, incidents.size());
   }
 
-  @Test
-  public void testDeleteHistoricIncidentByJobDefinitionId() {
+  @ParameterizedTest
+  @MethodSource("data")
+  public void testDeleteHistoricIncidentByJobDefinitionId(List<HistoryEventTypes> eventTypes) {
     // given
+    this.eventTypes = eventTypes;
+    customHistoryLevelIncident.setEventTypes(eventTypes);
     BatchEntity batch = (BatchEntity) createFailingMigrationBatch();
 
     migrationHelper.completeSeedJobs(batch);

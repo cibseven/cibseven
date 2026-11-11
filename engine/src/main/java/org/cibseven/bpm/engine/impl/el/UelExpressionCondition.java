@@ -23,7 +23,9 @@ import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.VariableScope;
 import org.cibseven.bpm.engine.impl.Condition;
-import org.cibseven.bpm.impl.juel.jakarta.el.PropertyNotFoundException;
+
+import jakarta.el.PropertyNotFoundException;
+
 
 
 /**

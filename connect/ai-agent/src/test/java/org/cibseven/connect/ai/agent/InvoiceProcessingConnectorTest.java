@@ -24,8 +24,8 @@ import java.util.Map;
 
 import org.cibseven.connect.ai.agent.impl.AgentConnectorImpl;
 import org.cibseven.connect.ai.agent.impl.AgentResponseImpl;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Connector-level tests for the invoice processing scenario defined in
@@ -125,7 +125,7 @@ public class InvoiceProcessingConnectorTest {
 
   private StubbedAgentConnector connector;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     connector = new StubbedAgentConnector();
   }
@@ -181,7 +181,7 @@ public class InvoiceProcessingConnectorTest {
    * Verifies that the connector response contains the {@code output} parameter referenced
    * in the {@code camunda:outputParameter} section of {@code invoice-processing.bpmn}.
    * The chat log is no longer exposed via the response — it is written directly to the
-   * process variable named {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId>}.
+   * process variables named {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "~" + <eventSeq>}.
    */
   @Test
   public void shouldExposeOutputParamKeysMatchingBpmnOutputMapping() {

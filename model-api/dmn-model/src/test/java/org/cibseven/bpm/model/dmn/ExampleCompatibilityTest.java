@@ -41,19 +41,14 @@ import org.cibseven.bpm.model.dmn.instance.OutputEntry;
 import org.cibseven.bpm.model.dmn.instance.OutputValues;
 import org.cibseven.bpm.model.dmn.instance.Rule;
 import org.cibseven.bpm.model.dmn.instance.Text;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
 public class ExampleCompatibilityTest extends DmnModelTest {
 
   public static final String EXAMPLE_DMN = "org/cibseven/bpm/model/dmn/Example.dmn";
 
-  private final DmnModelInstance originalModelInstance;
-
-   @Parameterized.Parameters(name="Namespace: {0}")
    public static Collection<Object[]> parameters(){
      return Arrays.asList(new Object[][]{
          {Dmn.readModelFromStream(ExampleCompatibilityTest.class.getResourceAsStream("Example.dmn"))},
@@ -70,18 +65,10 @@ public class ExampleCompatibilityTest extends DmnModelTest {
      });
    }
 
-  public ExampleCompatibilityTest(DmnModelInstance originalModelInstance) {
-    this.originalModelInstance = originalModelInstance;
-  }
-
-  @Before
-  public void parseModel() {
-    modelInstance = originalModelInstance.clone();
-  }
-
-  @Test
-  public void shouldGetElements() {
-
+  @ParameterizedTest
+  @MethodSource("parameters")
+  public void shouldGetElements(DmnModelInstance modelInstanceParam) {
+    modelInstance = modelInstanceParam.clone();
     // Definitions
     Definitions definitions = modelInstance.getDefinitions();
     assertThat(definitions).isNotNull();

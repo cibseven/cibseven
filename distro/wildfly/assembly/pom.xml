@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.cibseven.bpm.wildfly</groupId>
     <artifactId>cibseven-wildfly</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cibseven-wildfly-assembly</artifactId>
@@ -17,24 +17,18 @@
     The assembly is installed to maven later in the reactor, if the integration tests pass successfully
   </description>
   
-  <properties>
-    <!-- generate a bom of compile time dependencies for the license book.
-    Note: Every compile time dependency will end up in the license book. Please
-    declare only dependencies that are actually needed -->
-    <skip-third-party-bom>false</skip-third-party-bom>
-  </properties>
 
   <dependencies>
     <dependency>
       <groupId>org.wildfly</groupId>
       <artifactId>wildfly-dist</artifactId>
       <version>${version.wildfly}</version>
-      <type>tar.gz</type>
+      <type>zip</type>
     </dependency>
 
     <dependency>
       <groupId>org.cibseven.bpm.javaee</groupId>
-      <artifactId>cibseven-ejb-client-jakarta</artifactId>
+      <artifactId>cibseven-ejb-client</artifactId>
     </dependency>
     
     <dependency>
@@ -54,17 +48,17 @@
 
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-cdi-jakarta</artifactId>
+      <artifactId>cibseven-engine-cdi</artifactId>
     </dependency>
     
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-spring-6</artifactId>
+      <artifactId>cibseven-engine-spring</artifactId>
     </dependency>
     
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-rest-jakarta</artifactId>
+      <artifactId>cibseven-engine-rest</artifactId>
       <classifier>classes</classifier>
       <version>${project.version}</version>
     </dependency>
@@ -113,10 +107,28 @@
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js</artifactId>
+      <version>${version.graal.js}</version>
+      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js-scriptengine</artifactId>
+      <version>${version.graal.js}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.graalvm.js</groupId>
+      <artifactId>js-language</artifactId>
+      <version>${version.graal.js}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>polyglot</artifactId>
+      <version>${version.graal.js}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.graalvm.sdk</groupId>
+      <artifactId>collections</artifactId>
+      <version>${version.graal.js}</version>
     </dependency>
 
     <dependency>

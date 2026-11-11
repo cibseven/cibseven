@@ -23,14 +23,14 @@ import static org.cibseven.spin.json.JsonTestConstants.EXAMPLE_JSON;
 import java.io.StringWriter;
 
 import org.cibseven.spin.impl.json.jackson.JacksonJsonNode;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class JsonJacksonTreeNodeTest {
 
   protected JacksonJsonNode jsonNode;
 
-  @Before
+  @BeforeEach
   public void parseJson() {
     jsonNode = S(EXAMPLE_JSON);
   }

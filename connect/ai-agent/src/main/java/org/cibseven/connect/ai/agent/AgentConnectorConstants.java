@@ -123,14 +123,72 @@ public final class AgentConnectorConstants {
   public static final String AGENT_CONNECTOR_FLAG_VARIABLE_NAME = "cibseven-connect-ai-agent";
 
   /**
-   * Prefix for the per-activity chat log process variable. The full variable
-   * name is {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId>}, so each service
+   * Prefix for the per-activity chat log process variables, so each service
    * task running the connector writes its own chat log without further
-   * configuration from the BPMN designer.
+   * configuration from the BPMN designer. The chat log of an activity is stored
+   * under {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> +
+   * AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR + <eventSeq>}, see
+   * {@link #AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR}.
    */
   public static final String AGENT_CONNECTOR_LOG_PREFIX = "cibseven-connect-ai-agent_";
 
+  /**
+   * Separates the activity id from the chunk number in a chat-log variable:
+   * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "~" + <eventSeq>}, with
+   * the {@code eventSeq} padded with zeros to ten digits, one variable per model call
+   * as a rule (precisely: per write, holding the events since the last one) holding its events, written once (CIB7-2156). A
+   * BPMN id cannot contain {@code ~}, so the activity id is everything before
+   * it; and {@code ~} is unreserved in a URL, so the name goes into a REST path
+   * such as {@code /process-instance/{id}/variables/{varName}} as it is.
+   *
+   * <p>How a reader puts an activity's chat log together, from all variables
+   * whose name starts with {@link #AGENT_CONNECTOR_LOG_PREFIX}:
+   * <ol>
+   *   <li>the activity id is the part of the name after the prefix and before
+   *       the last {@code ~}; a name without {@code ~} is the activity id
+   *       itself;</li>
+   *   <li>the variable without a suffix comes first: a log written before
+   *       chunking, by a version that rewrote the whole log on every event;</li>
+   *   <li>then the chunks, in the order of their suffix. The suffix is the
+   *       {@code eventSeq} padded with zeros to ten digits, such as
+   *       {@code ~0000000004} before {@code ~0000000010}, so the numeric order
+   *       and the order as text (REST, database, webclient) are the same. Each
+   *       holds a JSON array of events; concatenated they are the timeline.</li>
+   * </ol>
+   *
+   * <p>Concurrency: the numbering is one timeline only for invocations of an
+   * activity that follow each other. Two at the same time, such as parallel
+   * multi-instance or two branches reaching the same activity, each continue
+   * from what is committed and so name their chunk alike, as they wrote the one
+   * variable before. The second insert then fails on the engine's unique index
+   * {@code ACT_UNIQ_VARIABLE}, as the second update failed before, and the
+   * transaction of the second fails; run in a job, the job is retried. The
+   * engine reports that violation as an {@code OptimisticLockingException}
+   * on H2, MySQL, MariaDB, PostgreSQL, SQL Server and Oracle, and as a plain
+   * persistence error on DB2.
+   *
+   * <p>Compatibility: a reader that does not know the separator, such as a
+   * webclient from before this version, takes every chunk for a log of its own
+   * activity and shows one timeline per model call. Readers have to be updated
+   * together with the connector; a process instance running across the upgrade
+   * keeps its old variable and continues in chunks after it.
+   */
+  public static final String AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR = "~";
+
   // ── Chat memory defaults ──────────────────────────────────────────────────
+
+  /**
+   * Prefix for the per-{@code memoryId} chat-memory process variable. The full
+   * name is {@code AGENT_CONNECTOR_MEMORY_PREFIX + <memoryId>}.
+   *
+   * <p>Deliberately uses a {@code -memory_} infix rather than extending
+   * {@link #AGENT_CONNECTOR_LOG_PREFIX}: the webclient enumerates chat-log
+   * variables with {@code name.startsWith("cibseven-connect-ai-agent_")}, so a
+   * name under that prefix would surface memory blobs in the AI chat UI and be
+   * parsed as audit events.
+   */
+  public static final String AGENT_CONNECTOR_MEMORY_PREFIX =
+      "cibseven-connect-ai-agent-memory_";
 
   /**
    * Default sliding window size (number of messages) for the per-memory-id chat
@@ -138,6 +196,73 @@ public final class AgentConnectorConstants {
    * {@code chatMemoryMaxMessages} is provided.
    */
   public static final int DEFAULT_CHAT_MEMORY_MAX_MESSAGES = 20;
+
+  // ── Process context (declared process-variable block) ─────────────────────
+
+  /**
+   * Opening delimiter of the process-context block appended to the system
+   * prompt when {@code contextVariables} is configured.
+   *
+   * <p>The block is delimited rather than concatenated so the model can tell
+   * process data apart from the deployer's instruction. Any occurrence of this
+   * token (or {@link #CONTEXT_BLOCK_CLOSE}) inside a variable value is neutered
+   * by the renderer — otherwise a variable holding user- or document-sourced
+   * text could close the block early and have the remainder read as
+   * instructions.
+   */
+  public static final String CONTEXT_BLOCK_OPEN = "<process-context>";
+
+  /** Closing delimiter of the process-context block. See {@link #CONTEXT_BLOCK_OPEN}. */
+  public static final String CONTEXT_BLOCK_CLOSE = "</process-context>";
+
+  /**
+   * Maximum number of characters per context variable value, counted on the
+   * value itself, before escaping. At least what a string variable holds in the
+   * database (4000 characters, 2000 on Oracle), so a string variable always fits.
+   * A required value that is longer fails the activity, naming the variable and
+   * its length; an optional one is sent cut, which is visible both in the block
+   * and in the {@code context} audit event. JSON and XML object variables have no
+   * database limit, so for them this is the real cap.
+   */
+  public static final int DEFAULT_MAX_CONTEXT_VALUE_CHARS = 4000;
+
+  /**
+   * Maximum number of characters of the whole rendered process-context block.
+   * Variables that no longer fit are omitted from the tail, and the omission is
+   * stated in the block and recorded in the {@code context} audit event.
+   */
+  public static final int DEFAULT_MAX_CONTEXT_BLOCK_CHARS = 20000;
+
+  // ── Documents (files from variables as native LLM attachments) ────────────
+
+  /**
+   * Maximum size of a single document, in raw bytes before Base64 encoding.
+   * Checked before encoding because Base64 inflates by roughly a third and the
+   * encoded copy is what ends up in memory and on the wire.
+   *
+   * <p>A document that large in a prompt is nearly always a modelling mistake,
+   * and the failure should come from us rather than from a provider rejecting
+   * the request minutes later.
+   */
+  public static final int DEFAULT_MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
+
+  /** Maximum combined raw size of all documents attached to one invocation. */
+  public static final int DEFAULT_MAX_TOTAL_DOCUMENT_BYTES = 20 * 1024 * 1024;
+
+  /** Maximum number of documents attached to one invocation. */
+  public static final int DEFAULT_MAX_DOCUMENT_COUNT = 10;
+
+  /**
+   * Opening delimiter wrapped around a text document handed to the model.
+   * Text files are the one document kind that becomes prompt text rather than a
+   * typed attachment, so they need the same containment the process-context
+   * block gets; inlined raw, a document could close the block and pose as
+   * instructions.
+   */
+  public static final String DOCUMENT_BLOCK_OPEN = "<document";
+
+  /** Closing delimiter of a text document block. See {@link #DOCUMENT_BLOCK_OPEN}. */
+  public static final String DOCUMENT_BLOCK_CLOSE = "</document>";
 
   // ── instructionMode values ────────────────────────────────────────────────
 

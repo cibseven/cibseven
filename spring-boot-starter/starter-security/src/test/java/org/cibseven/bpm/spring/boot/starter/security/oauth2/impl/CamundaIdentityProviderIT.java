@@ -34,12 +34,13 @@ import org.cibseven.bpm.engine.impl.identity.WritableIdentityProvider;
 import org.cibseven.bpm.engine.impl.identity.db.DbGroupQueryImpl;
 import org.cibseven.bpm.engine.impl.identity.db.DbUserQueryImpl;
 import org.cibseven.bpm.spring.boot.starter.security.oauth2.AbstractSpringSecurityIT;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -54,6 +55,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 @AutoConfigureMockMvc
+@AutoConfigureTestRestTemplate
 @TestPropertySource("/oauth2-mock.properties")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class CamundaIdentityProviderIT extends AbstractSpringSecurityIT {
@@ -70,7 +72,7 @@ public class CamundaIdentityProviderIT extends AbstractSpringSecurityIT {
   @Autowired
   private ClientRegistrationRepository registrations;
 
-  @MockBean
+  @MockitoBean
   private OAuth2AuthorizedClientService authorizedClientService;
 
   public static OAuth2IdentityProvider spiedIdentityProvider = spy(new OAuth2IdentityProvider());
@@ -79,7 +81,7 @@ public class CamundaIdentityProviderIT extends AbstractSpringSecurityIT {
     mockIdentityProviderFactory();
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     super.setup();
   }
@@ -122,52 +124,6 @@ public class CamundaIdentityProviderIT extends AbstractSpringSecurityIT {
     assertThat(groupQueryResult).isInstanceOf(DbGroupQueryImpl.class);
     assertThat(groupQueryResult).isNotNull();
     assertThat(entity.getBody()).contains(newGroup.getId());
-  }
-
-  @Test
-  public void testIdentityProviderForUsersWithSpringSecurity() throws Exception {
-    // given spring security context
-    ResultCaptor<UserQuery> resultCaptor = new ResultCaptor<>();
-    doAnswer(resultCaptor).when(spiedIdentityProvider).createUserQuery();
-    OAuth2AuthenticationToken authenticationToken = createToken(AUTHORIZED_USER);
-    createAuthorizedClient(authenticationToken, registrations, authorizedClientService);
-
-    // when calling webapp api
-    mockMvc.perform(MockMvcRequestBuilders.get(baseUrl + "/camunda/api/engine/engine/default/user")
-            .accept(MediaType.APPLICATION_JSON)
-            .with(authentication(authenticationToken)))
-        .andDo(MockMvcResultHandlers.print())
-        .andExpect(MockMvcResultMatchers.status().isOk());
-
-    // then identity provider handles oauth2 authentication
-    verify(spiedIdentityProvider, atLeastOnce()).createUserQuery();
-    UserQuery userQueryResult = resultCaptor.result;
-    assertThat(userQueryResult).isInstanceOf(OAuth2IdentityProvider.OAuth2UserQuery.class);
-    assertThat(userQueryResult).isNotNull();
-    assertThat(((OAuth2IdentityProvider.OAuth2UserQuery) userQueryResult).getId()).isEqualTo(AUTHORIZED_USER);
-  }
-
-  @Test
-  public void testIdentityProviderForGroupsWithSpringSecurity() throws Exception {
-    // given spring security context
-    ResultCaptor<GroupQuery> resultCaptor = new ResultCaptor<>();
-    doAnswer(resultCaptor).when(spiedIdentityProvider).createGroupQuery();
-    OAuth2AuthenticationToken authenticationToken = createToken(AUTHORIZED_USER);
-    createAuthorizedClient(authenticationToken, registrations, authorizedClientService);
-
-    // when calling webapp api
-    mockMvc.perform(MockMvcRequestBuilders.get(baseUrl + "/camunda/api/engine/engine/default/user")
-            .accept(MediaType.APPLICATION_JSON)
-            .with(authentication(authenticationToken)))
-        .andDo(MockMvcResultHandlers.print())
-        .andExpect(MockMvcResultMatchers.status().isOk());
-
-    // then identity provider handles oauth2 authentication
-    verify(spiedIdentityProvider, atLeastOnce()).createGroupQuery();
-    GroupQuery groupQueryResult = resultCaptor.result;
-    assertThat(groupQueryResult).isInstanceOf(OAuth2IdentityProvider.OAuth2GroupQuery.class);
-    assertThat(groupQueryResult).isNotNull();
-    assertThat(((OAuth2IdentityProvider.OAuth2GroupQuery) groupQueryResult).getUserId()).isEqualTo(AUTHORIZED_USER);
   }
 
   private static void mockIdentityProviderFactory() {

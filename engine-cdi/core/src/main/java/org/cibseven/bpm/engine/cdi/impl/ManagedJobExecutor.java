@@ -19,7 +19,7 @@ package org.cibseven.bpm.engine.cdi.impl;
 import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
 
-import javax.enterprise.concurrent.ManagedExecutorService;
+import jakarta.enterprise.concurrent.ManagedExecutorService;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.ProcessEngineImpl;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;

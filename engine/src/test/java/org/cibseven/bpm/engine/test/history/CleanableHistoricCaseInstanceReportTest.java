@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.history;
 
-import static junit.framework.TestCase.fail;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 import java.util.List;
@@ -40,22 +40,24 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.AfterEach;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class CleanableHistoricCaseInstanceReportTest {
   private static final String FORTH_CASE_DEFINITION_KEY = "case";
   private static final String THIRD_CASE_DEFINITION_KEY = "oneTaskCase";
   private static final String SECOND_CASE_DEFINITION_KEY = "oneCaseTaskCase";
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(testRule).around(engineRule);
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected HistoryService historyService;
   protected RepositoryService repositoryService;
@@ -65,7 +67,7 @@ public class CleanableHistoricCaseInstanceReportTest {
 
   protected static final String CASE_DEFINITION_KEY = "one";
 
-  @Before
+  @BeforeEach
   public void setUp() {
     historyService = engineRule.getHistoryService();
     repositoryService = engineRule.getRepositoryService();
@@ -76,7 +78,7 @@ public class CleanableHistoricCaseInstanceReportTest {
     testRule.deploy("org/cibseven/bpm/engine/test/repository/one.cmmn");
   }
 
-  @After
+  @AfterEach
   public void cleanUp() {
     List<HistoricCaseInstance> instanceList = historyService.createHistoricCaseInstanceQuery().active().list();
     if (!instanceList.isEmpty()) {

@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.List;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.impl.ActivityStatisticsQueryImpl;
@@ -41,9 +41,9 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.repository.ProcessDefinitionQuery;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -51,7 +51,7 @@ import io.restassured.http.ContentType;
 
 public class StatisticsRestTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String PROCESS_DEFINITION_STATISTICS_URL = TEST_RESOURCE_ROOT_PATH + "/process-definition/statistics";
@@ -61,7 +61,7 @@ public class StatisticsRestTest extends AbstractRestServiceTest {
   private ActivityStatisticsQuery activityQueryMock;
   private ProcessDefinitionQuery processDefinitionQueryMock;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     setupProcessDefinitionStatisticsMock();
     setupActivityStatisticsMock();

@@ -43,7 +43,7 @@ import org.cibseven.bpm.engine.variable.context.VariableContext;
 import org.cibseven.bpm.model.dmn.Dmn;
 import org.cibseven.bpm.model.dmn.DmnModelInstance;
 import org.cibseven.commons.utils.IoUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Simple api test making sure the api methods are there and accept the right parameters

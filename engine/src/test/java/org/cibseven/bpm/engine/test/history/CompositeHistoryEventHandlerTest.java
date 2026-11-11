@@ -27,7 +27,7 @@ import org.cibseven.bpm.engine.impl.history.handler.CompositeHistoryEventHandler
 import org.cibseven.bpm.engine.impl.history.handler.DbHistoryEventHandler;
 import org.cibseven.bpm.engine.impl.history.handler.HistoryEventHandler;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Alexander Tyatenkov

@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.dto.runtime.modification;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
@@ -27,7 +27,7 @@ import org.cibseven.bpm.engine.runtime.ProcessInstanceModificationInstantiationB
 import org.cibseven.bpm.engine.runtime.ProcessInstantiationBuilder;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * @author Thorben Lindhauer

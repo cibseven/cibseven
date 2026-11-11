@@ -21,10 +21,8 @@ import org.cibseven.bpm.dmn.engine.test.DecisionResource;
 import org.cibseven.bpm.dmn.engine.test.DmnEngineTest;
 import org.cibseven.bpm.dmn.feel.impl.FeelException;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -32,11 +30,9 @@ import java.time.ZonedDateTime;
 import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public abstract class FeelBehavior extends DmnEngineTest {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   @Test
   @DecisionResource(resource = "mixed_variable_types.dmn")
@@ -133,7 +129,7 @@ public abstract class FeelBehavior extends DmnEngineTest {
     .hasSingleEntryTyped(Variables.stringValue("foo"));
   }
 
-  @Ignore("CAM-11319")
+  @Disabled("CAM-11319")
   @Test
   @DecisionResource(resource = "compare_dates_non_typed.dmn")
   public void shouldCompareJodaLocalDateTimes() {
@@ -145,7 +141,7 @@ public abstract class FeelBehavior extends DmnEngineTest {
     .hasSingleEntryTyped(Variables.stringValue("foo"));
   }
 
-  @Ignore("CAM-11319")
+  @Disabled("CAM-11319")
   @Test
   @DecisionResource(resource = "compare_dates_non_typed.dmn")
   public void shouldCompareJodaDateTimes() {
@@ -191,12 +187,9 @@ public abstract class FeelBehavior extends DmnEngineTest {
     getVariables()
       .putValue("date1", org.joda.time.LocalDate.parse("2020-01-17"));
 
-    // then
-    thrown.expectMessage("DMN-01005 Invalid value '2020-01-17' for clause with type 'date'.");
-    thrown.expect(DmnEngineException.class);
-
-    // when
-    evaluateDecision().getSingleEntry();
+    // then + when
+    DmnEngineException ex = assertThrows(DmnEngineException.class, () -> evaluateDecision().getSingleEntry());
+    org.assertj.core.api.Assertions.assertThat(ex.getMessage()).contains("DMN-01005 Invalid value '2020-01-17' for clause with type 'date'.");
   }
 
   @Test
@@ -206,13 +199,10 @@ public abstract class FeelBehavior extends DmnEngineTest {
     getVariables()
       .putValue("date1", LocalDate.parse("2020-01-17"));
 
-    // then
-    thrown.expectMessage("Unsupported type: 'java.time.LocalDate' " +
-      "cannot be converted to 'java.util.Date'");
-    thrown.expect(DmnEngineException.class);
-
-    // when
-    evaluateDecision().getSingleEntry();
+    // then + when
+    DmnEngineException ex = assertThrows(DmnEngineException.class, () -> evaluateDecision().getSingleEntry());
+    org.assertj.core.api.Assertions.assertThat(ex.getMessage()).contains("Unsupported type: 'java.time.LocalDate' ")
+      .contains("cannot be converted to 'java.util.Date'");
   }
 
   public static class Person {

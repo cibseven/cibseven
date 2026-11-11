@@ -23,10 +23,10 @@ import org.cibseven.bpm.engine.rest.dto.authorization.AuthorizationCreateDto;
 import org.cibseven.bpm.engine.rest.dto.authorization.AuthorizationDto;
 import org.cibseven.bpm.engine.rest.sub.authorization.AuthorizationResource;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.UriInfo;
 import java.util.List;
 
 /**
@@ -55,6 +55,11 @@ public interface AuthorizationRestService {
   @Produces(MediaType.APPLICATION_JSON)
   List<AuthorizationDto> queryAuthorizations(@Context UriInfo uriInfo,
       @QueryParam("firstResult") Integer firstResult, @QueryParam("maxResults") Integer maxResults);
+
+  @GET
+  @Path("/self")
+  @Produces(MediaType.APPLICATION_JSON)
+  List<AuthorizationDto> queryOwnAuthorizations(@Context UriInfo uriInfo);
 
   @GET
   @Path("/count")

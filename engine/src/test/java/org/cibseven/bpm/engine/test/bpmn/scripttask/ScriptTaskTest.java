@@ -20,11 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.impl.util.ReflectUtil.CAMUNDA_NAMESPACE;
 import static org.cibseven.bpm.engine.impl.util.ReflectUtil.CIBSEVEN_NAMESPACE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -42,7 +42,7 @@ import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.model.bpmn.Bpmn;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -669,6 +669,16 @@ public class ScriptTaskTest extends AbstractScriptTaskTest {
     // and not automatically stored as a process variable.
     assertNull(runtimeService.getVariable(pi.getId(), "scriptVar"));
     assertEquals("test123", runtimeService.getVariable(pi.getId(), "myVar"));
+  }
+
+  @org.cibseven.bpm.engine.test.Deployment(resources = {
+      "org/cibseven/bpm/engine/test/bpmn/scripttask/ScriptTaskTest.testGroovyScriptCanUseIcu.bpmn20.xml"
+  })
+  @Test
+  public void testGroovyScriptCanUseIcu() {
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("groovyIcuProcess");
+
+    assertEquals("LATIN CAPITAL LETTER A", runtimeService.getVariable(processInstance.getId(), "icuCharacterName"));
   }
 
   @org.cibseven.bpm.engine.test.Deployment

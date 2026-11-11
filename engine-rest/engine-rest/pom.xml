@@ -8,12 +8,11 @@
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-engine-rest-root</artifactId>
     <relativePath>../</relativePath>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <properties>
     <!-- pin tomcat version for engine-rest -->
-    <version.tomcat>7.0.50</version.tomcat>
     <rest.http.port>38080</rest.http.port>
     <javax.activation.version>1.1.1</javax.activation.version>
   </properties>
@@ -35,60 +34,41 @@
       <artifactId>commons-io</artifactId>
     </dependency>
 
+    <!-- Jackson 3 (versions from tools.jackson:jackson-bom, imported in the parent POM) -->
     <dependency>
-      <groupId>com.fasterxml.jackson.jaxrs</groupId>
-      <artifactId>jackson-jaxrs-json-provider</artifactId>
-      <!--
-      * Since version 2.10.0 this dependency comes with transitive Jakarta dependencies
-      * These trans-deps are directly included in JDKs <= Java 8 * For Java >= 9 compatible containers, we make sure to include these dependencies
-      -->
-      <exclusions>
-        <exclusion>
-          <groupId>jakarta.activation</groupId>
-          <artifactId>jakarta.activation-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>jakarta.xml.bind</groupId>
-          <artifactId>jakarta.xml.bind-api</artifactId>
-        </exclusion>
-      </exclusions>
+      <groupId>tools.jackson.jakarta.rs</groupId>
+      <artifactId>jackson-jakarta-rs-json-provider</artifactId>
     </dependency>
-
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
+      <groupId>tools.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
     </dependency>
+    <!-- Jackson 3 keeps the Jackson 2 annotations (com.fasterxml.jackson.annotation, 2.21) -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+    </dependency>
+
+    <dependency> <!-- https://github.com/jwtk/jjwt -->
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-api</artifactId>
+      <version>${version.jjwt}</version>
+    </dependency>
 
     <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jsr310</artifactId>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-impl</artifactId>
+      <version>${version.jjwt}</version>
     </dependency>
-    
-	<dependency> <!-- https://github.com/jwtk/jjwt -->
-	  <groupId>io.jsonwebtoken</groupId>
-	  <artifactId>jjwt-api</artifactId>
-	  <version>${version.jjwt}</version>
-	</dependency>
-	
-	<dependency>
-	  <groupId>io.jsonwebtoken</groupId>
-	  <artifactId>jjwt-impl</artifactId>
-	  <version>${version.jjwt}</version>
-	</dependency>
-	
-	<dependency>
-	  <groupId>io.jsonwebtoken</groupId>
-	  <artifactId>jjwt-jackson</artifactId> <!-- or jjwt-gson if Gson is preferred -->
-	  <version>${version.jjwt}</version>
-	</dependency>
+
+    <!-- JSON backend of jjwt: Gson, as jjwt has no Jackson 3 support (jjwt#1029) -->
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-gson</artifactId>
+      <version>${version.jjwt}</version>
+    </dependency>
 
     <!-- provided deps -->
-    <dependency>
-      <groupId>org.jboss.spec.javax.servlet</groupId>
-      <artifactId>jboss-servlet-api_3.0_spec</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-engine</artifactId>
@@ -108,16 +88,39 @@
     </dependency>
 
     <dependency>
-      <groupId>javax.activation</groupId>
-      <artifactId>activation</artifactId>
-      <version>${javax.activation.version}</version>
+      <groupId>jakarta.activation</groupId>
+      <artifactId>jakarta.activation-api</artifactId>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-impl</artifactId>
+      <groupId>jakarta.platform</groupId>
+      <artifactId>jakarta.jakartaee-api</artifactId>
+      <version>${version.jakarta-ee-spec}</version>
+      <scope>provided</scope>
+      <exclusions>
+        <!-- Exclude to prevent conflicts with explicit Jersey dependencies -->
+        <exclusion>
+          <groupId>jakarta.ws.rs</groupId>
+          <artifactId>jakarta.ws.rs-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+      <version>4.0.5</version>
       <scope>test</scope>
+    </dependency>
+
+    <!-- JAX-RS API. jakartaee-api 11 no longer bundles the API classes, so it is declared
+         explicitly; the version (4.0) comes from the Jakarta EE BOM imported in ../pom.xml.
+         The ee10-compatibility profile runs the tests against the 3.1 API instead. -->
+    <dependency>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+      <scope>provided</scope>
     </dependency>
 
     <!--
@@ -142,8 +145,21 @@
 
     <!-- test -->
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${version.junit5}</version>
       <scope>test</scope>
     </dependency>
 
@@ -162,6 +178,16 @@
       <version>${version.shrinkwrap.resolvers}</version>
       <scope>test</scope>
       <type>pom</type>
+      <exclusions>
+        <exclusion>
+          <groupId>org.jboss.spec.javax.ws.rs</groupId>
+          <artifactId>jboss-jaxrs-api_1.1_spec</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.spec.javax.ws.rs</groupId>
+          <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -175,16 +201,38 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- Source: https://mvnrepository.com/artifact/uk.org.webcompere/system-stubs-jupiter -->
     <dependency>
-      <groupId>uk.org.webcompere</groupId>
-        <artifactId>system-stubs-junit4</artifactId>
-        <version>2.1.3</version>
-       <scope>test</scope>
+        <groupId>uk.org.webcompere</groupId>
+        <artifactId>system-stubs-jupiter</artifactId>
+        <version>2.1.8</version>
+        <scope>test</scope>
+    </dependency>
+    <!-- REST-assured (de)serializes request and response bodies with Jackson 2 -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <!-- Exclude to prevent Jersey version conflicts -->
+        <exclusion>
+          <groupId>org.glassfish.jersey.core</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.glassfish.jersey.inject</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.glassfish.jersey.media</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -203,19 +251,6 @@
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-test</artifactId>
-      <version>${version.spring.framework}</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.springframework</groupId>
-          <artifactId>spring-jcl</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <!-- Tomcat for resteasy and wink -->
@@ -251,15 +286,16 @@
     </dependency>
 
     <dependency>
-      <groupId>org.apache.tomcat.embed</groupId>
-      <artifactId>tomcat-embed-logging-juli</artifactId>
-      <version>${version.tomcat}</version>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${version.assertj}</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>5.12.0</version>
       <scope>test</scope>
     </dependency>
 
@@ -338,11 +374,6 @@
     <profile>
       <id>distro</id>
       <dependencies>
-        <dependency>
-          <groupId>org.jboss.spec.javax.ws.rs</groupId>
-          <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
-          <scope>provided</scope>
-        </dependency>
       </dependencies>
       <build>
         <plugins>
@@ -359,18 +390,11 @@
 
     <profile>
       <id>resteasy</id>
-      <properties>
-        <version.netty>4.1.42.Final</version.netty>
-      </properties>
+      <!-- RESTEasy (version.resteasy, parent pom): the JAX-RS 4.0 runtime of the WildFly we ship (version.wildfly) -->
       <dependencies>
         <dependency>
-          <groupId>org.jboss.spec.javax.ws.rs</groupId>
-          <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
-          <scope>provided</scope>
-        </dependency>
-        <dependency>
           <groupId>org.jboss.resteasy</groupId>
-          <artifactId>resteasy-jaxrs</artifactId>
+          <artifactId>resteasy-core</artifactId>
           <version>${version.resteasy}</version>
           <scope>test</scope>
           <exclusions>
@@ -380,17 +404,11 @@
             </exclusion>
           </exclusions>
         </dependency>
-
-        <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-all</artifactId>
-          <version>${version.netty}</version>
-          <scope>test</scope>
-        </dependency>
-
+        <!-- embedded server for the tests that run without a servlet container
+             (RESTEasy 7 no longer ships resteasy-netty4) -->
         <dependency>
           <groupId>org.jboss.resteasy</groupId>
-          <artifactId>resteasy-netty4</artifactId>
+          <artifactId>resteasy-undertow</artifactId>
           <version>${version.resteasy}</version>
           <scope>test</scope>
         </dependency>
@@ -466,27 +484,47 @@
       </activation>
       <dependencies>
         <dependency>
-          <groupId>javax.ws.rs</groupId>
-          <artifactId>javax.ws.rs-api</artifactId>
-          <version>2.0.1</version>
-          <scope>provided</scope>
-        </dependency>
-        <dependency>
           <groupId>org.glassfish.jersey.containers</groupId>
           <artifactId>jersey-container-grizzly2-http</artifactId>
-          <version>${version.jersey2}</version>
+          <version>${version.jersey}</version>
           <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>org.glassfish.jersey.containers</groupId>
           <artifactId>jersey-container-servlet</artifactId>
-          <version>${version.jersey2}</version>
+          <version>${version.jersey}</version>
           <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>org.glassfish.jersey.inject</groupId>
           <artifactId>jersey-hk2</artifactId>
-          <version>${version.jersey2}</version>
+          <version>${version.jersey}</version>
+          <scope>test</scope>
+        </dependency>
+        <!-- Jersey JAXB extension for proper JAXB integration -->
+        <dependency>
+          <groupId>org.glassfish.jersey.media</groupId>
+          <artifactId>jersey-media-jaxb</artifactId>
+          <version>${version.jersey}</version>
+          <scope>test</scope>
+        </dependency>
+        <!-- Force consistent Jersey core version -->
+        <dependency>
+          <groupId>org.glassfish.jersey.core</groupId>
+          <artifactId>jersey-server</artifactId>
+          <version>${version.jersey}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.glassfish.jersey.core</groupId>
+          <artifactId>jersey-common</artifactId>
+          <version>${version.jersey}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.glassfish.jersey.core</groupId>
+          <artifactId>jersey-client</artifactId>
+          <version>${version.jersey}</version>
           <scope>test</scope>
         </dependency>
       </dependencies>
@@ -556,25 +594,18 @@
     </profile>
 
     <profile>
-      <id>wildfly-compatibility</id>
+      <id>ee10-compatibility</id>
+      <!-- Runs the suite with the JAX-RS 3.1 API of Jakarta EE 10 and RESTEasy 6.2 (as in JBoss EAP 8.1)
+           on Tomcat 10.1. Proves that engine-rest, compiled against JAX-RS 4.0, still runs on a JAX-RS 3.1
+           runtime. Only the JAX-RS API is swapped: the other Jakarta APIs keep the versions of the build
+           (e.g. EL 6.0 via the engine), so this is not a complete Jakarta EE 10 stack. -->
       <properties>
-        <!-- Test with Resteasy version used by the oldest
-             Camunda-supported Wildfly/JBoss EAP version.
-             Currently, this is JBoss EAP 7.2. -->
-        <version.resteasy>3.6.1.SP2</version.resteasy>
-        <version.netty>4.1.42.Final</version.netty>
+        <version.resteasy>6.2.17.Final</version.resteasy>
       </properties>
-
       <dependencies>
         <dependency>
-          <groupId>org.jboss.spec.javax.ws.rs</groupId>
-          <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
-          <scope>provided</scope>
-        </dependency>
-
-        <dependency>
           <groupId>org.jboss.resteasy</groupId>
-          <artifactId>resteasy-jaxrs</artifactId>
+          <artifactId>resteasy-core</artifactId>
           <version>${version.resteasy}</version>
           <scope>test</scope>
           <exclusions>
@@ -584,18 +615,24 @@
             </exclusion>
           </exclusions>
         </dependency>
-
-        <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-all</artifactId>
-          <version>${version.netty}</version>
-          <scope>test</scope>
-        </dependency>
-
+        <!-- embedded server for the tests that run without a servlet container
+             (RESTEasy 7 no longer ships resteasy-netty4) -->
         <dependency>
           <groupId>org.jboss.resteasy</groupId>
-          <artifactId>resteasy-netty4</artifactId>
+          <artifactId>resteasy-undertow</artifactId>
           <version>${version.resteasy}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.tomcat.embed</groupId>
+          <artifactId>tomcat-embed-core</artifactId>
+          <version>${version.tomcat10}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.tomcat.embed</groupId>
+          <artifactId>tomcat-embed-jasper</artifactId>
+          <version>${version.tomcat10}</version>
           <scope>test</scope>
         </dependency>
       </dependencies>
@@ -604,6 +641,20 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <redirectTestOutputToFile>true</redirectTestOutputToFile>
+              <!-- Run on the JAX-RS 3.1 API although main and test code were compiled against 4.0 -->
+              <classpathDependencyExcludes>
+                <classpathDependencyExclude>jakarta.ws.rs:jakarta.ws.rs-api</classpathDependencyExclude>
+              </classpathDependencyExcludes>
+              <additionalClasspathDependencies>
+                <additionalClasspathDependency>
+                  <groupId>jakarta.ws.rs</groupId>
+                  <artifactId>jakarta.ws.rs-api</artifactId>
+                  <version>3.1.0</version>
+                </additionalClasspathDependency>
+              </additionalClasspathDependencies>
+            </configuration>
             <executions>
               <execution>
                 <id>encoding-test</id>
@@ -655,31 +706,6 @@
                 </configuration>
               </execution>
             </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>below-jdk17</id>
-      <activation>
-        <jdk>(,17)</jdk>
-      </activation>
-
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <testExcludes>
-                <exclude>**/AuthenticationFilterPathMatchingTest.java</exclude>
-                <exclude>**/JwtTokenAuthenticationProviderTest.java</exclude>
-                <exclude>**/ConfigurationTest.java</exclude>
-                <exclude>**/ConfigurationNoEnvTest.java</exclude>
-                <exclude>**/CompositeAuthenticationProviderTest.java</exclude>
-              </testExcludes>
-            </configuration>
           </plugin>
         </plugins>
       </build>

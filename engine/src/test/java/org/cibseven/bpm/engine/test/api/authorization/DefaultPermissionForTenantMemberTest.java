@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.api.authorization;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Collections;
 
@@ -30,11 +30,12 @@ import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 public class DefaultPermissionForTenantMemberTest {
 
@@ -42,18 +43,15 @@ public class DefaultPermissionForTenantMemberTest {
   protected static final String TENANT_TWO = "tenant2";
   protected static final String USER_ID = "user";
   protected static final String GROUP_ID = "group";
-
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected AuthorizationService authorizationService;
   protected IdentityService identityService;
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
-
-  @Before
+  @BeforeEach
   public void init() {
     identityService = engineRule.getIdentityService();
     authorizationService = engineRule.getAuthorizationService();
@@ -69,7 +67,7 @@ public class DefaultPermissionForTenantMemberTest {
     engineRule.getProcessEngineConfiguration().setAuthorizationEnabled(true);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     identityService.clearAuthentication();
 

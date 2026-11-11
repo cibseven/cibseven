@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-bom-root</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
     <relativePath>../</relativePath>
   </parent>
 
@@ -30,19 +30,10 @@
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-engine-cdi-jakarta</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-engine-spring</artifactId>
         <version>${project.version}</version>
       </dependency>
-      <dependency>
-        <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-engine-spring-6</artifactId>
-        <version>${project.version}</version>
-      </dependency>
+      <!-- relocation POM only, points to cibseven-engine-spring; to be removed -->
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-engine-spring-7</artifactId>
@@ -51,11 +42,6 @@
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-engine-rest-core</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-engine-rest-core-jakarta</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -81,11 +67,6 @@
       <dependency>
         <groupId>org.cibseven.bpm.javaee</groupId>
         <artifactId>cibseven-ejb-client</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.cibseven.bpm.javaee</groupId>
-        <artifactId>cibseven-ejb-client-jakarta</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -120,41 +101,9 @@
         <classifier>classes</classifier>
       </dependency>
       <dependency>
-        <groupId>org.cibseven.bpm</groupId>
-        <artifactId>cibseven-engine-rest-jakarta</artifactId>
-        <version>${project.version}</version>
-        <classifier>classes</classifier>
-      </dependency>
-      <dependency>
         <groupId>org.cibseven.bpm.webapp</groupId>
         <artifactId>cibseven-webapp-webjar</artifactId>
         <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.cibseven.bpm.webapp</groupId>
-        <artifactId>cibseven-webapp</artifactId>
-        <version>${project.version}</version>
-        <type>war</type>
-      </dependency>
-      <dependency>
-        <groupId>org.cibseven.bpm.webapp</groupId>
-        <artifactId>cibseven-webapp-jakarta</artifactId>
-        <version>${project.version}</version>
-        <type>war</type>
-      </dependency>
-      <dependency>
-        <groupId>org.cibseven.bpm.webapp</groupId>
-        <artifactId>cibseven-webapp</artifactId>
-        <version>${project.version}</version>
-        <type>jar</type>
-        <classifier>classes</classifier>
-      </dependency>
-      <dependency>
-        <groupId>org.cibseven.bpm.webapp</groupId>
-        <artifactId>cibseven-webapp-jakarta</artifactId>
-        <version>${project.version}</version>
-        <type>jar</type>
-        <classifier>classes</classifier>
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm.webapp</groupId>
@@ -178,6 +127,11 @@
       </dependency>
       <dependency>
         <groupId>org.cibseven.bpm.springboot</groupId>
+        <artifactId>cibseven-bpm-spring-boot-starter-webapp-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.cibseven.bpm.springboot</groupId>
         <artifactId>cibseven-bpm-spring-boot-starter-security</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -192,7 +146,8 @@
         <version>${project.version}</version>
       </dependency>
 
-      <!-- Spring Boot 4 Starter artifacts -->
+      <!-- Former Spring Boot 4 Starter artifacts (suffix -4): relocation POMs only, they point
+           to the unsuffixed artifacts above. Kept so existing builds keep resolving; to be removed. -->
       <dependency>
         <groupId>org.cibseven.bpm.springboot</groupId>
         <artifactId>cibseven-bpm-spring-boot-starter-4</artifactId>
@@ -298,6 +253,12 @@
       <dependency>
         <groupId>org.cibseven.bpm</groupId>
         <artifactId>cibseven-external-task-client</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <!-- deprecated Jackson 2 variant of cibseven-external-task-client, removed in 3.1.0; never use both -->
+      <dependency>
+        <groupId>org.cibseven.bpm</groupId>
+        <artifactId>cibseven-external-task-client-jackson2</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

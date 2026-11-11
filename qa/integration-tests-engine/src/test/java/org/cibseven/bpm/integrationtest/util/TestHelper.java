@@ -23,15 +23,18 @@ import org.cibseven.bpm.engine.impl.util.IoUtil;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.asset.ByteArrayAsset;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-
-import static org.junit.Assert.*;
 
 
 public abstract class TestHelper {
@@ -63,7 +66,7 @@ public abstract class TestHelper {
 
   public static void assertDiagramIsDeployed(boolean deployed, Class<?> clazz, String expectedDiagramResource, String processDefinitionKey) throws IOException {
     ProcessEngine processEngine = ProgrammaticBeanLookup.lookup(ProcessEngine.class);
-    Assert.assertNotNull(processEngine);
+    Assertions.assertNotNull(processEngine);
     RepositoryService repositoryService = processEngine.getRepositoryService();
     ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery()
       .processDefinitionKey(processDefinitionKey)
@@ -84,7 +87,7 @@ public abstract class TestHelper {
         byte[] expectedDiagram = IoUtil.readInputStream(expectedStream, "expectedSteam");
         assertNotNull(expectedDiagram);
 
-        assertTrue(isEqual(expectedStream, actualStream));
+        assertThat(isEqual(expectedStream, actualStream)).isTrue();
       } else {
         assertNull(actualStream);
       }

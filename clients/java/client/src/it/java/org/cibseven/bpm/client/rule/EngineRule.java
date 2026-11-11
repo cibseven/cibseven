@@ -63,13 +63,16 @@ import org.cibseven.bpm.engine.variable.value.SerializableValue;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
-public class EngineRule extends ExternalResource {
+public class EngineRule implements BeforeEachCallback, AfterEachCallback {
 
   protected static final String URI_DEPLOYMEN_CREATE = "%s/deployment/create";
   protected static final String URI_DEPLOYMENT_DELETE = "%s/deployment/%s";
@@ -99,10 +102,12 @@ public class EngineRule extends ExternalResource {
 
   public EngineRule(Supplier<Properties> properties) {
     this.properties = properties.get();
+    initializeHttpClient();
+    initializeObjectMapper();
   }
 
   @Override
-  protected void before() throws Throwable {
+public void beforeEach(ExtensionContext context) {
     deployments.clear();
 
     initializeHttpClient();
@@ -110,7 +115,7 @@ public class EngineRule extends ExternalResource {
   }
 
   @Override
-  protected void after() {
+public void afterEach(ExtensionContext context) {
     cleanEngine();
   }
 
@@ -122,10 +127,11 @@ public class EngineRule extends ExternalResource {
 
   protected void initializeObjectMapper() {
     if (objectMapper == null) {
-      objectMapper = new ObjectMapper();
-      objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
-      objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-      objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+      objectMapper = JsonMapper.builderWithJackson2Defaults()
+          .defaultDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ"))
+          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+          .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+          .build();
     }
   }
 

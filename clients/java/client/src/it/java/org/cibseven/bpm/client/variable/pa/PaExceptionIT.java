@@ -23,7 +23,7 @@ import org.cibseven.bpm.client.exception.BadRequestException;
 import org.cibseven.bpm.client.exception.EngineException;
 import org.cibseven.bpm.client.exception.NotFoundException;
 import org.cibseven.bpm.client.exception.UnknownHttpErrorException;
-import org.cibseven.bpm.client.rule.ClientRule;
+import org.cibseven.bpm.client.rule.ClientExtension;
 import org.cibseven.bpm.client.rule.EngineRule;
 import org.cibseven.bpm.client.task.ExternalTask;
 import org.cibseven.bpm.client.task.ExternalTaskService;
@@ -31,11 +31,9 @@ import org.cibseven.bpm.client.task.impl.ExternalTaskImpl;
 import org.cibseven.bpm.client.util.RecordingExternalTaskHandler;
 import org.cibseven.bpm.client.util.RecordingInvocationHandler;
 import org.cibseven.bpm.client.util.RecordingInvocationHandler.RecordedInvocation;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +52,7 @@ public class PaExceptionIT {
 
   private static final String PROCESS_DEFINITION_KEY = "KYsKNUbyVawGRt6H";
 
-  protected ClientRule clientRule = new ClientRule(() -> {
+  protected ClientExtension clientRule = new ClientExtension(() -> {
     Properties properties = loadProperties(DEFAULT_PROPERTIES_PATH);
     String baseUrl = properties.getProperty(CAMUNDA_ENGINE_REST) + ENGINE_NAME;
     return ExternalTaskClient.create()
@@ -69,9 +67,6 @@ public class PaExceptionIT {
     return properties;
   });
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule);
-
   protected ExternalTaskClient client;
 
   protected List<ProcessInstanceDto> processInstances = new ArrayList<>();
@@ -79,7 +74,7 @@ public class PaExceptionIT {
   protected RecordingExternalTaskHandler handler = new RecordingExternalTaskHandler();
   protected RecordingInvocationHandler invocationHandler = new RecordingInvocationHandler();
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     client = clientRule.client();
 
@@ -90,7 +85,7 @@ public class PaExceptionIT {
     invocationHandler.clear();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processInstances.forEach(processInstance -> {
       String processInstanceId = processInstance.getId();

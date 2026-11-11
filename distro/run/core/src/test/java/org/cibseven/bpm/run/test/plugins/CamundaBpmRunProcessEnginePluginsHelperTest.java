@@ -27,7 +27,7 @@ import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.run.property.CamundaBpmRunProcessEnginePluginProperty;
 import org.cibseven.bpm.run.utils.CamundaBpmRunProcessEnginePluginHelper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CamundaBpmRunProcessEnginePluginsHelperTest {
 

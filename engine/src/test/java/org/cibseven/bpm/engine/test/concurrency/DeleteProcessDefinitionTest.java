@@ -20,8 +20,8 @@ import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.EventSubscriptionEntity;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.EventSubscription;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class DeleteProcessDefinitionTest extends ConcurrencyTestCase {
 
-  @After
+  @AfterEach
   public void tearDown() {
     repositoryService.createDeploymentQuery().list().forEach(deployment -> repositoryService.deleteDeployment(deployment.getId(), true));
     processEngineConfiguration.getDeploymentCache().purgeCache();

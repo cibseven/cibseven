@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.cibseven.bpm.qa</groupId>
     <artifactId>cibseven-qa</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cibseven-qa-old-engine</artifactId>
@@ -59,7 +59,6 @@
           <plugin>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <failIfNoTests>false</failIfNoTests>
               <trimStackTrace>false</trimStackTrace>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <excludes combine.children="append">
@@ -78,7 +77,6 @@
           <plugin>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <failIfNoTests>false</failIfNoTests>
               <trimStackTrace>false</trimStackTrace>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <excludes combine.children="append">
@@ -93,8 +91,56 @@
     <profile>
       <id>old-engine</id>
 
+      <properties>
+        <!--
+          The unpacked test classes below come from the pre-compiled cibseven-engine:2.2.0
+          test-jar. That release was built against assertj-core 2.9.1, whose Assertions.assertThat(String)
+          method returns org.assertj.core.api.AbstractCharSequenceAssert. Newer assertj-core versions
+          (as used by version.assertj in the parent pom, currently 3.27.7) return
+          org.assertj.core.api.AbstractStringAssert instead, which is a different method signature at
+          the bytecode level. Since the old test classes are unpacked as-is (not recompiled), using the
+          current/newer assertj-core here causes:
+            java.lang.NoSuchMethodError: 'org.assertj.core.api.AbstractCharSequenceAssert
+              org.assertj.core.api.Assertions.assertThat(java.lang.String)'
+          Therefore this profile must pin assertj-core to the exact version the old engine was built
+          with, instead of using the shared ${version.assertj} property.
+        -->
+        <version.assertj.old.engine>2.9.1</version.assertj.old.engine>
+
+        <!--
+          Similarly, the unpacked old test classes were compiled against hamcrest-core/hamcrest-library
+          1.3 (as declared by cibseven-engine:2.2.0's own pom). Hamcrest 1.3's CoreMatchers declares
+          fixed-arity overloads (e.g. anyOf(Matcher, Matcher)) in addition to the varargs form. The
+          current merged org.hamcrest:hamcrest artifact (version.hamcrest, currently 3.0) collapsed
+          these into a varargs-only API, removing the fixed-arity method descriptors. Calling the old
+          bytecode against the newer hamcrest jar therefore fails with:
+            java.lang.NoSuchMethodError: 'org.hamcrest.core.AnyOf
+              org.hamcrest.CoreMatchers.anyOf(org.hamcrest.Matcher, org.hamcrest.Matcher)'
+          so this profile must pin hamcrest to the exact 1.3 version the old engine was built with.
+        -->
+        <version.hamcrest.old.engine>1.3</version.hamcrest.old.engine>
+      </properties>
+
       <dependencyManagement>
         <dependencies>
+          <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${version.assertj.old.engine}</version>
+            <scope>test</scope>
+          </dependency>
+          <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+            <version>${version.hamcrest.old.engine}</version>
+            <scope>test</scope>
+          </dependency>
+          <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <version>${version.hamcrest.old.engine}</version>
+            <scope>test</scope>
+          </dependency>
           <dependency>
             <groupId>org.cibseven.bpm</groupId>
             <artifactId>cibseven-bom</artifactId>
@@ -121,23 +167,68 @@
       </dependencyManagement>
 
       <dependencies>
+        <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+          <version>4.13.2</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.junit.vintage</groupId>
+          <artifactId>junit-vintage-engine</artifactId>
+          <version>${version.junit5}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-engine</artifactId>
+          <version>${version.junit5}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.assertj</groupId>
+          <artifactId>assertj-core</artifactId>
+          <version>${version.assertj.old.engine}</version>
+          <scope>test</scope>
+        </dependency>
+
+        <!--
+          The old engine's own pom declares hamcrest-core/hamcrest-library 1.3 as test-scoped,
+          which is never transitive. Since the unpacked old test classes (e.g.
+          AuthorizationScenarioInstance, HistoryServiceAsyncOperationsTest) use org.hamcrest.Matchers /
+          org.hamcrest.CoreMatchers fixed-arity overloads directly, the exact 1.3 artifacts must be
+          declared explicitly here (see version.hamcrest.old.engine comment above for why the current
+          merged org.hamcrest:hamcrest 3.0 artifact is not binary-compatible).
+        -->
+        <dependency>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest-core</artifactId>
+          <version>${version.hamcrest.old.engine}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest-library</artifactId>
+          <version>${version.hamcrest.old.engine}</version>
+          <scope>test</scope>
+        </dependency>
+
        <dependency>
           <groupId>com.fasterxml.uuid</groupId>
           <artifactId>java-uuid-generator</artifactId>
           <scope>test</scope>
         </dependency>
 
-        <dependency>
-          <groupId>junit</groupId>
-          <artifactId>junit</artifactId>
-          <scope>test</scope>
-        </dependency>
-
-        <dependency>
-          <groupId>org.hamcrest</groupId>
-          <artifactId>hamcrest-library</artifactId>
-          <scope>test</scope>
-        </dependency>
+	    <dependency>
+	      <groupId>org.junit.jupiter</groupId>
+	      <artifactId>junit-jupiter-api</artifactId>
+	      <scope>provided</scope>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.junit.jupiter</groupId>
+	      <artifactId>junit-jupiter-params</artifactId>
+	      <scope>provided</scope>
+	    </dependency>
 
         <dependency>
           <groupId>org.springframework</groupId>
@@ -218,13 +309,6 @@
         </dependency>
 
         <dependency>
-          <groupId>org.assertj</groupId>
-          <artifactId>assertj-core</artifactId>
-          <version>2.9.1</version>
-          <scope>test</scope>
-        </dependency>
-
-        <dependency>
           <groupId>org.cibseven.commons</groupId>
           <artifactId>cibseven-commons-testing</artifactId>
           <scope>test</scope>
@@ -233,12 +317,14 @@
         <dependency>
           <groupId>com.github.tomakehurst</groupId>
           <artifactId>wiremock</artifactId>
+          <version>${version.wiremock}</version>
           <scope>test</scope>
         </dependency>
         
         <dependency>
           <groupId>org.graalvm.js</groupId>
           <artifactId>js</artifactId>
+          <type>pom</type>
           <scope>test</scope>
         </dependency>
 
@@ -298,6 +384,7 @@
                       <artifactId>cibseven-engine</artifactId>
                       <version>${cibseven.old.engine.version}</version>
                       <type>test-jar</type>
+                      <classifier>tests</classifier>
                       <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
                     </artifactItem>
                   </artifactItems>
@@ -318,6 +405,7 @@
                       <artifactId>cibseven-sql-scripts</artifactId>
                       <version>${project.version}</version>
                       <type>test-jar</type>
+                      <classifier>tests</classifier>
                       <outputDirectory>${project.build.directory}/scripts-current</outputDirectory>
                       <overWrite>true</overWrite>
                     </artifactItem>
@@ -388,6 +476,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
+              <failIfNoTests>true</failIfNoTests>
               <excludes>
                 <exclude>**/*TestCase.java</exclude>
 
@@ -422,8 +511,14 @@
 
                 <!-- The test is not relevant in `old-engine` setup and lacks necessary resource files -->
                 <exclude>**DatabaseNamingConsistencyTest.java</exclude>
+
+                <!-- The old engine test suite still contains Nashorn tests, but Nashorn is not part of the JDK anymore -->
+                <exclude>**/*NashornTest.java</exclude>
                 <exclude>${TEMPORARY_OLD_ENGINE_TEST_EXCLUDE}</exclude>
               </excludes>
+              <!-- Old engine 2.2.0 lacks the GraalJS 25 builder and parser-isolation fixes. The file excludes
+                   single methods where possible, which <excludes> does not allow. -->
+              <excludesFile>${project.basedir}/old-engine-2.2.0-excludes.txt</excludesFile>
               <testFailureIgnore>false</testFailureIgnore>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <argLine>-Xmx2g -Duser.language=en -Duser.region=US -XX:+HeapDumpOnOutOfMemoryError
@@ -436,28 +531,6 @@
           </plugin>
 
         </plugins>
-      </build>
-    </profile>
-
-    <profile>
-     <id>exclude-post-jdk15-tests</id>
-      <activation>
-        <jdk>[15,)</jdk>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <configuration>
-                <!-- Nashorn is not part of the JDK anymore in Java 15+ -->
-                <excludes combine.children="append">
-                  <exclude>**/*NashornTest.java</exclude>
-                </excludes>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
       </build>
     </profile>
 

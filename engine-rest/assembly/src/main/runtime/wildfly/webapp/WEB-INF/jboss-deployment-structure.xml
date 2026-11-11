@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jboss-deployment-structure>
   <deployment>
-    <exclusions>    
+    <!-- The REST API reads and writes JSON with Jackson 3 (tools.jackson), bundled in WEB-INF/lib
+         together with the Jackson 2 annotations it uses (jackson-annotations 2.21). The server only
+         ships Jackson 2 and adds it to JAX-RS deployments, so keep all of its Jackson modules out,
+         jackson-annotations included (an older server copy would shadow the bundled 2.21). -->
+    <exclusions>
       <module name="org.jboss.resteasy.resteasy-jackson-provider"/>
       <module name="org.jboss.resteasy.resteasy-jettison-provider"/>
       <module name="com.fasterxml.jackson.core.jackson-core"/>
@@ -9,6 +13,21 @@
       <module name="com.fasterxml.jackson.core.jackson-databind"/>
       <module name="com.fasterxml.jackson.datatype.jackson-datatype-jsr310"/>
       <module name="org.jboss.resteasy.resteasy-jackson2-provider"/>
+      <!-- Exclude the JSON-B provider so RESTEasy does not use JSON-B (Yasson) as the
+           default JSON serializer. JSON-B ignores our JacksonConfigurator
+           (ContextResolver<ObjectMapper>) and Jackson annotations like @JsonIgnore. -->
+      <module name="org.jboss.resteasy.resteasy-json-binding-provider"/>
+      <!-- Exclude the server's FasterXML Jackson 2 JAX-RS provider modules. WildFly 40
+           auto-registers com.fasterxml.jackson.jakarta.jackson-jakarta-json-provider
+           (Jackson 2.21.3) which then serializes/deserializes using the server's
+           Jackson instead of the provider bundled in this WAR and registered by
+           DefaultApplication (now the Jackson 3 CibsevenJacksonJsonProvider). That server
+           provider does not use our JacksonConfigurator and mis-handles DTOs holding an
+           ObjectMapper field (the "Conflicting setter definitions for property config" 500).
+           Exclude it (and the legacy jaxrs one) so only the bundled provider is active. -->
+      <module name="com.fasterxml.jackson.jakarta.jackson-jakarta-json-provider"/>
+      <module name="com.fasterxml.jackson.jaxrs.jackson-jaxrs-json-provider"/>
+      <module name="com.fasterxml.jackson.datatype.jackson-datatype-jdk8"/>
     </exclusions>
   </deployment>
 </jboss-deployment-structure>

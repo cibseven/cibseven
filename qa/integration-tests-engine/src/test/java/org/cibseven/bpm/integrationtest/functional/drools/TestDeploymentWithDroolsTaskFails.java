@@ -17,16 +17,17 @@
 package org.cibseven.bpm.integrationtest.functional.drools;
 
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
+import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.assertj.core.api.Assertions.fail;
 
 
 /**
@@ -36,7 +37,7 @@ import org.junit.runner.RunWith;
  * @author Daniel Meyer
  * 
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TestDeploymentWithDroolsTaskFails {
 
   @ArquillianResource
@@ -45,11 +46,13 @@ public class TestDeploymentWithDroolsTaskFails {
   @Deployment(managed=false, name="deployment")
   public static WebArchive processArchive() {    
     
-    return  ShrinkWrap.create(WebArchive.class, "test.war")
+    WebArchive testJar = ShrinkWrap.create(WebArchive.class, "test.war")
       .addAsWebInfResource("org/cibseven/bpm/integrationtest/beans.xml", "beans.xml")
       .addAsLibraries(DeploymentHelper.getEjbClient())
       .addAsResource("META-INF/processes.xml", "META-INF/processes.xml")
       .addAsResource("org/cibseven/bpm/integrationtest/functional/drools/TestDeploymentWithDroolsTaskFails.testDeployDroolsFails.bpmn20.xml");           
+    TestContainer.addContainerSpecificResources(testJar);
+    return testJar;
   }
   
   @Test
@@ -57,7 +60,7 @@ public class TestDeploymentWithDroolsTaskFails {
   public void testDeployDroolsFails() {
     try {
       deployer.deploy("deployment");
-      Assert.fail("exception expected");
+      fail("exception expected");
     }catch (Exception e) {
       // expected
     }

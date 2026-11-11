@@ -1,0 +1,502 @@
+{
+  "$schema": "https://unpkg.com/@camunda/element-templates-json-schema/resources/schema.json",
+  "name": "CIB seven AI Agent (ad hoc sub process)",
+  "id": "org.cibseven.connect.ai.agent.AdHocSubProcess",
+  "version": 1,
+  "description": "An AI agent runs this ad hoc sub process: it decides which of its activities to start. Each activity it can start directly is a tool, chosen by its name and documentation; an activity behind a sequence flow runs as part of the tool before it. A tool gets a value from the model through ${toolParameter(toolCall.<name>, '<description>', '<type>')} in one of its input mappings; the type is string, integer, number or boolean, with a trailing ? when the model may leave the value out.",
+  "icon": {
+    "contents": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20width%3D%2224%22%20height%3D%2224%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M9%202%20L10.4%208.6%20L17%2010%20L10.4%2011.4%20L9%2018%20L7.6%2011.4%20L1%2010%20L7.6%208.6%20Z%22%20fill%3D%22%23E11E19%22/%3E%3Cpath%20d%3D%22M17.5%2013%20L18.2%2015.8%20L21%2016.5%20L18.2%2017.2%20L17.5%2020%20L16.8%2017.2%20L14%2016.5%20L16.8%2015.8%20Z%22%20fill%3D%22%230F2133%22/%3E%3C/svg%3E"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "llm",
+    "openai",
+    "adhoc",
+    "agentic",
+    "langchain4j"
+  ],
+  "appliesTo": [
+    "bpmn:AdHocSubProcess"
+  ],
+  "groups": [
+    {
+      "id": "input",
+      "label": "Input"
+    },
+    {
+      "id": "agent",
+      "label": "Agent"
+    },
+    {
+      "id": "limits",
+      "label": "Limits"
+    },
+    {
+      "id": "memory",
+      "label": "Memory"
+    },
+    {
+      "id": "rag",
+      "label": "RAG"
+    }
+  ],
+  "properties": [
+    {
+      "label": "Max model calls per turn",
+      "type": "String",
+      "group": "limits",
+      "description": "The most model calls in one turn, and the most activities the agent may start with one answer. Default 25.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.maxModelCalls"
+      },
+      "constraints": {
+        "pattern": {
+          "value": "^([1-9][0-9]*)?$",
+          "message": "A positive whole number, or empty for the default."
+        }
+      }
+    },
+    {
+      "label": "Max turns",
+      "type": "String",
+      "group": "limits",
+      "description": "Turns allowed before the agent stops. A turn starts on entry, and again when activities of this sub process end or are cancelled while the agent waits. Default 10. Activities already running still finish.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.maxTurns"
+      },
+      "constraints": {
+        "pattern": {
+          "value": "^([1-9][0-9]*)?$",
+          "message": "A positive whole number, or empty for the default."
+        }
+      }
+    },
+    {
+      "label": "Max turns total",
+      "type": "String",
+      "group": "limits",
+      "description": "Turns allowed across all entries together. Only with 'Continue across entries'; empty means no total limit.",
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.maxTurnsTotal"
+      },
+      "constraints": {
+        "pattern": {
+          "value": "^([1-9][0-9]*)?$",
+          "message": "A positive whole number, or empty for no total limit."
+        }
+      }
+    },
+    {
+      "label": "On limit",
+      "type": "Dropdown",
+      "group": "limits",
+      "value": "continue",
+      "description": "'Continue' (default): when a limit is reached and nothing runs in the sub process any more, it ends, and the outcome names the limit. 'Throw a BPMN error': at that moment it throws a BPMN error instead, whose code is the limit: turnLimit, callLimit or totalTurnLimit; deployment requires a boundary error event for each limit it can reach, or one for every error. Max model calls per turn only ends the turn while an activity still runs: the agent is asked again when that activity ends.",
+      "choices": [
+        {
+          "name": "Continue",
+          "value": "continue"
+        },
+        {
+          "name": "Throw a BPMN error",
+          "value": "error"
+        }
+      ],
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.onLimit"
+      }
+    },
+    {
+      "label": "Conversation",
+      "type": "Dropdown",
+      "group": "memory",
+      "value": "perEntry",
+      "description": "'Start new on each entry' (default): every entry starts with an empty conversation. 'Continue across entries': the agent remembers earlier entries, e.g. in a feedback loop, within the window of Chat memory max messages. Not available on a parallel multi-instance sub process. While the conversation is kept, the process instance cannot be migrated: until the scope around this sub process ends, or, for a sub process directly in the process, until the instance ends.",
+      "choices": [
+        {
+          "name": "Start new on each entry",
+          "value": "perEntry"
+        },
+        {
+          "name": "Continue across entries",
+          "value": "perActivity"
+        }
+      ],
+      "binding": {
+        "type": "camunda:property",
+        "name": "cibseven.agentic.conversation"
+      }
+    }
+  ],
+  "scopes": [
+    {
+      "type": "camunda:Connector",
+      "properties": [
+        {
+          "type": "Hidden",
+          "value": "cibseven-ai-agent",
+          "binding": {
+            "type": "property",
+            "name": "connectorId"
+          }
+        },
+        {
+          "label": "Agent name",
+          "type": "String",
+          "group": "input",
+          "value": "Ad-hoc Agent",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "agentName"
+          },
+          "constraints": {
+            "notEmpty": true
+          }
+        },
+        {
+          "label": "Message",
+          "type": "Text",
+          "group": "input",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "message"
+          },
+          "constraints": {
+            "notEmpty": true
+          },
+          "description": "The agent's task, e.g. 'Handle order ${orderNumber}.' Evaluated again for every model call, so it shows the current process data. To give the agent a value as data, apart from the task, list the variable under Context variables."
+        },
+        {
+          "label": "Context variables",
+          "type": "String",
+          "group": "input",
+          "description": "Process variables the agent sees as data, by name, separated by commas, e.g. 'customer, priority': the name of a variable, not a path into it, read as ${name} is read. Use it instead of ${name} in Message to give the agent a value as data, apart from your instructions. Before every model call the current values go to the agent with the state of this sub process, up to 4000 characters each and about 20000 in all. Each one is required unless Optional context variables names it: if it is not set or null, the step fails and, after the job's retries, the sub process gets an incident naming it. A file, bytes or a Java object reaches the agent by its name and type only, never its content. The chat log keeps a marker in place of each value; the value is in the variable's history. Never list tokens or passwords: the values go to the model's and the embedding's provider. Empty: none.",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "contextVariables"
+          },
+          "constraints": {
+            "pattern": {
+              "value": "^\\s*$|^\\s*[^,\\s${}]+\\s*(,\\s*[^,\\s${}]+\\s*)*$",
+              "message": "Names separated by single commas, none of them empty; no space inside a name, no $ or braces."
+            }
+          }
+        },
+        {
+          "label": "Optional context variables",
+          "type": "String",
+          "group": "input",
+          "description": "Those of the context variables above that may be missing, e.g. 'discount'. One that is not set is reported to the agent as such, a long one is cut, and one past the limit of all is left out and named. Empty: every one is required.",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "optionalContextVariables"
+          },
+          "constraints": {
+            "pattern": {
+              "value": "^\\s*$|^\\s*[^,\\s${}]+\\s*(,\\s*[^,\\s${}]+\\s*)*$",
+              "message": "Names separated by single commas, none of them empty; no space inside a name, no $ or braces."
+            }
+          }
+        },
+        {
+          "label": "Instruction",
+          "type": "Text",
+          "group": "input",
+          "description": "Rules for this agent beyond its task, e.g. the policy of the case. Leave it empty to use the built-in prompt alone, which says how an agent runs an ad hoc sub process: its activities are its tools, a question goes to a person only through an activity that waits, and completeScope ends it. Instruction mode says how the two are combined.",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "instruction"
+          }
+        },
+        {
+          "label": "Instruction mode",
+          "type": "Dropdown",
+          "group": "input",
+          "value": "append",
+          "description": "'Append to default' (preset): your instruction after the built-in prompt; 'Prepend to default': before it; 'Replace default': only yours. Ignored when Instruction is empty.",
+          "choices": [
+            {
+              "name": "Replace default",
+              "value": "replace"
+            },
+            {
+              "name": "Append to default",
+              "value": "append"
+            },
+            {
+              "name": "Prepend to default",
+              "value": "prepend"
+            }
+          ],
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "instructionMode"
+          }
+        },
+        {
+          "label": "Follow-up on re-entry",
+          "type": "Text",
+          "group": "input",
+          "description": "Only with 'Continue across entries': sent instead of Message in the first turn after the sub process is entered again, e.g. 'The user said: ${feedback}.' If it fails or is empty, Message is used.",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "followUp"
+          }
+        },
+        {
+          "label": "Base URL",
+          "type": "String",
+          "group": "agent",
+          "description": "API base URL. Examples: https://api.openai.com/v1 (OpenAI, default), https://openrouter.ai/api/v1 (OpenRouter), http://localhost:11434/v1 (Ollama), etc.",
+          "placeholder": "https://api.openai.com/v1",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "baseUrl"
+          }
+        },
+        {
+          "label": "Model",
+          "type": "String",
+          "group": "agent",
+          "description": "LLM model identifier, e.g. gpt-5.5, claude-opus-4.7, gemma-4-26b. On OpenRouter prefix with provider: openai/gpt-5.5.",
+          "placeholder": "gpt-5.4-nano",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "model"
+          }
+        },
+        {
+          "label": "API key",
+          "type": "String",
+          "group": "agent",
+          "description": "Leave empty to use the server's key (environment variable OPENAI_API_KEY). Do not pass a key in a process variable: it is stored in the database and, with history on, in the history. Do not write it here either: the text is stored in the deployed model.",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "apiKey"
+          }
+        },
+        {
+          "label": "HTTP headers",
+          "type": "Text",
+          "group": "agent",
+          "description": "Additional request headers as a JSON object, e.g. {\"X-Request-Source\": \"cibseven\"}. Do not write a key or token here: the text is stored in the deployed model.",
+          "placeholder": "{\"X-Request-Source\": \"cibseven\"}",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "customHeaders"
+          }
+        },
+        {
+          "label": "Reasoning effort",
+          "type": "String",
+          "group": "agent",
+          "description": "For o-series models: low, medium, or high.",
+          "placeholder": "medium",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "reasoningEffort"
+          }
+        },
+        {
+          "label": "Reasoning summary",
+          "type": "String",
+          "group": "agent",
+          "description": "For o-series models: auto, concise, or detailed.",
+          "placeholder": "auto",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "reasoningSummary"
+          }
+        },
+        {
+          "label": "Agent description",
+          "type": "Text",
+          "group": "agent",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "agentDescription"
+          }
+        },
+        {
+          "label": "Chat memory max messages",
+          "type": "String",
+          "group": "memory",
+          "description": "Default 20, about the last six calls; earlier tool results and answers are dropped, and a larger window sends more with every call. With 'Continue across entries' an empty value means at least 53, and a value below 2 * the effective Max model calls per turn + 3 is rejected.",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "chatMemoryMaxMessages"
+          }
+        },
+        {
+          "label": "Persist chat-log audit variable",
+          "type": "Dropdown",
+          "group": "agent",
+          "value": "",
+          "description": "Override the chat-log variable for this activity. 'No' skips the DB write (pair with an external audit sink for EU AI Act Art. 12 / 26(6) compliance).",
+          "choices": [
+            {
+              "name": "Use global default",
+              "value": ""
+            },
+            {
+              "name": "Yes",
+              "value": "${true}"
+            },
+            {
+              "name": "No",
+              "value": "${false}"
+            }
+          ],
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "persistChatLog"
+          }
+        },
+        {
+          "label": "PostgreSQL host",
+          "type": "String",
+          "group": "rag",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "pgHost"
+          }
+        },
+        {
+          "label": "PostgreSQL port",
+          "type": "String",
+          "group": "rag",
+          "placeholder": "5432",
+          "constraints": {
+            "pattern": {
+              "value": "^(\\d+)?$",
+              "message": "Must be a numeric port number"
+            }
+          },
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "pgPort"
+          }
+        },
+        {
+          "label": "PostgreSQL database",
+          "type": "String",
+          "group": "rag",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "pgDatabase"
+          }
+        },
+        {
+          "label": "PostgreSQL user",
+          "type": "String",
+          "group": "rag",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "pgUser"
+          }
+        },
+        {
+          "label": "PostgreSQL password",
+          "type": "String",
+          "group": "rag",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "pgPassword"
+          }
+        },
+        {
+          "label": "PostgreSQL table",
+          "type": "String",
+          "group": "rag",
+          "placeholder": "langchain4j_embeddings",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "pgTable"
+          }
+        },
+        {
+          "label": "Max RAG results",
+          "type": "String",
+          "group": "rag",
+          "description": "Maximum number of documents to retrieve from the vector store.",
+          "placeholder": "5",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "maxRagResults"
+          }
+        },
+        {
+          "label": "Min RAG score",
+          "type": "String",
+          "group": "rag",
+          "description": "Minimum similarity score (0.0–1.0) for RAG results to be included. Default: 0.0 (no filtering).",
+          "placeholder": "0.0",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "minRagScore"
+          }
+        },
+        {
+          "label": "Embedding dimension",
+          "type": "String",
+          "group": "rag",
+          "description": "Dimension of the embedding vectors. Default: 384 (AllMiniLmL6V2), 1536 for text-embedding-ada-002.",
+          "placeholder": "384",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "embeddingDimension"
+          }
+        },
+        {
+          "label": "Embedding model name",
+          "type": "String",
+          "group": "rag",
+          "description": "Name of the embedding model used to encode documents and queries. Default: AllMiniLmL6V2 (local, 384-dim). Use text-embedding-ada-002 for OpenAI.",
+          "placeholder": "AllMiniLmL6V2",
+          "binding": {
+            "type": "camunda:inputParameter",
+            "name": "embeddingModelName"
+          }
+        },
+        {
+          "label": "Output variable for agent response",
+          "description": "Process variable that will receive the agent's text response (${output}). Applied after every turn, so it holds the last turn's answer.",
+          "type": "String",
+          "value": "agentOutput",
+          "binding": {
+            "type": "camunda:outputParameter",
+            "source": "${output}"
+          },
+          "constraints": {
+            "notEmpty": true
+          }
+        },
+        {
+          "label": "Output variable for AI-output marker (EU AI Act Art. 50(2))",
+          "description": "Process variable for the marker of AI-generated output (${outputAiMeta}): aiGenerated, runId, provider, model, responseId, generatedAt. After a limit it holds only aiGenerated=false and generatedAt. Leave the field unset to skip this output.",
+          "type": "String",
+          "value": "agentOutput_aiMeta",
+          "binding": {
+            "type": "camunda:outputParameter",
+            "source": "${outputAiMeta}"
+          }
+        },
+        {
+          "label": "Output variable for the turn's outcome",
+          "description": "How the agent's last turn ended, for a gateway after the sub process: completed (it called completeScope, its tool that ends the sub process), ended (it answered and nothing runs), turnLimit, totalTurnLimit or callLimit. While the sub process runs it may read waiting. Leave the field unset to skip this output.",
+          "type": "String",
+          "value": "agentOutput_outcome",
+          "binding": {
+            "type": "camunda:outputParameter",
+            "source": "${outcome}"
+          }
+        }
+      ]
+    }
+  ]
+}

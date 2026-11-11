@@ -27,10 +27,11 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.identity.ldap.util.LdapTestEnvironment;
 import org.cibseven.bpm.identity.ldap.util.LdapTestEnvironmentRule;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -42,17 +43,17 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
  */
 public class LdapQueryToleranceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static LdapTestEnvironmentRule ldapRule = new LdapTestEnvironmentRule();
-  @Rule
-  public ProcessEngineRule engineRule = new ProcessEngineRule("invalid-id-attributes.cfg.xml");
-  @Rule
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().level(Level.ERROR).watch("org.cibseven.bpm.identity.impl.ldap");
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProcessEngineRule("invalid-id-attributes.cfg.xml");
+  @RegisterExtension
+  @Order(7) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().level(Level.ERROR).watch("org.cibseven.bpm.identity.impl.ldap");
 
   ProcessEngine processEngine;
   LdapTestEnvironment ldapTestEnvironment;
 
-  @Before
+  @BeforeEach
   public void setup() {
     processEngine = engineRule.getProcessEngine();
     ldapTestEnvironment = ldapRule.getLdapTestEnvironment();

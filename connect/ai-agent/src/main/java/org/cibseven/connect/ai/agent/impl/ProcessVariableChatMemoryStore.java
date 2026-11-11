@@ -1,0 +1,692 @@
+/*
+ * Copyright CIB software GmbH and/or licensed to CIB software GmbH
+ * under one or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information regarding copyright
+ * ownership. CIB software licenses this file to you under the Apache License,
+ * Version 2.0; you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+package org.cibseven.connect.ai.agent.impl;
+
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.ChatMessageDeserializer;
+import dev.langchain4j.data.message.ChatMessageSerializer;
+import dev.langchain4j.store.memory.chat.ChatMemoryStore;
+import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
+
+import org.cibseven.connect.ai.agent.agentic.AdHocConversation;
+import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
+import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.core.variable.scope.AbstractVariableScope;
+import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
+import org.cibseven.bpm.engine.variable.Variables;
+
+import org.cibseven.connect.ai.agent.AgentConnectorConstants;
+
+/**
+ * {@link ChatMemoryStore} that keeps the conversation in a process variable
+ * ({@code AGENT_CONNECTOR_MEMORY_PREFIX + memoryId}) instead of the JVM heap, so
+ * memory survives an engine restart and works across engine replicas. Replaces
+ * the previous {@code InMemoryChatMemoryStore} default, which was a JVM-local
+ * map and therefore lost the conversation whenever the async continuation was
+ * executed by a different node.
+ *
+ * <p>The variable is written with {@link ExecutionEntity#setVariable}, i.e. at
+ * the process-instance scope, so a {@code memoryId} is scoped to one process
+ * instance: reusing the same id in another instance starts a fresh conversation.
+ *
+ * <p>One conversation is kept elsewhere: that of the agent driving an agentic ad
+ * hoc sub process, whose tools are the scope's children. The turn runner says
+ * which call that is ({@code AdHocConversation.drive}), and its conversation goes
+ * where those tools cannot reach it, and only there: it is never read from,
+ * written to or cleared at the process level (CIB7-2408). This store is the only
+ * one that does so; with any other store, as {@link AgentChatMemoryStore} says,
+ * the agent's conversation is as reachable as any other.
+ *
+ * <p>Every other AI agent task, inside an ad hoc sub process too, plain or used as
+ * a tool, keeps its conversation at the process level, so it outlives the scope
+ * and stays until the process instance ends (CIB7-2232).
+ *
+ * <p>Holds no state of its own and is safe to share as a singleton across
+ * job-executor threads: the execution is resolved per call from the engine's
+ * thread-local {@link Context}, and whether the call is the driving agent's from
+ * the thread-local that {@code AdHocConversation.drive} sets while the turn runner
+ * asks the agent.
+ *
+ * <p>Whether this store is used at all is decided by {@link AgentChatMemoryStore},
+ * not here. The only case this class handles itself is the absence of an engine
+ * context on the calling thread (unit tests, embedded use outside the engine):
+ * writing a process variable is then technically impossible, so operations fall
+ * back to an internal JVM-local buffer rather than failing the invocation.
+ *
+ * <p>Two properties of the process model can make this store fail where the
+ * previous heap map would not, so both are checked on write: a conversation
+ * larger than the database will accept (see {@link #DEFAULT_MAX_PAYLOAD_BYTES}),
+ * and concurrent branches sharing one {@code memoryId} and therefore one variable
+ * row (see {@code warnOnConcurrentBranch}).
+ *
+ * <p>Within a connector invocation the writes are held back and each conversation
+ * is written once, when the invocation ends ({@link Batch}, CIB7-2156).
+ */
+final class ProcessVariableChatMemoryStore implements ChatMemoryStore {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ProcessVariableChatMemoryStore.class);
+
+  /**
+   * Engine limit for the {@code NAME_} column of {@code ACT_RU_VARIABLE} —
+   * {@code ACT_HI_VARINST} and {@code ACT_HI_DETAIL} share it. Counted in UTF-8 bytes,
+   * since DB2 counts the column in bytes. Shared with the chat-log chunk names of
+   * {@link AgentChatListener}.
+   */
+  static final int MAX_VARIABLE_NAME_LENGTH = 255;
+
+  /**
+   * Ceiling for the serialized conversation, in bytes. Unlike the variable name,
+   * the payload has no engine-side limit — but the database has one, and it is
+   * reached silently: {@code ACT_GE_BYTEARRAY.BYTES_} is an unsized {@code BLOB}
+   * on DB2 (1 MB inline by default) and bounded by {@code max_allowed_packet} on
+   * MySQL / MariaDB. Without this guard an oversized window surfaces as a raw
+   * {@code SQLException} at transaction flush: failed job, then an incident, with
+   * nothing in the stack trace naming the conversation that produced it.
+   *
+   * <p>Default 1 MiB — the tightest of the supported databases, and roughly an
+   * order of magnitude above a typical 20-message window. Raise it via
+   * {@value #MAX_PAYLOAD_BYTES_PROPERTY} on a deployment whose database allows
+   * more; set it to {@code 0} or below to disable the check.
+   */
+  private static final int DEFAULT_MAX_PAYLOAD_BYTES = 1024 * 1024;
+
+  /** Overrides {@link #DEFAULT_MAX_PAYLOAD_BYTES}. */
+  static final String MAX_PAYLOAD_BYTES_PROPERTY =
+      "cibseven.connect.ai-agent.chatMemoryMaxPayloadBytes";
+
+  /** Environment-variable fallback for {@value #MAX_PAYLOAD_BYTES_PROPERTY}. */
+  static final String MAX_PAYLOAD_BYTES_ENV_VAR =
+      "CIBSEVEN_CONNECT_AI_AGENT_CHAT_MEMORY_MAX_PAYLOAD_BYTES";
+
+  /**
+   * Fraction of the ceiling at which the size WARN fires, so a deployment growing
+   * towards the limit is visible before a job actually fails.
+   */
+  private static final double PAYLOAD_WARN_RATIO = 0.8;
+
+  /**
+   * Headroom subtracted from the configured ceiling before comparing it against
+   * the measured JSON size.
+   *
+   * <p>The two are not the same quantity: what reaches the database is the JSON
+   * put through the engine's Java object serializer, which adds stream framing on
+   * top of the characters, and the database in turn counts the whole statement
+   * against limits like {@code max_allowed_packet}. Measuring the JSON is cheap
+   * and happens anyway; measuring the persisted form would mean serializing the
+   * payload once for the check and again for the engine.
+   *
+   * <p>This guard exists to turn an opaque {@code SQLException} at flush into a
+   * legible error, not to predict the database limit exactly, so a fixed margin
+   * is the proportionate trade-off. 4 KiB covers the serializer framing with room
+   * to spare.
+   */
+  private static final int PAYLOAD_OVERHEAD_MARGIN_BYTES = 4096;
+
+  /**
+   * Guards the one-time WARNs. Each of these conditions is a property of the
+   * deployment or the process model, not of the individual call, so one entry per
+   * JVM is enough — and per-call logging would flood, because the store is hit
+   * several times per message.
+   */
+  private static final AtomicBoolean NO_ENGINE_CONTEXT_LOGGED = new AtomicBoolean(false);
+  private static final AtomicBoolean PAYLOAD_SIZE_LOGGED = new AtomicBoolean(false);
+  private static final AtomicBoolean CONCURRENT_BRANCH_LOGGED = new AtomicBoolean(false);
+  private static final AtomicBoolean UNPARSEABLE_LIMIT_LOGGED = new AtomicBoolean(false);
+
+  /**
+   * Last-resort buffer for invocations without an engine context. Deliberately
+   * not injectable: it is an implementation detail of the degradation path, not
+   * a configurable collaborator — the choice of store is made one level up.
+   */
+  private final ChatMemoryStore noContextBuffer = new InMemoryChatMemoryStore();
+
+  @Override
+  public List<ChatMessage> getMessages(Object memoryId) {
+    ExecutionEntity execution = targetExecution();
+    if (execution == null) {
+      return noContextBuffer.getMessages(memoryId);
+    }
+    String name = variableName(memoryId);
+    Object raw = Batch.isOpen() ? Batch.staged(key(execution, name)) : null;
+    if (raw == null) {
+      raw = readRaw(execution, name);
+    }
+    if (raw == null || raw.toString().isEmpty()) {
+      return new ArrayList<>();
+    }
+    try {
+      List<ChatMessage> messages = ChatMessageDeserializer.messagesFromJson(raw.toString());
+      return (messages == null) ? new ArrayList<>() : new ArrayList<>(messages);
+    } catch (RuntimeException e) {
+      // A LangChain4j upgrade can change the ChatMessage JSON shape, so an
+      // in-flight instance may carry history this version cannot read. A
+      // forgetful agent beats a stuck process instance.
+      LOG.warn("Could not decode chat memory from variable '{}'; continuing with an empty "
+          + "conversation.", name, e);
+      return new ArrayList<>();
+    }
+  }
+
+  @Override
+  public void updateMessages(Object memoryId, List<ChatMessage> messages) {
+    ExecutionEntity execution = targetExecution();
+    if (execution == null) {
+      noContextBuffer.updateMessages(memoryId, messages);
+      return;
+    }
+    String json = ChatMessageSerializer.messagesToJson(messages);
+    String name = variableName(memoryId);
+    checkPayloadSize(name, json, messages.size());
+    boolean driven = AdHocConversation.drivenScope(execution) != null;
+    if (!driven) {
+      warnOnConcurrentBranch(execution, name);
+    }
+    if (Batch.isOpen()) {
+      Batch.stage(key(execution, name), execution, json);
+    } else {
+      write(execution, driven, name, json);
+    }
+  }
+
+  /**
+   * Writes the conversation where it lives: the driving agent's out of its tools' reach, every
+   * other one at the process level. Called on every update outside a {@link Batch}, and once per
+   * conversation when a batch closes.
+   */
+  private static void write(ExecutionEntity execution, boolean driven, String name, String json) {
+    if (driven) {
+      // The agent that drives an agentic ad hoc sub process, as the turn runner
+      // says (CIB7-2232). Its tools are the scope's child activities, so they are
+      // the untrusted party — and the scope execution is their ancestor. Writing
+      // here would let a tool rewrite the conversation. The agent state execution
+      // is their sibling, so it is unreachable that way — and so is the
+      // conversation holder one level up, which a scope keeping its conversation
+      // across entries uses instead (CIB7-2137).
+      //
+      // Nothing at the process level is touched: a process variable under this name is
+      // not the agent's, whoever wrote it, and stays where it is (CIB7-2408).
+      PvmExecutionImpl state = AdHocConversation.memoryExecution(execution);
+      state.setVariableLocal(name, Variables.objectValue(json).create());
+      return;
+    }
+    // Every other AI agent task, inside an ad hoc sub process as well, keeps its
+    // conversation at the process level, so it outlives any scope it runs in.
+    // Java serialization stores in ACT_GE_BYTEARRAY and so bypasses the
+    // VARCHAR(4000) limit — as the chat-log variable does.
+    execution.setVariable(name, Variables.objectValue(json).create());
+  }
+
+  @Override
+  public void deleteMessages(Object memoryId) {
+    ExecutionEntity execution = targetExecution();
+    if (execution == null) {
+      // Without an engine context the process variable is unreachable, so this
+      // can only clear the internal buffer. Returning quietly would tell the
+      // caller the conversation is gone while it is still in the database —
+      // see deletesPersistently() and AgentChatMemoryStore.clear(Object).
+      noContextBuffer.deleteMessages(memoryId);
+      return;
+    }
+    String name = variableName(memoryId);
+    ExecutionEntity drivenScope = AdHocConversation.drivenScope(execution);
+    // What a batch still holds for it is gone too, or closing the batch would bring it back.
+    // Only for the conversation this call clears: the driving agent's leaves a process-level
+    // write under the same name where it is, as it leaves the variable (CIB7-2408).
+    if (Batch.isOpen()) {
+      Batch.discard(key(execution, name));
+    }
+    if (drivenScope != null) {
+      // The driving agent's own call, the only one that clears its conversation
+      // (CIB7-2232). It clears only where the agent keeps it, never the process
+      // level, which the agent neither reads nor writes (CIB7-2408).
+      PvmExecutionImpl state = AdHocConversation.findMemoryExecution(drivenScope);
+      if (state != null && state.hasVariableLocal(name)) {
+        state.removeVariableLocal(name);
+      }
+      return;
+    }
+    // The process level, where every other conversation lives. A call with the
+    // driving agent's memoryId from anywhere else, the scope itself included, ends
+    // here too and so cannot reach the agent's conversation, as
+    // AgentChatMemoryStore.clear(Object) says (CIB7-2232).
+    //
+    // Unconditionally, because removeVariable already checks containsKey before it
+    // walks up the parent chain and does nothing when the name is nowhere. Guarding
+    // on getVariable() != null instead would skip a variable that exists holding
+    // null, which is a delete that does not delete.
+    execution.removeVariable(name);
+  }
+
+  /**
+   * Whether a {@link #deleteMessages(Object)} on the current thread would remove
+   * the persisted conversation, as opposed to only the in-memory fallback buffer.
+   *
+   * <p>Exists so {@link AgentChatMemoryStore#clear(Object)} can tell its callers
+   * whether the delete actually took effect. A delete from an administration or
+   * application thread — anywhere without a {@code BpmnExecutionContext} — cannot
+   * reach the process variable, and silently reporting success there would be
+   * worse than reporting failure.
+   */
+  boolean deletesPersistently() {
+    return targetExecution() != null;
+  }
+
+  /**
+   * Rejects a conversation that would exceed {@link #DEFAULT_MAX_PAYLOAD_BYTES}
+   * (or its override) before it reaches the database, and warns once while the
+   * payload is merely approaching the ceiling.
+   *
+   * <p>Failing here rather than at transaction flush is the whole point: the
+   * message names the conversation, its size and the levers an operator actually
+   * has, none of which is recoverable from the {@code SQLException} the database
+   * would otherwise raise. It deliberately does not suggest LangChain4j's
+   * {@code storeRetrievedContentInChatMemory}, which is a builder option in Java
+   * and not something a deployment can turn; the RAG cause is stated as context
+   * instead.
+   */
+  private static void checkPayloadSize(String variableName, String json, int messageCount) {
+    int configuredLimit = maxPayloadBytes();
+    if (configuredLimit <= 0) {
+      return;
+    }
+    // The measured JSON is smaller than what the database ultimately stores, so
+    // compare against the ceiling minus a margin. Floored at 1 so an absurdly
+    // small configured limit still rejects rather than silently passing.
+    int effectiveLimit = Math.max(1, configuredLimit - PAYLOAD_OVERHEAD_MARGIN_BYTES);
+    int size = json.getBytes(StandardCharsets.UTF_8).length;
+    if (size > effectiveLimit) {
+      throw new AgentConnectorException(String.format(
+          "Chat memory for variable '%s' is too large to store: %d messages serialize to %d bytes "
+          + "of JSON, and the usable ceiling is %d bytes (the configured limit of %d minus a %d-byte "
+          + "margin for serialization and database overhead). Writing it would fail at transaction "
+          + "flush as a database error. Reduce 'chatMemoryMaxMessages', or raise the limit via the "
+          + "system property '%s' if the database allows larger values. Note that with RAG enabled "
+          + "each turn also persists the retrieved chunks, which is the usual reason a window grows "
+          + "this large.",
+          variableName, messageCount, size, effectiveLimit, configuredLimit,
+          PAYLOAD_OVERHEAD_MARGIN_BYTES, MAX_PAYLOAD_BYTES_PROPERTY));
+    }
+    if (size > effectiveLimit * PAYLOAD_WARN_RATIO
+        && PAYLOAD_SIZE_LOGGED.compareAndSet(false, true)) {
+      LOG.warn("AI Agent connector: chat memory for variable '{}' holds {} messages serializing to "
+          + "{} bytes, within {}% of the {}-byte usable ceiling. Once exceeded the agent task will "
+          + "fail. Reduce 'chatMemoryMaxMessages' or raise the limit; with RAG enabled the retrieved "
+          + "chunks are persisted with every turn and are the usual cause. Logged once per JVM.",
+          variableName, messageCount, size, (int) (PAYLOAD_WARN_RATIO * 100), effectiveLimit);
+    }
+  }
+
+  /**
+   * Resolves the payload ceiling from system property → environment variable →
+   * {@link #DEFAULT_MAX_PAYLOAD_BYTES}. An unparseable value is reported once and
+   * falls back to the default rather than disabling the guard silently.
+   */
+  private static int maxPayloadBytes() {
+    String raw = ConnectorSettings.resolve(MAX_PAYLOAD_BYTES_PROPERTY, MAX_PAYLOAD_BYTES_ENV_VAR);
+    if (raw == null) {
+      return DEFAULT_MAX_PAYLOAD_BYTES;
+    }
+    try {
+      return Integer.parseInt(raw);
+    } catch (NumberFormatException e) {
+      if (UNPARSEABLE_LIMIT_LOGGED.compareAndSet(false, true)) {
+        LOG.warn("Ignoring unparseable chat-memory payload limit '{}' from {} / {}; using the "
+            + "default of {} bytes. Logged once per JVM.",
+            raw, MAX_PAYLOAD_BYTES_PROPERTY, MAX_PAYLOAD_BYTES_ENV_VAR,
+            DEFAULT_MAX_PAYLOAD_BYTES);
+      }
+      return DEFAULT_MAX_PAYLOAD_BYTES;
+    }
+  }
+
+  /**
+   * Warns once when the writing execution is a concurrent branch, because the
+   * memory variable lives at the process-instance scope and every branch sharing
+   * a {@code memoryId} therefore contends on one row. Every activity of an ad hoc
+   * sub process runs on a concurrent execution, so an AI agent task there is one
+   * too, a tool of an agentic scope included: two performances of the same tool
+   * share its derived {@code memoryId} (CIB7-2232).
+   *
+   * <p>The contention itself is handled by the engine — the loser gets an
+   * {@code OptimisticLockingException} and the job is retried. What makes it worth
+   * a warning is that the retry re-runs the whole service task, and
+   * {@link ProcessStarterTool} starts process instances in its own transaction, so
+   * anything it already started is not rolled back and will be started again. This
+   * cannot be fixed from the store; the remedy is a per-branch {@code memoryId},
+   * which only the process model can supply.
+   */
+  private static void warnOnConcurrentBranch(ExecutionEntity execution, String variableName) {
+    if (!execution.isConcurrent() || !CONCURRENT_BRANCH_LOGGED.compareAndSet(false, true)) {
+      return;
+    }
+    LOG.warn("AI Agent connector: chat memory '{}' is being written from a concurrent execution "
+        + "(a branch of a parallel gateway or multi-instance, or an activity of an ad hoc sub "
+        + "process, which runs on one too). The variable lives at the process-instance scope, "
+        + "so branches sharing this memoryId contend on one row and the losing branch fails with "
+        + "an OptimisticLockingException, retrying the entire service task. Tools that commit "
+        + "outside the job transaction — ProcessStarterTool starts process instances in its own "
+        + "transaction — are then executed a second time. Give each branch its own memoryId "
+        + "(for example by appending the loop or branch index) unless the branches are meant to "
+        + "share one conversation. Logged once per JVM.", variableName);
+  }
+
+  /**
+   * The execution to store the memory on, or {@code null} when there is no engine
+   * context on this thread and the caller must use {@link #noContextBuffer}.
+   * Logged once per JVM, because it silently restores the JVM-local behaviour
+   * that made conversations unusable across replicas.
+   */
+  private static ExecutionEntity targetExecution() {
+    BpmnExecutionContext ctx = Context.getBpmnExecutionContext();
+    if (ctx == null) {
+      if (NO_ENGINE_CONTEXT_LOGGED.compareAndSet(false, true)) {
+        LOG.warn("AI Agent connector: no BpmnExecutionContext on the current thread, so chat "
+            + "memory falls back to a JVM-local store and will neither survive a restart nor be "
+            + "shared across engine replicas. Expected outside an engine command context (tests, "
+            + "embedded use); unexpected for a BPMN service task. Logged once per JVM.");
+      }
+      return null;
+    }
+    return ctx.getExecution();
+  }
+
+  /**
+   * The process-variable name carrying the conversation for {@code memoryId}.
+   *
+   * @throws AgentConnectorException when the id is missing or blank, or when it
+   *     is too long for the engine's variable-name column, counted in UTF-8 bytes
+   *     as for the chat-log chunk names. A missing id would
+   *     otherwise produce one shared variable name for every such conversation
+   *     in the instance — every agent task without an id reading and overwriting
+   *     the same history — so it is rejected rather than mapped to a placeholder.
+   */
+  static String variableName(Object memoryId) {
+    String id = (memoryId == null) ? null : memoryId.toString();
+    if (id == null || id.trim().isEmpty()) {
+      throw new AgentConnectorException(
+          "memoryId must not be null or blank: it names the process variable holding the "
+          + "conversation, so a missing id would make separate conversations share one variable. "
+          + "The connector generates a UUID when chat memory is active and no memoryId is given; "
+          + "a BPMN input mapping that resolves to an empty value overrides that with nothing.");
+    }
+    String name = AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX + id;
+    int bytes = name.getBytes(StandardCharsets.UTF_8).length;
+    if (bytes > MAX_VARIABLE_NAME_LENGTH) {
+      throw new AgentConnectorException(String.format(
+          "memoryId is too long: the chat-memory variable name would be %d bytes (UTF-8), but the "
+          + "engine limits variable names to %d. Use a memoryId of at most %d ASCII characters.",
+          bytes, MAX_VARIABLE_NAME_LENGTH,
+          MAX_VARIABLE_NAME_LENGTH - AgentConnectorConstants.AGENT_CONNECTOR_MEMORY_PREFIX.length()));
+    }
+    return name;
+  }
+
+  /**
+   * Reads the conversation: the driving agent's only from where {@link AdHocConversation}
+   * keeps it, every other one from the process level.
+   *
+   * <p>The driving agent's has no fallback to the process level, not even before its
+   * first write (CIB7-2408). The variable name there is predictable — with
+   * {@code perActivity} it is made of the enclosing execution's id and the scope's id —
+   * so whoever can set a process variable before the agent's first turn, the assignee of
+   * a user task before the scope or a correlated message, could otherwise hand the agent
+   * a conversation of their choice, which it would take for its own. The fallback was
+   * there for instances of builds of the agentic branch from before CIB7-2232; no
+   * release has the agentic layer, so no released instance needs it.
+   *
+   * <p>No migration for anything else that builds of the agentic branch kept elsewhere
+   * before CIB7-2232: the conversation of an AI agent task other than the driving
+   * agent, which they kept on the agent state or the holder, and a tool's conversation
+   * under the earlier form of its derived id. Neither is read any more, so such a task
+   * starts its conversation anew; the old copy goes with its execution, or stays until
+   * the instance ends. No release ever wrote either.
+   *
+   * <p>Deliberately never creates a state execution, because a read must not
+   * write — a scope nobody ever stored anything in would otherwise acquire an
+   * execution just from being looked at.
+   */
+  private static Object readRaw(ExecutionEntity execution, String name) {
+    ExecutionEntity drivenScope = AdHocConversation.drivenScope(execution);
+    if (drivenScope != null) {
+      PvmExecutionImpl state = AdHocConversation.findMemoryExecution(drivenScope);
+      return (state == null) ? null : state.getVariableLocal(name);
+    }
+    return execution.getVariable(name);
+  }
+
+  /** Which conversation a write on {@code execution} is, on this thread now. */
+  private static Key key(ExecutionEntity execution, String name) {
+    return (AdHocConversation.drivenScope(execution) != null)
+        ? new Key(execution, name, true)
+        : processLevelKey(execution, name);
+  }
+
+  /**
+   * The process-level conversation {@code name} as seen from {@code execution}: the scope
+   * {@code setVariable} would write it to, the nearest one holding it, else the process instance.
+   * Two executions of one instance that reach the same variable get the same key.
+   */
+  private static Key processLevelKey(ExecutionEntity execution, String name) {
+    AbstractVariableScope scope = execution;
+    while (!scope.hasVariableLocal(name) && scope.getParentVariableScope() != null) {
+      scope = scope.getParentVariableScope();
+    }
+    return new Key(scope, name, false);
+  }
+
+  /**
+   * One conversation: where it is anchored, its variable name, and whether it is the driving
+   * agent's. The anchor is compared by identity, as the engine has one object per execution in a
+   * command. The driving agent's is anchored on the scope execution, but lives out of its tools'
+   * reach, so it never shares a key with a process-level one, whatever the names.
+   */
+  private static final class Key {
+
+    private final Object anchor;
+    private final String name;
+    private final boolean driven;
+
+    Key(Object anchor, String name, boolean driven) {
+      this.anchor = anchor;
+      this.name = name;
+      this.driven = driven;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if (!(other instanceof Key)) {
+        return false;
+      }
+      Key key = (Key) other;
+      return anchor == key.anchor && name.equals(key.name) && driven == key.driven;
+    }
+
+    @Override
+    public int hashCode() {
+      return 31 * (31 * System.identityHashCode(anchor) + name.hashCode()) + (driven ? 1 : 0);
+    }
+  }
+
+  /**
+   * A write a {@link Batch} holds back: the execution that first staged the conversation in that
+   * batch, and the newest JSON.
+   */
+  private static final class Held {
+
+    private final ExecutionEntity execution;
+    private final String json;
+
+    Held(ExecutionEntity execution, String json) {
+      this.execution = execution;
+      this.json = json;
+    }
+  }
+
+  /**
+   * Holds back the conversation writes of one connector invocation and writes each conversation
+   * once, when the invocation ends (CIB7-2156).
+   *
+   * <p>LangChain4j's chat memory writes the whole conversation on every message it adds: the
+   * task, the model's answer, every tool result. Each write of a variable is a history row of its
+   * own at history level {@code full}, holding the whole conversation, so one model call with
+   * three tools made five rows. Held back here, the invocation reads its own latest version and
+   * the engine sees one write per conversation. An agentic step is one invocation (CIB7-2148), so
+   * that is one row per step.
+   *
+   * <p>The invocation, not the command, because the command can outlive what the conversation is
+   * written to: a step that ends its scope removes the agent state with it, and a process that
+   * ends in the same transaction removes its variables. Written when the invocation ends, the
+   * conversation reaches the database and its history exactly as the last of its writes did
+   * before; nothing between that write and the end of the invocation changes the process.
+   *
+   * <p>A batch belongs to the thread it was opened on, as the engine's own context does. Opened
+   * within another — an AI agent task used as a tool runs a connector invocation of its own while
+   * the outer one waits (CIB7-2155) — it holds that invocation's conversations, and writes them
+   * when that one ends. A conversation the outer batch already holds stays there, so the newest
+   * version is the one written.
+   *
+   * <p>A failed invocation still writes what it held when it closes. Usually the transaction is
+   * rolled back anyway; where it is not, the conversation is in the state the last write left it
+   * before as well.
+   */
+  static final class Batch implements AutoCloseable {
+
+    /** The batches open on this thread, innermost first; unset while none is. */
+    private static final ThreadLocal<Deque<Batch>> OPEN = new ThreadLocal<>();
+
+    /** Per conversation, its last write; first write first. */
+    private final Map<Key, Held> held = new LinkedHashMap<>();
+
+    private Batch() {
+    }
+
+    /** Opens a batch on this thread; closing it writes what it held. */
+    static Batch open() {
+      Deque<Batch> open = OPEN.get();
+      if (open == null) {
+        open = new ArrayDeque<>();
+        OPEN.set(open);
+      }
+      Batch batch = new Batch();
+      open.push(batch);
+      return batch;
+    }
+
+    /** Whether a batch is open on this thread. */
+    static boolean isOpen() {
+      return OPEN.get() != null;
+    }
+
+    /**
+     * Holds the write in the batch that has the conversation, else the innermost.
+     *
+     * <p>Written at close from the execution that first staged it there, not from the latest: in
+     * a nested invocation that is the outer one's, which is still running when its batch closes,
+     * while the inner task's may have ended by then. Both reach the same variable, as their keys
+     * are equal. Not written through the key's anchor, which would make the anchor rather than an
+     * invoking execution the source that the history ({@code ACT_HI_DETAIL}) and variable
+     * listeners see.
+     */
+    static void stage(Key key, ExecutionEntity execution, String json) {
+      Deque<Batch> open = OPEN.get();
+      Batch target = open.peek();
+      for (Batch batch : open) {
+        if (batch.held.containsKey(key)) {
+          target = batch;
+        }
+      }
+      Held first = target.held.get(key);
+      target.held.put(key, new Held((first != null) ? first.execution : execution, json));
+    }
+
+    /** The JSON a batch holds for the conversation, or {@code null}. */
+    static String staged(Key key) {
+      for (Batch batch : OPEN.get()) {
+        Held write = batch.held.get(key);
+        if (write != null) {
+          return write.json;
+        }
+      }
+      return null;
+    }
+
+    /** Forgets what a batch holds for the conversation. */
+    static void discard(Key key) {
+      for (Batch batch : OPEN.get()) {
+        batch.held.remove(key);
+      }
+    }
+
+    /**
+     * Writes what this batch held and closes it. Closed even when a write fails, so the thread
+     * does not carry it into the next invocation.
+     *
+     * <p>A write that fails is logged before it is rethrown: when the invocation fails as well,
+     * the failure is only a suppressed exception of the invocation's, and a {@code BpmnError}
+     * caught by a boundary event lets the transaction commit without the conversation. The log
+     * leaves out the stack trace, which the engine or the suppressed exception carries.
+     */
+    @Override
+    public void close() {
+      try {
+        // Every conversation is attempted, so one that cannot be written does not keep the others
+        // back; the first failure is thrown, any further ones go with it.
+        RuntimeException first = null;
+        for (Map.Entry<Key, Held> write : held.entrySet()) {
+          Key key = write.getKey();
+          try {
+            ProcessVariableChatMemoryStore.write(write.getValue().execution, key.driven, key.name,
+                write.getValue().json);
+          } catch (RuntimeException e) {
+            LOG.warn("AI Agent connector: could not write the conversation '{}' at the end of the "
+                + "connector invocation: {}", key.name, e.toString());
+            if (first == null) {
+              first = e;
+            } else {
+              first.addSuppressed(e);
+            }
+          }
+        }
+        if (first != null) {
+          throw first;
+        }
+      } finally {
+        held.clear();
+        Deque<Batch> open = OPEN.get();
+        if (open != null) {
+          open.remove(this);
+          if (open.isEmpty()) {
+            OPEN.remove();
+          }
+        }
+      }
+    }
+  }
+}

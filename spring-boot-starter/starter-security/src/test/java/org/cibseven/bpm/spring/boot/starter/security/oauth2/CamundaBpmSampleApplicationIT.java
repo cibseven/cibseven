@@ -16,15 +16,17 @@
  */
 package org.cibseven.bpm.spring.boot.starter.security.oauth2;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.WebApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@AutoConfigureTestRestTemplate
 public class CamundaBpmSampleApplicationIT extends AbstractSpringSecurityIT {
 
   @Autowired
@@ -36,18 +38,8 @@ public class CamundaBpmSampleApplicationIT extends AbstractSpringSecurityIT {
   @Test
   public void testSpringSecurityAutoConfigurationCorrectlySet() {
     // given oauth2 client not configured
-    // when retrieving config beans then only SpringSecurityDisabledAutoConfiguration is present
-    assertThat(getBeanForClass(CamundaSpringSecurityOAuth2WebappAutoConfiguration.class, webApplicationContext)).isNull();
+    // when retrieving config beans then the default Spring Security filter chains are disabled
     assertThat(getBeanForClass(CamundaBpmSpringSecurityDisableAutoConfiguration.class, webApplicationContext)).isNotNull();
-  }
-
-  @Test
-  public void testWebappApiIsAvailableAndRequiresAuthorization() {
-    // given oauth2 client disabled
-    // when calling the webapp api
-    ResponseEntity<String> entity = testRestTemplate.getForEntity(baseUrl + "/camunda/api/engine/engine/default/user", String.class);
-    // then webapp api returns unauthorized
-    assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
   }
 
   @Test

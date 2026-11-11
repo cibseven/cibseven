@@ -21,18 +21,23 @@ import org.cibseven.bpm.model.xml.impl.parser.AbstractModelParser;
 import org.cibseven.bpm.model.xml.testmodel.Gender;
 import org.cibseven.bpm.model.xml.testmodel.TestModelParser;
 import org.cibseven.bpm.model.xml.testmodel.TestModelTest;
+import org.cibseven.bpm.model.xml.testmodel.TestModelTest.ParsedModel;
+import org.cibseven.bpm.model.xml.testmodel.instance.AlternativeNsTest;
 import org.cibseven.bpm.model.xml.testmodel.instance.Animals;
 import org.cibseven.bpm.model.xml.testmodel.instance.Description;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Stream;
 
 import static javax.xml.XMLConstants.XMLNS_ATTRIBUTE_NS_URI;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.model.xml.testmodel.TestModelConstants.MODEL_NAMESPACE;
-import static org.junit.runners.Parameterized.Parameters;
 
 /**
  * @author Sebastian Menski
@@ -47,19 +52,11 @@ public class DomTest extends TestModelTest {
 
   private DomDocument document;
 
-  public DomTest(String testName, ModelInstance testModelInstance, AbstractModelParser modelParser) {
-    super(testName, testModelInstance, modelParser);
+  public static Stream<Arguments> models() {
+    return Stream.of(createModel(), parseModel(DomTest.class)).map(Arguments::of);
   }
-
-  @Parameters(name="Model {0}")
-  public static Collection<Object[]> models() {
-    return Arrays.asList(
-      createModel(),
-      parseModel(DomTest.class)
-    );
-  }
-
-  private static Object[] createModel() {
+  
+  private static ParsedModel createModel() {
     TestModelParser modelParser = new TestModelParser();
     ModelInstance modelInstance = modelParser.getEmptyModel();
 
@@ -69,18 +66,20 @@ public class DomTest extends TestModelTest {
     Description description = modelInstance.newInstance(Description.class);
     description.getDomElement().addCDataSection("CDATA <test>");
     animals.addChildElement(description);
-
-    return new Object[]{"created", modelInstance, modelParser};
+    return new ParsedModel("created", modelInstance, modelParser);
   }
 
-  @Before
-  public void copyModelInstance() {
-    modelInstance = cloneModelInstance();
+//  @BeforeEach
+  public void setUp(ParsedModel parsedModel) {
+    initializeTestModelTest(parsedModel);
+    this.modelInstance = (ModelInstance) parsedModel.modelInstance;
     document = modelInstance.getDocument();
   }
 
-  @Test
-  public void testRegisterNamespaces() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testRegisterNamespaces(ParsedModel parsedModel) {
+    setUp(parsedModel);
     document.registerNamespace("test", TEST_NS);
     String prefix = document.registerNamespace(UNKNOWN_NS);
     assertThat(prefix).isEqualTo("ns0");
@@ -92,8 +91,10 @@ public class DomTest extends TestModelTest {
     assertThat(rootElement.getAttribute(XMLNS_ATTRIBUTE_NS_URI, "ns0")).isEqualTo(UNKNOWN_NS);
   }
 
-  @Test
-  public void testGenerateNamespacePrefixes() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testGenerateNamespacePrefixes(ParsedModel parsedModel) {
+    setUp(parsedModel);
     // occupy ns0 and ns2
     document.registerNamespace("ns0", UNKNOWN_NS + 0);
     document.registerNamespace("ns2", UNKNOWN_NS + 2);
@@ -115,8 +116,10 @@ public class DomTest extends TestModelTest {
     assertThat(rootElement.getAttribute(XMLNS_ATTRIBUTE_NS_URI, "ns3")).isEqualTo(UNKNOWN_NS + 3);
   }
 
-  @Test
-  public void testDuplicateNamespaces() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testDuplicateNamespaces(ParsedModel parsedModel) {
+    setUp(parsedModel);
     document.registerNamespace("test", TEST_NS);
     String prefix = document.registerNamespace(TEST_NS);
     assertThat(prefix).isEqualTo("test");
@@ -133,8 +136,10 @@ public class DomTest extends TestModelTest {
     assertThat(rootElement.hasAttribute(XMLNS_ATTRIBUTE_NS_URI, "ns1")).isFalse();
   }
 
-  @Test
-  public void testKnownPrefix() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testKnownPrefix(ParsedModel parsedModel) {
+    setUp(parsedModel);
     document.registerNamespace(CAMUNDA_NS);
     document.registerNamespace(FOX_NS);
 
@@ -145,8 +150,10 @@ public class DomTest extends TestModelTest {
     assertThat(rootElement.getAttribute(XMLNS_ATTRIBUTE_NS_URI, "fox")).isEqualTo(FOX_NS);
   }
 
-  @Test
-  public void testAlreadyUsedPrefix() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testAlreadyUsedPrefix(ParsedModel parsedModel) {
+    setUp(parsedModel);
     document.registerNamespace("camunda", TEST_NS);
     document.registerNamespace(CAMUNDA_NS);
 
@@ -157,8 +164,10 @@ public class DomTest extends TestModelTest {
     assertThat(rootElement.getAttribute(XMLNS_ATTRIBUTE_NS_URI, "ns0")).isEqualTo(CAMUNDA_NS);
   }
 
-  @Test
-  public void testAddElements() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testAddElements(ParsedModel parsedModel) {
+    setUp(parsedModel);
     DomElement element = document.createElement(MODEL_NAMESPACE, "bird");
     element.setAttribute(MODEL_NAMESPACE, "gender", Gender.Unknown.toString());
     document.getRootElement().appendChild(element);
@@ -186,8 +195,10 @@ public class DomTest extends TestModelTest {
     assertThat(element.getRootElement()).isEqualTo(document.getRootElement());
   }
 
-  @Test
-  public void testAddAttributes() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testAddAttributes(ParsedModel parsedModel) {
+    setUp(parsedModel);
     DomElement element = document.createElement(MODEL_NAMESPACE, "bird");
     element.setAttribute(MODEL_NAMESPACE, "gender", Gender.Unknown.toString());
     document.getRootElement().appendChild(element);
@@ -216,8 +227,10 @@ public class DomTest extends TestModelTest {
     assertThat(document.getRootElement().hasAttribute(XMLNS_ATTRIBUTE_NS_URI, "bpmn2")).isTrue();
   }
 
-  @Test
-  public void testCData() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testCData(ParsedModel parsedModel) {
+    setUp(parsedModel);
     Animals animals = (Animals) modelInstance.getDocumentElement();
     assertThat(animals.getDescription().getTextContent())
       .isEqualTo("CDATA <test>");

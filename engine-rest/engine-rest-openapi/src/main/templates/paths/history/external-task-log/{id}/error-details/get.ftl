@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getErrorDetailsHistoricExternalTaskLog"
       tag = "Historic External Task Log"
-      summary = "Get External Task Log Error Details"
+      summary = "Get Historic External Task Log Error Details"
       desc = "Retrieves the corresponding error details of the passed historic external task log
               by id."
   />

@@ -29,17 +29,20 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.stream.Collectors;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 import org.apache.ibatis.builder.xml.XMLConfigBuilder;
@@ -79,6 +82,7 @@ import org.cibseven.bpm.engine.authorization.Permissions;
 import org.cibseven.bpm.engine.impl.AuthorizationServiceImpl;
 import org.cibseven.bpm.engine.impl.DecisionServiceImpl;
 import org.cibseven.bpm.engine.impl.DefaultArtifactFactory;
+import org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator;
 import org.cibseven.bpm.engine.impl.ExternalTaskServiceImpl;
 import org.cibseven.bpm.engine.impl.FilterServiceImpl;
 import org.cibseven.bpm.engine.impl.FormServiceImpl;
@@ -99,6 +103,7 @@ import org.cibseven.bpm.engine.impl.application.ProcessApplicationManager;
 import org.cibseven.bpm.engine.impl.batch.BatchJobHandler;
 import org.cibseven.bpm.engine.impl.batch.BatchMonitorJobHandler;
 import org.cibseven.bpm.engine.impl.batch.BatchSeedJobHandler;
+import org.cibseven.bpm.engine.impl.batch.deletion.DeleteDeploymentsJobHandler;
 import org.cibseven.bpm.engine.impl.batch.deletion.DeleteHistoricProcessInstancesJobHandler;
 import org.cibseven.bpm.engine.impl.batch.deletion.DeleteProcessInstancesJobHandler;
 import org.cibseven.bpm.engine.impl.batch.externaltask.SetExternalTaskRetriesJobHandler;
@@ -269,6 +274,7 @@ import org.cibseven.bpm.engine.impl.migration.validation.instance.MigratingCompe
 import org.cibseven.bpm.engine.impl.migration.validation.instance.MigratingTransitionInstanceValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instance.NoUnmappedCompensationStartEventValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instance.NoUnmappedLeafInstanceValidator;
+import org.cibseven.bpm.engine.impl.migration.validation.instance.AdHocSubProcessInstanceValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instance.SupportedActivityInstanceValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instance.VariableConflictActivityInstanceValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.AdditionalFlowScopeInstructionValidator;
@@ -279,6 +285,7 @@ import org.cibseven.bpm.engine.impl.migration.validation.instruction.Conditional
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.GatewayMappingValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.MigrationInstructionValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.OnlyOnceMappedActivityInstructionValidator;
+import org.cibseven.bpm.engine.impl.migration.validation.instruction.SameAdHocCompletionRuleValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.SameBehaviorInstructionValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.SameEventScopeInstructionValidator;
 import org.cibseven.bpm.engine.impl.migration.validation.instruction.SameEventTypeValidator;
@@ -706,7 +713,8 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   protected boolean isDbIdentityUsed = true;
   protected boolean isDbHistoryUsed = true;
-  protected boolean modelerEnabled = true;
+  /** Off by default: the webclient tables (MOD_, CHAT_, NOTIF_) belong to the webclient. */
+  protected boolean webclientExtensionsEnabled = false;
 
   protected DelegateInterceptor delegateInterceptor;
 
@@ -859,6 +867,22 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected boolean enableExpressionsInStoredQueries = true;
 
   /**
+   * Whitelist for task query expressions (see {@link org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator}),
+   * applied to both stored filter criteria and adhoc task queries (e.g. REST /task, /task/count).
+   * Replaces the whole whitelist when set, does not extend the defaults. Configured via
+   * {@link #setAllowedFilterExpressions(String)}, a single String rather than a
+   * {@code Set<String>}, so it can be set the same way on every distro.
+   */
+  protected Set<String> allowedFilterExpressions = new HashSet<>(ExpressionWhitelistValidator.DEFAULT_ALLOWED_EXPRESSIONS);
+
+  /**
+   * If true (default), the {@link org.cibseven.bpm.engine.impl.ExpressionWhitelistValidator} restricts
+   * expressions in task filter criteria and adhoc task queries to {@link #allowedFilterExpressions}.
+   * Set to false to disable the validator entirely and allow any expression.
+   */
+  protected boolean enableFilterExpressionWhitelist = true;
+
+  /**
    * If false, disables XML eXternal Entity (XXE) Processing. This provides protection against XXE Processing attacks.
    */
   protected boolean enableXxeProcessing = false;
@@ -1008,6 +1032,18 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   private int failedJobListenerMaxRetries = DEFAULT_FAILED_JOB_LISTENER_MAX_RETRIES;
 
   protected String failedJobRetryTimeCycle;
+
+  /**
+   * Default {@code failedJobRetryTimeCycle} applied to external tasks that do not declare
+   * their own <code>camunda:failedJobRetryTimeCycle</code> extension element.
+   * <p>
+   * This is a separate property from {@link #failedJobRetryTimeCycle} on purpose: that
+   * property only ever applied to jobs, and reusing it for external tasks would silently
+   * change the retry behavior of any deployment that already configures a global default
+   * for jobs. Left {@code null} (the default), external tasks keep their previous behavior
+   * of unlimited retries until a worker or operator sets a value explicitly.
+   */
+  protected String externalTaskFailedJobRetryTimeCycle;
 
   // login attempts ///////////////////////////////////////////////////////
   protected int loginMaxAttempts = 10;
@@ -1545,6 +1581,9 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
       MessageCorrelationBatchJobHandler messageCorrelationJobHandler = new MessageCorrelationBatchJobHandler();
       batchHandlers.put(messageCorrelationJobHandler.getType(), messageCorrelationJobHandler);
+
+      DeleteDeploymentsJobHandler deleteDeploymentsJobHandler = new DeleteDeploymentsJobHandler();
+      batchHandlers.put(deleteDeploymentsJobHandler.getType(), deleteDeploymentsJobHandler);
     }
 
     if (customBatchJobHandlers != null) {
@@ -2075,7 +2114,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     dbSqlSessionFactory.setDbHistoryUsed(isDbHistoryUsed);
     dbSqlSessionFactory.setCmmnEnabled(cmmnEnabled);
     dbSqlSessionFactory.setDmnEnabled(dmnEnabled);
-    dbSqlSessionFactory.setModelerEnabled(modelerEnabled);
+    dbSqlSessionFactory.setWebclientExtensionsEnabled(webclientExtensionsEnabled);
     dbSqlSessionFactory.setDatabaseTablePrefix(databaseTablePrefix);
 
     //hack for the case when schema is defined via databaseTablePrefix parameter and not via databaseSchema parameter
@@ -3795,12 +3834,30 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     this.isDbHistoryUsed = isDbHistoryUsed;
   }
 
-  public boolean isModelerEnabled() {
-    return modelerEnabled;
+  public boolean isWebclientExtensionsEnabled() {
+    return webclientExtensionsEnabled;
   }
 
+  public void setWebclientExtensionsEnabled(boolean webclientExtensionsEnabled) {
+    this.webclientExtensionsEnabled = webclientExtensionsEnabled;
+  }
+
+  /**
+   * @deprecated since 3.0.0, use {@link #isWebclientExtensionsEnabled()}. The component covers the chat and
+   *             notification tables as well, not only the modeler ones.
+   */
+  @Deprecated
+  public boolean isModelerEnabled() {
+    return webclientExtensionsEnabled;
+  }
+
+  /**
+   * @deprecated since 3.0.0, use {@link #setWebclientExtensionsEnabled(boolean)}. Kept so that an existing
+   *             bpm-platform.xml or spring configuration naming modelerEnabled keeps working.
+   */
+  @Deprecated
   public void setModelerEnabled(boolean modelerEnabled) {
-    this.modelerEnabled = modelerEnabled;
+    this.webclientExtensionsEnabled = modelerEnabled;
   }
 
   public List<ResolverFactory> getResolverFactories() {
@@ -4626,6 +4683,33 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     this.enableExpressionsInStoredQueries = enableExpressionsInStoredQueries;
   }
 
+  public Set<String> getAllowedFilterExpressions() {
+    return allowedFilterExpressions;
+  }
+
+  /**
+   * @param allowedFilterExpressions semicolon-separated JUEL expressions, e.g. {@code "${currentUser()};${businessCalendar()}"}.
+   *        Entries are stored normalized (see {@link ExpressionWhitelistValidator#normalize(String)}), so numeric
+   *        arguments act as a wildcard: {@code ${dateTime().plusDays()}}, {@code ${dateTime().plusDays(2)}} and
+   *        {@code ${dateTime().plusDays(5)}} are equivalent and each permits any day count.
+   */
+  public ProcessEngineConfigurationImpl setAllowedFilterExpressions(String allowedFilterExpressions) {
+    this.allowedFilterExpressions = Arrays.stream(allowedFilterExpressions.split(";"))
+        .map(String::trim)
+        .filter(expression -> !expression.isEmpty())
+        .map(ExpressionWhitelistValidator::normalize)
+        .collect(Collectors.toSet());
+    return this;
+  }
+
+  public boolean isEnableFilterExpressionWhitelist() {
+    return enableFilterExpressionWhitelist;
+  }
+
+  public void setEnableFilterExpressionWhitelist(boolean enableFilterExpressionWhitelist) {
+    this.enableFilterExpressionWhitelist = enableFilterExpressionWhitelist;
+  }
+
   public boolean isEnableXxeProcessing() {
     return enableXxeProcessing;
   }
@@ -4758,6 +4842,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     migrationInstructionValidators.add(new UpdateEventTriggersValidator());
     migrationInstructionValidators.add(new AdditionalFlowScopeInstructionValidator());
     migrationInstructionValidators.add(new ConditionalEventUpdateEventTriggerValidator());
+    migrationInstructionValidators.add(new SameAdHocCompletionRuleValidator());
     return migrationInstructionValidators;
   }
 
@@ -4799,6 +4884,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     migratingActivityInstanceValidators.add(new NoUnmappedLeafInstanceValidator());
     migratingActivityInstanceValidators.add(new VariableConflictActivityInstanceValidator());
     migratingActivityInstanceValidators.add(new SupportedActivityInstanceValidator());
+    migratingActivityInstanceValidators.add(new AdHocSubProcessInstanceValidator());
 
     return migratingActivityInstanceValidators;
   }
@@ -5166,6 +5252,14 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public void setFailedJobRetryTimeCycle(String failedJobRetryTimeCycle) {
     this.failedJobRetryTimeCycle = failedJobRetryTimeCycle;
+  }
+
+  public String getExternalTaskFailedJobRetryTimeCycle() {
+    return externalTaskFailedJobRetryTimeCycle;
+  }
+
+  public void setExternalTaskFailedJobRetryTimeCycle(String externalTaskFailedJobRetryTimeCycle) {
+    this.externalTaskFailedJobRetryTimeCycle = externalTaskFailedJobRetryTimeCycle;
   }
 
   public int getLoginMaxAttempts() {

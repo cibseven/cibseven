@@ -1,0 +1,1 @@
+{"id":"invoice:1:abc","key":"invoice","category":null,"description":null,"name":"Invoice Receipt","version":1,"resource":"invoice/invoice.bpmn","deploymentId":null,"diagram":"invoice/invoice.png","suspended":false,"tenantId":null,"versionTag":null,"historyTimeToLive":null,"startableInTasklist":true}

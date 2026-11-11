@@ -18,9 +18,9 @@ package org.cibseven.bpm.engine.rest.impl;
 
 import java.net.URI;
 
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.Providers;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.ext.Providers;
 
 import org.cibseven.bpm.engine.rest.AuthorizationRestService;
 import org.cibseven.bpm.engine.rest.BatchRestService;
@@ -60,7 +60,7 @@ import org.cibseven.bpm.engine.rest.impl.history.HistoryRestServiceImpl;
 import org.cibseven.bpm.engine.rest.impl.optimize.OptimizeRestService;
 import org.cibseven.bpm.engine.rest.util.ProvidersUtil;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * <p>Abstract process engine resource that provides instantiations of all REST resources.</p>

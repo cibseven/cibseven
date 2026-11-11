@@ -29,10 +29,10 @@ import static org.cibseven.bpm.engine.authorization.Permissions.READ;
 import static org.cibseven.bpm.engine.authorization.Permissions.UPDATE;
 import static org.cibseven.bpm.engine.authorization.Resources.DASHBOARD;
 import static org.cibseven.bpm.engine.authorization.Resources.REPORT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,8 +56,8 @@ import org.cibseven.bpm.engine.authorization.Resources;
 import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.impl.persistence.entity.AuthorizationEntity;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer
@@ -68,7 +68,7 @@ public class AuthorizationServiceTest extends PluggableProcessEngineTest {
   protected String userId = "test";
   protected String groupId = "accounting";
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     cleanupAfterTest();
 
@@ -754,6 +754,33 @@ public class AuthorizationServiceTest extends PluggableProcessEngineTest {
     assertEquals(true, authorizationService.isUserAuthorized(userId, null, UPDATE, DASHBOARD));
     assertEquals(true, authorizationService.isUserAuthorized(userId, null, DELETE, DASHBOARD));
     processEngineConfiguration.setAuthorizationEnabled(false);
+  }
+
+  @Test
+  public void testDeprecatedResourceAuthorizationsCanBeReadAndDeleted() {
+    for (Resource resource : Arrays.asList(REPORT, DASHBOARD)) {
+      // given an authorization that was created before the resource was deprecated
+      Authorization authorization = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
+      authorization.setUserId(userId);
+      authorization.addPermission(READ);
+      authorization.addPermission(DELETE);
+      authorization.setResource(resource);
+      authorization.setResourceId(ANY);
+      authorizationService.saveAuthorization(authorization);
+
+      // then it can still be read, including its permissions
+      Authorization stored = authorizationService.createAuthorizationQuery()
+          .resourceType(resource)
+          .singleResult();
+      assertEquals(resource.resourceType(), stored.getResourceType());
+      assertTrue(stored.isPermissionGranted(READ));
+      assertTrue(stored.isPermissionGranted(DELETE));
+      assertFalse(stored.isPermissionGranted(UPDATE));
+
+      // and deleted
+      authorizationService.deleteAuthorization(stored.getId());
+      assertEquals(0, authorizationService.createAuthorizationQuery().resourceType(resource).count());
+    }
   }
 
   @Test

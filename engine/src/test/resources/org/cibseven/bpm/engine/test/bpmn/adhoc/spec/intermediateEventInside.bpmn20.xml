@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-probe">
+  <message id="msg" name="theMessage" />
+  <process id="specIntermediate" isExecutable="true" camunda:historyTimeToLive="P30D">
+    <startEvent id="start" /><sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <userTask id="taskA" />
+      <intermediateCatchEvent id="wait"><messageEventDefinition messageRef="msg" /></intermediateCatchEvent>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" /><endEvent id="end" />
+  </process>
+</definitions>

@@ -23,12 +23,12 @@ import org.cibseven.bpm.engine.rest.dto.converter.TaskReportResultToCsvConverter
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.bpm.engine.task.TaskCountByCandidateGroupResult;
 import org.cibseven.bpm.engine.task.TaskReport;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
@@ -37,7 +37,7 @@ import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_GROUP_ID;
 import static org.cibseven.bpm.engine.rest.helper.MockProvider.EXAMPLE_TASK_COUNT_BY_CANDIDATE_GROUP;
 import static org.cibseven.bpm.engine.rest.helper.MockProvider.createMockTaskCountByCandidateGroupReport;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -49,7 +49,7 @@ import static org.mockito.Mockito.when;
  */
 public class TaskReportRestServiceTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String TASK_REPORT_URL = TEST_RESOURCE_ROOT_PATH + "/task/report";
@@ -57,7 +57,7 @@ public class TaskReportRestServiceTest extends AbstractRestServiceTest {
 
   protected TaskReport mockedReportQuery;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     mockedReportQuery = setUpMockHistoricProcessInstanceReportQuery();
   }
@@ -115,14 +115,14 @@ public class TaskReportRestServiceTest extends AbstractRestServiceTest {
 
     String content = response.asString();
     List<String> reports = from(content).getList("");
-    Assert.assertEquals("There should be one report returned.", 1, reports.size());
-    Assert.assertNotNull("The returned report should not be null.", reports.get(0));
+    Assertions.assertEquals( 1, reports.size(), "There should be one report returned.");
+    Assertions.assertNotNull(reports.get(0), "The returned report should not be null.");
 
     String returnedGroup = from(content).getString("[0].groupName");
     int returnedCount = from(content).getInt("[0].taskCount");
 
-    Assert.assertEquals(EXAMPLE_GROUP_ID, returnedGroup);
-    Assert.assertEquals(EXAMPLE_TASK_COUNT_BY_CANDIDATE_GROUP, returnedCount);
+    Assertions.assertEquals(EXAMPLE_GROUP_ID, returnedGroup);
+    Assertions.assertEquals(EXAMPLE_TASK_COUNT_BY_CANDIDATE_GROUP, returnedCount);
   }
 
 

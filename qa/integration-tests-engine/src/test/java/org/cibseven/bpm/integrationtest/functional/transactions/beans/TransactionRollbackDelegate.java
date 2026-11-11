@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.integrationtest.functional.transactions.beans;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.transaction.UserTransaction;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.transaction.UserTransaction;
 
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.JavaDelegate;

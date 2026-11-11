@@ -21,9 +21,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.resource.ResourceException;
-import javax.resource.spi.UnavailableException;
-import javax.resource.spi.endpoint.MessageEndpoint;
+import jakarta.resource.ResourceException;
+import jakarta.resource.spi.UnavailableException;
+import jakarta.resource.spi.endpoint.MessageEndpoint;
 
 import org.cibseven.bpm.container.impl.threading.ra.JcaExecutorServiceConnector;
 import org.cibseven.bpm.engine.impl.ProcessEngineImpl;

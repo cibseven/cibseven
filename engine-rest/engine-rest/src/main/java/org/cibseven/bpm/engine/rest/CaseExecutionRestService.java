@@ -22,10 +22,10 @@ import org.cibseven.bpm.engine.rest.dto.runtime.CaseExecutionQueryDto;
 import org.cibseven.bpm.engine.rest.sub.runtime.CaseExecutionResource;
 import org.cibseven.bpm.engine.runtime.CaseExecutionQuery;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.UriInfo;
 import java.util.List;
 
 /**

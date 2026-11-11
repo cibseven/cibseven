@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-database-settings</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
     <relativePath>../../database</relativePath>
   </parent>
 
@@ -18,6 +18,34 @@
   <dependencyManagement>
     <dependencies>
 
+      <!-- Addressing Jackson 2 CVEs coming from v2.21.5
+        jackson-core:
+        CVE-2026-89407, CVE-2026-89425,
+        CVE-2026-19032, CVE-2026-83557
+        jackson-databind:
+        CVE-2026-68497, CVE-2026-91776, CVE-2026-91777 -->
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+
+      <!-- Addressing Jackson 3 CVEs coming from v3.1.5
+        jackson-core:
+        CVE-2026-91776, CVE-2026-91777,
+        CVE-2026-89407, CVE-2026-89425.
+        jackson-databind:
+        CVE-2026-83557, CVE-2026-19032, CVE-2026-83557 -->
+      <dependency>
+        <groupId>tools.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${version.jackson3}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
@@ -26,9 +54,46 @@
         <type>pom</type>
       </dependency>
 
+      <!-- Temporary Apache HttpComponents CVE overrides.
+           Remove these once the imported Spring Boot BOM manages fixed versions. -->
+      <dependency>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5</artifactId>
+        <version>${version.httpclient5}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5</artifactId>
+        <version>${version.httpcore5}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5-h2</artifactId>
+        <version>${version.httpcore5}</version>
+      </dependency>
+
+      <!-- Temporary Apache Tomcat CVE overrides (BOM pins a vulnerable version).
+           Remove these once the imported Spring Boot 4 BOM manages fixed versions. -->
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-core</artifactId>
+        <version>${version.tomcat}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-el</artifactId>
+        <version>${version.tomcat}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-websocket</artifactId>
+        <version>${version.tomcat}</version>
+      </dependency>
+
       <dependency>
         <groupId>org.graalvm.js</groupId>
         <artifactId>js</artifactId>
+        <type>pom</type>
         <version>${version.graal.js}</version>
       </dependency>
 
@@ -58,30 +123,6 @@
       </plugins>
     </pluginManagement>
 
-    <plugins>
-
-      <!-- Enforces Java 17 during the build -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.0.0-M1</version>
-        <configuration>
-          <rules>
-            <requireJavaVersion>
-              <version>[17,)</version>
-            </requireJavaVersion>
-          </rules>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-    </plugins>
   </build>
 
   <profiles>
@@ -108,6 +149,7 @@
     <profile>
       <id>integration-test-run</id>
       <modules>
+        <module>core</module>
         <module>qa</module>
       </modules>
     </profile>

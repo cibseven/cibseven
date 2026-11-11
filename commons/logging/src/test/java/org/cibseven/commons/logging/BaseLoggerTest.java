@@ -16,7 +16,7 @@
  */
 package org.cibseven.commons.logging;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.*;

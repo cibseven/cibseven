@@ -28,9 +28,9 @@ import java.util.List;
 import org.cibseven.bpm.cockpit.impl.plugin.base.dto.ProcessInstanceDto;
 import org.cibseven.bpm.cockpit.impl.plugin.base.dto.query.ProcessInstanceQueryDto;
 import org.cibseven.bpm.cockpit.impl.plugin.resources.ProcessInstanceRestService;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -45,7 +45,7 @@ public class ProcessInstanceRestServiceAuthorizationTest extends AuthorizationTe
   protected ProcessInstanceRestService resource;
 
   @Override
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     super.setUp();
 
@@ -57,7 +57,7 @@ public class ProcessInstanceRestServiceAuthorizationTest extends AuthorizationTe
   }
 
   @Override
-  @After
+  @AfterEach
   public void tearDown() {
     deleteDeployment(deploymentId);
     super.tearDown();

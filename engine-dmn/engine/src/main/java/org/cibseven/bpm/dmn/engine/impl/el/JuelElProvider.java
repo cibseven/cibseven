@@ -16,19 +16,19 @@
  */
 package org.cibseven.bpm.dmn.engine.impl.el;
 
-import org.cibseven.bpm.impl.juel.jakarta.el.ArrayELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.BeanELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.CompositeELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ListELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.MapELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ResourceBundleELResolver;
+import jakarta.el.ArrayELResolver;
+import jakarta.el.CompositeELResolver;
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
+import jakarta.el.ListELResolver;
+import jakarta.el.MapELResolver;
+import jakarta.el.ResourceBundleELResolver;
 
 import org.cibseven.bpm.dmn.engine.impl.spi.el.ElExpression;
 import org.cibseven.bpm.dmn.engine.impl.spi.el.ElProvider;
 
 import org.cibseven.bpm.impl.juel.ExpressionFactoryImpl;
+import org.cibseven.bpm.impl.juel.JuelBeanELResolver;
 import org.cibseven.bpm.impl.juel.TreeValueExpression;
 import org.cibseven.bpm.impl.juel.SimpleContext;
 
@@ -45,7 +45,11 @@ public class JuelElProvider implements ElProvider {
   protected final ELContext parsingElContext;
 
   public JuelElProvider() {
-    this(new ExpressionFactoryImpl(), new JuelElContextFactory(createDefaultResolver()));
+    this(new ExpressionFactoryImpl());
+  }
+
+  private JuelElProvider(ExpressionFactoryImpl expressionFactory) {
+    this(expressionFactory, new JuelElContextFactory(createDefaultResolver(), expressionFactory));
   }
 
   public JuelElProvider(ExpressionFactoryImpl expressionFactory, JuelElContextFactory elContextFactory) {
@@ -82,7 +86,7 @@ public class JuelElProvider implements ElProvider {
     resolver.add(new ListELResolver(true));
     resolver.add(new MapELResolver(true));
     resolver.add(new ResourceBundleELResolver());
-    resolver.add(new BeanELResolver());
+    resolver.add(new JuelBeanELResolver());
     return resolver;
   }
 }

@@ -33,10 +33,10 @@ import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.identity.ldap.util.LdapTestEnvironment;
 import org.cibseven.bpm.identity.ldap.util.LdapTestEnvironmentRule;
 import org.cibseven.bpm.identity.ldap.util.LdapTestUtilities;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -44,17 +44,17 @@ import org.junit.Test;
  */
 public class LdapDisableAuthorizationCheckTest {
 
-  @ClassRule
-  public static LdapTestEnvironmentRule ldapRule = new LdapTestEnvironmentRule();
-  @Rule
-  public ProcessEngineRule engineRule = new ProcessEngineRule("camunda.ldap.disable.authorization.check.cfg.xml");
+  @RegisterExtension
+  @Order(2) public static LdapTestEnvironmentRule ldapRule = new LdapTestEnvironmentRule();
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProcessEngineRule("camunda.ldap.disable.authorization.check.cfg.xml");
 
   ProcessEngineConfiguration processEngineConfiguration;
   IdentityService identityService;
   AuthorizationService authorizationService;
   LdapTestEnvironment ldapTestEnvironment;
 
-  @Before
+  @BeforeEach
   public void setup() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     identityService = engineRule.getIdentityService();

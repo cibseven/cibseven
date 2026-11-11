@@ -107,7 +107,7 @@ public abstract class AbstractDeploymentHelper {
       JavaArchive[] resolvedArchives = Maven.configureResolver()
           .workOffline()
           .loadPomFromFile("pom.xml")
-          .resolve(engineCdiArtifactName, "org.jboss.weld.servlet:weld-servlet")
+          .resolve(engineCdiArtifactName, "org.jboss.weld.servlet:weld-servlet-shaded")
           .withTransitivity()
           .as(JavaArchive.class);
 
@@ -158,7 +158,7 @@ public abstract class AbstractDeploymentHelper {
       return Maven.configureResolver()
           .workOffline()
           .loadPomFromFile("pom.xml")
-          .resolve("com.fasterxml.jackson.datatype:jackson-datatype-joda")
+          .resolve("tools.jackson.datatype:jackson-datatype-joda")
           .using(new RejectDependenciesStrategy(false,
               "joda-time:joda-time"))
           .as(JavaArchive.class);
@@ -166,11 +166,11 @@ public abstract class AbstractDeploymentHelper {
       return Maven.configureResolver()
           .workOffline()
           .loadPomFromFile("pom.xml")
-          .resolve("com.fasterxml.jackson.datatype:jackson-datatype-joda")
+          .resolve("tools.jackson.datatype:jackson-datatype-joda")
           .using(new RejectDependenciesStrategy(false,
               "com.fasterxml.jackson.core:jackson-annotations",
-              "com.fasterxml.jackson.core:jackson-core",
-              "com.fasterxml.jackson.core:jackson-databind"))
+              "tools.jackson.core:jackson-core",
+              "tools.jackson.core:jackson-databind"))
           .as(JavaArchive.class);
     } else {
       throw new RuntimeException("Unable to determine dependencies for jodaTimeModule: " + server);

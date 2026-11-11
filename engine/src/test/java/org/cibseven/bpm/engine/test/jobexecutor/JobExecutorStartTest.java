@@ -22,9 +22,9 @@ import org.cibseven.bpm.engine.impl.jobexecutor.AcquiredJobs;
 import org.cibseven.bpm.engine.impl.jobexecutor.DefaultAcquireJobsCommandFactory;
 import org.cibseven.bpm.engine.impl.jobexecutor.DefaultJobExecutor;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,12 +32,12 @@ public class JobExecutorStartTest {
 
   private JobExecutor jobExecutor;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     jobExecutor = new DefaultJobExecutor();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     jobExecutor.shutdown();
   }

@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.cibseven.bpm.application.ProcessApplicationReference;
 import org.cibseven.bpm.engine.RepositoryService;
+import org.cibseven.bpm.engine.batch.Batch;
 import org.cibseven.bpm.engine.exception.DeploymentResourceNotFoundException;
 import org.cibseven.bpm.engine.exception.NotFoundException;
 import org.cibseven.bpm.engine.exception.NotValidException;
@@ -49,6 +50,7 @@ import org.cibseven.bpm.engine.impl.cmd.GetIdentityLinksForProcessDefinitionCmd;
 import org.cibseven.bpm.engine.impl.cmd.GetStaticCalledProcessDefinitionCmd;
 import org.cibseven.bpm.engine.impl.cmd.UpdateDecisionDefinitionHistoryTimeToLiveCmd;
 import org.cibseven.bpm.engine.impl.cmd.UpdateProcessDefinitionHistoryTimeToLiveCmd;
+import org.cibseven.bpm.engine.impl.cmd.batch.DeleteDeploymentsBatchCmd;
 import org.cibseven.bpm.engine.impl.cmmn.cmd.GetDeploymentCaseDefinitionCmd;
 import org.cibseven.bpm.engine.impl.cmmn.cmd.GetDeploymentCaseDiagramCmd;
 import org.cibseven.bpm.engine.impl.cmmn.cmd.GetDeploymentCaseModelCmd;
@@ -439,6 +441,12 @@ public class RepositoryServiceImpl extends ServiceImpl implements RepositoryServ
   @Override
   public Collection<CalledProcessDefinition> getStaticCalledProcessDefinitions(String processDefinitionId) {
     return commandExecutor.execute(new GetStaticCalledProcessDefinitionCmd(processDefinitionId));
+  }
+
+  @Override
+  public Batch deleteDeploymentsAsync(List<String> deploymentIds, DeploymentQuery deploymentQuery, boolean cascade, boolean skipCustomListeners, boolean skipIoMappings) {
+    return commandExecutor.execute(new DeleteDeploymentsBatchCmd(
+            deploymentIds, deploymentQuery, cascade, skipCustomListeners, skipIoMappings));
   }
 
 }

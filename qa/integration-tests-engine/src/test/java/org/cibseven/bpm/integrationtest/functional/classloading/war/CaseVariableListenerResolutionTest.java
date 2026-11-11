@@ -22,18 +22,20 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Roman Smirnov
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class CaseVariableListenerResolutionTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -60,7 +62,7 @@ public class CaseVariableListenerResolutionTest extends AbstractFoxPlatformInteg
     // assert that we cannot load the delegate here:
     try {
       Class.forName("org.cibseven.bpm.integrationtest.functional.classloading.beans.ExampleCaseVariableListener");
-      Assert.fail("CNFE expected");
+      fail("CNFE expected");
     }catch (ClassNotFoundException e) {
       // expected
     }
@@ -87,16 +89,16 @@ public class CaseVariableListenerResolutionTest extends AbstractFoxPlatformInteg
       .variableName("variable")
       .caseInstanceIdIn(caseInstanceId);
 
-    Assert.assertNotNull(query.singleResult());
-    Assert.assertEquals("listener-notified-1", query.singleResult().getValue());
+    Assertions.assertNotNull(query.singleResult());
+    assertThat(query.singleResult().getValue()).isEqualTo("listener-notified-1");
 
     caseService
       .withCaseExecution(humanTaskId)
       .setVariable("variable", "manual-start")
       .manualStart();
 
-    Assert.assertNotNull(query.singleResult());
-    Assert.assertEquals("listener-notified-2", query.singleResult().getValue());
+    Assertions.assertNotNull(query.singleResult());
+    assertThat(query.singleResult().getValue()).isEqualTo("listener-notified-2");
 
   }
 

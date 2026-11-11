@@ -17,6 +17,7 @@
 package org.cibseven.spin.xml.dom;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.cibseven.spin.Spin.S;
 
 import java.util.HashMap;
@@ -26,8 +27,8 @@ import org.cibseven.spin.SpinList;
 import org.cibseven.spin.xml.SpinXPathException;
 import org.cibseven.spin.xml.SpinXmlAttribute;
 import org.cibseven.spin.xml.SpinXmlElement;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Sebastian Menski
@@ -38,46 +39,46 @@ public class XmlDomXPathTest {
   protected SpinXmlElement elementWithNamespace;
   protected SpinXmlElement elementWithDefaultNamespace;
 
-  @Before
+  @BeforeEach
   public void parseXml() {
     element = S("<root><child id=\"child\"><a id=\"a\"/><b id=\"b\"/><a id=\"c\"/></child></root>");
     elementWithNamespace = S("<root xmlns:bar=\"http://camunda.org\" xmlns:foo=\"http://camunda.com\"><foo:child id=\"child\"><bar:a id=\"a\"/><foo:b id=\"b\"/><a id=\"c\"/></foo:child></root>");
     elementWithDefaultNamespace = S("<root xmlns=\"http://camunda.com/example\" xmlns:bar=\"http://camunda.org\" xmlns:foo=\"http://camunda.com\"><foo:child id=\"child\"><bar:a id=\"a\"/><foo:b id=\"b\"/><a id=\"c\"/></foo:child></root>");
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   public void canNotQueryDocumentAsElement() {
-    element.xPath("/").element();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(() -> element.xPath("/").element());
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   public void canNotQueryDocumentAsElementList() {
-    element.xPath("/").elementList();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(() -> element.xPath("/").elementList());
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   public void canNotQueryDocumentAsAttribute() {
-    element.xPath("/").attribute();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(() -> element.xPath("/").attribute());
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   public void canNotQueryDocumentAsAttributeList() {
-    element.xPath("/").attributeList();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(() -> element.xPath("/").attributeList());
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   public void canNotQueryDocumentAsString() {
-    element.xPath("/").string();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(() -> element.xPath("/").string());
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   public void canNotQueryDocumentAsNumber() {
-    element.xPath("/").number();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(() -> element.xPath("/").number());
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   public void canNotQueryDocumentAsBoolean() {
-    element.xPath("/").bool();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(() -> element.xPath("/").bool());
   }
 
   @Test
@@ -91,14 +92,14 @@ public class XmlDomXPathTest {
     assertThat(b.attr("id").value()).isEqualTo("b");
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   public void canNotQueryElement() {
-    element.xPath("/root/nonExisting").element();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(() -> element.xPath("/root/nonExisting").element());
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   public void canNotQueryElementAsAttribute() {
-    element.xPath("/root/child/").attribute();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(() -> element.xPath("/root/child/").attribute());
   }
 
   @Test
@@ -107,9 +108,9 @@ public class XmlDomXPathTest {
     assertThat(childs).hasSize(2);
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   public void canNotQueryElementList() {
-    element.xPath("/root/child/nonExisting").elementList();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(() -> element.xPath("/root/child/nonExisting").elementList());
   }
 
   @Test
@@ -118,14 +119,14 @@ public class XmlDomXPathTest {
     assertThat(attribute.value()).isEqualTo("child");
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   public void canNotQueryAttribute() {
-    element.xPath("/root/child/@nonExisting").attribute();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(() -> element.xPath("/root/child/@nonExisting").attribute());
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   public void canNotQueryAttributeAsElement() {
-    element.xPath("/root/child/@id").element();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(() -> element.xPath("/root/child/@id").element());
   }
 
   @Test
@@ -134,9 +135,9 @@ public class XmlDomXPathTest {
     assertThat(attributes).hasSize(2);
   }
 
-  @Test(expected = SpinXPathException.class)
+  @Test
   public void canNotQueryAttributeList() {
-    element.xPath("/root/child/a/@nonExisting").attributeList();
+    assertThatExceptionOfType(SpinXPathException.class).isThrownBy(() -> element.xPath("/root/child/a/@nonExisting").attributeList());
   }
 
   @Test

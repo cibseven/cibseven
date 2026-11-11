@@ -147,7 +147,7 @@
             <deployment-scanner path="deployments" relative-to="jboss.server.base.dir" scan-interval="5000" runtime-failure-causes-rollback="${jboss.deployment.scanner.rollback.on.failure:false}"/>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:discovery:1.0"/>
-        <subsystem xmlns="urn:jboss:domain:distributable-ejb:2.0">
+        <subsystem xmlns="urn:jboss:domain:distributable-ejb:3.0">
             <bean-management default="default">
                 <infinispan-bean-management name="default" max-active-beans="10000" cache-container="ejb" cache="passivation"/>
             </bean-management>
@@ -155,7 +155,7 @@
             <infinispan-timer-management name="persistent" cache-container="ejb" cache="persistent" max-active-timers="10000"/>
             <infinispan-timer-management name="transient" cache-container="ejb" cache="transient" max-active-timers="10000"/>
         </subsystem>
-        <subsystem xmlns="urn:jboss:domain:distributable-web:community:5.0">
+        <subsystem xmlns="urn:jboss:domain:distributable-web:6.0">
             <session-management default="default">
                 <infinispan-session-management name="default" cache-container="web" granularity="SESSION">
                     <local-affinity/>
@@ -169,7 +169,10 @@
             </single-sign-on-management>
             <local-routing/>
         </subsystem>
-        <subsystem xmlns="urn:jboss:domain:ee:6.0">
+        <subsystem xmlns="urn:jboss:domain:ee:7.0">
+            <global-modules>
+                <module name="org.assertj.assertj-core" slot="main"/>
+            </global-modules>
             <spec-descriptor-property-replacement>false</spec-descriptor-property-replacement>
             <concurrent>
                 <context-services>
@@ -188,7 +191,7 @@
             <default-bindings context-service="java:jboss/ee/concurrency/context/default" datasource="java:jboss/datasources/ExampleDS" managed-executor-service="java:jboss/ee/concurrency/executor/default" managed-scheduled-executor-service="java:jboss/ee/concurrency/scheduler/default" managed-thread-factory="java:jboss/ee/concurrency/factory/default"/>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:ee-security:1.0"/>
-        <subsystem xmlns="urn:jboss:domain:ejb3:10.0">
+        <subsystem xmlns="urn:jboss:domain:ejb3:11.0">
             <session-bean>
                 <stateless>
                     <bean-instance-pool-ref pool-name="slsb-strict-max-pool"/>
@@ -231,7 +234,7 @@
             <statistics enabled="${wildfly.ejb3.statistics-enabled:${wildfly.statistics-enabled:false}}"/>
             <log-system-exceptions value="true"/>
         </subsystem>
-        <subsystem xmlns="urn:wildfly:elytron:19.0" final-providers="combined-providers" disallowed-providers="OracleUcrypto">
+        <subsystem xmlns="urn:wildfly:elytron:community:19.0" final-providers="combined-providers" disallowed-providers="OracleUcrypto">
             <providers>
                 <aggregate-providers name="combined-providers">
                     <providers name="elytron"/>
@@ -356,9 +359,9 @@
                 </server-ssl-contexts>
             </tls>
         </subsystem>
-        <subsystem xmlns="urn:wildfly:elytron-oidc-client:2.0"/>
+        <subsystem xmlns="urn:wildfly:elytron-oidc-client:community:2.0"/>
         <subsystem xmlns="urn:wildfly:health:1.0" security-enabled="false"/>
-        <subsystem xmlns="urn:jboss:domain:infinispan:16.0">
+        <subsystem xmlns="urn:jboss:domain:infinispan:17.0">
             <cache-container name="hibernate" modules="org.infinispan.hibernate-cache" marshaller="JBOSS">
                 <local-cache name="entity">
                     <heap-memory size="10000"/>
@@ -456,17 +459,17 @@
         <subsystem xmlns="urn:jboss:domain:request-controller:1.0"/>
         <subsystem xmlns="urn:jboss:domain:resource-adapters:7.1"/>
         <subsystem xmlns="urn:jboss:domain:sar:1.0"/>
-        <subsystem xmlns="urn:jboss:domain:transactions:6.0">
+        <subsystem xmlns="urn:jboss:domain:transactions:7.0">
             <core-environment node-identifier="${jboss.tx.node.id:1}">
                 <process-id>
                     <uuid/>
                 </process-id>
             </core-environment>
-            <recovery-environment socket-binding="txn-recovery-environment" status-socket-binding="txn-status-manager"/>
+            <recovery-environment socket-binding="txn-recovery-environment" status-socket-binding="txn-status-manager" transactions-recovery-graceful-shutdown="ignore"/>
             <coordinator-environment statistics-enabled="${wildfly.transactions.statistics-enabled:${wildfly.statistics-enabled:false}}"/>
             <object-store path="tx-object-store" relative-to="jboss.server.data.dir"/>
         </subsystem>
-        <subsystem xmlns="urn:jboss:domain:undertow:community:14.0" default-virtual-host="default-host" default-servlet-container="default" default-server="default-server" statistics-enabled="${wildfly.undertow.statistics-enabled:${wildfly.statistics-enabled:false}}" default-security-domain="other">
+        <subsystem xmlns="urn:jboss:domain:undertow:15.0" default-virtual-host="default-host" default-servlet-container="default" default-server="default-server" statistics-enabled="${wildfly.undertow.statistics-enabled:${wildfly.statistics-enabled:false}}" default-security-domain="other">
             <byte-buffer-pool name="default"/>
             <buffer-cache name="default"/>
             <server name="default-server">
@@ -507,6 +510,8 @@
                     <properties>
                         <property name="jobExecutorAcquisitionName">default</property>
                         <property name="isAutoSchemaUpdate">true</property>
+                        <!-- the integration tests deploy the webclient, so its tables have to be created too -->
+                        <property name="webclientExtensionsEnabled">true</property>
                         <property name="authorizationEnabled">true</property>
                         <property name="jobExecutorDeploymentAware">true</property>
                         <!-- disable history cleanup job for engine integration unit tests: 
@@ -606,6 +611,8 @@
         </interface>
     </interfaces>
     <socket-binding-group name="standard-sockets" default-interface="public" port-offset="0">
+        <!-- Wildfly 41 dropped the ajp socket binding from its default standalone configuration, but Codehaus Cargo
+             unconditionally configures the ajp port when creating the container configuration, so it must be present here. -->
         <socket-binding name="ajp" port="${jboss.ajp.port}"/>
         <socket-binding name="http" port="${jboss.http.port}"/>
         <socket-binding name="https" port="${jboss.https.port}"/>

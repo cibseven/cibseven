@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.client.task;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -30,7 +30,7 @@ import org.cibseven.bpm.client.variable.impl.ValueMappers;
 import org.cibseven.bpm.client.variable.impl.VariableValue;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.type.ValueType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Tobias Metzke

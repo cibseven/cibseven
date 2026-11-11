@@ -18,22 +18,26 @@ package org.cibseven.bpm.model.xml.testmodel.instance;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.model.xml.testmodel.TestModelConstants.MODEL_NAMESPACE;
-import static org.junit.Assert.fail;
-
+import static org.assertj.core.api.Assertions.fail;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.cibseven.bpm.model.xml.ModelInstance;
 import org.cibseven.bpm.model.xml.ModelValidationException;
 import org.cibseven.bpm.model.xml.impl.parser.AbstractModelParser;
+import org.cibseven.bpm.model.xml.instance.ModelElementInstanceTest;
 import org.cibseven.bpm.model.xml.testmodel.Gender;
 import org.cibseven.bpm.model.xml.testmodel.TestModelParser;
 import org.cibseven.bpm.model.xml.testmodel.TestModelTest;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runners.Parameterized.Parameters;
+import org.cibseven.bpm.model.xml.testmodel.TestModelTest.ParsedModel;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Sebastian Menski
@@ -54,18 +58,31 @@ public class AnimalTest extends TestModelTest {
   private RelationshipDefinition timmyRelationship;
   private RelationshipDefinition daisyRelationship;
 
-  public AnimalTest(String testName, ModelInstance testModelInstance, AbstractModelParser modelParser) {
-    super(testName, testModelInstance, modelParser);
+  public void setUp(ParsedModel parsedModel) {
+    initializeTestModelTest(parsedModel);
+    this.modelInstance = (ModelInstance) parsedModel.modelInstance;
+    tweety = modelInstance.getModelElementById("tweety");
+    hedwig = modelInstance.getModelElementById("hedwig");
+    birdo = modelInstance.getModelElementById("birdo");
+    plucky = modelInstance.getModelElementById("plucky");
+    fiffy = modelInstance.getModelElementById("fiffy");
+    timmy = modelInstance.getModelElementById("timmy");
+    daisy = modelInstance.getModelElementById("daisy");
+
+    hedwigRelationship = modelInstance.getModelElementById("tweety-hedwig");
+    birdoRelationship = modelInstance.getModelElementById("tweety-birdo");
+    pluckyRelationship = modelInstance.getModelElementById("tweety-plucky");
+    fiffyRelationship = modelInstance.getModelElementById("tweety-fiffy");
+
+    timmyRelationship = createRelationshipDefinition(modelInstance, timmy, FriendRelationshipDefinition.class);
+    daisyRelationship = createRelationshipDefinition(modelInstance, daisy, ChildRelationshipDefinition.class);
   }
 
-
-  @Parameters(name="Model {0}")
-  public static Collection<Object[]> models() {
-    Object[][] models = {createModel(), parseModel(AnimalTest.class)};
-    return Arrays.asList(models);
+  public static Stream<Arguments> models() {
+    return Stream.of(createModel(), parseModel(AnimalTest.class)).map(Arguments::of);
   }
 
-  public static Object[] createModel() {
+  public static ParsedModel createModel() {
     TestModelParser modelParser = new TestModelParser();
     ModelInstance modelInstance = modelParser.getEmptyModel();
 
@@ -100,179 +117,203 @@ public class AnimalTest extends TestModelTest {
 
     tweety.getBestFriends().add(birdo);
     tweety.getBestFriends().add(plucky);
-
-    return new Object[]{"created", modelInstance, modelParser};
+    return new ParsedModel("created", modelInstance, modelParser);
   }
 
-  @Before
-  public void copyModelInstance() {
-    modelInstance = cloneModelInstance();
-
-    tweety = modelInstance.getModelElementById("tweety");
-    hedwig = modelInstance.getModelElementById("hedwig");
-    birdo = modelInstance.getModelElementById("birdo");
-    plucky = modelInstance.getModelElementById("plucky");
-    fiffy = modelInstance.getModelElementById("fiffy");
-    timmy = modelInstance.getModelElementById("timmy");
-    daisy = modelInstance.getModelElementById("daisy");
-
-    hedwigRelationship = modelInstance.getModelElementById("tweety-hedwig");
-    birdoRelationship = modelInstance.getModelElementById("tweety-birdo");
-    pluckyRelationship = modelInstance.getModelElementById("tweety-plucky");
-    fiffyRelationship = modelInstance.getModelElementById("tweety-fiffy");
-
-    timmyRelationship = createRelationshipDefinition(modelInstance, timmy, FriendRelationshipDefinition.class);
-    daisyRelationship = createRelationshipDefinition(modelInstance, daisy, ChildRelationshipDefinition.class);
-  }
-
-  @Test
-  public void testSetIdAttributeByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetIdAttributeByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     String newId = "new-" + tweety.getId();
     tweety.setId(newId);
     assertThat(tweety.getId()).isEqualTo(newId);
   }
 
-  @Test
-  public void testSetIdAttributeByAttributeName() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetIdAttributeByAttributeName(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setAttributeValue("id", "duffy", true);
     assertThat(tweety.getId()).isEqualTo("duffy");
   }
 
-  @Test
-  public void testRemoveIdAttribute() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testRemoveIdAttribute(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.removeAttribute("id");
     assertThat(tweety.getId()).isNull();
   }
 
-  @Test
-  public void testSetNameAttributeByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetNameAttributeByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setName("tweety");
     assertThat(tweety.getName()).isEqualTo("tweety");
   }
 
-  @Test
-  public void testSetNameAttributeByAttributeName() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetNameAttributeByAttributeName(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setAttributeValue("name", "daisy");
     assertThat(tweety.getName()).isEqualTo("daisy");
   }
 
-  @Test
-  public void testRemoveNameAttribute() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testRemoveNameAttribute(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.removeAttribute("name");
     assertThat(tweety.getName()).isNull();
   }
 
-  @Test
-  public void testSetFatherAttributeByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetFatherAttributeByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setFather(timmy);
     assertThat(tweety.getFather()).isEqualTo(timmy);
   }
 
-  @Test
-  public void testSetFatherAttributeByAttributeName() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetFatherAttributeByAttributeName(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setAttributeValue("father", timmy.getId());
     assertThat(tweety.getFather()).isEqualTo(timmy);
   }
 
-  @Test
-  public void testSetFatherAttributeByAttributeNameWithNamespace() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetFatherAttributeByAttributeNameWithNamespace(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setAttributeValue("father", "tns:hedwig");
     assertThat(tweety.getFather()).isEqualTo(hedwig);
   }
 
-  @Test
-  public void testRemoveFatherAttribute() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testRemoveFatherAttribute(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setFather(timmy);
     assertThat(tweety.getFather()).isEqualTo(timmy);
     tweety.removeAttribute("father");
     assertThat(tweety.getFather()).isNull();
   }
 
-  @Test
-  public void testChangeIdAttributeOfFatherReference() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testChangeIdAttributeOfFatherReference(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setFather(timmy);
     assertThat(tweety.getFather()).isEqualTo(timmy);
     timmy.setId("new-" + timmy.getId());
     assertThat(tweety.getFather()).isEqualTo(timmy);
   }
 
-  @Test
-  public void testReplaceFatherReferenceWithNewAnimal() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testReplaceFatherReferenceWithNewAnimal(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setFather(timmy);
     assertThat(tweety.getFather()).isEqualTo(timmy);
     timmy.replaceWithElement(plucky);
     assertThat(tweety.getFather()).isEqualTo(plucky);
   }
 
-  @Test
-  public void testSetMotherAttributeByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetMotherAttributeByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setMother(daisy);
     assertThat(tweety.getMother()).isEqualTo(daisy);
   }
 
-  @Test
-  public void testSetMotherAttributeByAttributeName() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetMotherAttributeByAttributeName(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setAttributeValue("mother", fiffy.getId());
     assertThat(tweety.getMother()).isEqualTo(fiffy);
   }
 
-  @Test
-  public void testRemoveMotherAttribute() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testRemoveMotherAttribute(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setMother(daisy);
     assertThat(tweety.getMother()).isEqualTo(daisy);
     tweety.removeAttribute("mother");
     assertThat(tweety.getMother()).isNull();
   }
 
-  @Test
-  public void testReplaceMotherReferenceWithNewAnimal() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testReplaceMotherReferenceWithNewAnimal(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setMother(daisy);
     assertThat(tweety.getMother()).isEqualTo(daisy);
     daisy.replaceWithElement(birdo);
     assertThat(tweety.getMother()).isEqualTo(birdo);
   }
 
-  @Test
-  public void testChangeIdAttributeOfMotherReference() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testChangeIdAttributeOfMotherReference(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setMother(daisy);
     assertThat(tweety.getMother()).isEqualTo(daisy);
     daisy.setId("new-" + daisy.getId());
     assertThat(tweety.getMother()).isEqualTo(daisy);
   }
 
-  @Test
-  public void testSetIsEndangeredAttributeByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetIsEndangeredAttributeByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setIsEndangered(true);
     assertThat(tweety.isEndangered()).isTrue();
   }
 
-  @Test
-  public void testSetIsEndangeredAttributeByAttributeName() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetIsEndangeredAttributeByAttributeName(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setAttributeValue("isEndangered", "false");
     assertThat(tweety.isEndangered()).isFalse();
   }
 
-  @Test
-  public void testRemoveIsEndangeredAttribute() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testRemoveIsEndangeredAttribute(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.removeAttribute("isEndangered");
     // default value of isEndangered: false
     assertThat(tweety.isEndangered()).isFalse();
   }
 
-  @Test
-  public void testSetGenderAttributeByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetGenderAttributeByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setGender(Gender.Male);
     assertThat(tweety.getGender()).isEqualTo(Gender.Male);
   }
 
-  @Test
-  public void testSetGenderAttributeByAttributeName() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetGenderAttributeByAttributeName(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setAttributeValue("gender", Gender.Unknown.toString());
     assertThat(tweety.getGender()).isEqualTo(Gender.Unknown);
   }
 
-  @Test
-  public void testRemoveGenderAttribute() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testRemoveGenderAttribute(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.removeAttribute("gender");
     assertThat(tweety.getGender()).isNull();
 
@@ -289,26 +330,34 @@ public class AnimalTest extends TestModelTest {
     tweety.setGender(Gender.Female);
   }
 
-  @Test
-  public void testSetAgeAttributeByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetAgeAttributeByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setAge(13);
     assertThat(tweety.getAge()).isEqualTo(13);
   }
 
-  @Test
-  public void testSetAgeAttributeByAttributeName() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testSetAgeAttributeByAttributeName(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.setAttributeValue("age", "23");
     assertThat(tweety.getAge()).isEqualTo(23);
   }
 
-  @Test
-  public void testRemoveAgeAttribute() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testRemoveAgeAttribute(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.removeAttribute("age");
     assertThat(tweety.getAge()).isNull();
   }
 
-  @Test
-  public void testAddRelationshipDefinitionsByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testAddRelationshipDefinitionsByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(tweety.getRelationshipDefinitions())
       .isNotEmpty()
       .hasSize(4)
@@ -322,8 +371,10 @@ public class AnimalTest extends TestModelTest {
       .containsOnly(hedwigRelationship, birdoRelationship, pluckyRelationship, fiffyRelationship, timmyRelationship, daisyRelationship);
   }
 
-  @Test
-  public void testUpdateRelationshipDefinitionsByIdByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateRelationshipDefinitionsByIdByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     hedwigRelationship.setId("new-" + hedwigRelationship.getId());
     pluckyRelationship.setId("new-" + pluckyRelationship.getId());
     assertThat(tweety.getRelationshipDefinitions())
@@ -331,8 +382,10 @@ public class AnimalTest extends TestModelTest {
       .containsOnly(hedwigRelationship, birdoRelationship, pluckyRelationship, fiffyRelationship);
   }
 
-  @Test
-  public void testUpdateRelationshipDefinitionsByIdByAttributeName() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateRelationshipDefinitionsByIdByAttributeName(ParsedModel parsedModel) {
+    setUp(parsedModel);
     birdoRelationship.setAttributeValue("id", "new-" + birdoRelationship.getId(), true);
     fiffyRelationship.setAttributeValue("id", "new-" + fiffyRelationship.getId(), true);
     assertThat(tweety.getRelationshipDefinitions())
@@ -340,8 +393,10 @@ public class AnimalTest extends TestModelTest {
       .containsOnly(hedwigRelationship, birdoRelationship, pluckyRelationship, fiffyRelationship);
   }
 
-  @Test
-  public void testUpdateRelationshipDefinitionsByReplaceElements() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateRelationshipDefinitionsByReplaceElements(ParsedModel parsedModel) {
+    setUp(parsedModel);
     hedwigRelationship.replaceWithElement(timmyRelationship);
     pluckyRelationship.replaceWithElement(daisyRelationship);
     assertThat(tweety.getRelationshipDefinitions())
@@ -349,8 +404,10 @@ public class AnimalTest extends TestModelTest {
       .containsOnly(birdoRelationship, fiffyRelationship, timmyRelationship, daisyRelationship);
   }
 
-  @Test
-  public void testUpdateRelationshipDefinitionsByRemoveElements() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateRelationshipDefinitionsByRemoveElements(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.getRelationshipDefinitions().remove(birdoRelationship);
     tweety.getRelationshipDefinitions().remove(fiffyRelationship);
     assertThat(tweety.getRelationshipDefinitions())
@@ -358,14 +415,18 @@ public class AnimalTest extends TestModelTest {
       .containsOnly(hedwigRelationship, pluckyRelationship);
   }
 
-  @Test
-  public void testClearRelationshipDefinitions() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testClearRelationshipDefinitions(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.getRelationshipDefinitions().clear();
     assertThat(tweety.getRelationshipDefinitions()).isEmpty();
   }
 
-  @Test
-  public void testAddRelationsDefinitionRefsByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testAddRelationsDefinitionRefsByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(tweety.getRelationshipDefinitionRefs())
       .isNotEmpty()
       .hasSize(4)
@@ -382,8 +443,10 @@ public class AnimalTest extends TestModelTest {
       .containsOnly(hedwigRelationship, birdoRelationship, pluckyRelationship, fiffyRelationship, timmyRelationship, daisyRelationship);
   }
 
-  @Test
-  public void testUpdateRelationshipDefinitionRefsByIdByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateRelationshipDefinitionRefsByIdByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     hedwigRelationship.setId("child-relationship");
     pluckyRelationship.setId("friend-relationship");
     assertThat(tweety.getRelationshipDefinitionRefs())
@@ -391,8 +454,10 @@ public class AnimalTest extends TestModelTest {
       .containsOnly(hedwigRelationship, birdoRelationship, pluckyRelationship, fiffyRelationship);
   }
 
-  @Test
-  public void testUpdateRelationshipDefinitionRefsByIdByAttributeName() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateRelationshipDefinitionRefsByIdByAttributeName(ParsedModel parsedModel) {
+    setUp(parsedModel);
     birdoRelationship.setAttributeValue("id", "birdo-relationship", true);
     fiffyRelationship.setAttributeValue("id", "fiffy-relationship", true);
     assertThat(tweety.getRelationshipDefinitionRefs())
@@ -400,8 +465,10 @@ public class AnimalTest extends TestModelTest {
       .containsOnly(hedwigRelationship, birdoRelationship, pluckyRelationship, fiffyRelationship);
   }
 
-  @Test
-  public void testUpdateRelationshipDefinitionRefsByReplaceElements() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateRelationshipDefinitionRefsByReplaceElements(ParsedModel parsedModel) {
+    setUp(parsedModel);
     hedwigRelationship.replaceWithElement(timmyRelationship);
     pluckyRelationship.replaceWithElement(daisyRelationship);
     assertThat(tweety.getRelationshipDefinitionRefs())
@@ -409,8 +476,10 @@ public class AnimalTest extends TestModelTest {
       .containsOnly(birdoRelationship, fiffyRelationship, timmyRelationship, daisyRelationship);
   }
 
-  @Test
-  public void testUpdateRelationshipDefinitionRefsByRemoveElements() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateRelationshipDefinitionRefsByRemoveElements(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.getRelationshipDefinitions().remove(birdoRelationship);
     tweety.getRelationshipDefinitions().remove(fiffyRelationship);
     assertThat(tweety.getRelationshipDefinitionRefs())
@@ -418,8 +487,10 @@ public class AnimalTest extends TestModelTest {
       .containsOnly(hedwigRelationship, pluckyRelationship);
   }
 
-  @Test
-  public void testUpdateRelationshipDefinitionRefsByRemoveIdAttribute() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateRelationshipDefinitionRefsByRemoveIdAttribute(ParsedModel parsedModel) {
+    setUp(parsedModel);
     birdoRelationship.removeAttribute("id");
     pluckyRelationship.removeAttribute("id");
     assertThat(tweety.getRelationshipDefinitionRefs())
@@ -427,16 +498,20 @@ public class AnimalTest extends TestModelTest {
       .containsOnly(hedwigRelationship, fiffyRelationship);
   }
 
-  @Test
-  public void testClearRelationshipDefinitionsRefs() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testClearRelationshipDefinitionsRefs(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.getRelationshipDefinitionRefs().clear();
     assertThat(tweety.getRelationshipDefinitionRefs()).isEmpty();
     // should not affect animal relationship definitions
     assertThat(tweety.getRelationshipDefinitions()).hasSize(4);
   }
 
-  @Test
-  public void testClearRelationshipDefinitionRefsByClearRelationshipDefinitions() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testClearRelationshipDefinitionRefsByClearRelationshipDefinitions(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(tweety.getRelationshipDefinitionRefs()).isNotEmpty();
     tweety.getRelationshipDefinitions().clear();
     assertThat(tweety.getRelationshipDefinitions()).isEmpty();
@@ -444,8 +519,10 @@ public class AnimalTest extends TestModelTest {
     assertThat(tweety.getRelationshipDefinitionRefs()).isEmpty();
   }
 
-  @Test
-  public void testAddRelationshipDefinitionRefElementsByHelper() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testAddRelationshipDefinitionRefElementsByHelper(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(tweety.getRelationshipDefinitionRefElements())
       .isNotEmpty()
       .hasSize(4);
@@ -466,8 +543,10 @@ public class AnimalTest extends TestModelTest {
       .contains(timmyRelationshipDefinitionRef, daisyRelationshipDefinitionRef);
   }
 
-  @Test
-  public void testRelationshipDefinitionRefElementsByTextContent() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testRelationshipDefinitionRefElementsByTextContent(ParsedModel parsedModel) {
+    setUp(parsedModel);
     Collection<RelationshipDefinitionRef> relationshipDefinitionRefElements = tweety.getRelationshipDefinitionRefElements();
     Collection<String> textContents = new ArrayList<String>();
     for (RelationshipDefinitionRef relationshipDefinitionRef : relationshipDefinitionRefElements) {
@@ -481,8 +560,10 @@ public class AnimalTest extends TestModelTest {
       .containsOnly(hedwigRelationship.getId(), birdoRelationship.getId(), pluckyRelationship.getId(), fiffyRelationship.getId());
   }
 
-  @Test
-  public void testUpdateRelationshipDefinitionRefElementsByTextContent() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateRelationshipDefinitionRefElementsByTextContent(ParsedModel parsedModel) {
+    setUp(parsedModel);
     List<RelationshipDefinitionRef> relationshipDefinitionRefs = new ArrayList<RelationshipDefinitionRef>(tweety.getRelationshipDefinitionRefElements());
 
     addRelationshipDefinition(tweety, timmyRelationship);
@@ -496,8 +577,10 @@ public class AnimalTest extends TestModelTest {
       .containsOnly(birdoRelationship, fiffyRelationship, timmyRelationship, daisyRelationship);
   }
 
-  @Test
-  public void testUpdateRelationshipDefinitionRefElementsByTextContentWithNamespace() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateRelationshipDefinitionRefElementsByTextContentWithNamespace(ParsedModel parsedModel) {
+    setUp(parsedModel);
     List<RelationshipDefinitionRef> relationshipDefinitionRefs = new ArrayList<RelationshipDefinitionRef>(tweety.getRelationshipDefinitionRefElements());
 
     addRelationshipDefinition(tweety, timmyRelationship);
@@ -511,8 +594,10 @@ public class AnimalTest extends TestModelTest {
       .containsOnly(birdoRelationship, fiffyRelationship, timmyRelationship, daisyRelationship);
   }
 
-  @Test
-  public void testUpdateRelationshipDefinitionRefElementsByRemoveElements() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testUpdateRelationshipDefinitionRefElementsByRemoveElements(ParsedModel parsedModel) {
+    setUp(parsedModel);
     List<RelationshipDefinitionRef> relationshipDefinitionRefs = new ArrayList<RelationshipDefinitionRef>(tweety.getRelationshipDefinitionRefElements());
     tweety.getRelationshipDefinitionRefElements().remove(relationshipDefinitionRefs.get(1));
     tweety.getRelationshipDefinitionRefElements().remove(relationshipDefinitionRefs.get(3));
@@ -521,8 +606,10 @@ public class AnimalTest extends TestModelTest {
       .containsOnly(hedwigRelationship, pluckyRelationship);
   }
 
-  @Test
-  public void testClearRelationshipDefinitionRefElements() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testClearRelationshipDefinitionRefElements(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.getRelationshipDefinitionRefElements().clear();
     assertThat(tweety.getRelationshipDefinitionRefElements()).isEmpty();
     assertThat(tweety.getRelationshipDefinitionRefs()).isEmpty();
@@ -532,8 +619,10 @@ public class AnimalTest extends TestModelTest {
       .hasSize(4);
   }
 
-  @Test
-  public void testClearRelationshipDefinitionRefElementsByClearRelationshipDefinitionRefs() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testClearRelationshipDefinitionRefElementsByClearRelationshipDefinitionRefs(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.getRelationshipDefinitionRefs().clear();
     assertThat(tweety.getRelationshipDefinitionRefs()).isEmpty();
     assertThat(tweety.getRelationshipDefinitionRefElements()).isEmpty();
@@ -543,8 +632,10 @@ public class AnimalTest extends TestModelTest {
       .hasSize(4);
   }
 
-  @Test
-  public void testClearRelationshipDefinitionRefElementsByClearRelationshipDefinitions() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testClearRelationshipDefinitionRefElementsByClearRelationshipDefinitions(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.getRelationshipDefinitions().clear();
     assertThat(tweety.getRelationshipDefinitionRefs()).isEmpty();
     assertThat(tweety.getRelationshipDefinitionRefElements()).isEmpty();
@@ -552,8 +643,10 @@ public class AnimalTest extends TestModelTest {
     assertThat(tweety.getRelationshipDefinitions()).isEmpty();
   }
 
-  @Test
-  public void testGetBestFriends() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testGetBestFriends(ParsedModel parsedModel) {
+    setUp(parsedModel);
     Collection<Animal> bestFriends = tweety.getBestFriends();
 
     assertThat(bestFriends)
@@ -562,8 +655,10 @@ public class AnimalTest extends TestModelTest {
       .containsOnly(birdo, plucky);
   }
 
-  @Test
-  public void testAddBestFriend() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testAddBestFriend(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.getBestFriends().add(daisy);
 
     Collection<Animal> bestFriends = tweety.getBestFriends();
@@ -574,8 +669,10 @@ public class AnimalTest extends TestModelTest {
       .containsOnly(birdo, plucky, daisy);
   }
 
-  @Test
-  public void testRemoveBestFriendRef() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testRemoveBestFriendRef(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.getBestFriends().remove(plucky);
 
     Collection<Animal> bestFriends = tweety.getBestFriends();
@@ -586,8 +683,10 @@ public class AnimalTest extends TestModelTest {
       .containsOnly(birdo);
   }
 
-  @Test
-  public void testClearBestFriendRef() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testClearBestFriendRef(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.getBestFriends().clear();
 
     Collection<Animal> bestFriends = tweety.getBestFriends();
@@ -596,8 +695,10 @@ public class AnimalTest extends TestModelTest {
       .isEmpty();
   }
 
-  @Test
-  public void testClearAndAddBestFriendRef() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testClearAndAddBestFriendRef(ParsedModel parsedModel) {
+    setUp(parsedModel);
     tweety.getBestFriends().clear();
 
     Collection<Animal> bestFriends = tweety.getBestFriends();

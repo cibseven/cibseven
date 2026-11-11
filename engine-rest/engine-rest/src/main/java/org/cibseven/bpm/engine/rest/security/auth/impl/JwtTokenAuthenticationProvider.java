@@ -16,15 +16,14 @@
  */
 package org.cibseven.bpm.engine.rest.security.auth.impl;
 
-import java.io.IOException;
 import java.util.Base64;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.crypto.SecretKey;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.cibseven.bpm.engine.AuthenticationException;
 import org.cibseven.bpm.engine.ProcessEngine;
@@ -32,10 +31,10 @@ import org.cibseven.bpm.engine.rest.security.auth.AuthenticationProvider;
 import org.cibseven.bpm.engine.rest.security.auth.AuthenticationResult;
 import org.cibseven.bpm.engine.rest.security.auth.impl.jwt.Configuration;
 import org.cibseven.bpm.engine.rest.security.auth.impl.jwt.JwtUser;
-
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -110,12 +109,14 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
   
   private JwtUser deserialize(String json) {
     try {
-      ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      ObjectMapper mapper = JsonMapper.builderWithJackson2Defaults()
+          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+          .build();
       JwtUser user = mapper.readValue(json, JwtUser.class);
       return user;
     } catch (IllegalArgumentException x) {
       throw new AuthenticationException(json, x.getMessage());
-    } catch (IOException x) {
+    } catch (JacksonException x) {
       throw new AuthenticationException(json, x.getMessage());
     }
   }

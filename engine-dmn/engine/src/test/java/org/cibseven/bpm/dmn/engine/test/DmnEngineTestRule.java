@@ -16,13 +16,8 @@
  */
 package org.cibseven.bpm.dmn.engine.test;
 
-import java.io.InputStream;
-import java.util.List;
-
 import org.cibseven.bpm.dmn.engine.DmnDecision;
 import org.cibseven.bpm.dmn.engine.DmnEngineConfiguration;
-import org.cibseven.commons.utils.IoUtil;
-import org.junit.runner.Description;
 
 /**
  * JUnit test rule for internal unit tests. Uses The
@@ -32,7 +27,6 @@ import org.junit.runner.Description;
 public class DmnEngineTestRule extends DmnEngineRule {
 
   public static final String DMN_SUFFIX = "dmn";
-
   protected DmnDecision decision;
 
   public DmnEngineTestRule() {
@@ -46,60 +40,4 @@ public class DmnEngineTestRule extends DmnEngineRule {
   public DmnDecision getDecision() {
     return decision;
   }
-
-  @Override
-  protected void starting(Description description) {
-    super.starting(description);
-
-    decision = loadDecision(description);
-  }
-
-  protected DmnDecision loadDecision(Description description) {
-    DecisionResource decisionResource = description.getAnnotation(DecisionResource.class);
-
-    if(decisionResource != null) {
-
-      String resourcePath = decisionResource.resource();
-
-      resourcePath = expandResourcePath(description, resourcePath);
-
-      InputStream inputStream = IoUtil.fileAsStream(resourcePath);
-
-      String decisionKey = decisionResource.decisionKey();
-
-      if (decisionKey == null || decisionKey.isEmpty()) {
-        List<DmnDecision> decisions = dmnEngine.parseDecisions(inputStream);
-        if (!decisions.isEmpty()) {
-          return decisions.get(0);
-        }
-        else {
-          return null;
-        }
-      } else {
-        return dmnEngine.parseDecision(decisionKey, inputStream);
-      }
-    }
-    else {
-      return null;
-    }
-  }
-
-  protected String expandResourcePath(Description description, String resourcePath) {
-    if (resourcePath.contains("/")) {
-      // already expanded path
-      return resourcePath;
-    }
-    else {
-      Class<?> testClass = description.getTestClass();
-      if (resourcePath.isEmpty()) {
-        // use test class and method name as resource file name
-        return testClass.getName().replace(".", "/") + "." + description.getMethodName() + "." + DMN_SUFFIX;
-      }
-      else {
-        // use test class location as resource location
-        return testClass.getPackage().getName().replace(".", "/") + "/" + resourcePath;
-      }
-    }
-  }
-
 }

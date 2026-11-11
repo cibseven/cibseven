@@ -19,8 +19,8 @@ package org.cibseven.bpm.model.cmmn.instance;
 import org.cibseven.bpm.model.cmmn.impl.CmmnModelConstants;
 import org.cibseven.bpm.model.cmmn.util.GetCmmnModelElementTypeRule;
 import org.cibseven.bpm.model.xml.test.AbstractModelElementInstanceTest;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Roman Smirnov
@@ -28,10 +28,10 @@ import org.junit.ClassRule;
  */
 public abstract class CmmnModelElementInstanceTest extends AbstractModelElementInstanceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static final GetCmmnModelElementTypeRule modelElementTypeRule = new GetCmmnModelElementTypeRule();
 
-  @BeforeClass
+  @BeforeAll
   public static void initModelElementType() {
     initModelElementType(modelElementTypeRule);
   }

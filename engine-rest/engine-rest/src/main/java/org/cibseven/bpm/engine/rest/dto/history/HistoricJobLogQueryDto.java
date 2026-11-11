@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.history.HistoricJobLogQuery;
@@ -33,7 +33,7 @@ import org.cibseven.bpm.engine.rest.dto.converter.LongConverter;
 import org.cibseven.bpm.engine.rest.dto.converter.StringArrayConverter;
 import org.cibseven.bpm.engine.rest.dto.converter.StringListConverter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * @author Roman Smirnov

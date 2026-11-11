@@ -17,13 +17,13 @@
 package org.cibseven.bpm.engine.rest.hal;
 
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import org.cibseven.bpm.engine.rest.mapper.CibsevenJacksonJsonProvider;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Provider;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.MessageBodyWriter;
+import jakarta.ws.rs.ext.Provider;
 
 /**
  * @author Daniel Meyer
@@ -32,7 +32,7 @@ import javax.ws.rs.ext.Provider;
 @Provider
 @Consumes({Hal.APPLICATION_HAL_JSON, "text/json"})
 @Produces({Hal.APPLICATION_HAL_JSON, "text/json"})
-public class JacksonHalJsonProvider extends JacksonJsonProvider implements
+public class JacksonHalJsonProvider extends CibsevenJacksonJsonProvider implements
     MessageBodyReader<Object>,
     MessageBodyWriter<Object> {
 

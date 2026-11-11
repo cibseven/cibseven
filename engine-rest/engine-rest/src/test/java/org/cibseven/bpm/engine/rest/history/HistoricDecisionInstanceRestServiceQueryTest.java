@@ -20,15 +20,12 @@ import static io.restassured.RestAssured.expect;
 import static io.restassured.RestAssured.given;
 import static io.restassured.path.json.JsonPath.from;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -42,7 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.history.HistoricDecisionInstance;
 import org.cibseven.bpm.engine.history.HistoricDecisionInstanceQuery;
@@ -59,10 +56,10 @@ import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.bpm.engine.variable.value.BytesValue;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.engine.variable.value.StringValue;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -71,7 +68,7 @@ import io.restassured.response.Response;
 
 public class HistoricDecisionInstanceRestServiceQueryTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String HISTORIC_DECISION_INSTANCE_RESOURCE_URL = TEST_RESOURCE_ROOT_PATH + "/history/decision-instance";
@@ -79,7 +76,7 @@ public class HistoricDecisionInstanceRestServiceQueryTest extends AbstractRestSe
 
   protected HistoricDecisionInstanceQuery mockedQuery;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     mockedQuery = setUpMockHistoricDecisionInstanceQuery(MockProvider.createMockHistoricDecisionInstances());
   }
@@ -244,7 +241,7 @@ public class HistoricDecisionInstanceRestServiceQueryTest extends AbstractRestSe
     String content = response.asString();
     List<String> instances = from(content).getList("");
     assertEquals(1, instances.size());
-    Assert.assertNotNull(instances.get(0));
+    Assertions.assertNotNull(instances.get(0));
 
     String returnedHistoricDecisionInstanceId = from(content).getString("[0].id");
     String returnedDecisionDefinitionId = from(content).getString("[0].decisionDefinitionId");
@@ -269,28 +266,28 @@ public class HistoricDecisionInstanceRestServiceQueryTest extends AbstractRestSe
     String returnedDecisionRequirementsDefinitionId = from(content).getString("[0].decisionRequirementsDefinitionId");
     String returnedDecisionRequirementsDefinitionKey = from(content).getString("[0].decisionRequirementsDefinitionKey");
 
-    assertThat(returnedHistoricDecisionInstanceId, is(MockProvider.EXAMPLE_HISTORIC_DECISION_INSTANCE_ID));
-    assertThat(returnedDecisionDefinitionId, is(MockProvider.EXAMPLE_DECISION_DEFINITION_ID));
-    assertThat(returnedDecisionDefinitionKey, is(MockProvider.EXAMPLE_DECISION_DEFINITION_KEY));
-    assertThat(returnedDecisionDefinitionName, is(MockProvider.EXAMPLE_DECISION_DEFINITION_NAME));
-    assertThat(returnedEvaluationTime, is(MockProvider.EXAMPLE_HISTORIC_DECISION_INSTANCE_EVALUATION_TIME));
-    assertThat(returnedRemovalTime, is(MockProvider.EXAMPLE_HISTORIC_DECISION_INSTANCE_REMOVAL_TIME));
-    assertThat(returnedProcessDefinitionId, is(MockProvider.EXAMPLE_PROCESS_DEFINITION_ID));
-    assertThat(returnedProcessDefinitionKey, is(MockProvider.EXAMPLE_PROCESS_DEFINITION_KEY));
-    assertThat(returnedProcessInstanceId, is(MockProvider.EXAMPLE_PROCESS_INSTANCE_ID));
-    assertThat(returnedCaseDefinitionId, is(MockProvider.EXAMPLE_CASE_DEFINITION_ID));
-    assertThat(returnedCaseDefinitionKey, is(MockProvider.EXAMPLE_CASE_DEFINITION_KEY));
-    assertThat(returnedCaseInstanceId, is(MockProvider.EXAMPLE_CASE_INSTANCE_ID));
-    assertThat(returnedActivityId, is(MockProvider.EXAMPLE_HISTORIC_DECISION_INSTANCE_ACTIVITY_ID));
-    assertThat(returnedActivityInstanceId, is(MockProvider.EXAMPLE_HISTORIC_DECISION_INSTANCE_ACTIVITY_INSTANCE_ID));
-    assertThat(returnedInputs, is(nullValue()));
-    assertThat(returnedOutputs, is(nullValue()));
-    assertThat(returnedCollectResultValue, is(MockProvider.EXAMPLE_HISTORIC_DECISION_INSTANCE_COLLECT_RESULT_VALUE));
-    assertThat(returnedTenantId, is(MockProvider.EXAMPLE_TENANT_ID));
-    assertThat(returnedRootDecisionInstanceId, is(MockProvider.EXAMPLE_HISTORIC_DECISION_INSTANCE_ID));
-    assertThat(returnedRootProcessInstanceId, is(MockProvider.EXAMPLE_ROOT_HISTORIC_PROCESS_INSTANCE_ID));
-    assertThat(returnedDecisionRequirementsDefinitionId, is(MockProvider.EXAMPLE_DECISION_REQUIREMENTS_DEFINITION_ID));
-    assertThat(returnedDecisionRequirementsDefinitionKey, is(MockProvider.EXAMPLE_DECISION_REQUIREMENTS_DEFINITION_KEY));
+    assertThat(returnedHistoricDecisionInstanceId).isEqualTo(MockProvider.EXAMPLE_HISTORIC_DECISION_INSTANCE_ID);
+    assertThat(returnedDecisionDefinitionId).isEqualTo(MockProvider.EXAMPLE_DECISION_DEFINITION_ID);
+    assertThat(returnedDecisionDefinitionKey).isEqualTo(MockProvider.EXAMPLE_DECISION_DEFINITION_KEY);
+    assertThat(returnedDecisionDefinitionName).isEqualTo(MockProvider.EXAMPLE_DECISION_DEFINITION_NAME);
+    assertThat(returnedEvaluationTime).isEqualTo(MockProvider.EXAMPLE_HISTORIC_DECISION_INSTANCE_EVALUATION_TIME);
+    assertThat(returnedRemovalTime).isEqualTo(MockProvider.EXAMPLE_HISTORIC_DECISION_INSTANCE_REMOVAL_TIME);
+    assertThat(returnedProcessDefinitionId).isEqualTo(MockProvider.EXAMPLE_PROCESS_DEFINITION_ID);
+    assertThat(returnedProcessDefinitionKey).isEqualTo(MockProvider.EXAMPLE_PROCESS_DEFINITION_KEY);
+    assertThat(returnedProcessInstanceId).isEqualTo(MockProvider.EXAMPLE_PROCESS_INSTANCE_ID);
+    assertThat(returnedCaseDefinitionId).isEqualTo(MockProvider.EXAMPLE_CASE_DEFINITION_ID);
+    assertThat(returnedCaseDefinitionKey).isEqualTo(MockProvider.EXAMPLE_CASE_DEFINITION_KEY);
+    assertThat(returnedCaseInstanceId).isEqualTo(MockProvider.EXAMPLE_CASE_INSTANCE_ID);
+    assertThat(returnedActivityId).isEqualTo(MockProvider.EXAMPLE_HISTORIC_DECISION_INSTANCE_ACTIVITY_ID);
+    assertThat(returnedActivityInstanceId).isEqualTo(MockProvider.EXAMPLE_HISTORIC_DECISION_INSTANCE_ACTIVITY_INSTANCE_ID);
+    assertThat(returnedInputs).isNull();
+    assertThat(returnedOutputs).isNull();
+    assertThat(returnedCollectResultValue).isEqualTo(MockProvider.EXAMPLE_HISTORIC_DECISION_INSTANCE_COLLECT_RESULT_VALUE);
+    assertThat(returnedTenantId).isEqualTo(MockProvider.EXAMPLE_TENANT_ID);
+    assertThat(returnedRootDecisionInstanceId).isEqualTo(MockProvider.EXAMPLE_HISTORIC_DECISION_INSTANCE_ID);
+    assertThat(returnedRootProcessInstanceId).isEqualTo(MockProvider.EXAMPLE_ROOT_HISTORIC_PROCESS_INSTANCE_ID);
+    assertThat(returnedDecisionRequirementsDefinitionId).isEqualTo(MockProvider.EXAMPLE_DECISION_REQUIREMENTS_DEFINITION_ID);
+    assertThat(returnedDecisionRequirementsDefinitionKey).isEqualTo(MockProvider.EXAMPLE_DECISION_REQUIREMENTS_DEFINITION_KEY);
   }
 
   @Test
@@ -330,13 +327,13 @@ public class HistoricDecisionInstanceRestServiceQueryTest extends AbstractRestSe
     String content = response.asString();
     List<String> instances = from(content).getList("");
     assertEquals(1, instances.size());
-    Assert.assertNotNull(instances.get(0));
+    Assertions.assertNotNull(instances.get(0));
 
     List<Map<String, Object>> returnedInputs = from(content).getList("[0].inputs");
     List<Map<String, Object>> returnedOutputs = from(content).getList("[0].outputs");
 
-    assertThat(returnedInputs, is(notNullValue()));
-    assertThat(returnedOutputs, is(nullValue()));
+    assertThat(returnedInputs).isNotNull();
+    assertThat(returnedOutputs).isNull();
 
     verifyHistoricDecisionInputInstances(returnedInputs);
   }
@@ -364,13 +361,13 @@ public class HistoricDecisionInstanceRestServiceQueryTest extends AbstractRestSe
     String content = response.asString();
     List<String> instances = from(content).getList("");
     assertEquals(1, instances.size());
-    Assert.assertNotNull(instances.get(0));
+    Assertions.assertNotNull(instances.get(0));
 
     List<Map<String, Object>> returnedInputs = from(content).getList("[0].inputs");
     List<Map<String, Object>> returnedOutputs = from(content).getList("[0].outputs");
 
-    assertThat(returnedInputs, is(nullValue()));
-    assertThat(returnedOutputs, is(notNullValue()));
+    assertThat(returnedInputs).isNull();
+    assertThat(returnedOutputs).isNotNull();
 
     verifyHistoricDecisionOutputInstances(returnedOutputs);
   }
@@ -399,13 +396,13 @@ public class HistoricDecisionInstanceRestServiceQueryTest extends AbstractRestSe
     String content = response.asString();
     List<String> instances = from(content).getList("");
     assertEquals(1, instances.size());
-    Assert.assertNotNull(instances.get(0));
+    Assertions.assertNotNull(instances.get(0));
 
     List<Map<String, Object>> returnedInputs = from(content).getList("[0].inputs");
     List<Map<String, Object>> returnedOutputs = from(content).getList("[0].outputs");
 
-    assertThat(returnedInputs, is(notNullValue()));
-    assertThat(returnedOutputs, is(notNullValue()));
+    assertThat(returnedInputs).isNotNull();
+    assertThat(returnedOutputs).isNotNull();
 
     verifyHistoricDecisionInputInstances(returnedInputs);
     verifyHistoricDecisionOutputInstances(returnedOutputs);
@@ -621,18 +618,18 @@ public class HistoricDecisionInstanceRestServiceQueryTest extends AbstractRestSe
   }
 
   protected void verifyHistoricDecisionInputInstances(List<Map<String, Object>> returnedInputs) {
-    assertThat(returnedInputs, hasSize(3));
+    assertThat(returnedInputs).hasSize(3);
 
     // verify common properties
     for (Map<String, Object> returnedInput : returnedInputs) {
-      assertThat(returnedInput, hasEntry("id", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_INPUT_INSTANCE_ID));
-      assertThat(returnedInput, hasEntry("decisionInstanceId", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_INSTANCE_ID));
-      assertThat(returnedInput, hasEntry("clauseId", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_INPUT_INSTANCE_CLAUSE_ID));
-      assertThat(returnedInput, hasEntry("clauseName", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_INPUT_INSTANCE_CLAUSE_NAME));
-      assertThat(returnedInput, hasEntry("errorMessage", null));
-      assertThat(returnedInput, hasEntry("createTime", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_INPUT_INSTANCE_CREATE_TIME));
-      assertThat(returnedInput, hasEntry("removalTime", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_INPUT_INSTANCE_REMOVAL_TIME));
-      assertThat(returnedInput, hasEntry("rootProcessInstanceId", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_INPUT_ROOT_PROCESS_INSTANCE_ID));
+      assertThat(returnedInput).containsEntry("id", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_INPUT_INSTANCE_ID);
+      assertThat(returnedInput).containsEntry("decisionInstanceId", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_INSTANCE_ID);
+      assertThat(returnedInput).containsEntry("clauseId", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_INPUT_INSTANCE_CLAUSE_ID);
+      assertThat(returnedInput).containsEntry("clauseName", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_INPUT_INSTANCE_CLAUSE_NAME);
+      assertThat(returnedInput).containsEntry("errorMessage", null);
+      assertThat(returnedInput).containsEntry("createTime", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_INPUT_INSTANCE_CREATE_TIME);
+      assertThat(returnedInput).containsEntry("removalTime", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_INPUT_INSTANCE_REMOVAL_TIME);
+      assertThat(returnedInput).containsEntry("rootProcessInstanceId", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_INPUT_ROOT_PROCESS_INSTANCE_ID);
     }
 
     verifyStringValue(returnedInputs.get(0));
@@ -642,21 +639,21 @@ public class HistoricDecisionInstanceRestServiceQueryTest extends AbstractRestSe
   }
 
   protected void verifyHistoricDecisionOutputInstances(List<Map<String, Object>> returnedOutputs) {
-    assertThat(returnedOutputs, hasSize(3));
+    assertThat(returnedOutputs).hasSize(3);
 
     // verify common properties
     for (Map<String, Object> returnedOutput : returnedOutputs) {
-      assertThat(returnedOutput, hasEntry("id", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_OUTPUT_INSTANCE_ID));
-      assertThat(returnedOutput, hasEntry("decisionInstanceId", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_INSTANCE_ID));
-      assertThat(returnedOutput, hasEntry("clauseId", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_OUTPUT_INSTANCE_CLAUSE_ID));
-      assertThat(returnedOutput, hasEntry("clauseName", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_OUTPUT_INSTANCE_CLAUSE_NAME));
-      assertThat(returnedOutput, hasEntry("ruleId", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_OUTPUT_INSTANCE_RULE_ID));
-      assertThat(returnedOutput, hasEntry("ruleOrder", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_OUTPUT_INSTANCE_RULE_ORDER));
-      assertThat(returnedOutput, hasEntry("variableName", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_OUTPUT_INSTANCE_VARIABLE_NAME));
-      assertThat(returnedOutput, hasEntry("errorMessage", null));
-      assertThat(returnedOutput, hasEntry("createTime", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_OUTPUT_INSTANCE_CREATE_TIME));
-      assertThat(returnedOutput, hasEntry("removalTime", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_OUTPUT_INSTANCE_REMOVAL_TIME));
-      assertThat(returnedOutput, hasEntry("rootProcessInstanceId", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_OUTPUT_ROOT_PROCESS_INSTANCE_ID));
+      assertThat(returnedOutput).containsEntry("id", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_OUTPUT_INSTANCE_ID);
+      assertThat(returnedOutput).containsEntry("decisionInstanceId", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_INSTANCE_ID);
+      assertThat(returnedOutput).containsEntry("clauseId", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_OUTPUT_INSTANCE_CLAUSE_ID);
+      assertThat(returnedOutput).containsEntry("clauseName", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_OUTPUT_INSTANCE_CLAUSE_NAME);
+      assertThat(returnedOutput).containsEntry("ruleId", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_OUTPUT_INSTANCE_RULE_ID);
+      assertThat(returnedOutput).containsEntry("ruleOrder", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_OUTPUT_INSTANCE_RULE_ORDER);
+      assertThat(returnedOutput).containsEntry("variableName", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_OUTPUT_INSTANCE_VARIABLE_NAME);
+      assertThat(returnedOutput).containsEntry("errorMessage", null);
+      assertThat(returnedOutput).containsEntry("createTime", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_OUTPUT_INSTANCE_CREATE_TIME);
+      assertThat(returnedOutput).containsEntry("removalTime", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_OUTPUT_INSTANCE_REMOVAL_TIME);
+      assertThat(returnedOutput).containsEntry("rootProcessInstanceId", (Object) MockProvider.EXAMPLE_HISTORIC_DECISION_OUTPUT_ROOT_PROCESS_INSTANCE_ID);
     }
 
     verifyStringValue(returnedOutputs.get(0));
@@ -666,27 +663,27 @@ public class HistoricDecisionInstanceRestServiceQueryTest extends AbstractRestSe
 
   protected void verifyStringValue(Map<String, Object> stringValue) {
     StringValue exampleValue = MockProvider.EXAMPLE_HISTORIC_DECISION_STRING_VALUE;
-    assertThat(stringValue, hasEntry("type", (Object) VariableValueDto.toRestApiTypeName(exampleValue.getType().getName())));
-    assertThat(stringValue, hasEntry("value", (Object) exampleValue.getValue()));
-    assertThat(stringValue, hasEntry("valueInfo", (Object) Collections.emptyMap()));
+    assertThat(stringValue).containsEntry("type", (Object) VariableValueDto.toRestApiTypeName(exampleValue.getType().getName()));
+    assertThat(stringValue).containsEntry("value", (Object) exampleValue.getValue());
+    assertThat(stringValue).containsEntry("valueInfo", (Object) Collections.emptyMap());
   }
 
   protected void verifyByteArrayValue(Map<String, Object> byteArrayValue) {
     BytesValue exampleValue = MockProvider.EXAMPLE_HISTORIC_DECISION_BYTE_ARRAY_VALUE;
-    assertThat(byteArrayValue, hasEntry("type", (Object) VariableValueDto.toRestApiTypeName(exampleValue.getType().getName())));
+    assertThat(byteArrayValue).containsEntry("type", (Object) VariableValueDto.toRestApiTypeName(exampleValue.getType().getName()));
     String byteString = Base64.encodeBase64String(exampleValue.getValue()).trim();
-    assertThat(byteArrayValue, hasEntry("value", (Object) byteString));
-    assertThat(byteArrayValue, hasEntry("valueInfo", (Object) Collections.emptyMap()));
+    assertThat(byteArrayValue).containsEntry("value", (Object) byteString);
+    assertThat(byteArrayValue).containsEntry("valueInfo", (Object) Collections.emptyMap());
   }
 
   @SuppressWarnings("unchecked")
   protected void verifySerializedValue(Map<String, Object> serializedValue) {
     ObjectValue exampleValue = MockProvider.EXAMPLE_HISTORIC_DECISION_SERIALIZED_VALUE;
-    assertThat(serializedValue, hasEntry("type", (Object) VariableValueDto.toRestApiTypeName(exampleValue.getType().getName())));
-    assertThat(serializedValue, hasEntry("value", exampleValue.getValue()));
+    assertThat(serializedValue).containsEntry("type", (Object) VariableValueDto.toRestApiTypeName(exampleValue.getType().getName()));
+    assertThat(serializedValue).containsEntry("value", exampleValue.getValue());
     Map<String, String> valueInfo = (Map<String, String>) serializedValue.get("valueInfo");
-    assertThat(valueInfo, hasEntry("serializationDataFormat", exampleValue.getSerializationDataFormat()));
-    assertThat(valueInfo, hasEntry("objectTypeName", exampleValue.getObjectTypeName()));
+    assertThat(valueInfo).containsEntry("serializationDataFormat", exampleValue.getSerializationDataFormat());
+    assertThat(valueInfo).containsEntry("objectTypeName", exampleValue.getObjectTypeName());
 
   }
 

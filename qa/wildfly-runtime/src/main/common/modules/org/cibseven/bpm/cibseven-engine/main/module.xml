@@ -22,7 +22,7 @@
 
     <module name="org.mybatis.mybatis" />
     <module name="com.fasterxml.uuid.java-uuid-generator"/>
-    <module name="org.joda.time" slot="2.1" />
+    <module name="org.joda.time" slot="cibseven" />
     <module name="org.apache.groovy.groovy-all" services="import"/>
     <module name="org.python.jython" services="import"/>
     <module name="org.jruby.jruby-complete" services="import"/>
@@ -38,11 +38,16 @@
     <module name="org.cibseven.commons.cibseven-commons-logging" />
     <module name="org.cibseven.commons.cibseven-commons-utils" />
     <module name="org.cibseven.commons.cibseven-commons-typed-values" export="true" />
+    <!-- as in distro/wildfly/modules: Variables.fileValue(File) with this module as the
+         context class loader (CIB7-2605) -->
+    <module name="org.eclipse.angus.activation" services="import" />
     <module name="org.cibseven.template-engines.cibseven-template-engines-freemarker" services="import" />
     <module name="org.cibseven.spin.cibseven-spin-core" services="import" />
 
     <module name="org.cibseven.bpm.dmn.cibseven-engine-dmn" />
     <module name="org.cibseven.bpm.juel.cibseven-juel" services="import"/>
+    <!-- as in distro/wildfly/modules: the classes use jakarta.el directly -->
+    <module name="jakarta.el.api" />
 
     <module name="org.slf4j" />
 

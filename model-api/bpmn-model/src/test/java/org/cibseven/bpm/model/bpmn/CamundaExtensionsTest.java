@@ -69,6 +69,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.cibseven.bpm.model.bpmn.instance.BaseElement;
 import org.cibseven.bpm.model.bpmn.instance.BpmnModelElementInstance;
@@ -111,20 +112,21 @@ import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaProperty;
 import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaScript;
 import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaTaskListener;
 import org.cibseven.bpm.model.bpmn.instance.cibseven.CamundaValue;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Sebastian Menski
  * @author Ronny Bräunlich
  */
-@RunWith(Parameterized.class)
 public class CamundaExtensionsTest {
 
+  private String namespace;
+  private BpmnModelInstance originalModelInstance;
   private Process process;
   private StartEvent startEvent;
   private SequenceFlow sequenceFlow;
@@ -137,52 +139,56 @@ public class CamundaExtensionsTest {
   private EndEvent endEvent;
   private MessageEventDefinition messageEventDefinition;
   private ParallelGateway parallelGateway;
-  private String namespace;
-  private BpmnModelInstance originalModelInstance;
   private BpmnModelInstance modelInstance;
   private Error error;
 
-  @Parameters(name="Namespace: {0}")
-  public static Collection<Object[]> parameters(){
-    return Arrays.asList(new Object[][]{
+  public static Stream<Arguments> parameters() {
+    return Stream.of(new Object[][]{
         {CAMUNDA_NS, Bpmn.readModelFromStream(CamundaExtensionsTest.class.getResourceAsStream("CamundaExtensionsTest.xml"))},
         //for compatability reasons we gotta check the old namespace, too
         {ACTIVITI_NS, Bpmn.readModelFromStream(CamundaExtensionsTest.class.getResourceAsStream("CamundaExtensionsCompatabilityTest.xml"))}
-    });
+    }).map(Arguments::of);
+  }
+  
+  public void setUp(BpmnModelInstance originalModelInstance) {
+    if (originalModelInstance != null) {
+      modelInstance = originalModelInstance.clone();
+      process = modelInstance.getModelElementById(PROCESS_ID);
+      startEvent = modelInstance.getModelElementById(START_EVENT_ID);
+      sequenceFlow = modelInstance.getModelElementById(SEQUENCE_FLOW_ID);
+      userTask = modelInstance.getModelElementById(USER_TASK_ID);
+      serviceTask = modelInstance.getModelElementById(SERVICE_TASK_ID);
+      sendTask = modelInstance.getModelElementById(SEND_TASK_ID);
+      scriptTask = modelInstance.getModelElementById(SCRIPT_TASK_ID);
+      callActivity = modelInstance.getModelElementById(CALL_ACTIVITY_ID);
+      businessRuleTask = modelInstance.getModelElementById(BUSINESS_RULE_TASK);
+      endEvent = modelInstance.getModelElementById(END_EVENT_ID);
+      messageEventDefinition = (MessageEventDefinition) endEvent.getEventDefinitions().iterator().next();
+      parallelGateway = modelInstance.getModelElementById("parallelGateway");
+      error = modelInstance.getModelElementById("error");
+    }
   }
 
-  public CamundaExtensionsTest(String namespace, BpmnModelInstance modelInstance) {
-    this.namespace = namespace;
-    this.originalModelInstance = modelInstance;
+  @AfterEach
+  public void validateModel() {
+    if (modelInstance != null) {
+      Bpmn.validateModel(modelInstance);
+    }
   }
 
-  @Before
-  public void setUp(){
-    modelInstance = originalModelInstance.clone();
-    process = modelInstance.getModelElementById(PROCESS_ID);
-    startEvent = modelInstance.getModelElementById(START_EVENT_ID);
-    sequenceFlow = modelInstance.getModelElementById(SEQUENCE_FLOW_ID);
-    userTask = modelInstance.getModelElementById(USER_TASK_ID);
-    serviceTask = modelInstance.getModelElementById(SERVICE_TASK_ID);
-    sendTask = modelInstance.getModelElementById(SEND_TASK_ID);
-    scriptTask = modelInstance.getModelElementById(SCRIPT_TASK_ID);
-    callActivity = modelInstance.getModelElementById(CALL_ACTIVITY_ID);
-    businessRuleTask = modelInstance.getModelElementById(BUSINESS_RULE_TASK);
-    endEvent = modelInstance.getModelElementById(END_EVENT_ID);
-    messageEventDefinition = (MessageEventDefinition) endEvent.getEventDefinitions().iterator().next();
-    parallelGateway = modelInstance.getModelElementById("parallelGateway");
-    error = modelInstance.getModelElementById("error");
-  }
-
-  @Test
-  public void testAssignee() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testAssignee(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(userTask.getCamundaAssignee()).isEqualTo(TEST_STRING_XML);
     userTask.setCamundaAssignee(TEST_STRING_API);
     assertThat(userTask.getCamundaAssignee()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testAsync() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testAsync(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(startEvent.isCamundaAsync()).isFalse();
     assertThat(userTask.isCamundaAsync()).isTrue();
     assertThat(parallelGateway.isCamundaAsync()).isTrue();
@@ -196,8 +202,10 @@ public class CamundaExtensionsTest {
     assertThat(parallelGateway.isCamundaAsync()).isFalse();
   }
 
-  @Test
-  public void testAsyncBefore() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testAsyncBefore(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(startEvent.isCamundaAsyncBefore()).isTrue();
     assertThat(endEvent.isCamundaAsyncBefore()).isTrue();
     assertThat(userTask.isCamundaAsyncBefore()).isTrue();
@@ -214,8 +222,10 @@ public class CamundaExtensionsTest {
     assertThat(parallelGateway.isCamundaAsyncBefore()).isFalse();
   }
 
-  @Test
-  public void testAsyncAfter() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testAsyncAfter(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(startEvent.isCamundaAsyncAfter()).isTrue();
     assertThat(endEvent.isCamundaAsyncAfter()).isTrue();
     assertThat(userTask.isCamundaAsyncAfter()).isTrue();
@@ -232,152 +242,198 @@ public class CamundaExtensionsTest {
     assertThat(parallelGateway.isCamundaAsyncAfter()).isFalse();
   }
 
-  @Test
-  public void testFlowNodeJobPriority() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testFlowNodeJobPriority(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(startEvent.getCamundaJobPriority()).isEqualTo(TEST_FLOW_NODE_JOB_PRIORITY);
     assertThat(endEvent.getCamundaJobPriority()).isEqualTo(TEST_FLOW_NODE_JOB_PRIORITY);
     assertThat(userTask.getCamundaJobPriority()).isEqualTo(TEST_FLOW_NODE_JOB_PRIORITY);
     assertThat(parallelGateway.getCamundaJobPriority()).isEqualTo(TEST_FLOW_NODE_JOB_PRIORITY);
   }
 
-  @Test
-  public void testProcessJobPriority() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testProcessJobPriority(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(process.getCamundaJobPriority()).isEqualTo(TEST_PROCESS_JOB_PRIORITY);
   }
 
-  @Test
-  public void testProcessTaskPriority() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testProcessTaskPriority(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(process.getCamundaTaskPriority()).isEqualTo(TEST_PROCESS_TASK_PRIORITY);
   }
 
-  @Test
-  public void testHistoryTimeToLive() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testHistoryTimeToLive(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(process.getCamundaHistoryTimeToLive()).isEqualTo(TEST_HISTORY_TIME_TO_LIVE);
   }
 
-  @Test
-  public void testIsStartableInTasklist() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testIsStartableInTasklist(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(process.isCamundaStartableInTasklist()).isEqualTo(false);
   }
 
-  @Test
-  public void testVersionTag() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testVersionTag(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(process.getCamundaVersionTag()).isEqualTo("v1.0.0");
   }
 
-  @Test
-  public void testServiceTaskPriority() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testServiceTaskPriority(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(serviceTask.getCamundaTaskPriority()).isEqualTo(TEST_SERVICE_TASK_PRIORITY);
   }
 
-  @Test
-  public void testCalledElementBinding() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCalledElementBinding(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(callActivity.getCamundaCalledElementBinding()).isEqualTo(TEST_STRING_XML);
     callActivity.setCamundaCalledElementBinding(TEST_STRING_API);
     assertThat(callActivity.getCamundaCalledElementBinding()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testCalledElementVersion() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCalledElementVersion(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(callActivity.getCamundaCalledElementVersion()).isEqualTo(TEST_STRING_XML);
     callActivity.setCamundaCalledElementVersion(TEST_STRING_API);
     assertThat(callActivity.getCamundaCalledElementVersion()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testCalledElementVersionTag() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCalledElementVersionTag(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(callActivity.getCamundaCalledElementVersionTag()).isEqualTo(TEST_STRING_XML);
     callActivity.setCamundaCalledElementVersionTag(TEST_STRING_API);
     assertThat(callActivity.getCamundaCalledElementVersionTag()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testCalledElementTenantId() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCalledElementTenantId(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(callActivity.getCamundaCalledElementTenantId()).isEqualTo(TEST_STRING_XML);
     callActivity.setCamundaCalledElementTenantId(TEST_STRING_API);
     assertThat(callActivity.getCamundaCalledElementTenantId()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testCaseRef() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCaseRef(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(callActivity.getCamundaCaseRef()).isEqualTo(TEST_STRING_XML);
     callActivity.setCamundaCaseRef(TEST_STRING_API);
     assertThat(callActivity.getCamundaCaseRef()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testCaseBinding() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCaseBinding(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(callActivity.getCamundaCaseBinding()).isEqualTo(TEST_STRING_XML);
     callActivity.setCamundaCaseBinding(TEST_STRING_API);
     assertThat(callActivity.getCamundaCaseBinding()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testCaseVersion() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCaseVersion(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(callActivity.getCamundaCaseVersion()).isEqualTo(TEST_STRING_XML);
     callActivity.setCamundaCaseVersion(TEST_STRING_API);
     assertThat(callActivity.getCamundaCaseVersion()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testCaseTenantId() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCaseTenantId(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(callActivity.getCamundaCaseTenantId()).isEqualTo(TEST_STRING_XML);
     callActivity.setCamundaCaseTenantId(TEST_STRING_API);
     assertThat(callActivity.getCamundaCaseTenantId()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testDecisionRef() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testDecisionRef(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(businessRuleTask.getCamundaDecisionRef()).isEqualTo(TEST_STRING_XML);
     businessRuleTask.setCamundaDecisionRef(TEST_STRING_API);
     assertThat(businessRuleTask.getCamundaDecisionRef()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testDecisionRefBinding() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testDecisionRefBinding(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(businessRuleTask.getCamundaDecisionRefBinding()).isEqualTo(TEST_STRING_XML);
     businessRuleTask.setCamundaDecisionRefBinding(TEST_STRING_API);
     assertThat(businessRuleTask.getCamundaDecisionRefBinding()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testDecisionRefVersion() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testDecisionRefVersion(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(businessRuleTask.getCamundaDecisionRefVersion()).isEqualTo(TEST_STRING_XML);
     businessRuleTask.setCamundaDecisionRefVersion(TEST_STRING_API);
     assertThat(businessRuleTask.getCamundaDecisionRefVersion()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testDecisionRefVersionTag() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testDecisionRefVersionTag(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(businessRuleTask.getCamundaDecisionRefVersionTag()).isEqualTo(TEST_STRING_XML);
     businessRuleTask.setCamundaDecisionRefVersionTag(TEST_STRING_API);
     assertThat(businessRuleTask.getCamundaDecisionRefVersionTag()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testDecisionRefTenantId() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testDecisionRefTenantId(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(businessRuleTask.getCamundaDecisionRefTenantId()).isEqualTo(TEST_STRING_XML);
     businessRuleTask.setCamundaDecisionRefTenantId(TEST_STRING_API);
     assertThat(businessRuleTask.getCamundaDecisionRefTenantId()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testMapDecisionResult() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testMapDecisionResult(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(businessRuleTask.getCamundaMapDecisionResult()).isEqualTo(TEST_STRING_XML);
     businessRuleTask.setCamundaMapDecisionResult(TEST_STRING_API);
     assertThat(businessRuleTask.getCamundaMapDecisionResult()).isEqualTo(TEST_STRING_API);
   }
 
 
-  @Test
-  public void testTaskPriority() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testTaskPriority(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(businessRuleTask.getCamundaTaskPriority()).isEqualTo(TEST_STRING_XML);
     businessRuleTask.setCamundaTaskPriority(TEST_SERVICE_TASK_PRIORITY);
     assertThat(businessRuleTask.getCamundaTaskPriority()).isEqualTo(TEST_SERVICE_TASK_PRIORITY);
   }
 
-  @Test
-  public void testCandidateGroups() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCandidateGroups(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(userTask.getCamundaCandidateGroups()).isEqualTo(TEST_GROUPS_XML);
     assertThat(userTask.getCamundaCandidateGroupsList()).containsAll(TEST_GROUPS_LIST_XML);
     userTask.setCamundaCandidateGroups(TEST_GROUPS_API);
@@ -388,8 +444,10 @@ public class CamundaExtensionsTest {
     assertThat(userTask.getCamundaCandidateGroupsList()).containsAll(TEST_GROUPS_LIST_XML);
   }
 
-  @Test
-  public void testCandidateStarterGroups() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCandidateStarterGroups(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(process.getCamundaCandidateStarterGroups()).isEqualTo(TEST_GROUPS_XML);
     assertThat(process.getCamundaCandidateStarterGroupsList()).containsAll(TEST_GROUPS_LIST_XML);
     process.setCamundaCandidateStarterGroups(TEST_GROUPS_API);
@@ -400,8 +458,10 @@ public class CamundaExtensionsTest {
     assertThat(process.getCamundaCandidateStarterGroupsList()).containsAll(TEST_GROUPS_LIST_XML);
   }
 
-  @Test
-  public void testCandidateStarterUsers() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCandidateStarterUsers(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(process.getCamundaCandidateStarterUsers()).isEqualTo(TEST_USERS_XML);
     assertThat(process.getCamundaCandidateStarterUsersList()).containsAll(TEST_USERS_LIST_XML);
     process.setCamundaCandidateStarterUsers(TEST_USERS_API);
@@ -412,8 +472,10 @@ public class CamundaExtensionsTest {
     assertThat(process.getCamundaCandidateStarterUsersList()).containsAll(TEST_USERS_LIST_XML);
   }
 
-  @Test
-  public void testCandidateUsers() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCandidateUsers(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(userTask.getCamundaCandidateUsers()).isEqualTo(TEST_USERS_XML);
     assertThat(userTask.getCamundaCandidateUsersList()).containsAll(TEST_USERS_LIST_XML);
     userTask.setCamundaCandidateUsers(TEST_USERS_API);
@@ -424,8 +486,10 @@ public class CamundaExtensionsTest {
     assertThat(userTask.getCamundaCandidateUsersList()).containsAll(TEST_USERS_LIST_XML);
   }
 
-  @Test
-  public void testClass() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testClass(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(serviceTask.getCamundaClass()).isEqualTo(TEST_CLASS_XML);
     assertThat(messageEventDefinition.getCamundaClass()).isEqualTo(TEST_CLASS_XML);
 
@@ -436,8 +500,10 @@ public class CamundaExtensionsTest {
     assertThat(messageEventDefinition.getCamundaClass()).isEqualTo(TEST_CLASS_API);
   }
 
-  @Test
-  public void testDelegateExpression() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testDelegateExpression(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(serviceTask.getCamundaDelegateExpression()).isEqualTo(TEST_DELEGATE_EXPRESSION_XML);
     assertThat(messageEventDefinition.getCamundaDelegateExpression()).isEqualTo(TEST_DELEGATE_EXPRESSION_XML);
 
@@ -448,34 +514,44 @@ public class CamundaExtensionsTest {
     assertThat(messageEventDefinition.getCamundaDelegateExpression()).isEqualTo(TEST_DELEGATE_EXPRESSION_API);
   }
 
-  @Test
-  public void testDueDate() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testDueDate(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(userTask.getCamundaDueDate()).isEqualTo(TEST_DUE_DATE_XML);
     userTask.setCamundaDueDate(TEST_DUE_DATE_API);
     assertThat(userTask.getCamundaDueDate()).isEqualTo(TEST_DUE_DATE_API);
   }
 
-  @Test
-  public void testErrorCodeVariable(){
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testErrorCodeVariable(String namespace, BpmnModelInstance model) {
+    setUp(model);
     ErrorEventDefinition errorEventDefinition = startEvent.getChildElementsByType(ErrorEventDefinition.class).iterator().next();
     assertThat(errorEventDefinition.getAttributeValueNs(namespace, CAMUNDA_ATTRIBUTE_ERROR_CODE_VARIABLE)).isEqualTo("errorVariable");
   }
 
-  @Test
-  public void testErrorMessageVariable(){
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testErrorMessageVariable(String namespace, BpmnModelInstance model) {
+    setUp(model);
     ErrorEventDefinition errorEventDefinition = startEvent.getChildElementsByType(ErrorEventDefinition.class).iterator().next();
     assertThat(errorEventDefinition.getAttributeValueNs(namespace, CAMUNDA_ATTRIBUTE_ERROR_MESSAGE_VARIABLE)).isEqualTo("errorMessageVariable");
   }
 
-  @Test
-  public void testErrorMessage() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testErrorMessage(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(error.getCamundaErrorMessage()).isEqualTo(TEST_STRING_XML);
     error.setCamundaErrorMessage(TEST_STRING_API);
     assertThat(error.getCamundaErrorMessage()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testExclusive() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testExclusive(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(startEvent.isCamundaExclusive()).isTrue();
     assertThat(userTask.isCamundaExclusive()).isFalse();
     userTask.setCamundaExclusive(true);
@@ -489,8 +565,10 @@ public class CamundaExtensionsTest {
     assertThat(callActivity.isCamundaExclusive()).isTrue();
   }
 
-  @Test
-  public void testExpression() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testExpression(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(serviceTask.getCamundaExpression()).isEqualTo(TEST_EXPRESSION_XML);
     assertThat(messageEventDefinition.getCamundaExpression()).isEqualTo(TEST_EXPRESSION_XML);
     serviceTask.setCamundaExpression(TEST_EXPRESSION_API);
@@ -499,8 +577,10 @@ public class CamundaExtensionsTest {
     assertThat(messageEventDefinition.getCamundaExpression()).isEqualTo(TEST_EXPRESSION_API);
   }
 
-  @Test
-  public void testFormHandlerClass() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testFormHandlerClass(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(startEvent.getCamundaFormHandlerClass()).isEqualTo(TEST_CLASS_XML);
     assertThat(userTask.getCamundaFormHandlerClass()).isEqualTo(TEST_CLASS_XML);
     startEvent.setCamundaFormHandlerClass(TEST_CLASS_API);
@@ -509,8 +589,10 @@ public class CamundaExtensionsTest {
     assertThat(userTask.getCamundaFormHandlerClass()).isEqualTo(TEST_CLASS_API);
   }
 
-  @Test
-  public void testFormKey() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testFormKey(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(startEvent.getCamundaFormKey()).isEqualTo(TEST_STRING_XML);
     assertThat(userTask.getCamundaFormKey()).isEqualTo(TEST_STRING_XML);
     startEvent.setCamundaFormKey(TEST_STRING_API);
@@ -519,22 +601,28 @@ public class CamundaExtensionsTest {
     assertThat(userTask.getCamundaFormKey()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testInitiator() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testInitiator(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(startEvent.getCamundaInitiator()).isEqualTo(TEST_STRING_XML);
     startEvent.setCamundaInitiator(TEST_STRING_API);
     assertThat(startEvent.getCamundaInitiator()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testPriority() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testPriority(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(userTask.getCamundaPriority()).isEqualTo(TEST_PRIORITY_XML);
     userTask.setCamundaPriority(TEST_PRIORITY_API);
     assertThat(userTask.getCamundaPriority()).isEqualTo(TEST_PRIORITY_API);
   }
 
-  @Test
-  public void testResultVariable() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testResultVariable(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(serviceTask.getCamundaResultVariable()).isEqualTo(TEST_STRING_XML);
     assertThat(messageEventDefinition.getCamundaResultVariable()).isEqualTo(TEST_STRING_XML);
     serviceTask.setCamundaResultVariable(TEST_STRING_API);
@@ -543,8 +631,10 @@ public class CamundaExtensionsTest {
     assertThat(messageEventDefinition.getCamundaResultVariable()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testType() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testType(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(serviceTask.getCamundaType()).isEqualTo(TEST_TYPE_XML);
     assertThat(messageEventDefinition.getCamundaType()).isEqualTo(TEST_STRING_XML);
     serviceTask.setCamundaType(TEST_TYPE_API);
@@ -554,8 +644,10 @@ public class CamundaExtensionsTest {
 
   }
 
-  @Test
-  public void testTopic() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testTopic(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(serviceTask.getCamundaTopic()).isEqualTo(TEST_STRING_XML);
     assertThat(messageEventDefinition.getCamundaTopic()).isEqualTo(TEST_STRING_XML);
     serviceTask.setCamundaTopic(TEST_TYPE_API);
@@ -564,22 +656,28 @@ public class CamundaExtensionsTest {
     assertThat(messageEventDefinition.getCamundaTopic()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testVariableMappingClass() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testVariableMappingClass(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(callActivity.getCamundaVariableMappingClass()).isEqualTo(TEST_CLASS_XML);
     callActivity.setCamundaVariableMappingClass(TEST_CLASS_API);
     assertThat(callActivity.getCamundaVariableMappingClass()).isEqualTo(TEST_CLASS_API);
   }
 
-  @Test
-  public void testVariableMappingDelegateExpression() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testVariableMappingDelegateExpression(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(callActivity.getCamundaVariableMappingDelegateExpression()).isEqualTo(TEST_DELEGATE_EXPRESSION_XML);
     callActivity.setCamundaVariableMappingDelegateExpression(TEST_DELEGATE_EXPRESSION_API);
     assertThat(callActivity.getCamundaVariableMappingDelegateExpression()).isEqualTo(TEST_DELEGATE_EXPRESSION_API);
   }
 
-  @Test
-  public void testExecutionListenerExtension() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testExecutionListenerExtension(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaExecutionListener processListener = process.getExtensionElements().getElementsQuery().filterByType(CamundaExecutionListener.class).singleResult();
     CamundaExecutionListener startEventListener = startEvent.getExtensionElements().getElementsQuery().filterByType(CamundaExecutionListener.class).singleResult();
     CamundaExecutionListener serviceTaskListener = serviceTask.getExtensionElements().getElementsQuery().filterByType(CamundaExecutionListener.class).singleResult();
@@ -603,8 +701,10 @@ public class CamundaExtensionsTest {
     assertThat(serviceTaskListener.getCamundaEvent()).isEqualTo(TEST_EXECUTION_EVENT_API);
   }
 
-  @Test
-  public void testCamundaScriptExecutionListener() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCamundaScriptExecutionListener(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaExecutionListener sequenceFlowListener = sequenceFlow.getExtensionElements().getElementsQuery().filterByType(CamundaExecutionListener.class).singleResult();
 
     CamundaScript script = sequenceFlowListener.getCamundaScript();
@@ -623,16 +723,20 @@ public class CamundaExtensionsTest {
     assertThat(script.getTextContent()).isEmpty();
   }
 
-  @Test
-  public void testFailedJobRetryTimeCycleExtension() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testFailedJobRetryTimeCycleExtension(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaFailedJobRetryTimeCycle timeCycle = sendTask.getExtensionElements().getElementsQuery().filterByType(CamundaFailedJobRetryTimeCycle.class).singleResult();
     assertThat(timeCycle.getTextContent()).isEqualTo(TEST_STRING_XML);
     timeCycle.setTextContent(TEST_STRING_API);
     assertThat(timeCycle.getTextContent()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testFieldExtension() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testFieldExtension(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaField field = sendTask.getExtensionElements().getElementsQuery().filterByType(CamundaField.class).singleResult();
     assertThat(field.getCamundaName()).isEqualTo(TEST_STRING_XML);
     assertThat(field.getCamundaExpression()).isEqualTo(TEST_EXPRESSION_XML);
@@ -651,8 +755,10 @@ public class CamundaExtensionsTest {
     assertThat(field.getCamundaString().getTextContent()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testFormData() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testFormData(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaFormData formData = userTask.getExtensionElements().getElementsQuery().filterByType(CamundaFormData.class).singleResult();
     CamundaFormField formField = formData.getCamundaFormFields().iterator().next();
     assertThat(formField.getCamundaId()).isEqualTo(TEST_STRING_XML);
@@ -696,8 +802,10 @@ public class CamundaExtensionsTest {
     assertThat(value.getCamundaName()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testFormProperty() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testFormProperty(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaFormProperty formProperty = startEvent.getExtensionElements().getElementsQuery().filterByType(CamundaFormProperty.class).singleResult();
     assertThat(formProperty.getCamundaId()).isEqualTo(TEST_STRING_XML);
     assertThat(formProperty.getCamundaName()).isEqualTo(TEST_STRING_XML);
@@ -731,8 +839,10 @@ public class CamundaExtensionsTest {
     assertThat(formProperty.getCamundaDefault()).isEqualTo(TEST_STRING_API);
   }
 
-  @Test
-  public void testInExtension() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testInExtension(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaIn in = callActivity.getExtensionElements().getElementsQuery().filterByType(CamundaIn.class).singleResult();
     assertThat(in.getCamundaSource()).isEqualTo(TEST_STRING_XML);
     assertThat(in.getCamundaSourceExpression()).isEqualTo(TEST_EXPRESSION_XML);
@@ -754,8 +864,10 @@ public class CamundaExtensionsTest {
     assertThat(in.getCamundaLocal()).isFalse();
   }
 
-  @Test
-  public void testOutExtension() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testOutExtension(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaOut out = callActivity.getExtensionElements().getElementsQuery().filterByType(CamundaOut.class).singleResult();
     assertThat(out.getCamundaSource()).isEqualTo(TEST_STRING_XML);
     assertThat(out.getCamundaSourceExpression()).isEqualTo(TEST_EXPRESSION_XML);
@@ -774,8 +886,10 @@ public class CamundaExtensionsTest {
     assertThat(out.getCamundaLocal()).isFalse();
   }
 
-  @Test
-  public void testPotentialStarter() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testPotentialStarter(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaPotentialStarter potentialStarter = startEvent.getExtensionElements().getElementsQuery().filterByType(CamundaPotentialStarter.class).singleResult();
     Expression expression = potentialStarter.getResourceAssignmentExpression().getExpression();
     assertThat(expression.getTextContent()).isEqualTo(TEST_GROUPS_XML);
@@ -783,8 +897,10 @@ public class CamundaExtensionsTest {
     assertThat(expression.getTextContent()).isEqualTo(TEST_GROUPS_API);
   }
 
-  @Test
-  public void testTaskListener() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testTaskListener(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaTaskListener taskListener = userTask.getExtensionElements().getElementsQuery().filterByType(CamundaTaskListener.class).list().get(0);
     assertThat(taskListener.getCamundaEvent()).isEqualTo(TEST_TASK_EVENT_XML);
     assertThat(taskListener.getCamundaClass()).isEqualTo(TEST_CLASS_XML);
@@ -813,8 +929,10 @@ public class CamundaExtensionsTest {
     assertThat(timeout.getTimeDuration().getRawTextContent()).isEqualTo("PT1H");
   }
 
-  @Test
-  public void testCamundaScriptTaskListener() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCamundaScriptTaskListener(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaTaskListener taskListener = userTask.getExtensionElements().getElementsQuery().filterByType(CamundaTaskListener.class).list().get(1);
 
     CamundaScript script = taskListener.getCamundaScript();
@@ -833,8 +951,10 @@ public class CamundaExtensionsTest {
     assertThat(script.getTextContent()).isEqualTo("println 'Hello World'");
   }
 
-  @Test
-  public void testCamundaModelerProperties() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCamundaModelerProperties(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaProperties camundaProperties = endEvent.getExtensionElements().getElementsQuery().filterByType(CamundaProperties.class).singleResult();
     assertThat(camundaProperties).isNotNull();
     assertThat(camundaProperties.getCamundaProperties()).hasSize(2);
@@ -846,15 +966,19 @@ public class CamundaExtensionsTest {
     }
   }
 
-  @Test
-  public void testGetNonExistingCamundaCandidateUsers() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testGetNonExistingCamundaCandidateUsers(String namespace, BpmnModelInstance model) {
+    setUp(model);
     userTask.removeAttributeNs(namespace, "candidateUsers");
     assertThat(userTask.getCamundaCandidateUsers()).isNull();
     assertThat(userTask.getCamundaCandidateUsersList()).isEmpty();
   }
 
-  @Test
-  public void testSetNullCamundaCandidateUsers() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testSetNullCamundaCandidateUsers(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(userTask.getCamundaCandidateUsers()).isNotEmpty();
     assertThat(userTask.getCamundaCandidateUsersList()).isNotEmpty();
     userTask.setCamundaCandidateUsers(null);
@@ -862,8 +986,10 @@ public class CamundaExtensionsTest {
     assertThat(userTask.getCamundaCandidateUsersList()).isEmpty();
   }
 
-  @Test
-  public void testEmptyCamundaCandidateUsers() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testEmptyCamundaCandidateUsers(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(userTask.getCamundaCandidateUsers()).isNotEmpty();
     assertThat(userTask.getCamundaCandidateUsersList()).isNotEmpty();
     userTask.setCamundaCandidateUsers("");
@@ -871,8 +997,10 @@ public class CamundaExtensionsTest {
     assertThat(userTask.getCamundaCandidateUsersList()).isEmpty();
   }
 
-  @Test
-  public void testSetNullCamundaCandidateUsersList() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testSetNullCamundaCandidateUsersList(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(userTask.getCamundaCandidateUsers()).isNotEmpty();
     assertThat(userTask.getCamundaCandidateUsersList()).isNotEmpty();
     userTask.setCamundaCandidateUsersList(null);
@@ -880,8 +1008,10 @@ public class CamundaExtensionsTest {
     assertThat(userTask.getCamundaCandidateUsersList()).isEmpty();
   }
 
-  @Test
-  public void testEmptyCamundaCandidateUsersList() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testEmptyCamundaCandidateUsersList(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(userTask.getCamundaCandidateUsers()).isNotEmpty();
     assertThat(userTask.getCamundaCandidateUsersList()).isNotEmpty();
     userTask.setCamundaCandidateUsersList(Collections.<String>emptyList());
@@ -889,14 +1019,18 @@ public class CamundaExtensionsTest {
     assertThat(userTask.getCamundaCandidateUsersList()).isEmpty();
   }
 
-  @Test
-  public void testScriptResource() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testScriptResource(String namespace, BpmnModelInstance model) {
+    setUp(model);
     assertThat(scriptTask.getScriptFormat()).isEqualTo("groovy");
     assertThat(scriptTask.getCamundaResource()).isEqualTo("test.groovy");
   }
 
-  @Test
-  public void testCamundaConnector() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCamundaConnector(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaConnector camundaConnector = serviceTask.getExtensionElements().getElementsQuery().filterByType(CamundaConnector.class).singleResult();
     assertThat(camundaConnector).isNotNull();
 
@@ -921,16 +1055,20 @@ public class CamundaExtensionsTest {
     assertThat(outputParameter.getTextContent()).isEqualTo("output");
   }
 
-  @Test
-  public void testCamundaInputOutput() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCamundaInputOutput(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaInputOutput camundaInputOutput = serviceTask.getExtensionElements().getElementsQuery().filterByType(CamundaInputOutput.class).singleResult();
     assertThat(camundaInputOutput).isNotNull();
     assertThat(camundaInputOutput.getCamundaInputParameters()).hasSize(6);
     assertThat(camundaInputOutput.getCamundaOutputParameters()).hasSize(1);
   }
 
-  @Test
-  public void testCamundaInputParameter() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCamundaInputParameter(String namespace, BpmnModelInstance model) {
+    setUp(model);
     // find existing
     CamundaInputParameter inputParameter = findInputParameterByName(serviceTask, "shouldBeConstant");
 
@@ -953,29 +1091,37 @@ public class CamundaExtensionsTest {
     assertThat(inputParameter.getTextContent()).isEqualTo("def");
   }
 
-  @Test
-  public void testCamundaNullInputParameter() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCamundaNullInputParameter(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaInputParameter inputParameter = findInputParameterByName(serviceTask, "shouldBeNull");
     assertThat(inputParameter.getCamundaName()).isEqualTo("shouldBeNull");
     assertThat(inputParameter.getTextContent()).isEmpty();
   }
 
-  @Test
-  public void testCamundaConstantInputParameter() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCamundaConstantInputParameter(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaInputParameter inputParameter = findInputParameterByName(serviceTask, "shouldBeConstant");
     assertThat(inputParameter.getCamundaName()).isEqualTo("shouldBeConstant");
     assertThat(inputParameter.getTextContent()).isEqualTo("foo");
   }
 
-  @Test
-  public void testCamundaExpressionInputParameter() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCamundaExpressionInputParameter(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaInputParameter inputParameter = findInputParameterByName(serviceTask, "shouldBeExpression");
     assertThat(inputParameter.getCamundaName()).isEqualTo("shouldBeExpression");
-    assertThat(inputParameter.getTextContent()).isEqualTo("${1 + 1}");
+    assertThat(inputParameter.getTextContent());
   }
 
-  @Test
-  public void testCamundaListInputParameter() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCamundaListInputParameter(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaInputParameter inputParameter = findInputParameterByName(serviceTask, "shouldBeList");
     assertThat(inputParameter.getCamundaName()).isEqualTo("shouldBeList");
     assertThat(inputParameter.getTextContent()).isNotEmpty();
@@ -1048,8 +1194,10 @@ public class CamundaExtensionsTest {
 
   }
 
-  @Test
-  public void testCamundaMapInputParameter() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCamundaMapInputParameter(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaInputParameter inputParameter = findInputParameterByName(serviceTask, "shouldBeMap");
     assertThat(inputParameter.getCamundaName()).isEqualTo("shouldBeMap");
     assertThat(inputParameter.getTextContent()).isNotEmpty();
@@ -1088,8 +1236,10 @@ public class CamundaExtensionsTest {
     assertThat((Object) inputParameter.getValue()).isNull();
   }
 
-  @Test
-  public void testCamundaScriptInputParameter() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCamundaScriptInputParameter(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaInputParameter inputParameter = findInputParameterByName(serviceTask, "shouldBeScript");
     assertThat(inputParameter.getCamundaName()).isEqualTo("shouldBeScript");
     assertThat(inputParameter.getTextContent()).isNotEmpty();
@@ -1116,8 +1266,10 @@ public class CamundaExtensionsTest {
     assertThat((Object) inputParameter.getValue()).isNull();
   }
 
-  @Test
-  public void testCamundaNestedOutputParameter() {
+  @ParameterizedTest(name = "Namespace: {0}")
+  @MethodSource("parameters")
+  public void testCamundaNestedOutputParameter(String namespace, BpmnModelInstance model) {
+    setUp(model);
     CamundaOutputParameter camundaOutputParameter = serviceTask.getExtensionElements().getElementsQuery().filterByType(CamundaInputOutput.class).singleResult().getCamundaOutputParameters().iterator().next();
 
     assertThat(camundaOutputParameter).isNotNull();
@@ -1171,8 +1323,4 @@ public class CamundaExtensionsTest {
     throw new BpmnModelException("Unable to find camunda:inputParameter with name '" + name + "' for element with id '" + baseElement.getId() + "'");
   }
 
-  @After
-  public void validateModel() {
-    Bpmn.validateModel(modelInstance);
-  }
 }

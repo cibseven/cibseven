@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- One expression, two children: the ending child is in reach, and null declines. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="adHocGatherSelective" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="adHoc" />
+    <adHocSubProcess id="adHoc">
+      <extensionElements>
+        <camunda:properties>
+          <camunda:property name="outputCollection" value="results" />
+          <camunda:property name="outputElement"
+                            value="${execution.currentActivityId == 'tool' ? result : null}" />
+        </camunda:properties>
+      </extensionElements>
+      <userTask id="tool">
+        <extensionElements>
+          <camunda:inputOutput>
+            <camunda:outputParameter name="result">${in}</camunda:outputParameter>
+          </camunda:inputOutput>
+        </extensionElements>
+      </userTask>
+      <userTask id="other" />
+      <completionCondition xsi:type="tFormalExpression">${false}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="f2" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>

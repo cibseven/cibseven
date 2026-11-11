@@ -18,23 +18,24 @@ package org.cibseven.bpm;
 
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SessionCookieSameSiteIT extends AbstractWebIntegrationTest {
 
-  @Before
+  @BeforeEach
   public void createClient() throws Exception {
     preventRaceConditions();
     createClient(getWebappCtxPath());
   }
 
-  @Test(timeout=10000)
+  @Test
+  @Timeout(10)
   public void shouldCheckPresenceOfSameSiteProperties() {
     // given
 
@@ -42,8 +43,8 @@ public class SessionCookieSameSiteIT extends AbstractWebIntegrationTest {
     HttpResponse<String> response = Unirest.get(appBasePath + TASKLIST_PATH).asString();
 
     // then
-    assertEquals(200, response.getStatus());
-    assertTrue(isCookieHeaderValuePresent("SameSite=Lax", response));
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(isCookieHeaderValuePresent("SameSite=Lax", response)).isTrue();
   }
 
   protected boolean isCookieHeaderValuePresent(String expectedHeaderValue, HttpResponse<String> response) {

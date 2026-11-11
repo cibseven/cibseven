@@ -19,11 +19,12 @@ package org.cibseven.bpm.engine.cdi;
 import java.io.Serializable;
 import java.util.Map;
 
-import javax.enterprise.context.Conversation;
-import javax.enterprise.context.RequestScoped;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.Conversation;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineException;
@@ -83,13 +84,15 @@ import org.cibseven.bpm.engine.variable.value.TypedValue;
  * @author Falko Menge
  */
 @Named
+@Dependent // Or @RequestScoped, @ApplicationScoped, etc
 public class BusinessProcess implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
   @Inject private ProcessEngine processEngine;
 
-  @Inject private ContextAssociationManager associationManager;
+  @Inject
+  private ContextAssociationManager associationManager;
 
   @Inject private Instance<Conversation> conversationInstance;
 

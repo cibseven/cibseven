@@ -17,12 +17,16 @@
 package org.cibseven.bpm.engine.rest.util.container;
 
 import java.util.Properties;
-import javax.ws.rs.core.Application;
-import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
+import jakarta.ws.rs.core.Application;
+import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
 
+/**
+ * Runs the JAX-RS application on RESTEasy's embedded Undertow server
+ * (RESTEasy 7 no longer ships the Netty adapter).
+ */
 public class ResteasyServerBootstrap extends EmbeddedServerBootstrap {
 
-  protected NettyJaxrsServer server;
+  protected UndertowJaxrsServer server;
 
   public ResteasyServerBootstrap(Application application) {
     super(application);
@@ -30,12 +34,17 @@ public class ResteasyServerBootstrap extends EmbeddedServerBootstrap {
 
   @Override
   public void stop() {
-    server.stop();
+    if (server != null) {
+      server.stop();
+      server = null;
+    }
   }
 
   @Override
   protected void startServerInternal() {
     server.start();
+    // deploy() also starts the ResteasyDeployment (with the application) if it is not running yet
+    server.deploy();
   }
 
   @Override
@@ -43,9 +52,10 @@ public class ResteasyServerBootstrap extends EmbeddedServerBootstrap {
     Properties serverProperties = readProperties();
     int port = Integer.parseInt(serverProperties.getProperty(PORT_PROPERTY));
 
-    server = new NettyJaxrsServer();
-    server.setRootResourcePath(ROOT_RESOURCE_PATH);
+    server = new UndertowJaxrsServer();
+    server.setHostname("localhost");
     server.setPort(port);
+    server.setRootResourcePath(ROOT_RESOURCE_PATH);
 
     server.getDeployment().setApplication(application);
   }

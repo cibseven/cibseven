@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.cibseven.bpm.dmn</groupId>
     <artifactId>cibseven-engine-dmn-root</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cibseven-engine-dmn</artifactId>
@@ -87,14 +87,22 @@
     </dependency>
 
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${version.junit5}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${version.junit5}</version>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
+      <version>${version.assertj}</version>
       <scope>test</scope>
     </dependency>
 
@@ -119,6 +127,7 @@
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js</artifactId>
+      <type>pom</type>
       <scope>test</scope>
     </dependency>
 
@@ -139,6 +148,26 @@
       <artifactId>cibseven-bpm-archunit</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
+    </dependency>
+
+    <!-- Jakarta EL implementation at runtime (CIB7-2609). JUEL evaluates the expressions, but
+         jakarta.el.BeanELResolver (method calls) and ELContext#convertToType ask the global
+         jakarta.el.ELManager for an ExpressionFactory, which is looked up via ServiceLoader.
+         Without any EL implementation on the classpath that lookup fails, and method calls that
+         need an argument conversion, for example ${dateTime().plusDays(1)}, throw
+         ExceptionInInitializerError. Up to 2.2 the shaded copy of the EL API inside
+         cibseven-juel found JUEL itself. Containers (Tomcat, WildFly) bring their own EL
+         implementation; their distributions do not ship this jar. -->
+    <dependency>
+      <groupId>org.glassfish.expressly</groupId>
+      <artifactId>expressly</artifactId>
+      <version>${version.expressly}</version>
+      <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.el</groupId>
+      <artifactId>jakarta.el-api</artifactId>
     </dependency>
 
   </dependencies>

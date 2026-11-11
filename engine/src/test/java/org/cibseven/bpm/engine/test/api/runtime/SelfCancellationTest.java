@@ -17,7 +17,7 @@
 package org.cibseven.bpm.engine.test.api.runtime;
 
 import static org.cibseven.bpm.engine.test.api.runtime.migration.ModifiableBpmnModelInstance.modify;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
@@ -38,11 +38,12 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.model.bpmn.instance.EndEvent;
 import org.cibseven.bpm.model.bpmn.instance.TerminateEventDefinition;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 /**
  * Tests for when delegate code synchronously cancels the activity instance it belongs to.
@@ -53,11 +54,11 @@ public class SelfCancellationTest {
 
   protected static final String MESSAGE = "Message";
 
+  @RegisterExtension
   public ProcessEngineRule processEngineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
   public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(processEngineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(processEngineRule).around(testHelper);
 
   //========================================================================================================================
   //=======================================================MODELS===========================================================
@@ -196,13 +197,13 @@ public class SelfCancellationTest {
   protected RuntimeService runtimeService;
   protected TaskService taskService;
 
-  @Before
+  @BeforeEach
   public void clearRecorderListener()
   {
     RecorderExecutionListener.clear();
   }
 
-  @Before
+  @BeforeEach
   public void initServices()
   {
     runtimeService = processEngineRule.getRuntimeService();
@@ -229,7 +230,7 @@ public class SelfCancellationTest {
     taskService.complete(task.getId());
 
     // then
-    Assert.assertEquals(0, runtimeService.createProcessInstanceQuery().count());
+    Assertions.assertEquals(0, runtimeService.createProcessInstanceQuery().count());
     checkRecordedEvents("receiveTask", "sendTask", "terminateEnd");
   }
 
@@ -270,7 +271,7 @@ public class SelfCancellationTest {
     taskService.complete(task.getId());
 
     // then
-    Assert.assertEquals(0, runtimeService.createProcessInstanceQuery().count());
+    Assertions.assertEquals(0, runtimeService.createProcessInstanceQuery().count());
     checkRecordedEvents("sendTask", "startSubEvent", "endEventSubEvent");
   }
 
@@ -285,8 +286,8 @@ public class SelfCancellationTest {
 
     // then
     List<String> activities = runtimeService.getActiveActivityIds(procInst.getId());
-    Assert.assertNotNull(activities);
-    Assert.assertEquals(1, activities.size());
+    Assertions.assertNotNull(activities);
+    Assertions.assertEquals(1, activities.size());
     checkRecordedEvents("sendTask", "boundary", "endEventBoundary");
   }
 

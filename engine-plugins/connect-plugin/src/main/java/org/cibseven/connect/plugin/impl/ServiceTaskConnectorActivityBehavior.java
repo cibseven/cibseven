@@ -17,6 +17,8 @@
 package org.cibseven.connect.plugin.impl;
 
 import java.util.concurrent.Callable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.cibseven.bpm.engine.impl.bpmn.behavior.TaskActivityBehavior;
 import org.cibseven.bpm.engine.impl.core.variable.mapping.IoMapping;
@@ -24,6 +26,7 @@ import org.cibseven.bpm.engine.impl.core.variable.scope.AbstractVariableScope;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;
 import org.cibseven.connect.ConnectorException;
 import org.cibseven.connect.Connectors;
+import org.cibseven.connect.spi.CloseableConnectorResponse;
 import org.cibseven.connect.spi.Connector;
 import org.cibseven.connect.spi.ConnectorRequest;
 import org.cibseven.connect.spi.ConnectorResponse;
@@ -33,6 +36,8 @@ import org.cibseven.connect.spi.ConnectorResponse;
  *
  */
 public class ServiceTaskConnectorActivityBehavior extends TaskActivityBehavior {
+
+  private static final Logger LOG = Logger.getLogger(ServiceTaskConnectorActivityBehavior.class.getName());
 
   /** the id of the connector */
   protected String connectorId;
@@ -59,7 +64,18 @@ public class ServiceTaskConnectorActivityBehavior extends TaskActivityBehavior {
         applyInputParameters(execution, request);
         // execute the request and obtain a response:
         ConnectorResponse response = request.execute();
-        applyOutputParameters(execution, response);
+        try {
+          applyOutputParameters(execution, response);
+        } finally {
+          if (response instanceof CloseableConnectorResponse) {
+            try {
+              ((CloseableConnectorResponse) response).close();
+            } catch (Exception e) {
+              // log and continue so that leave() is always reached
+              LOG.log(Level.WARNING, "Exception while closing connector response", e);
+            }
+          }
+        }
         leave(execution);
         return null;
       }

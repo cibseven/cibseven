@@ -16,24 +16,23 @@
  */
 package org.cibseven.bpm.integrationtest.functional.connect;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.connect.Connectors;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * <p>Smoketest Make sure camunda connect can be used in a process application </p>
  *
  * @author Daniel Meyer
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class PaConnectSupportTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -48,12 +47,12 @@ public class PaConnectSupportTest extends AbstractFoxPlatformIntegrationTest {
 
   @Test
   public void httpConnectorShouldBeAvailable() {
-    assertNotNull(Connectors.http());
+    assertThat((Object) Connectors.http()).isNotNull();
   }
 
   @Test
   public void soapConnectorShouldBeAvailable() {
-    assertNotNull(Connectors.soap());
+    assertThat((Object) Connectors.soap()).isNotNull();
   }
 
   @Test
@@ -63,9 +62,9 @@ public class PaConnectSupportTest extends AbstractFoxPlatformIntegrationTest {
 
     runtimeService.startProcessInstanceByKey("testProcess");
     Task task = taskService.createTaskQuery().singleResult();
-    assertNotNull(task);
+    assertThat(task).isNotNull();
     String payload = (String) taskService.getVariable(task.getId(), "payload");
-    assertEquals("Hello world!", payload);
+    assertThat(payload).isEqualTo("Hello world!");
 
     TestConnectors.unregisterConnector(connector.getId());
   }

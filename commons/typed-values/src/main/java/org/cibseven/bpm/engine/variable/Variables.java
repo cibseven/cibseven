@@ -21,7 +21,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 
-import javax.activation.MimetypesFileTypeMap;
+import jakarta.activation.MimetypesFileTypeMap;
 
 import org.cibseven.bpm.engine.variable.context.VariableContext;
 import org.cibseven.bpm.engine.variable.impl.VariableMapImpl;

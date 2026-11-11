@@ -28,10 +28,18 @@
     <module name="org.cibseven.connect.cibseven-connect-core" />
     <!-- engine variable API (provided scope in the connector) -->
     <module name="org.cibseven.bpm.cibseven-engine" />
+    <!-- the agentic ad hoc layer names classes of these modules itself, and the engine module
+         does not pass them on (CIB7-2536): juel's TreeBuilderException, caught when a model is
+         parsed (without it the engine does not start); jakarta.el's ELException, caught when a
+         turn's retry cycle is read (without it an agentic model does not deploy); javax.script's
+         ScriptException, tested for when a boundary event catches a tool's error. -->
+    <module name="org.cibseven.bpm.juel.cibseven-juel" />
+    <module name="jakarta.el.api" />
+    <module name="java.scripting" />
 
     <!-- JSON (provided scope in the connector) -->
-    <module name="com.fasterxml.jackson.core.jackson-databind" slot="@version.jackson@" />
-    <module name="com.fasterxml.jackson.core.jackson-core" slot="@version.jackson@" />
-    <module name="com.fasterxml.jackson.core.jackson-annotations" slot="@version.jackson@" />
+    <module name="com.fasterxml.jackson.core.jackson-databind" slot="cibseven" />
+    <module name="com.fasterxml.jackson.core.jackson-core" slot="cibseven" />
+    <module name="com.fasterxml.jackson.core.jackson-annotations" slot="cibseven" />
   </dependencies>
 </module>

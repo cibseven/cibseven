@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getHistoricActivityInstance"
       tag = "Historic Activity Instance"
-      summary = "Get"
+      summary = "Get Historic Activity Instance"
       desc = "Retrieves a historic activity instance by id, according to the `HistoricActivityInstance` interface in the engine." />
 
   "parameters" : [

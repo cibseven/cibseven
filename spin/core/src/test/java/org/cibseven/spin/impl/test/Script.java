@@ -16,7 +16,7 @@
  */
 package org.cibseven.spin.impl.test;
 
-import org.junit.rules.TestRule;
+import org.junit.jupiter.api.extension.Extension;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

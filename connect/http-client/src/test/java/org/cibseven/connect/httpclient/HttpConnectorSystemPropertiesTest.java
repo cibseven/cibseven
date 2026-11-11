@@ -26,14 +26,15 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.cibseven.connect.httpclient.impl.HttpConnectorImpl;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+
 
 /**
  * Since Apache HTTP client makes it extremely hard to test the proper configuration
@@ -42,23 +43,20 @@ import org.junit.Test;
  *
  * @author Thorben Lindhauer
  */
+@WireMockTest(httpPort=51234)
 public class HttpConnectorSystemPropertiesTest {
 
   public static final int PORT = 51234;
 
-  @Rule
-  public WireMockRule wireMockRule = new WireMockRule(
-      WireMockConfiguration.wireMockConfig().port(PORT));
-
   protected Set<String> updatedSystemProperties;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     updatedSystemProperties = new HashSet<>();
-    wireMockRule.stubFor(get(urlEqualTo("/")).willReturn(aResponse().withStatus(200)));
+    stubFor(get(urlEqualTo("/")).willReturn(aResponse().withStatus(200)));
   }
 
-  @After
+  @AfterEach
   public void clearCustomSystemProperties() {
     for (String property : updatedSystemProperties) {
       System.getProperties().remove(property);
@@ -81,10 +79,8 @@ public class HttpConnectorSystemPropertiesTest {
     setSystemProperty("http.agent", "foo");
 
     HttpConnector customConnector = new HttpConnectorImpl();
-
     // when
-    customConnector.createRequest().url("http://localhost:" + PORT).get().execute();
-
+    customConnector.createRequest().url("http://localhost:" +  PORT).get().execute();
     // then
     verify(getRequestedFor(urlEqualTo("/")).withHeader(HttpHeaders.USER_AGENT, equalTo("foo")));
 

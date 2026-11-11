@@ -20,6 +20,7 @@ import static org.cibseven.bpm.dmn.engine.test.asserts.DmnEngineTestAssertions.a
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 
 import org.cibseven.bpm.dmn.engine.DmnDecision;
 import org.cibseven.bpm.dmn.engine.DmnDecisionResult;
@@ -30,12 +31,11 @@ import org.cibseven.bpm.dmn.engine.test.asserts.DmnDecisionTableResultAssert;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.commons.utils.IoUtil;
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 public abstract class DmnEngineTest {
 
-  @Rule
   public DmnEngineTestRule dmnEngineRule = new DmnEngineTestRule(getDmnEngineConfiguration());
 
   public DmnEngine dmnEngine;
@@ -46,19 +46,43 @@ public abstract class DmnEngineTest {
     return null;
   }
 
-  @Before
-  public void initDmnEngine() {
+  @BeforeEach
+  public void initAll(TestInfo testInfo) {
     dmnEngine = dmnEngineRule.getDmnEngine();
-  }
 
-  @Before
-  public void initDecision() {
-    decision = dmnEngineRule.getDecision();
-  }
+    // Load @DecisionResource annotation from the test method
+    DecisionResource decisionResource = testInfo.getTestMethod()
+      .flatMap(m -> Optional.ofNullable(m.getAnnotation(DecisionResource.class)))
+      .orElse(null);
+    if (decisionResource != null) {
+      String resourcePath = decisionResource.resource();
+      resourcePath = expandResourcePath(testInfo, resourcePath);
+      InputStream inputStream = org.cibseven.commons.utils.IoUtil.fileAsStream(resourcePath);
+      String decisionKey = decisionResource.decisionKey();
+      if (decisionKey == null || decisionKey.isEmpty()) {
+        List<DmnDecision> decisions = dmnEngine.parseDecisions(inputStream);
+        decision = decisions.isEmpty() ? null : decisions.get(0);
+      } else {
+        decision = dmnEngine.parseDecision(decisionKey, inputStream);
+      }
+    } else {
+      decision = null;
+    }
 
-  @Before
-  public void initVariables() {
     variables = Variables.createVariables();
+  }
+
+  protected String expandResourcePath(TestInfo testInfo, String resourcePath) {
+    if (resourcePath.contains("/")) {
+      return resourcePath;
+    } else {
+      Class<?> testClass = testInfo.getTestClass().orElseThrow();
+      if (resourcePath.isEmpty()) {
+        return testClass.getName().replace(".", "/") + "." + testInfo.getTestMethod().get().getName() + ".dmn";
+      } else {
+        return testClass.getPackageName().replace(".", "/") + "/" + resourcePath;
+      }
+    }
   }
 
   public VariableMap getVariables() {

@@ -16,14 +16,14 @@
  */
 package org.cibseven.bpm.engine.rest.impl;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-
 import org.cibseven.bpm.engine.rest.exception.ExceptionHandler;
 import org.cibseven.bpm.engine.rest.exception.JsonMappingExceptionHandler;
+import org.cibseven.bpm.engine.rest.exception.JsonConstraintsExceptionHandler;
 import org.cibseven.bpm.engine.rest.exception.JsonParseExceptionHandler;
 import org.cibseven.bpm.engine.rest.exception.ProcessEngineExceptionHandler;
 import org.cibseven.bpm.engine.rest.exception.RestExceptionHandler;
 import org.cibseven.bpm.engine.rest.hal.JacksonHalJsonProvider;
+import org.cibseven.bpm.engine.rest.mapper.CibsevenJacksonJsonProvider;
 import org.cibseven.bpm.engine.rest.mapper.JacksonConfigurator;
 import org.cibseven.bpm.engine.rest.mapper.MultipartPayloadProvider;
 
@@ -47,9 +47,10 @@ public class CamundaRestResources {
     RESOURCE_CLASSES.add(DefaultProcessEngineRestServiceImpl.class);
 
     CONFIGURATION_CLASSES.add(JacksonConfigurator.class);
-    CONFIGURATION_CLASSES.add(JacksonJsonProvider.class);
+    CONFIGURATION_CLASSES.add(CibsevenJacksonJsonProvider.class);
     CONFIGURATION_CLASSES.add(JsonMappingExceptionHandler.class);
     CONFIGURATION_CLASSES.add(JsonParseExceptionHandler.class);
+    CONFIGURATION_CLASSES.add(JsonConstraintsExceptionHandler.class);
     CONFIGURATION_CLASSES.add(ProcessEngineExceptionHandler.class);
     CONFIGURATION_CLASSES.add(RestExceptionHandler.class);
     CONFIGURATION_CLASSES.add(MultipartPayloadProvider.class);

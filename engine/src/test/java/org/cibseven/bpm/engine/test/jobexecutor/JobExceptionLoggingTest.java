@@ -34,28 +34,31 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 public class JobExceptionLoggingTest {
 
   private static final String JOBEXECUTOR_LOGGER = "org.cibseven.bpm.engine.jobexecutor";
   private static final String CONTEXT_LOGGER = "org.cibseven.bpm.engine.context";
-
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().watch(CONTEXT_LOGGER, JOBEXECUTOR_LOGGER).level(Level.DEBUG);
-  public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule).around(loggingRule);
+  
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(7) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule().watch(CONTEXT_LOGGER, JOBEXECUTOR_LOGGER).level(Level.DEBUG);
+  @RegisterExtension
+  @Order(9) public ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   private RuntimeService runtimeService;
   private ManagementService managementService;
   private ProcessEngineConfigurationImpl processEngineConfiguration;
 
-  @Before
+  @BeforeEach
   public void init() {
     runtimeService = engineRule.getProcessEngine().getRuntimeService();
     managementService = engineRule.getProcessEngine().getManagementService();
@@ -64,7 +67,7 @@ public class JobExceptionLoggingTest {
     processEngineConfiguration.setDefaultNumberOfRetries(1);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processEngineConfiguration.setDefaultNumberOfRetries(3);
     processEngineConfiguration.setEnableCmdExceptionLogging(true);

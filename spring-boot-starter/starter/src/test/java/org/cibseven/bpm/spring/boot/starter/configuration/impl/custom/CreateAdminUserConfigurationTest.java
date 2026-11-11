@@ -26,8 +26,9 @@ import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties;
 import org.cibseven.bpm.spring.boot.starter.test.helper.StandaloneInMemoryTestConfiguration;
 import org.cibseven.bpm.spring.boot.starter.util.SpringBootProcessEngineLogger;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
@@ -50,11 +51,11 @@ public class CreateAdminUserConfigurationTest {
 
   private final ProcessEngineConfigurationImpl processEngineConfiguration = new StandaloneInMemoryTestConfiguration(createAdminUserConfiguration);
 
-  @Rule
-  public final ProcessEngineRule processEngineRule = new ProcessEngineRule(processEngineConfiguration.buildProcessEngine());
+  @RegisterExtension
+  @Order(1) public final ProcessEngineRule processEngineRule = new ProcessEngineRule(processEngineConfiguration.buildProcessEngine());
 
-  @Rule
-  public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
+  @RegisterExtension
+  @Order(2) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
       .watch(SpringBootProcessEngineLogger.PACKAGE);
 
   @Test

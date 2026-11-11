@@ -18,8 +18,8 @@ package org.cibseven.bpm.engine.test.bpmn.el;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -38,8 +38,8 @@ import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Frederik Heremans
@@ -48,7 +48,7 @@ public class ExpressionManagerTest extends PluggableProcessEngineTest {
 
   protected String deploymentId;
 
-  @After
+  @AfterEach
   public void clear() {
     Mocks.reset();
 
@@ -188,6 +188,34 @@ public class ExpressionManagerTest extends PluggableProcessEngineTest {
         .activityId("userTask")
         .singleResult();
     assertThat(userTask).isNotNull();
+  }
+
+  @Test
+  public void shouldConvertNullMethodArgumentWithJuel() {
+    // given: JUEL converts null to 0 for a Long parameter, as CIB seven 2.2 did. The EL 3+
+    // implementations of Tomcat, WildFly and JBoss EAP would pass null (CIB7-2609).
+    BpmnModelInstance process = Bpmn.createExecutableProcess("testProcess")
+        .startEvent()
+        .serviceTask()
+          .camundaExpression("${limit.compareTo(missing)}")
+          .camundaResultVariable("result")
+        .userTask("wait")
+        .endEvent()
+        .done();
+
+    deploymentId = repositoryService.createDeployment()
+        .addModelInstance("testProcess.bpmn", process)
+        .deploy()
+        .getId();
+
+    // when
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testProcess",
+        Variables.createVariables()
+            .putValue("limit", 5L)
+            .putValue("missing", null));
+
+    // then: Long#compareTo(0L), not a NullPointerException from Long#compareTo(null)
+    assertThat(runtimeService.getVariable(processInstance.getId(), "result")).isEqualTo(1);
   }
 
   @Deployment
@@ -606,6 +634,16 @@ public class ExpressionManagerTest extends PluggableProcessEngineTest {
     assertMethodExpressionResult(expression, expectedOutput);
   }
 
+  @Test
+  public void shouldPassAnArrayToAVarArgsParameter() {
+    // given: the array itself is passed, as in 2.2; Tomcat's EL API would wrap it into a new array (CIB7-2609)
+    String expression = "myBean.methodWithStringVarArgs(strings)";
+    String expectedOutput = "x, y";
+    Mocks.register("strings", new String[] { "x", "y" });
+    // when & then
+    assertMethodExpressionResult(expression, expectedOutput);
+  }
+
   protected void assertMethodExpressionResult(String expression, Object result) {
     BpmnModelInstance process = Bpmn.createExecutableProcess("testProcess")
         .startEvent()
@@ -699,6 +737,10 @@ public class ExpressionManagerTest extends PluggableProcessEngineTest {
 
     public String methodWithVarArgs2(I1 i1, I1AndI2Impl... i2) {
       return "I1, I1AndI2Impl...";
+    }
+
+    public String methodWithStringVarArgs(String... values) {
+      return String.join(", ", values);
     }
 
     public boolean myMethod(String v, String w, String x, String y, String z) {

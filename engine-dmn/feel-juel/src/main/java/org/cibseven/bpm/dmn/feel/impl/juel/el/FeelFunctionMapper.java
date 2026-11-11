@@ -22,7 +22,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import org.cibseven.bpm.impl.juel.jakarta.el.FunctionMapper;
+import jakarta.el.FunctionMapper;
 
 import org.cibseven.bpm.dmn.feel.impl.juel.FeelEngineLogger;
 import org.cibseven.bpm.dmn.feel.impl.juel.FeelLogger;

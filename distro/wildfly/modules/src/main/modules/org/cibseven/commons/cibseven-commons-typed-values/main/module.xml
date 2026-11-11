@@ -8,7 +8,14 @@
     <module name="java.compiler" />
     <module name="java.desktop" />
     <module name="java.logging"/>
-    
+    <!-- Variables.fileValue(File) uses jakarta.activation.MimetypesFileTypeMap -->
+    <module name="jakarta.activation.api" />
+    <!-- MimetypesFileTypeMap finds its provider (Angus) through the context class loader.
+         WildFly's jakarta.activation.api module does not depend on Angus: without this
+         dependency every file is application/octet-stream when this module is the context
+         class loader (CIB7-2605). -->
+    <module name="org.eclipse.angus.activation" services="import" />
+
     <module name="org.cibseven.commons.cibseven-commons-utils" />
     
   </dependencies>

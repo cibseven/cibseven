@@ -30,11 +30,11 @@ public class ResteasyTomcatServerBootstrap extends TomcatServerBootstrap {
 
   @Override
   protected void addRuntimeSpecificLibraries(WebArchive wa, PomEquippedResolveStage resolver) {
-    // inject rest easy version to differentiate between resteasy and wildfly-compatibility profile
+    // the RESTEasy version of the active profile (resteasy or ee10-compatibility), see restEasyVersion in pom.xml
     String restEasyVersion = System.getProperty("restEasyVersion");
 
     wa.addAsLibraries(resolver.addDependencies(
-      MavenDependencies.createDependency("org.jboss.resteasy:resteasy-jaxrs:" + restEasyVersion, ScopeType.TEST, false,
+      MavenDependencies.createDependency("org.jboss.resteasy:resteasy-core:" + restEasyVersion, ScopeType.TEST, false,
         MavenDependencies.createExclusion("org.apache.httpcomponents:httpclient"))).resolve()
       .withTransitivity().asFile());
   }

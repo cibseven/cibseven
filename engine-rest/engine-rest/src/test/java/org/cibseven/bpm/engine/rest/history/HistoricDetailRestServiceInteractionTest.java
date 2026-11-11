@@ -18,9 +18,8 @@ package org.cibseven.bpm.engine.rest.history;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.either;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -28,7 +27,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.history.HistoricDetailQuery;
@@ -43,10 +42,10 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.FileValue;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
@@ -57,7 +56,7 @@ import io.restassured.response.Response;
  */
 public class HistoricDetailRestServiceInteractionTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String HISTORIC_DETAIL_RESOURCE_URL = TEST_RESOURCE_ROOT_PATH + "/history/detail";
@@ -68,7 +67,7 @@ public class HistoricDetailRestServiceInteractionTest extends AbstractRestServic
 
   protected HistoricDetailQuery historicDetailQueryMock;
 
-  @Before
+  @BeforeEach
   public void setupTestData() {
     historyServiceMock = mock(HistoryService.class);
     historicDetailQueryMock = mock(HistoricDetailQuery.class);
@@ -288,7 +287,7 @@ public class HistoricDetailRestServiceInteractionTest extends AbstractRestServic
     .when().get(VARIABLE_INSTANCE_BINARY_DATA_URL);
 
     byte[] responseBytes = response.getBody().asByteArray();
-    Assert.assertEquals(new String(byteContent), new String(responseBytes));
+    Assertions.assertEquals(new String(byteContent), new String(responseBytes));
     verify(historicDetailQueryMock, never()).disableBinaryFetching();
 
   }
@@ -321,7 +320,8 @@ public class HistoricDetailRestServiceInteractionTest extends AbstractRestServic
     .when().get(VARIABLE_INSTANCE_BINARY_DATA_URL);
     //due to some problems with wildfly we gotta check this separately
     String contentType = response.getContentType();
-    assertThat(contentType, is(either(CoreMatchers.<Object>equalTo(ContentType.TEXT.toString() + "; charset=UTF-8")).or(CoreMatchers.<Object>equalTo(ContentType.TEXT.toString() + ";charset=UTF-8"))));
+    assertThat(contentType)
+      .isIn(ContentType.TEXT.toString() + "; charset=UTF-8", ContentType.TEXT.toString() + ";charset=UTF-8");
 
     verify(historicDetailQueryMock, never()).disableBinaryFetching();
 

@@ -19,8 +19,8 @@ package org.cibseven.bpm.engine.test.api.authorization.history;
 import static org.cibseven.bpm.engine.authorization.Authorization.ANY;
 import static org.cibseven.bpm.engine.authorization.Permissions.READ_HISTORY;
 import static org.cibseven.bpm.engine.authorization.Resources.PROCESS_DEFINITION;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
@@ -29,8 +29,8 @@ import org.cibseven.bpm.engine.history.HistoricActivityStatisticsQuery;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.authorization.AuthorizationTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -42,7 +42,7 @@ public class HistoricActivityStatisticsAuthorizationTest extends AuthorizationTe
   protected static final String PROCESS_KEY = "oneTaskProcess";
 
   @Override
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     testRule.deploy(
         "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml");
@@ -524,10 +524,10 @@ public class HistoricActivityStatisticsAuthorizationTest extends AuthorizationTe
   // helper ////////////////////////////////////////////////////////
 
   protected void verifyStatisticsResult(HistoricActivityStatistics statistics, int instances, int finished, int canceled, int completeScope) {
-    assertEquals("Instances", instances, statistics.getInstances());
-    assertEquals("Finished", finished, statistics.getFinished());
-    assertEquals("Canceled", canceled, statistics.getCanceled());
-    assertEquals("Complete Scope", completeScope, statistics.getCompleteScope());
+    assertEquals(instances, statistics.getInstances(), "Instances");
+    assertEquals(finished, statistics.getFinished(), "Finished");
+    assertEquals(canceled, statistics.getCanceled(), "Canceled");
+    assertEquals(completeScope, statistics.getCompleteScope(), "Complete Scope");
   }
 
   protected HistoricActivityStatistics getStatisticsByKey(List<HistoricActivityStatistics> statistics, String key) {

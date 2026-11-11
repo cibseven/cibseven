@@ -17,11 +17,13 @@
 package org.cibseven.bpm.webapp.impl.security.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.Mockito.mockStatic;
 
 import java.util.Date;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import org.cibseven.bpm.engine.AuthorizationService;
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.ProcessEngine;
@@ -33,11 +35,10 @@ import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.webapp.impl.util.ServletContextUtil;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedStatic;
 import org.springframework.mock.web.MockHttpServletRequest;
 
@@ -47,7 +48,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
  */
 public class UserAuthenticationResourceTest {
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule processEngineRule = new ProcessEngineRule("camunda-test-engine.cfg.xml");
 
   protected ProcessEngine processEngine;
@@ -55,7 +56,7 @@ public class UserAuthenticationResourceTest {
   protected IdentityService identityService;
   protected AuthorizationService authorizationService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     this.processEngine = processEngineRule.getProcessEngine();
     this.processEngineConfiguration = processEngine.getProcessEngineConfiguration();
@@ -63,7 +64,7 @@ public class UserAuthenticationResourceTest {
     this.authorizationService = processEngine.getAuthorizationService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ClockUtil.reset();
     processEngineConfiguration.setAuthorizationEnabled(false);
@@ -101,7 +102,7 @@ public class UserAuthenticationResourceTest {
     Response response = authResource.doLogin("webapps-test-engine", "tasklist", "jonny", "jonnyspassword");
 
     // then
-    Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    assertEquals(Status.OK.getStatusCode(), response.getStatus());
   }
 
   @Test
@@ -137,9 +138,9 @@ public class UserAuthenticationResourceTest {
     String newestSessionId = authResource.request.getSession().getId();
 
     // then
-    Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
-    Assert.assertNotEquals(oldSessionId, newSessionId);
-    Assert.assertNotEquals(newSessionId, newestSessionId);
+    assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    assertNotEquals(oldSessionId, newSessionId);
+    assertNotEquals(newSessionId, newestSessionId);
   }
 
   @Test
@@ -158,7 +159,7 @@ public class UserAuthenticationResourceTest {
     Response response = authResource.doLogin("webapps-test-engine", "tasklist", "jonny", "jonnyspassword");
 
     // then
-    Assert.assertEquals(Status.FORBIDDEN.getStatusCode(), response.getStatus());
+    assertEquals(Status.FORBIDDEN.getStatusCode(), response.getStatus());
   }
 
   @Test
@@ -177,7 +178,7 @@ public class UserAuthenticationResourceTest {
     Response response = authResource.doLogin("webapps-test-engine", "tasklist", "jonny", "jonnyspassword");
 
     // then
-    Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    assertEquals(Status.OK.getStatusCode(), response.getStatus());
   }
 
   @Test
@@ -227,7 +228,7 @@ public class UserAuthenticationResourceTest {
     Response response = authResource.doLogin("webapps-test-engine", "tasklist", userId.toUpperCase(), userId);
 
     // then
-    Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    assertEquals(Status.OK.getStatusCode(), response.getStatus());
     UserAuthentication userAuthentication = AuthenticationUtil.getAuthsFromSession(authResource.request.getSession())
       .getAuthentications()
       .get(0);
@@ -277,7 +278,7 @@ public class UserAuthenticationResourceTest {
         authResource.request = new MockHttpServletRequest();
         Response response = authResource.doLogin("webapps-test-engine", "tasklist", userId1, userId1);
         // then
-        Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
         UserAuthentication userAuthentication = AuthenticationUtil.getAuthsFromSession(authResource.request.getSession())
           .getAuthentications()
           .get(0);
@@ -290,7 +291,7 @@ public class UserAuthenticationResourceTest {
         authResource.request = new MockHttpServletRequest();
         Response response = authResource.doLogin("webapps-test-engine", "tasklist", userId2, userId2);
         // then
-        Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
         UserAuthentication userAuthentication = AuthenticationUtil.getAuthsFromSession(authResource.request.getSession())
           .getAuthentications()
           .get(0);
@@ -342,7 +343,7 @@ public class UserAuthenticationResourceTest {
         authResource.request = new MockHttpServletRequest();
         Response response = authResource.doLogin("webapps-test-engine", "tasklist", userId1, userId1);
         // then
-        Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
         UserAuthentication userAuthentication = AuthenticationUtil.getAuthsFromSession(authResource.request.getSession())
           .getAuthentications()
           .get(0);
@@ -355,7 +356,7 @@ public class UserAuthenticationResourceTest {
         authResource.request = new MockHttpServletRequest();
         Response response = authResource.doLogin("webapps-test-engine", "tasklist", userId2, userId2);
         // then
-        Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
         UserAuthentication userAuthentication = AuthenticationUtil.getAuthsFromSession(authResource.request.getSession())
           .getAuthentications()
           .get(0);
@@ -368,7 +369,7 @@ public class UserAuthenticationResourceTest {
         authResource.request = new MockHttpServletRequest();
         Response response = authResource.doLogin("webapps-test-engine", "tasklist", userId1.toLowerCase(), userId1);
         // then
-        Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
         UserAuthentication userAuthentication = AuthenticationUtil.getAuthsFromSession(authResource.request.getSession())
           .getAuthentications()
           .get(0);
@@ -393,7 +394,7 @@ public class UserAuthenticationResourceTest {
       Response response = authResource.doLogin("webapps-test-engine", "tasklist", "jonny", "jonnyspassword");
 
       // then
-      Assert.assertEquals(Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
+      assertEquals(Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
     }
   }
 

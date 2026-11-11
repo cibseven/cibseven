@@ -20,9 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Date;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 
 public class ClockUtilTest {
 
@@ -31,12 +32,12 @@ public class ClockUtilTest {
   private static final long FIVE_SECONDS = 5000L;
   private static final long TWO_DAYS = 172800000L;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     ClockUtil.reset();
   }
 
-  @AfterClass
+  @AfterAll
   public static void resetClock() {
     ClockUtil.reset();
   }

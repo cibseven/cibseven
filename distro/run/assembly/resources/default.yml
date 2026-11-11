@@ -36,6 +36,8 @@ camunda.bpm:
       authentication: pseudo
 # https://docs.cibseven.org/manual/latest/user-guide/spring-boot-integration/configuration/#generic-properties
   generic-properties.properties:
+    # create the webclient tables (modeler, chat, notifications); this distribution ships the webclient
+    webclientExtensionsEnabled: true
     # update old namespace in script tasks, after migration from camunda to cibseven
     useCibSevenNamespaceInScripting: false
     # update old namespace in saved serialized objects, after migration from camunda to cibseven
@@ -80,6 +82,10 @@ logging:
 cibseven:
   # AI Agent connector — operator-facing overrides.
   #
+  # The AI agent itself, the connector and agentic ad hoc sub processes alike,
+  # is switched on and off by the start script (--ai, --production and the
+  # AI_AGENT_ENABLED environment variable), not here.
+  #
   # The connector reads JVM system properties (and environment-variable
   # fallbacks), not YAML keys. To override the default LLM model used when
   # the BPMN `model` input is omitted, set ONE of the following at startup:
@@ -90,6 +96,13 @@ cibseven:
   # If neither is set, the connector falls back to the hard-coded default
   # `gpt-5.4-nano`. See CIB7-1415 for the full list of override hooks
   # (chat-log opt-out, content redaction, default model).
+  #
+  # Chat memory is stored as a process variable, so it survives restarts and
+  # works with multiple engine replicas. To restore the old JVM-local behaviour
+  # (single node only, memory lost on restart), set ONE of:
+  #
+  #   JVM arg:  -Dcibseven.connect.ai-agent.chatMemoryVariable.enabled=false
+  #   Env var:  CIBSEVEN_CONNECT_AI_AGENT_CHAT_MEMORY_VARIABLE_ENABLED=false
 
   webclient:
     modeler:
@@ -152,8 +165,6 @@ cibseven:
     datasource:
       fileValue:
         enabled: false
-    cockpit:
-      url: /camunda/app/cockpit/default/
     theme: cib
 
     services:
@@ -191,15 +202,16 @@ springdoc:
 # Activate "/actuator/info" and "/actuator/health" endpoints
 management:
   endpoints:
-    enabled-by-default: false # Disable all endpoints by default
+    access:
+      default: none # Disable all endpoints by default
     web:
       exposure:
         include: health,info # Include only health and info endpoints
   endpoint:
     info:
-      enabled: true # Enable the info endpoint
+      access: read-only # Enable the info endpoint
     health:
-      enabled: true # Enable the health endpoint
+      access: read-only # Enable the health endpoint
       probes:
         enabled: true # Enable health probes (if applicable)
   info:

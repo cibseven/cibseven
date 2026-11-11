@@ -19,7 +19,7 @@ package org.cibseven.bpm.integrationtest.functional.spin;
 import static org.cibseven.bpm.engine.variable.Variables.serializedObjectValue;
 import static org.cibseven.spin.Spin.JSON;
 import static org.cibseven.spin.Spin.XML;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.InputStream;
 import java.util.HashMap;
@@ -33,18 +33,18 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.spin.impl.util.SpinIoUtil;
 import org.cibseven.spin.json.SpinJsonNode;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * <p>Smoketest Make sure camunda spin can be used in a process application </p>
  *
  * @author Daniel Meyer
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class PaSpinSupportTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -56,7 +56,7 @@ public class PaSpinSupportTest extends AbstractFoxPlatformIntegrationTest {
 
   @Test
   public void spinShouldBeAvailable() {
-    Assert.assertEquals("someXml", XML("<someXml />").xPath("/someXml").element().name());
+    assertThat(XML("<someXml />").xPath("/someXml").element().name()).isEqualTo("someXml");
   }
 
   @Test
@@ -69,7 +69,7 @@ public class PaSpinSupportTest extends AbstractFoxPlatformIntegrationTest {
     HashMap<String, String> expected = new HashMap<String, String>();
     expected.put("foo", "bar");
 
-    Assert.assertEquals(expected, objectValue.getValue());
+    assertThat(objectValue.getValue()).isEqualTo(expected);
   }
 
   @Test
@@ -86,7 +86,7 @@ public class PaSpinSupportTest extends AbstractFoxPlatformIntegrationTest {
       }
     }
 
-    Assert.assertTrue(spinPluginFound);
+    Assertions.assertTrue(spinPluginFound);
   }
 
   @Test
@@ -99,7 +99,7 @@ public class PaSpinSupportTest extends AbstractFoxPlatformIntegrationTest {
 
     // file has 4000 characters in length a
     // 20 characters per repeated JSON object
-    assertEquals(200, node.prop("abcdef").elements().size());
+    assertThat(node.prop("abcdef").elements().size()).isEqualTo(200);
   }
 
   @Test
@@ -115,7 +115,7 @@ public class PaSpinSupportTest extends AbstractFoxPlatformIntegrationTest {
     ObjectValue objectValue = runtimeService.getVariableTyped(pi.getId(), "jackson146", true);
     HashMap<String, List<Object>> map = (HashMap<String, List<Object>>) objectValue.getValue();
 
-    assertEquals(200, map.get("abcdef").size());
+    assertThat(map.get("abcdef").size()).isEqualTo(200);
   }
 
 }

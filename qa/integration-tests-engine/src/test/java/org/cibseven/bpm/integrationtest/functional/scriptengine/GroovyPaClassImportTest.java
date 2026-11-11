@@ -16,8 +16,7 @@
  */
 package org.cibseven.bpm.integrationtest.functional.scriptengine;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.bpm.integrationtest.functional.scriptengine.classes.CustomClass;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
@@ -25,17 +24,17 @@ import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class GroovyPaClassImportTest extends AbstractFoxPlatformIntegrationTest {
 
   public static final String SCRIPT_WITH_IMPORT =
@@ -89,8 +88,8 @@ public class GroovyPaClassImportTest extends AbstractFoxPlatformIntegrationTest 
     // then start process 2
     String processInstanceId = runtimeService.startProcessInstanceByKey("process2").getId();
     Object foo = runtimeService.getVariable(processInstanceId, "greeting");
-    assertNotNull(foo);
-    assertEquals("Hi Ho", foo);
+    assertThat(foo).isNotNull();
+    assertThat(foo).isEqualTo("Hi Ho");
   }
 
 }

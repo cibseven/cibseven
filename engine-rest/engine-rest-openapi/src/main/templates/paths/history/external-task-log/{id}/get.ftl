@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getHistoricExternalTaskLog"
       tag = "Historic External Task Log"
-      summary = "Get External Task Log"
+      summary = "Get Historic External Task Log"
       desc = "Retrieves a historic external task log by id."
   />
 
@@ -48,6 +48,7 @@
                          "tenantId": null,
                          "creationLog": false,
                          "failureLog": true,
+                         "fetchedLog": false,
                          "successLog": false,
                          "deletionLog": false,
                          "removalTime": "2018-02-10T14:33:19.000+0200",

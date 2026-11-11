@@ -16,7 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.el;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.List;
 import java.util.Map;
@@ -30,18 +31,18 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Daniel Meyer
  *
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class DecisionContextSwitchTest extends AbstractFoxPlatformIntegrationTest {
 
   protected static final String DMN_RESOURCE_NAME = "org/cibseven/bpm/integrationtest/functional/el/BeanResolvingDecision.dmn11.xml";
@@ -74,7 +75,7 @@ public class DecisionContextSwitchTest extends AbstractFoxPlatformIntegrationTes
   @OperateOnDeployment("clientDeployment")
   public void shouldSwitchContextWhenUsingDecisionService() {
     DmnDecisionTableResult decisionResult = decisionService.evaluateDecisionTableByKey("decision", Variables.createVariables());
-    assertEquals("ok", decisionResult.getFirstResult().getFirstEntry());
+    Assertions.assertEquals(decisionResult.getFirstResult().getFirstEntry(), "ok");
   }
 
   @Test
@@ -87,7 +88,7 @@ public class DecisionContextSwitchTest extends AbstractFoxPlatformIntegrationTes
       .processInstanceIdIn(pi.getId())
       .variableName("result").singleResult();
     List<Map<String, Object>> result = (List<Map<String, Object>>) decisionResult.getValue();
-    assertEquals("ok", result.get(0).get("result"));
+    assertThat(result.get(0).get("result")).isEqualTo("ok");
   }
 
   @Test
@@ -108,7 +109,7 @@ public class DecisionContextSwitchTest extends AbstractFoxPlatformIntegrationTes
     }
 
     if(dmnDeployment == null) {
-      Assert.fail("Expected to find DMN deployment");
+      fail("Expected to find DMN deployment");
     }
 
     org.cibseven.bpm.engine.repository.Deployment deployment2 = repositoryService
@@ -120,7 +121,7 @@ public class DecisionContextSwitchTest extends AbstractFoxPlatformIntegrationTes
     try {
       // when then
       DmnDecisionTableResult decisionResult = decisionService.evaluateDecisionTableByKey("decision", Variables.createVariables());
-      assertEquals("ok", decisionResult.getFirstResult().getFirstEntry());
+      Assertions.assertEquals(decisionResult.getFirstResult().getFirstEntry(), "ok");
     }
     finally {
       repositoryService.deleteDeployment(deployment2.getId(), true);
@@ -146,7 +147,7 @@ public class DecisionContextSwitchTest extends AbstractFoxPlatformIntegrationTes
     }
 
     if(dmnDeployment == null) {
-      Assert.fail("Expected to find DMN deployment");
+      fail("Expected to find DMN deployment");
     }
 
     org.cibseven.bpm.engine.repository.Deployment deployment2 = repositoryService
@@ -164,7 +165,7 @@ public class DecisionContextSwitchTest extends AbstractFoxPlatformIntegrationTes
         .variableName("result")
         .singleResult();
       List<Map<String, Object>> result = (List<Map<String, Object>>) decisionResult.getValue();
-      assertEquals("ok", result.get(0).get("result"));
+      assertThat(result.get(0).get("result")).isEqualTo("ok");
     }
     finally {
       repositoryService.deleteDeployment(deployment2.getId(), true);

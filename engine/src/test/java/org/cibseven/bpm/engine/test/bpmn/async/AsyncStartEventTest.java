@@ -21,10 +21,10 @@ import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.assertTha
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.ExecutionAssert.describeExecutionTree;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,8 +37,8 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.ExecutionTree;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class AsyncStartEventTest extends PluggableProcessEngineTest {
 
@@ -48,16 +48,16 @@ public class AsyncStartEventTest extends PluggableProcessEngineTest {
     runtimeService.startProcessInstanceByKey("asyncStartEvent");
 
     Task task = taskService.createTaskQuery().singleResult();
-    Assert.assertNull("The user task should not have been reached yet", task);
+    Assertions.assertNull(task, "The user task should not have been reached yet");
 
-    Assert.assertEquals(1, runtimeService.createExecutionQuery().activityId("startEvent").count());
+    Assertions.assertEquals(1, runtimeService.createExecutionQuery().activityId("startEvent").count());
 
     testRule.executeAvailableJobs();
     task = taskService.createTaskQuery().singleResult();
 
-    Assert.assertEquals(0, runtimeService.createExecutionQuery().activityId("startEvent").count());
+    Assertions.assertEquals(0, runtimeService.createExecutionQuery().activityId("startEvent").count());
 
-    Assert.assertNotNull("The user task should have been reached", task);
+    assertNotNull(task, "The user task should have been reached");
   }
 
   @Deployment
@@ -65,11 +65,11 @@ public class AsyncStartEventTest extends PluggableProcessEngineTest {
   public void testAsyncStartEventListeners() {
     ProcessInstance instance = runtimeService.startProcessInstanceByKey("asyncStartEvent");
 
-    Assert.assertNull(runtimeService.getVariable(instance.getId(), "listener"));
+    assertNull(runtimeService.getVariable(instance.getId(), "listener"));
 
     testRule.executeAvailableJobs();
 
-    Assert.assertNotNull(runtimeService.getVariable(instance.getId(), "listener"));
+    assertNotNull(runtimeService.getVariable(instance.getId(), "listener"));
   }
 
   @Deployment(resources = "org/cibseven/bpm/engine/test/bpmn/async/AsyncStartEventTest.testAsyncStartEvent.bpmn20.xml")
@@ -131,7 +131,7 @@ public class AsyncStartEventTest extends PluggableProcessEngineTest {
     runtimeService.startProcessInstanceByKey("process");
 
     Task task = taskService.createTaskQuery().singleResult();
-    assertNull("The subprocess user task should not have been reached yet", task);
+    assertNull(task, "The subprocess user task should not have been reached yet");
 
     assertEquals(1, runtimeService.createExecutionQuery().activityId("StartEvent_2").count());
 
@@ -139,7 +139,7 @@ public class AsyncStartEventTest extends PluggableProcessEngineTest {
     task = taskService.createTaskQuery().singleResult();
 
     assertEquals(0, runtimeService.createExecutionQuery().activityId("StartEvent_2").count());
-    assertNotNull("The subprocess user task should have been reached", task);
+    assertNotNull(task, "The subprocess user task should have been reached");
   }
 
   @Deployment(resources = "org/cibseven/bpm/engine/test/bpmn/async/AsyncStartEventTest.testAsyncSubProcessStartEvent.bpmn")
@@ -176,7 +176,7 @@ public class AsyncStartEventTest extends PluggableProcessEngineTest {
     Task task = taskService.createTaskQuery().singleResult();
 
     assertEquals(0, runtimeService.createExecutionQuery().activityId("StartEvent_1").count());
-    assertNotNull("The user task should have been reached", task);
+    assertNotNull(task, "The user task should have been reached");
 
     // and the event sub process is still active
     String processDefinitionId = repositoryService.createProcessDefinitionQuery().singleResult().getId();

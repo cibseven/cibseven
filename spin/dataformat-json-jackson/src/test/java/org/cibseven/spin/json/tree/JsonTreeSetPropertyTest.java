@@ -29,8 +29,8 @@ import java.util.Map;
 
 import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.json.SpinJsonPropertyException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Stefan Hentschel
@@ -46,7 +46,7 @@ public class JsonTreeSetPropertyTest {
   protected SpinJsonNode active;
   protected SpinJsonNode nullValue;
 
-  @Before
+  @BeforeEach
   public void readJson() {
     jsonNode = JSON(EXAMPLE_JSON);
     order = jsonNode.prop("order");

@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getAttachment"
       tag = "Task Attachment"
-      summary = "Get"
+      summary = "Get Task Attachment"
       desc = "Retrieves a task attachment by task id and attachment id." />
 
   "parameters" : [

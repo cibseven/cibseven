@@ -16,8 +16,9 @@
  */
 package org.cibseven.spin.plugin.variables;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.List;
-
 import org.cibseven.bpm.engine.history.HistoricDecisionInputInstance;
 import org.cibseven.bpm.engine.history.HistoricDecisionInstance;
 import org.cibseven.bpm.engine.history.HistoricDecisionOutputInstance;
@@ -27,10 +28,12 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.spin.DataFormats;
+import org.junit.jupiter.api.Test;
 
 public class HistoricDecisionInstanceSerializationTest extends PluggableProcessEngineTestCase {
 
   @Deployment(resources = {"org/cibseven/spin/plugin/DecisionSingleOutput.dmn11.xml"})
+  @Test
   public void testListJsonProperty() {
     JsonListSerializable<String> list = new JsonListSerializable<String>();
     list.addElement("foo");

@@ -21,8 +21,8 @@ import org.cibseven.bpm.application.ProcessApplicationReference;
 import org.cibseven.bpm.application.ProcessApplicationUnavailableException;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.context.Context;
-import org.cibseven.bpm.impl.juel.jakarta.el.CompositeELResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
+
+import jakarta.el.ELResolver;
 
 /**
  * <p>This is an {@link ELResolver} implementation that delegates to a ProcessApplication-provided

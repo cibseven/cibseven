@@ -19,17 +19,17 @@ package org.cibseven.bpm.engine.spring.test.dmn;
 import org.cibseven.bpm.dmn.engine.DmnDecisionResult;
 import org.cibseven.bpm.engine.DecisionService;
 import org.cibseven.bpm.engine.RepositoryService;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = {
     "classpath:org/cibseven/bpm/engine/spring/test/dmn/DmnJuelTest-applicationContext.xml" })
 public class DmnJuelTest {
@@ -42,7 +42,7 @@ public class DmnJuelTest {
 
   protected String deploymentId;
 
-  @Before
+  @BeforeEach
   public void deploy() {
     deploymentId = repositoryService.createDeployment()
         .addClasspathResource("org/cibseven/bpm/engine/spring/test/dmn/JuelTest.dmn")
@@ -50,7 +50,7 @@ public class DmnJuelTest {
         .getId();
   }
 
-  @After
+  @AfterEach
   public void clean() {
     repositoryService.deleteDeployment(deploymentId, true);
   }

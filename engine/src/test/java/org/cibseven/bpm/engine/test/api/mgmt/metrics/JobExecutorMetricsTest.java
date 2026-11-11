@@ -17,8 +17,11 @@
 package org.cibseven.bpm.engine.test.api.mgmt.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -39,9 +42,6 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.concurrency.ConcurrencyTestHelper.ThreadControl;
 import org.cibseven.bpm.engine.test.jobexecutor.ControllableJobExecutor;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 
 
 /**
@@ -53,13 +53,13 @@ public class JobExecutorMetricsTest extends AbstractMetricsTest {
   protected JobExecutor defaultJobExecutor;
   protected ProcessEngine processEngine;
 
-  @Before
+  @BeforeEach
   public void saveJobExecutor() {
     processEngine = engineRule.getProcessEngine();
     defaultJobExecutor = processEngineConfiguration.getJobExecutor();
   }
 
-  @After
+  @AfterEach
   public void restoreJobExecutor() {
     processEngineConfiguration.setJobExecutor(defaultJobExecutor);
   }

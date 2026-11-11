@@ -3,15 +3,6 @@
 # security guide: https://docs.cibseven.org/manual/latest/user-guide/security/
 
 camunda.bpm:
-# https://docs.cibseven.org/manual/latest/user-guide/security/#http-header-security-in-webapps
-# https://docs.cibseven.org/manual/latest/webapps/shared-options/header-security/
-  webapp:
-    csrf:
-      enable-same-site-cookie: true
-      same-site-cookie-option: STRICT
-    header-security:
-      hsts-disabled: false
-
 # https://docs.cibseven.org/manual/latest/user-guide/security/#authorization
 # https://docs.cibseven.org/manual/latest/user-guide/process-engine/authorization-service/
   authorization.enabled: true
@@ -27,6 +18,8 @@ camunda.bpm:
     support-legacy-quartz-syntax: true
 
   generic-properties.properties:
+    # create the webclient tables (modeler, chat, notifications); this distribution ships the webclient
+    webclientExtensionsEnabled: true
 # https://docs.cibseven.org/manual/latest/user-guide/security/#variable-values-from-untrusted-sources
     deserialization-type-validation-enabled: true
     deserialization-allowed-packages:
@@ -79,9 +72,9 @@ camunda.bpm:
 #      administrator-user-name: admin
 #      administrator-group-name: admins
 
-server:
 # https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#https
 # do not use the provided certificate in production
+#server:
 #  ssl:
 #    key-store: classpath:keystore.p12
 #    key-store-password: camunda
@@ -89,12 +82,6 @@ server:
 #    key-alias: camunda
 #    key-password: camunda
 #  port: 8443
-
-# https://docs.cibseven.org/manual/latest/user-guide/security/#http-header-security-in-webapps
-# https://docs.cibseven.org/manual/latest/webapps/shared-options/header-security/
-  servlet.session.cookie:
-    secure: true
-    http-only: true
 
 # https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#logging
 # https://docs.cibseven.org/manual/latest/user-guide/logging/#process-engine
@@ -177,8 +164,6 @@ cibseven:
     datasource:
       fileValue:
         enabled: false
-    cockpit:
-      url: /camunda/app/cockpit/default/
     theme: cib
 
     services:
@@ -216,15 +201,16 @@ springdoc:
 # Activate "/actuator/info" and "/actuator/health" endpoints
 management:
   endpoints:
-    enabled-by-default: false # Disable all endpoints by default
+    access:
+      default: none # Disable all endpoints by default
     web:
       exposure:
         include: health,info # Include only health and info endpoints
   endpoint:
     info:
-      enabled: true # Enable the info endpoint
+      access: read-only # Enable the info endpoint
     health:
-      enabled: true # Enable the health endpoint
+      access: read-only # Enable the health endpoint
       probes:
         enabled: true # Enable health probes (if applicable)
   info:

@@ -18,15 +18,17 @@ package org.cibseven.bpm.engine.spring.application;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 import org.cibseven.bpm.application.AbstractProcessApplication;
 import org.cibseven.bpm.application.ProcessApplicationElResolver;
-import org.cibseven.bpm.application.impl.EjbProcessApplication;
+import org.cibseven.bpm.application.impl.JakartaEjbProcessApplication;
+import org.cibseven.bpm.application.impl.JakartaServletProcessApplication;
 import org.cibseven.bpm.engine.spring.ApplicationContextElResolver;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+
+import jakarta.el.ELResolver;
 
 /**
  * <p>ProcessApplicationElResolver implementation providing support for the Spring Framework.</p>
@@ -35,13 +37,13 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
  *  <ul>
  *    <li>Bootstrapping through {@link SpringProcessApplication}. In this case the spring application context
  *        is retrieved from the {@link SpringProcessApplication} class.</li>
- *    <li>Bootstrapping through {@link org.cibseven.bpm.application.impl.ServletProcessApplication}. In this case we have access to the {@link ServletContext}
+ *    <li>Bootstrapping through {@link JakartaServletProcessApplication}. In this case we have access to the {@link ServletContext}
  *        which allows accessing the web application's application context through the WebApplicationContextUtils class.</li>
  *    </li>
  *  </ul>
  * </p>
  *
- * <p><strong>Limitation</strong>: The {@link EjbProcessApplication} is currently unsupported.</p>
+ * <p><strong>Limitation</strong>: The {@link JakartaEjbProcessApplication} is currently unsupported.</p>
  *
  * @author Daniel Meyer
  *
@@ -62,9 +64,8 @@ public class SpringProcessApplicationElResolver implements ProcessApplicationElR
       SpringProcessApplication springProcessApplication = (SpringProcessApplication) processApplication;
       return new ApplicationContextElResolver(springProcessApplication.getApplicationContext());
 
-    } else if (processApplication instanceof org.cibseven.bpm.application.impl.ServletProcessApplication) {
-      // Using fully-qualified class name instead of import statement to allow for automatic transformation
-      org.cibseven.bpm.application.impl.ServletProcessApplication servletProcessApplication = (org.cibseven.bpm.application.impl.ServletProcessApplication) processApplication;
+    } else if (processApplication instanceof JakartaServletProcessApplication) {
+      JakartaServletProcessApplication servletProcessApplication = (JakartaServletProcessApplication) processApplication;
 
       if(!ClassUtils.isPresent("org.springframework.web.context.support.WebApplicationContextUtils", processApplication.getProcessApplicationClassloader())) {
         LOGGER.log(Level.FINE, "WebApplicationContextUtils must be present for SpringProcessApplicationElResolver to work");

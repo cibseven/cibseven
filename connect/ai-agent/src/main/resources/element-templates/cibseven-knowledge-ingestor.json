@@ -114,8 +114,7 @@
           "label": "API key",
           "type": "String",
           "group": "embedding",
-          "description": "API key for the embedding provider when using a remote model (e.g. OpenAI). Use an expression to reference a process variable, e.g. ${apiKey}. Falls back to the OPENAI_API_KEY env var.",
-          "placeholder": "${apiKey}",
+          "description": "API key for the embedding provider when using a remote model (e.g. OpenAI). Leave empty to use the server's key (environment variable OPENAI_API_KEY). Do not pass a key in a process variable: it is stored in the database and, with history on, in the history. Do not write it here either: the text is stored in the deployed model.",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "apiKey"

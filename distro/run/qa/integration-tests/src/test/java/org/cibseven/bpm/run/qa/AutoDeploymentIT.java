@@ -19,7 +19,7 @@ package org.cibseven.bpm.run.qa;
 import static io.restassured.RestAssured.when;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,8 +34,8 @@ import java.util.stream.Collectors;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.cibseven.bpm.run.qa.util.SpringBootManagedContainer;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
@@ -48,7 +48,7 @@ public class AutoDeploymentIT {
   static SpringBootManagedContainer container;
   static String baseDirectory = SpringBootManagedContainer.getRunHome();
 
-  @After
+  @AfterEach
   public void stopApp() {
     try {
       if (container != null) {

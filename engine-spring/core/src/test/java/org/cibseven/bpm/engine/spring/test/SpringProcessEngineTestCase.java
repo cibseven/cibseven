@@ -20,6 +20,11 @@ import java.util.ServiceLoader;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.impl.test.AbstractProcessEngineTestCase;
+import org.cibseven.bpm.engine.impl.test.TestLogger;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
+import org.slf4j.Logger;
 import org.springframework.beans.CachedIntrospectionResults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -37,6 +42,7 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 @TestExecutionListeners(DependencyInjectionTestExecutionListener.class)
 public abstract class SpringProcessEngineTestCase extends AbstractProcessEngineTestCase implements ApplicationContextAware {
 
+  private final static Logger LOG = TestLogger.TEST_LOGGER.getLogger();
   protected TestContextManager testContextManager;
 
   @Autowired
@@ -56,24 +62,46 @@ public abstract class SpringProcessEngineTestCase extends AbstractProcessEngineT
     return serviceLoader.iterator().next();
   }
 
+  @BeforeEach
   @Override
-  public void runBare() throws Throwable {
-    testContextManager.prepareTestInstance(this); // this will initialize all dependencies
+  public void setUpAbstractProcessEngineTestCase(TestInfo testInfo) {
     try {
-      super.runBare();
+      testContextManager.prepareTestInstance(this); // this will initialize all dependencies
+    } catch (Exception e) {
+      throw new IllegalStateException("Could not prepare the Spring test instance " + getClass().getName(), e);
+    }
+    super.setUpAbstractProcessEngineTestCase(testInfo);
+  }
+
+  @AfterEach
+  @Override
+  public void tearDownAbstractProcessEngineTestCase() {
+    try {
+      super.tearDownAbstractProcessEngineTestCase();
     }
     finally {
-      testContextManager.afterTestClass();
-      applicationContext.close();
-      applicationContext = null;
-      processEngine = null;
-      testContextManager = null;
-      CachedIntrospectionResults.clearClassLoader(getClass().getClassLoader());
+      closeApplicationContext();
     }
+  }
+
+  protected void closeApplicationContext() {
+    try {
+      testContextManager.afterTestClass();
+    } catch (Exception e) {
+      LOG.error("EXCEPTION: " + e, e);
+    }
+    if (applicationContext != null) {
+      applicationContext.close();
+    }
+    applicationContext = null;
+    processEngine = null;
+    testContextManager = null;
+    CachedIntrospectionResults.clearClassLoader(getClass().getClassLoader());
   }
 
   @Override
   protected void initializeProcessEngine() {
+    //TODO: remove
     ContextConfiguration contextConfiguration = getClass().getAnnotation(ContextConfiguration.class);
     processEngine = applicationContext.getBean(ProcessEngine.class);
   }

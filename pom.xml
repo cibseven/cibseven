@@ -3,15 +3,15 @@
 
   <parent>
     <groupId>org.cibseven</groupId>
-	  <artifactId>release-parent</artifactId>
-	  <version>1.4.0</version>
+    <artifactId>release-parent</artifactId>
+    <version>1.7.0</version>
     <!-- do not remove empty tag - http://jira.codehaus.org/browse/MNG-4687 -->
     <relativePath />
   </parent>
 
   <groupId>org.cibseven.bpm</groupId>
   <artifactId>cibseven-root</artifactId>
-  <version>2.3.0-SNAPSHOT</version>
+  <version>3.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>CIB seven - Root Pom</name>
   <inceptionYear>2024</inceptionYear>
@@ -22,20 +22,58 @@
   </description>
 
   <properties>
+    <!-- release-parent compiles for Java 11 (<source>, <target> and <release> read version.java).
+         CIB seven 3.x is built for Java 17: Jakarta EE 11 and Spring Framework 7 require it.
+         Overridden here rather than in release-parent so that the 2.x lines keep Java 11. -->
+    <version.java>17</version.java>
     <license.includeTransitiveDependencies>false</license.includeTransitiveDependencies>
 
     <!-- These properties are used in both the BOM as well as camunda-parent and subprojects -->
     <version.mybatis>3.5.15</version.mybatis>
     <version.joda-time>2.12.5</version.joda-time>
     <version.uuid-generator>4.3.0</version.uuid-generator>
+    <!-- json-path 3.0.0 is the first release with the Jackson 3 providers Spin JSON uses
+         (Jackson3JsonProvider); json-smart and accessors-smart are runtime dependencies of json-path -->
+    <version.json-path>3.0.0</version.json-path>
+    <version.json-smart>2.6.0</version.json-smart>
+    <version.accessors-smart>2.6.0</version.accessors-smart>
     <version.feel-scala>1.19.3</version.feel-scala>
     <version.license-maven-plugin>2.4.0</version.license-maven-plugin>
     <!-- Version for cibseven-webclient-web -->
     <cibseven-webapp.version>${project.version}</cibseven-webapp.version>
+    <version.junit5>5.13.4</version.junit5>
+    <!-- The Spring Framework 7 / Spring Boot 4 trees run on JUnit 6; spring-test 7 is
+         compiled against it and calls ExtensionContext.Store.computeIfAbsent, absent from JUnit 5. -->
+    <version.junit6>6.0.3</version.junit6>
+    <!-- last open source release of the legacy webapps, used only by the tests (see webapps/README.md) -->
+    <version.legacy-webapps>2.2.0</version.legacy-webapps>
   </properties>
 
   <build>
     <plugins>
+      <!-- Fails fast on a JDK older than the bytecode level, for every module of the build -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>enforce-java</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>[${version.java},)</version>
+                  <message>CIB seven requires JDK ${version.java} or later to build (Jakarta EE 11, Spring Framework 7).</message>
+                </requireJavaVersion>
+              </rules>
+              <failFast>true</failFast>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>license-maven-plugin</artifactId>
@@ -69,7 +107,6 @@
 
         <module>javaee/ejb-service</module>
         <module>javaee/ejb-client</module>
-        <module>javaee/ejb-client-jakarta</module>
         <module>javaee/jobexecutor-ra</module>
         <module>javaee/jobexecutor-rar</module>
 
@@ -99,7 +136,6 @@
         <module>engine-plugins</module>
 
         <module>distro/license-book</module>
-        <module>distro/jboss</module>
         <module>distro/tomcat</module>
         <module>distro/sql-script</module>
         <module>distro/run</module>
@@ -180,10 +216,8 @@
       </activation>
       <modules>
         <module>javaee/ejb-client</module>
-        <module>javaee/ejb-client-jakarta</module>
         <module>distro/license-book</module>
         <module>distro/wildfly</module>
-        <module>distro/wildfly28</module>
       </modules>
     </profile>
 
@@ -255,9 +289,6 @@
         <module>freemarker-template-engine</module>
 
         <module>javaee/ejb-client</module>
-        <module>javaee/ejb-client-jakarta</module>
-
-        <module>webapps</module>
 
         <module>engine-plugins</module>
 

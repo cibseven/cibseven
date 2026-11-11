@@ -9,15 +9,14 @@
   <parent>
     <groupId>org.cibseven.bpm.qa</groupId>
     <artifactId>cibseven-qa</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <properties>
-    <cargo.timeout>120000</cargo.timeout>
-    <cargo.deploy.timeout>60000</cargo.deploy.timeout>
+    <cargo.timeout>300000</cargo.timeout>
+    <cargo.deploy.timeout>120000</cargo.deploy.timeout>
 
     <!-- Needs to be adjusted with every WildFly update -->
-    <cargo.wildfly28.container.id>wildfly28x</cargo.wildfly28.container.id>
     <cargo.wildfly.container.id>wildfly35x</cargo.wildfly.container.id>
 
     <redirect.test.output>true</redirect.test.output>
@@ -35,6 +34,14 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- Jakarta EE 11 platform APIs (JAX-RS 4.0, ...) -->
+      <dependency>
+        <groupId>jakarta.platform</groupId>
+        <artifactId>jakarta.jakartaee-bom</artifactId>
+        <version>${version.jakarta-ee-spec}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <dependency>
         <groupId>org.jboss.shrinkwrap.resolver</groupId>
         <artifactId>shrinkwrap-resolver-bom</artifactId>
@@ -93,21 +100,18 @@
     </dependency>
 
     <dependency>
-      <groupId>org.jboss.spec</groupId>
-      <artifactId>jboss-javaee-6.0</artifactId>
-      <type>pom</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>xalan</artifactId>
-          <groupId>org.apache.xalan</groupId>
-        </exclusion>
-      </exclusions>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
     </dependency>
-
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
       <scope>test</scope>
     </dependency>
     

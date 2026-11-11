@@ -22,7 +22,7 @@ import static org.cibseven.bpm.engine.authorization.Permissions.ALL;
 
 import java.util.function.Supplier;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.AuthorizationService;
 import org.cibseven.bpm.engine.IdentityService;
@@ -37,7 +37,7 @@ import org.cibseven.bpm.engine.rest.SetupRestService;
 import org.cibseven.bpm.engine.rest.dto.identity.UserDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class SetupRestServiceImpl extends AbstractRestProcessEngineAware  implements SetupRestService {
 

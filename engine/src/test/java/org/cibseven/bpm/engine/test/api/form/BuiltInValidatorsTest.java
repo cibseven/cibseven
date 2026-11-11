@@ -16,10 +16,10 @@
  */
 package org.cibseven.bpm.engine.test.api.form;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Map;
 
@@ -40,7 +40,7 @@ import org.cibseven.bpm.engine.impl.form.validator.ReadOnlyValidator;
 import org.cibseven.bpm.engine.impl.form.validator.RequiredValidator;
 import org.cibseven.bpm.engine.test.api.runtime.util.TestVariableScope;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Daniel Meyer

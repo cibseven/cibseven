@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getHistoricVariableInstanceBinary"
       tag = "Historic Variable Instance"
-      summary = "Get Variable Instance (Binary)"
+      summary = "Get Historic Variable Instance (Binary)"
       desc = "Retrieves the content of a historic variable by id. Applicable for variables that
               are serialized as binary data."
   />

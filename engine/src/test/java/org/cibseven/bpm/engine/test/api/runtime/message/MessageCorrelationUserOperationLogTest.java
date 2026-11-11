@@ -35,10 +35,11 @@ import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class MessageCorrelationUserOperationLogTest {
@@ -59,7 +60,7 @@ public class MessageCorrelationUserOperationLogTest {
   private static final Long LIMIT_3 = 3L;
   private static final Long UNLIMITED = -1L;
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
@@ -69,7 +70,7 @@ public class MessageCorrelationUserOperationLogTest {
 
   protected Long defaultLogEntriesPerSyncOperationLimit;
 
-  @Before
+  @BeforeEach
   public void setup() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     runtimeService = engineRule.getRuntimeService();
@@ -78,7 +79,7 @@ public class MessageCorrelationUserOperationLogTest {
     defaultLogEntriesPerSyncOperationLimit = processEngineConfiguration.getLogEntriesPerSyncOperationLimit();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processEngineConfiguration.setLogEntriesPerSyncOperationLimit(defaultLogEntriesPerSyncOperationLimit);
   }

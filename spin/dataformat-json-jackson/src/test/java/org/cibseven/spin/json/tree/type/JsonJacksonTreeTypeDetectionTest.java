@@ -20,9 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.spin.DataFormats.json;
 
+import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,8 +36,8 @@ import org.cibseven.spin.impl.json.jackson.format.MapJacksonJsonTypeDetector;
 import org.cibseven.spin.impl.json.jackson.format.SetJacksonJsonTypeDetector;
 import org.cibseven.spin.json.mapping.Customer;
 import org.cibseven.spin.json.mapping.RegularCustomer;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class JsonJacksonTreeTypeDetectionTest {
 
@@ -44,7 +47,7 @@ public class JsonJacksonTreeTypeDetectionTest {
   public JacksonJsonDataFormat dataFormatWithMapTypeDetector =
       new JacksonJsonDataFormat(DataFormats.JSON_DATAFORMAT_NAME);
 
-  @Before
+  @BeforeEach
   public void configure() {
     dataFormatWithSetTypeDetector.addTypeDetector(SetJacksonJsonTypeDetector.INSTANCE);
     dataFormatWithMapTypeDetector.addTypeDetector(MapJacksonJsonTypeDetector.INSTANCE);
@@ -72,6 +75,53 @@ public class JsonJacksonTreeTypeDetectionTest {
 
     String canonicalTypeString = json().getMapper().getCanonicalTypeName(customers);
     assertThat(canonicalTypeString).isEqualTo("java.util.ArrayList<java.lang.Object>");
+  }
+
+  @Test
+  public void shouldDetectListTypeFromFirstNonNullElement() {
+    List<Customer> customers = new ArrayList<>();
+    customers.add(null);
+    customers.add(new RegularCustomer());
+
+    String canonicalTypeString = json().getMapper().getCanonicalTypeName(customers);
+    assertThat(canonicalTypeString).isEqualTo("java.util.ArrayList<org.cibseven.spin.json.mapping.RegularCustomer>");
+  }
+
+  @Test
+  public void shouldDetectListTypeFromListOfNulls() {
+    List<Customer> customers = new LinkedList<>();
+    customers.add(null);
+    customers.add(null);
+
+    String canonicalTypeString = json().getMapper().getCanonicalTypeName(customers);
+    assertThat(canonicalTypeString).isEqualTo("java.util.LinkedList<java.lang.Object>");
+  }
+
+  @Test
+  public void shouldDetectListTypeOfNestedListsWithNullFirstElements() {
+    List<Object> nested = new ArrayList<>();
+    nested.add(null);
+    nested.add(new ArrayList<>(Arrays.asList(null, "x")));
+
+    String canonicalTypeString = json().getMapper().getCanonicalTypeName(nested);
+    assertThat(canonicalTypeString).isEqualTo("java.util.ArrayList<java.util.ArrayList<java.lang.String>>");
+  }
+
+  @Test
+  public void shouldMapListWithNullFirstElementBackToJava() {
+    // given: a list as the engine stores it (JSON + objectTypeName)
+    List<RegularCustomer> customers = new ArrayList<>(Arrays.asList(null, new RegularCustomer()));
+    String typeName = json().getMapper().getCanonicalTypeName(customers);
+    String serialized = json().createWrapperInstance(json().getMapper().mapJavaToInternal(customers)).toString();
+
+    // when
+    List<RegularCustomer> deserialized = json().getMapper()
+        .mapInternalToJava(json().getReader().readInput(new StringReader(serialized)), typeName);
+
+    // then
+    assertThat(deserialized).hasSize(2);
+    assertThat(deserialized.get(0)).isNull();
+    assertThat(deserialized.get(1)).isInstanceOf(RegularCustomer.class);
   }
 
   @Test
@@ -222,4 +272,28 @@ public class JsonJacksonTreeTypeDetectionTest {
     assertThat(canonicalTypeString).isEqualTo("java.util.HashSet<java.lang.Object>");
   }
 
+  /** A list subclass that fixes its element type, so the type name needs no element detection. */
+  public static class RegularCustomerList extends ArrayList<RegularCustomer> {
+    private static final long serialVersionUID = 1L;
+  }
+
+  @Test
+  public void shouldNameListSubclassWithFixedElementTypeAndNullFirst() {
+    // given
+    RegularCustomerList customers = new RegularCustomerList();
+    customers.add(null);
+    customers.add(new RegularCustomer());
+
+    // when
+    String typeName = json().getMapper().getCanonicalTypeName(customers);
+    String serialized = json().createWrapperInstance(json().getMapper().mapJavaToInternal(customers)).toString();
+    List<RegularCustomer> deserialized = json().getMapper()
+        .mapInternalToJava(json().getReader().readInput(new StringReader(serialized)), typeName);
+
+    // then
+    assertThat(typeName).isEqualTo(RegularCustomerList.class.getName());
+    assertThat(deserialized).isInstanceOf(RegularCustomerList.class).hasSize(2);
+    assertThat(deserialized.get(0)).isNull();
+    assertThat(deserialized.get(1)).isInstanceOf(RegularCustomer.class);
+  }
 }

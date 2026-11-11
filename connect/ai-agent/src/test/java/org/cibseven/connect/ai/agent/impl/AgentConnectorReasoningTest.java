@@ -22,8 +22,8 @@ import java.util.Map;
 
 import org.cibseven.connect.ai.agent.AgentConnector;
 import org.cibseven.connect.ai.agent.AgentRequest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
@@ -45,7 +45,7 @@ public class AgentConnectorReasoningTest {
 
   private AgentConnectorImpl connector;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     connector = new AgentConnectorImpl();
   }

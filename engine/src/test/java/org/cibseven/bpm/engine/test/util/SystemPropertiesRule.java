@@ -18,13 +18,14 @@ package org.cibseven.bpm.engine.test.util;
 
 import java.util.Properties;
 
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
- * Restores the system properties after a test
+ * JUnit 5 extension that restores the system properties after a test
  */
-public class SystemPropertiesRule extends TestWatcher {
+public class SystemPropertiesRule implements BeforeEachCallback, AfterEachCallback {
 
   protected Properties originalProperties;
 
@@ -39,13 +40,13 @@ public class SystemPropertiesRule extends TestWatcher {
   }
 
   @Override
-  protected void starting(Description description) {
+  public void beforeEach(ExtensionContext context) {
     originalProperties = System.getProperties();
     System.setProperties(new Properties(originalProperties));
   }
 
   @Override
-  protected void finished(Description description) {
+  public void afterEach(ExtensionContext context) {
     System.setProperties(originalProperties);
   }
 }

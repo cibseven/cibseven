@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.test.util;
 
 import java.util.Date;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * @author Thorben Lindhauer
@@ -30,7 +30,6 @@ public class AssertUtil {
    * Drop milliseconds since older MySQL versions cannot store them
    */
   public static void assertEqualsSecondPrecision(Date expected, Date actual) {
-    Assert.assertEquals("expected " + expected + " but got " + actual,
-        expected.getTime() / 1000L, actual.getTime() / 1000L);
+    Assertions.assertEquals(expected.getTime() / 1000L, actual.getTime() / 1000L, "expected " + expected + " but got " + actual);
   }
 }

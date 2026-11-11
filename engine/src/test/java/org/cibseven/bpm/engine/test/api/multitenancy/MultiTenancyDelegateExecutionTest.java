@@ -24,8 +24,8 @@ import org.cibseven.bpm.engine.test.api.delegate.AssertingJavaDelegate;
 import org.cibseven.bpm.engine.test.api.delegate.AssertingJavaDelegate.DelegateExecutionAsserter;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.model.bpmn.Bpmn;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests if a {@link DelegateExecution} has the correct tenant-id. The
@@ -99,7 +99,7 @@ public class MultiTenancyDelegateExecutionTest extends PluggableProcessEngineTes
     runtimeService.startProcessInstanceById(processDefinition.getId());
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     AssertingJavaDelegate.clear();
 

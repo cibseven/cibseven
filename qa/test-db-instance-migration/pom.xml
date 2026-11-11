@@ -10,7 +10,7 @@
   <parent>
     <groupId>org.cibseven.bpm.qa</groupId>
     <artifactId>cibseven-qa</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <properties>
@@ -18,6 +18,12 @@
     <!-- the `skip-test-fixture` property is used to skip the execution of `test-fixture`
          modules for those versions that are not supported for a given database -->
     <skip-test-fixture>false</skip-test-fixture>
+    <!-- Skip the dependency-alignment rules: this module tests historical artifact versions for
+         migration, which intentionally use mismatched dependency versions across test fixtures.
+         The JDK version check (requireJavaVersion) still applies. -->
+    <enforcer.skipRules>bannedDependencies</enforcer.skipRules>
+    <!-- with bannedDependencies skipped, the dependency-alignment executions have no rule left -->
+    <enforcer.failIfNoRules>false</enforcer.failIfNoRules>
   </properties>
 
   <modules>
@@ -25,7 +31,7 @@
     <module>test-fixture-20</module>
     <module>test-fixture-21</module>
     <module>test-fixture-22</module>
-    <module>test-fixture-23</module>
+    <module>test-fixture-30</module>
     <module>test-migration</module>
   </modules>
 

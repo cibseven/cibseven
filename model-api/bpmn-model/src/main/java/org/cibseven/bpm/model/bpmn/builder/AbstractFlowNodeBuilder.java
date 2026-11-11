@@ -42,6 +42,7 @@ import org.cibseven.bpm.model.bpmn.instance.ScriptTask;
 import org.cibseven.bpm.model.bpmn.instance.SendTask;
 import org.cibseven.bpm.model.bpmn.instance.SequenceFlow;
 import org.cibseven.bpm.model.bpmn.instance.ServiceTask;
+import org.cibseven.bpm.model.bpmn.instance.AdHocSubProcess;
 import org.cibseven.bpm.model.bpmn.instance.SubProcess;
 import org.cibseven.bpm.model.bpmn.instance.Transaction;
 import org.cibseven.bpm.model.bpmn.instance.UserTask;
@@ -288,6 +289,21 @@ public abstract class AbstractFlowNodeBuilder<B extends AbstractFlowNodeBuilder<
 
   public SubProcessBuilder subProcess(String id) {
     return createTarget(SubProcess.class, id).builder();
+  }
+
+  // Constructed directly rather than through AdHocSubProcess.builder(), for the same reason
+  // transaction() is: AdHocSubProcess extends SubProcess, whose builder() returns a
+  // SubProcessBuilder, and an AdHocSubProcessBuilder is deliberately not one of those. It must not
+  // inherit embeddedSubProcess() or triggerByEvent(), because a start event inside an ad hoc scope
+  // and an ad hoc event sub process are both invalid models.
+  public AdHocSubProcessBuilder adHocSubProcess() {
+    AdHocSubProcess adHocSubProcess = createTarget(AdHocSubProcess.class);
+    return new AdHocSubProcessBuilder(modelInstance, adHocSubProcess);
+  }
+
+  public AdHocSubProcessBuilder adHocSubProcess(String id) {
+    AdHocSubProcess adHocSubProcess = createTarget(AdHocSubProcess.class, id);
+    return new AdHocSubProcessBuilder(modelInstance, adHocSubProcess);
   }
 
   public TransactionBuilder transaction() {

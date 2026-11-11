@@ -16,13 +16,12 @@
  */
 package org.cibseven.bpm.engine.impl.el;
 
-import java.beans.FeatureDescriptor;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
+
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
 
 /**
  * An {@link ELResolver} that exposed object values in the map, under the name of the entry's key.
@@ -63,10 +62,6 @@ public class ReadOnlyMapELResolver extends ELResolver {
 
   public Class< ? > getCommonPropertyType(ELContext context, Object arg) {
     return Object.class;
-  }
-
-  public Iterator<FeatureDescriptor> getFeatureDescriptors(ELContext context, Object arg) {
-    return null;
   }
 
   public Class< ? > getType(ELContext context, Object arg1, Object arg2) {

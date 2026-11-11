@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.dto.history;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.history.HistoricDetailQuery;
 import org.cibseven.bpm.engine.rest.dto.AbstractQueryDto;
@@ -28,8 +28,8 @@ import org.cibseven.bpm.engine.rest.dto.converter.StringArrayConverter;
 import org.cibseven.bpm.engine.rest.dto.converter.StringListConverter;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;

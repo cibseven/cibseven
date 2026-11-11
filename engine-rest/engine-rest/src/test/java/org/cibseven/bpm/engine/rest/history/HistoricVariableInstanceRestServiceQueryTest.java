@@ -31,14 +31,14 @@ import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.type.SerializableValueType;
 import org.cibseven.bpm.engine.variable.type.ValueType;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -63,7 +63,7 @@ import static org.mockito.Mockito.anyString;
 
 public class HistoricVariableInstanceRestServiceQueryTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String HISTORIC_VARIABLE_INSTANCE_RESOURCE_URL = TEST_RESOURCE_ROOT_PATH + "/history/variable-instance";
@@ -74,7 +74,7 @@ public class HistoricVariableInstanceRestServiceQueryTest extends AbstractRestSe
   protected HistoricVariableInstance mockInstance;
   protected MockHistoricVariableInstanceBuilder mockInstanceBuilder;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     mockInstanceBuilder = MockProvider.mockHistoricVariableInstance();
     mockInstance = mockInstanceBuilder.build();

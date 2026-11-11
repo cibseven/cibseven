@@ -19,9 +19,9 @@ package org.cibseven.bpm.engine.rest;
 import static io.restassured.RestAssured.given;
 import static org.cibseven.bpm.engine.rest.util.JsonPathUtil.from;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.batch.BatchStatistics;
 import org.cibseven.bpm.engine.batch.BatchStatisticsQuery;
@@ -43,9 +43,9 @@ import org.cibseven.bpm.engine.rest.dto.batch.BatchStatisticsDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -54,7 +54,7 @@ import io.restassured.response.Response;
 
 public class BatchRestServiceStatisticsTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String BATCH_RESOURCE_URL = TEST_RESOURCE_ROOT_PATH + "/batch";
@@ -64,7 +64,7 @@ public class BatchRestServiceStatisticsTest extends AbstractRestServiceTest {
   protected BatchStatisticsQuery queryMock;
   protected List<BatchStatistics> mockBatchStatisticsList;
 
-  @Before
+  @BeforeEach
   public void setUpBatchStatisticsMock() {
     mockBatchStatisticsList = MockProvider.createMockBatchStatisticsList();
 
@@ -310,12 +310,12 @@ public class BatchRestServiceStatisticsTest extends AbstractRestServiceTest {
 
   protected void verifyBatchStatisticsListJson(String batchStatisticsListJson) {
     List<Object> batches = from(batchStatisticsListJson).get();
-    assertEquals("There should be one batch statistics returned.", 1, batches.size());
+    assertEquals( 1, batches.size(), "There should be one batch statistics returned.");
 
     BatchStatisticsDto batchStatistics = from(batchStatisticsListJson).getObject("[0]", BatchStatisticsDto.class);
     String returnedStartTime = from(batchStatisticsListJson).getString("[0].startTime");
 
-    assertNotNull("The returned batch statistics should not be null.", batchStatistics);
+    assertNotNull(batchStatistics,"The returned batch statistics should not be null.");
     assertEquals(MockProvider.EXAMPLE_BATCH_ID, batchStatistics.getId());
     assertEquals(MockProvider.EXAMPLE_BATCH_TYPE, batchStatistics.getType());
     assertEquals(MockProvider.EXAMPLE_BATCH_TOTAL_JOBS, batchStatistics.getTotalJobs());

@@ -3,7 +3,7 @@
   <@lib.endpointInfo
       id = "getEventSubscriptions"
       tag = "Event Subscription"
-      summary = "Get List"
+      summary = "Get Event Subscription List"
       desc = "Queries for event subscriptions that fulfill given parameters.
               The size of the result set can be retrieved by using the
               [Get Event Subscriptions count](${docsUrl}/reference/rest/event-subscription/get-query-count/) method." />

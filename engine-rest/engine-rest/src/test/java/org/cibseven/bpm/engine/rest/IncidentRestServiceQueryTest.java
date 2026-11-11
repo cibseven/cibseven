@@ -35,7 +35,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.impl.calendar.DateTimeUtil;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
@@ -43,10 +43,10 @@ import org.cibseven.bpm.engine.rest.helper.MockProvider;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.bpm.engine.runtime.Incident;
 import org.cibseven.bpm.engine.runtime.IncidentQuery;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -61,7 +61,7 @@ import io.restassured.response.Response;
  */
 public class IncidentRestServiceQueryTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String INCIDENT_QUERY_URL = TEST_RESOURCE_ROOT_PATH + "/incident";
@@ -69,7 +69,7 @@ public class IncidentRestServiceQueryTest extends AbstractRestServiceTest {
 
   private IncidentQuery mockedQuery;
 
-  @Before
+  @BeforeEach
   public void setUpRuntimeData() {
     List<Incident> incidents = MockProvider.createMockIncidents();
 
@@ -337,8 +337,8 @@ public class IncidentRestServiceQueryTest extends AbstractRestServiceTest {
 
     String content = response.asString();
     List<String> incidents = from(content).getList("");
-    Assert.assertEquals("There should be one incident returned.", 1, incidents.size());
-    Assert.assertNotNull("The returned incident should not be null.", incidents.get(0));
+    Assertions.assertEquals( 1, incidents.size(), "There should be one incident returned.");
+    Assertions.assertNotNull(incidents.get(0), "The returned incident should not be null.");
 
     String returnedId = from(content).getString("[0].id");
     String returnedProcessDefinitionId = from(content).getString("[0].processDefinitionId");
@@ -356,21 +356,21 @@ public class IncidentRestServiceQueryTest extends AbstractRestServiceTest {
     String returnedJobDefinitionId = from(content).getString("[0].jobDefinitionId");
     String returnedAnnotation = from(content).getString("[0].annotation");
 
-    Assert.assertEquals(MockProvider.EXAMPLE_INCIDENT_ID, returnedId);
-    Assert.assertEquals(MockProvider.EXAMPLE_INCIDENT_PROC_INST_ID, returnedProcessInstanceId);
-    Assert.assertEquals(DateTimeUtil.parseDate(MockProvider.EXAMPLE_INCIDENT_TIMESTAMP), returnedIncidentTimestamp);
-    Assert.assertEquals(MockProvider.EXAMPLE_INCIDENT_EXECUTION_ID, returnedExecutionId);
-    Assert.assertEquals(MockProvider.EXAMPLE_INCIDENT_PROC_DEF_ID, returnedProcessDefinitionId);
-    Assert.assertEquals(MockProvider.EXAMPLE_INCIDENT_TYPE, returnedIncidentType);
-    Assert.assertEquals(MockProvider.EXAMPLE_INCIDENT_ACTIVITY_ID, returnedActivityId);
-    Assert.assertEquals(MockProvider.EXAMPLE_INCIDENT_FAILED_ACTIVITY_ID, returnedFailedActivityId);
-    Assert.assertEquals(MockProvider.EXAMPLE_INCIDENT_CAUSE_INCIDENT_ID, returnedCauseIncidentId);
-    Assert.assertEquals(MockProvider.EXAMPLE_INCIDENT_ROOT_CAUSE_INCIDENT_ID, returnedRootCauseIncidentId);
-    Assert.assertEquals(MockProvider.EXAMPLE_INCIDENT_CONFIGURATION, returnedConfiguration);
-    Assert.assertEquals(MockProvider.EXAMPLE_INCIDENT_MESSAGE, returnedIncidentMessage);
-    Assert.assertEquals(MockProvider.EXAMPLE_TENANT_ID, returnedTenantId);
-    Assert.assertEquals(MockProvider.EXAMPLE_JOB_DEFINITION_ID, returnedJobDefinitionId);
-    Assert.assertEquals(MockProvider.EXAMPLE_USER_OPERATION_ANNOTATION, returnedAnnotation);
+    Assertions.assertEquals(MockProvider.EXAMPLE_INCIDENT_ID, returnedId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_INCIDENT_PROC_INST_ID, returnedProcessInstanceId);
+    Assertions.assertEquals(DateTimeUtil.parseDate(MockProvider.EXAMPLE_INCIDENT_TIMESTAMP), returnedIncidentTimestamp);
+    Assertions.assertEquals(MockProvider.EXAMPLE_INCIDENT_EXECUTION_ID, returnedExecutionId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_INCIDENT_PROC_DEF_ID, returnedProcessDefinitionId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_INCIDENT_TYPE, returnedIncidentType);
+    Assertions.assertEquals(MockProvider.EXAMPLE_INCIDENT_ACTIVITY_ID, returnedActivityId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_INCIDENT_FAILED_ACTIVITY_ID, returnedFailedActivityId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_INCIDENT_CAUSE_INCIDENT_ID, returnedCauseIncidentId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_INCIDENT_ROOT_CAUSE_INCIDENT_ID, returnedRootCauseIncidentId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_INCIDENT_CONFIGURATION, returnedConfiguration);
+    Assertions.assertEquals(MockProvider.EXAMPLE_INCIDENT_MESSAGE, returnedIncidentMessage);
+    Assertions.assertEquals(MockProvider.EXAMPLE_TENANT_ID, returnedTenantId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_JOB_DEFINITION_ID, returnedJobDefinitionId);
+    Assertions.assertEquals(MockProvider.EXAMPLE_USER_OPERATION_ANNOTATION, returnedAnnotation);
   }
 
   @Test

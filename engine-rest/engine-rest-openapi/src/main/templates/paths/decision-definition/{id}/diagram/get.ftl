@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getDecisionDefinitionDiagram"
       tag = "Decision Definition"
-      summary = "Get Diagram"
+      summary = "Get Decision Definition Diagram"
       desc = "Retrieves the diagram of a decision definition." />
 
   "parameters" : [

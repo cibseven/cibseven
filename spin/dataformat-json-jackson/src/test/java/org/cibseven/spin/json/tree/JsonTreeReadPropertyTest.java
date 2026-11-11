@@ -27,8 +27,8 @@ import org.cibseven.spin.json.SpinJsonDataFormatException;
 import org.cibseven.spin.json.SpinJsonNode;
 import org.cibseven.spin.json.SpinJsonPropertyException;
 import org.cibseven.spin.spi.SpinDataFormatException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Stefan Hentschel
@@ -44,7 +44,7 @@ public class JsonTreeReadPropertyTest {
   protected SpinJsonNode active;
   protected SpinJsonNode nullValue;
 
-  @Before
+  @BeforeEach
   public void readJson() {
     jsonNode = JSON(EXAMPLE_JSON);
     order = jsonNode.prop("order");
@@ -399,6 +399,17 @@ public class JsonTreeReadPropertyTest {
     assertThat(jsonNode.fieldNames()).contains("order", "dueUntil", "id", "customers", "orderDetails", "active");
     assertThat(customers.fieldNames()).isEmpty();
     assertThat(orderDetails.fieldNames()).contains("article", "price", "roundedPrice", "currencies", "paid");
+  }
+
+  @Test
+  public void shouldReturnMutableFieldNames() {
+    // as in Spin 2.x: callers (e.g. scripts) may sort or edit the returned list
+    java.util.List<String> fieldNames = jsonNode.fieldNames();
+    java.util.Collections.sort(fieldNames);
+    fieldNames.remove("id");
+
+    assertThat(fieldNames).doesNotContain("id").isSorted();
+    assertThat(jsonNode.fieldNames()).contains("id");
   }
 
   @Test

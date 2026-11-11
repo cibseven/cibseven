@@ -20,12 +20,12 @@ import static org.cibseven.bpm.engine.impl.cmmn.handler.ItemHandler.PROPERTY_ACT
 import static org.cibseven.bpm.engine.impl.cmmn.handler.ItemHandler.PROPERTY_ACTIVITY_TYPE;
 import static org.cibseven.bpm.engine.impl.cmmn.handler.ItemHandler.PROPERTY_REPETITION_RULE;
 import static org.cibseven.bpm.engine.impl.cmmn.handler.ItemHandler.PROPERTY_REQUIRED_RULE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.cibseven.bpm.engine.impl.cmmn.CaseControlRule;
 import org.cibseven.bpm.engine.impl.cmmn.behavior.CmmnActivityBehavior;
@@ -49,8 +49,8 @@ import org.cibseven.bpm.model.cmmn.instance.PlanItemControl;
 import org.cibseven.bpm.model.cmmn.instance.RepetitionRule;
 import org.cibseven.bpm.model.cmmn.instance.RequiredRule;
 import org.cibseven.bpm.model.cmmn.instance.Sentry;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roman Smirnov
@@ -62,7 +62,7 @@ public class MilestonePlanItemHandlerTest extends CmmnElementHandlerTest {
   protected PlanItem planItem;
   protected MilestoneItemHandler handler = new MilestoneItemHandler();
 
-  @Before
+  @BeforeEach
   public void setUp() {
     milestone = createElement(casePlanModel, "aMilestone", Milestone.class);
 

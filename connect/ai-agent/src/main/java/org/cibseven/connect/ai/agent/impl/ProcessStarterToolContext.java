@@ -93,4 +93,38 @@ public final class ProcessStarterToolContext {
     AUTH.remove();
     LISTENER.remove();
   }
+
+  /**
+   * Captures the three values currently on this thread, so a nested invocation can put them
+   * back afterwards instead of wiping them out from under a still-running caller.
+   *
+   * <p>An AI agent task used as a tool inside an agentic scope runs on the same thread as the
+   * outer turn that called it (CIB7-2155): without this, the nested call's {@code finally}
+   * would {@link #clear()} the outer turn's engine, authentication and audit listener, and
+   * every tool the outer turn invokes afterwards would fail to find a {@code ProcessEngine}.
+   */
+  public static Snapshot snapshot() {
+    return new Snapshot(ENGINE.get(), AUTH.get(), LISTENER.get());
+  }
+
+  /** Puts back a {@link Snapshot} taken earlier on this thread, replacing whatever is set now. */
+  public static void restore(Snapshot snapshot) {
+    setEngine(snapshot.engine);
+    setAuthentication(snapshot.authentication);
+    setActiveListener(snapshot.listener);
+  }
+
+  /** The three per-thread values at one point in time. Opaque outside this class. */
+  public static final class Snapshot {
+    private final ProcessEngine engine;
+    private final Authentication authentication;
+    private final AgentChatListener listener;
+
+    private Snapshot(ProcessEngine engine, Authentication authentication,
+        AgentChatListener listener) {
+      this.engine = engine;
+      this.authentication = authentication;
+      this.listener = listener;
+    }
+  }
 }

@@ -35,16 +35,14 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
 
-@RunWith(Parameterized.class)
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
 public class MetricsManagerForCleanupTest {
 
   private static final BpmnModelInstance PROCESS = Bpmn.createExecutableProcess("process")
@@ -55,49 +53,33 @@ public class MetricsManagerForCleanupTest {
       .endEvent("end")
       .done();
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
+  @RegisterExtension
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configuration.setTaskMetricsEnabled(true));
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
 
   protected ManagementService managementService;
   protected RuntimeService runtimeService;
   protected TaskService taskService;
 
-  @Before
+  @BeforeEach
   public void init() {
     runtimeService = engineRule.getRuntimeService();
     managementService = engineRule.getManagementService();
     taskService = engineRule.getTaskService();
   }
 
-  @After
+  @AfterEach
   public void clearDatabase() {
     testRule.deleteHistoryCleanupJobs();
     managementService.deleteTaskMetrics(null);
   }
 
-  @Parameterized.Parameter(0)
-  public int taskMetricHistoryTTL;
-
-  @Parameterized.Parameter(1)
-  public int metric1DaysInThePast;
-
-  @Parameterized.Parameter(2)
-  public int metric2DaysInThePast;
-
-  @Parameterized.Parameter(3)
-  public int batchSize;
-
-  @Parameterized.Parameter(4)
-  public int resultCount;
-
-  @Parameterized.Parameters
   public static Collection<Object[]> scenarios() {
     return Arrays.asList(new Object[][] {
         // all historic batches are old enough to be cleaned up
@@ -110,10 +92,12 @@ public class MetricsManagerForCleanupTest {
         { 5, -6, -7, 1, 1 } });
   }
 
-  @Test
-  public void testFindHistoricBatchIdsForCleanup() {
+  @ParameterizedTest
+  @MethodSource("scenarios")
+  public void testFindHistoricBatchIdsForCleanup(int taskMetricHistoryTTL, int metric1DaysInThePast, 
+    int metric2DaysInThePast, int batchSize, int resultCount) {
     // given
-    prepareTaskMetrics();
+    prepareTaskMetrics(metric1DaysInThePast, metric2DaysInThePast);
 
     engineRule.getProcessEngineConfiguration().getCommandExecutorTxRequired().execute(new Command<Object>() {
       @Override
@@ -130,7 +114,7 @@ public class MetricsManagerForCleanupTest {
     });
   }
 
-  private void prepareTaskMetrics() {
+  private void prepareTaskMetrics(int metric1DaysInThePast, int metric2DaysInThePast) {
     testRule.deploy(PROCESS);
     runtimeService.startProcessInstanceByKey("process");
 

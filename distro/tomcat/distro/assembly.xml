@@ -34,7 +34,7 @@
 
     <dependencySet>
         <includes>
-            <include>org.cibseven.bpm:cibseven-engine-rest-jakarta:war:*</include>
+            <include>org.cibseven.bpm:cibseven-engine-rest:war:*</include>
         </includes>
         <outputDirectory>server/apache-tomcat-${version.tomcat}/webapps/engine-rest</outputDirectory>
         <unpack>true</unpack>
@@ -50,7 +50,7 @@
 
     <dependencySet>
         <includes>
-            <include>org.cibseven.bpm.example:cibseven-example-invoice-jakarta:war:*</include>
+            <include>org.cibseven.bpm.example:cibseven-example-invoice:war:*</include>
         </includes>
         <outputDirectory>server/apache-tomcat-${version.tomcat}/webapps/camunda-invoice</outputDirectory>
         <unpack>true</unpack>

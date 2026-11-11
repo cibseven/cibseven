@@ -22,17 +22,19 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 import javax.crypto.spec.SecretKeySpec;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.rest.LicenseRestService;
 import org.cibseven.bpm.engine.rest.dto.license.LicenseKeyDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.security.auth.impl.jwt.Configuration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 
 public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware implements LicenseRestService {
@@ -55,10 +57,22 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
     return licenseKey;
   }
   
-  private String getSecret() {
-    String secret = Configuration.getInstance().getSecret();
+  /**
+   * Resolves the JWT secret before any encryption, so a missing secret is reported as such and
+   * not as a failed encryption or decryption. A missing or mismatching secret is a configuration
+   * problem of the server, not of the request: the license function is unavailable (503) until
+   * an administrator configures the same JWT secret for the engine and the webclient.
+   */
+  String getSecret() {
+    String secret;
+    try {
+      secret = Configuration.getInstance().getSecret();
+    } catch (IllegalStateException e) {
+      throw new InvalidRequestException(Status.SERVICE_UNAVAILABLE, e,
+          "JWT secret is not configured. Cannot encrypt/decrypt license signature. " + e.getMessage());
+    }
     if (secret == null || secret.isEmpty()) {
-      throw new InvalidRequestException(Status.FORBIDDEN,
+      throw new InvalidRequestException(Status.SERVICE_UNAVAILABLE,
           "JWT secret is not configured. Cannot encrypt/decrypt license signature.");
     }
     return secret;
@@ -75,12 +89,12 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
   }
 
   private String encryptSignature(String licenseKey) {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = JsonMapper.builderWithJackson2Defaults().build();
+    String secret = getSecret();
     try {
       Map<String, Object> map = objectMapper.readValue(licenseKey, new TypeReference<Map<String, Object>>() {
       });
       String signature = (String) map.get("signature");
-      String secret = getSecret();
       SecretKeySpec key = getAesKey(secret);
       String jwe = Jwts.builder()
           .content(signature)
@@ -88,7 +102,7 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
           .compact();
       map.put("signature", jwe);
       return objectMapper.writeValueAsString(map);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new InvalidRequestException(Status.BAD_REQUEST, e, "Invalid license key JSON format");
     } catch (Exception e) {
       throw new InvalidRequestException(Status.INTERNAL_SERVER_ERROR, e,
@@ -97,12 +111,12 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
   }
 
   private String decryptSignature(String licenseKey) {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = JsonMapper.builderWithJackson2Defaults().build();
+    String secret = getSecret();
     try {
       Map<String, Object> map = objectMapper.readValue(licenseKey, new TypeReference<Map<String, Object>>() {
       });
       String jwe = (String) map.get("signature");
-      String secret = getSecret();
       SecretKeySpec key = getAesKey(secret);
       byte[] payload = Jwts.parser()
           .decryptWith(key)
@@ -112,11 +126,15 @@ public class LicenseRestServiceImpl extends AbstractRestProcessEngineAware imple
       String signature = new String(payload, StandardCharsets.UTF_8);
       map.put("signature", signature);
       return objectMapper.writeValueAsString(map);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new InvalidRequestException(Status.BAD_REQUEST, e, "Invalid license key JSON format");
+    } catch (JwtException e) {
+      // the signature was encrypted with another JWT secret than this engine's
+      throw new InvalidRequestException(Status.SERVICE_UNAVAILABLE, e,
+          "Failed to decrypt license signature. The webclient and the engine must use the same JWT secret;"
+          + " it may have been rotated.");
     } catch (Exception e) {
-      throw new InvalidRequestException(Status.INTERNAL_SERVER_ERROR, e,
-          "Failed to decrypt license signature. The JWT secret may have been rotated.");
+      throw new InvalidRequestException(Status.INTERNAL_SERVER_ERROR, e, "Failed to decrypt license signature");
     }
   }
 

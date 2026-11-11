@@ -20,22 +20,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.cibseven.connect.ai.agent.impl.AgentConnectorImpl;
 import org.cibseven.connect.ai.agent.impl.AgentRequestImpl;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class AgentRequestTest {
 
   private AgentConnectorImpl connector;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     connector = new AgentConnectorImpl();
     System.clearProperty(AgentConnectorConstants.DEFAULT_MODEL_PROPERTY);
     AgentConnectorConstants.ENV_READER = System::getenv;
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     System.clearProperty(AgentConnectorConstants.DEFAULT_MODEL_PROPERTY);
     AgentConnectorConstants.ENV_READER = System::getenv;
@@ -82,6 +82,61 @@ public class AgentRequestTest {
     String tools = "com.example.WeatherTools,com.example.CalendarTools";
     AgentRequest request = connector.createRequest().toolClasses(tools);
     assertThat(request.getToolClasses()).isEqualTo(tools);
+  }
+
+  @Test
+  public void shouldSetAndGetContextVariables() {
+    AgentRequest request = connector.createRequest().contextVariables("orderId,customerName");
+    assertThat(request.getContextVariables()).isEqualTo("orderId,customerName");
+  }
+
+  @Test
+  public void shouldSetAndGetOptionalContextVariables() {
+    AgentRequest request = connector.createRequest().optionalContextVariables("escalationReason");
+    assertThat(request.getOptionalContextVariables()).isEqualTo("escalationReason");
+  }
+
+  /** Text that is not a String, as a Groovy GString from a script input is. */
+  @Test
+  public void shouldAcceptANameListThatIsACharSequence() {
+    AgentRequest request = connector.createRequest();
+    request.setRequestParameter(AgentConnector.PARAM_NAME_CONTEXT_VARIABLES,
+        new StringBuilder("orderId,customerName"));
+    assertThat(request.getContextVariables()).isEqualTo("orderId,customerName");
+  }
+
+  @Test
+  public void shouldReturnNullForContextVariablesWhenUnset() {
+    AgentRequest request = connector.createRequest();
+    assertThat(request.getContextVariables()).isNull();
+    assertThat(request.getOptionalContextVariables()).isNull();
+  }
+
+  @Test
+  public void shouldSetAndGetDocuments() {
+    AgentRequest request = connector.createRequest().documents("invoicePdf,scan");
+    assertThat(request.getDocuments()).isEqualTo("invoicePdf,scan");
+  }
+
+  @Test
+  public void shouldSetAndGetDocumentMimeTypes() {
+    AgentRequest request = connector.createRequest()
+        .documentMimeTypes("{\"scan\": \"image/png\"}");
+    assertThat(request.getDocumentMimeTypes()).isEqualTo("{\"scan\": \"image/png\"}");
+  }
+
+  @Test
+  public void shouldSetAndGetDocumentDetailLevel() {
+    AgentRequest request = connector.createRequest().documentDetailLevel("HIGH");
+    assertThat(request.getDocumentDetailLevel()).isEqualTo("HIGH");
+  }
+
+  @Test
+  public void shouldReturnNullForDocumentsWhenUnset() {
+    AgentRequest request = connector.createRequest();
+    assertThat(request.getDocuments()).isNull();
+    assertThat(request.getDocumentMimeTypes()).isNull();
+    assertThat(request.getDocumentDetailLevel()).isNull();
   }
 
   @Test

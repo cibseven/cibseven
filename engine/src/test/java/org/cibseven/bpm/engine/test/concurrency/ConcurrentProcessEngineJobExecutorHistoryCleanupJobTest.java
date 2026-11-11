@@ -17,9 +17,9 @@
 package org.cibseven.bpm.engine.test.concurrency;
 
 import static org.cibseven.bpm.engine.ProcessEngineConfiguration.HISTORY_CLEANUP_STRATEGY_END_TIME_BASED;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -37,9 +37,9 @@ import org.cibseven.bpm.engine.impl.interceptor.CommandInvocationContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.JobEntity;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.runtime.Job;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * <p>Tests a concurrent attempt of a bootstrapping Process Engine to reconfigure
@@ -68,7 +68,7 @@ public class ConcurrentProcessEngineJobExecutorHistoryCleanupJobTest extends Con
 
   private static final String PROCESS_ENGINE_NAME = "historyCleanupJobEngine";
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
 
     // Ensure that current time is outside batch window
@@ -103,7 +103,7 @@ public class ConcurrentProcessEngineJobExecutorHistoryCleanupJobTest extends Con
     }
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     processEngineConfiguration.getCommandExecutorTxRequired().execute((Command<Void>) commandContext -> {
 

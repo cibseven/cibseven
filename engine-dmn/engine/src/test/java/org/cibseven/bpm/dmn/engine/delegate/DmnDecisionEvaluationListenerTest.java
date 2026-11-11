@@ -29,8 +29,8 @@ import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
 import org.cibseven.bpm.dmn.engine.test.DecisionResource;
 import org.cibseven.bpm.dmn.engine.test.DmnEngineTest;
 import org.cibseven.commons.utils.IoUtil;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -49,7 +49,7 @@ public class DmnDecisionEvaluationListenerTest extends DmnEngineTest {
     return new TestDecisionEvaluationListenerConfiguration();
   }
 
-  @Before
+  @BeforeEach
   public void initListener() {
     TestDecisionEvaluationListenerConfiguration configuration = (TestDecisionEvaluationListenerConfiguration) dmnEngine.getConfiguration();
     listener = configuration.testDecisionListener;

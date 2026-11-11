@@ -22,14 +22,14 @@ import org.cibseven.bpm.model.xml.ModelInstance;
 import org.cibseven.bpm.model.xml.instance.ModelElementInstance;
 import org.cibseven.bpm.model.xml.test.GetModelElementTypeRule;
 import org.cibseven.bpm.model.xml.type.ModelElementType;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * @author Sebastian Menski
  * @author Roman Smirnov
  */
-public class GetCmmnModelElementTypeRule extends TestWatcher implements GetModelElementTypeRule {
+public class GetCmmnModelElementTypeRule implements GetModelElementTypeRule, BeforeAllCallback {
 
   private ModelInstance modelInstance;
   private Model model;
@@ -37,8 +37,8 @@ public class GetCmmnModelElementTypeRule extends TestWatcher implements GetModel
 
   @Override
   @SuppressWarnings("unchecked")
-  protected void starting(Description description) {
-    String className = description.getClassName();
+  public void beforeAll(ExtensionContext context) throws Exception {
+    String className = context.getTestClass().get().getName();
     className =  className.replaceAll("Test", "");
     Class<? extends ModelElementInstance> instanceClass = null;
     try {
@@ -62,4 +62,5 @@ public class GetCmmnModelElementTypeRule extends TestWatcher implements GetModel
   public ModelElementType getModelElementType() {
     return modelElementType;
   }
+
 }

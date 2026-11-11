@@ -27,16 +27,16 @@ import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate.ThrowBpmnErrorDelegateException;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 
 @ScenarioUnderTest("NestedNonInterruptingEventSubprocessNestedSubprocessScenario")
 @Origin("1.1.0")
 public class NestedNonInterruptingEventSubprocessNestedSubprocessTest {
 
-  @Rule
+  @RegisterExtension
   public UpgradeTestRule rule = new UpgradeTestRule();
 
   @Test
@@ -52,7 +52,7 @@ public class NestedNonInterruptingEventSubprocessNestedSubprocessTest {
 
     // then
     Task innerSubprocessTask = rule.taskQuery().singleResult();
-    Assert.assertNotNull(innerSubprocessTask);
+    Assertions.assertNotNull(innerSubprocessTask);
     rule.getTaskService().complete(innerSubprocessTask.getId());
 
     // and
@@ -72,7 +72,7 @@ public class NestedNonInterruptingEventSubprocessNestedSubprocessTest {
 
     // then
     Task innerSubprocessTask = rule.taskQuery().singleResult();
-    Assert.assertNotNull(innerSubprocessTask);
+    Assertions.assertNotNull(innerSubprocessTask);
     rule.getTaskService().complete(innerSubprocessTask.getId());
 
     // and
@@ -80,7 +80,7 @@ public class NestedNonInterruptingEventSubprocessNestedSubprocessTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("init.3")
   public void testInitActivityInstanceTree() {
@@ -91,7 +91,7 @@ public class NestedNonInterruptingEventSubprocessNestedSubprocessTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
           .beginScope("outerSubProcess")
@@ -127,13 +127,13 @@ public class NestedNonInterruptingEventSubprocessNestedSubprocessTest {
     // and
     rule.getRuntimeService().setVariable(instance.getId(), ThrowBpmnErrorDelegate.ERROR_INDICATOR_VARIABLE, true);
     Task innerSubProcessTask = rule.taskQuery().taskDefinitionKey("innerSubProcessTask").singleResult();
-    Assert.assertNotNull(innerSubProcessTask);
+    Assertions.assertNotNull(innerSubProcessTask);
     rule.getTaskService().complete(innerSubProcessTask.getId());
 
     // then
     Task afterErrorTask = rule.taskQuery().singleResult();
-    Assert.assertNotNull(afterErrorTask);
-    Assert.assertEquals("escalatedTask", afterErrorTask.getTaskDefinitionKey());
+    Assertions.assertNotNull(afterErrorTask);
+    Assertions.assertEquals("escalatedTask", afterErrorTask.getTaskDefinitionKey());
 
     // and
     rule.getTaskService().complete(afterErrorTask.getId());
@@ -154,15 +154,15 @@ public class NestedNonInterruptingEventSubprocessNestedSubprocessTest {
     rule.getRuntimeService().setVariable(instance.getId(), ThrowBpmnErrorDelegate.EXCEPTION_INDICATOR_VARIABLE, true);
     rule.getRuntimeService().setVariable(instance.getId(), ThrowBpmnErrorDelegate.EXCEPTION_MESSAGE_VARIABLE, "unhandledException");
     Task innerSubProcessTask = rule.taskQuery().taskDefinitionKey("innerSubProcessTask").singleResult();
-    Assert.assertNotNull(innerSubProcessTask);
+    Assertions.assertNotNull(innerSubProcessTask);
 
     // then
     try {
       rule.getTaskService().complete(innerSubProcessTask.getId());
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      Assertions.fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      Assertions.assertEquals("unhandledException", e.getMessage());
     }
   }
 
@@ -197,7 +197,7 @@ public class NestedNonInterruptingEventSubprocessNestedSubprocessTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("init.innerSubProcess.3")
   public void testInitInnerSubProcessActivityInstanceTree() {
@@ -208,7 +208,7 @@ public class NestedNonInterruptingEventSubprocessNestedSubprocessTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
           .beginScope("outerSubProcess")
@@ -245,8 +245,8 @@ public class NestedNonInterruptingEventSubprocessNestedSubprocessTest {
 
     // then
     Task afterErrorTask = rule.taskQuery().singleResult();
-    Assert.assertNotNull(afterErrorTask);
-    Assert.assertEquals("escalatedTask", afterErrorTask.getTaskDefinitionKey());
+    Assertions.assertNotNull(afterErrorTask);
+    Assertions.assertEquals("escalatedTask", afterErrorTask.getTaskDefinitionKey());
 
     // and
     rule.getTaskService().complete(afterErrorTask.getId());
@@ -267,10 +267,10 @@ public class NestedNonInterruptingEventSubprocessNestedSubprocessTest {
     // then
     try {
       rule.getTaskService().complete(innerSubProcessTask.getId());
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      Assertions.fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      Assertions.assertEquals("unhandledException", e.getMessage());
     }
   }
 

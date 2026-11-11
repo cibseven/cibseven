@@ -16,12 +16,12 @@
  */
 package org.cibseven.bpm.engine.spring.test.scripttask;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = {
     "classpath:org/cibseven/bpm/engine/spring/test/scripttask/ScriptTaskNoBeansTest-applicationContext.xml" })
 public class ScriptTaskNoBeansTest extends AbstractScriptTaskTest {

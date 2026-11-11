@@ -27,26 +27,27 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Order;
+
+import org.junit.jupiter.api.Test;
+
 
 public class FeelEnableLegacyBehaviorConfigTest {
 
-  @ClassRule
-  public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
+  @RegisterExtension
+  @Order(3) public static ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(configuration ->
       configuration.setDmnFeelEnableLegacyBehavior(true));
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(7) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected DecisionService decisionService;
 
-  @Before
+  @BeforeEach
   public void setup() {
     decisionService = engineRule.getProcessEngine().getDecisionService();
   }
@@ -86,8 +87,8 @@ public class FeelEnableLegacyBehaviorConfigTest {
     assertThatThrownBy(() -> decisionService.evaluateDecisionTableByKey("c",
         Variables.putValue("cellInput", 6)).getSingleEntry())
       .hasCauseInstanceOf(FeelSyntaxException.class)
-      .extracting("cause.message")
-      .contains("FEEL-01010 Syntax error in expression 'for x in 1..3 return x * 2'");
+      .satisfies(ex -> assertThat(ex)
+    	      .hasFieldOrPropertyWithValue("cause.message", "FEEL-01010 Syntax error in expression 'for x in 1..3 return x * 2'"));
   }
 
   @Test

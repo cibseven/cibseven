@@ -17,15 +17,16 @@
 package org.cibseven.bpm.container.impl.jboss.deployment.processor;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.cibseven.bpm.application.PostDeploy;
 import org.cibseven.bpm.application.PreUndeploy;
 import org.cibseven.bpm.application.ProcessApplication;
 import org.cibseven.bpm.application.impl.JakartaServletProcessApplication;
+import org.cibseven.bpm.application.impl.ServletProcessApplication;
 import org.cibseven.bpm.container.impl.jboss.deployment.marker.ProcessApplicationAttachments;
 import org.jboss.as.ee.component.Attachments;
 import org.jboss.as.ee.component.ComponentDescription;
@@ -40,7 +41,6 @@ import org.jboss.as.server.deployment.annotation.CompositeIndex;
 import org.jboss.as.web.common.WarMetaData;
 import org.jboss.as.web.common.WebComponentDescription;
 import org.jboss.jandex.AnnotationInstance;
-import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.metadata.web.jboss.JBossWebMetaData;
@@ -101,15 +101,17 @@ public class ProcessApplicationProcessor implements DeploymentUnitProcessor {
     List<AnnotationInstance> postDeployAnnnotations = null;
     List<AnnotationInstance> preUndeployAnnnotations = null;
     Set<ClassInfo> servletProcessApplications = null;
-    Set<ClassInfo> unsupportedClasses = null;
 
     if(compositeIndex != null) {
-      // allow coexistence of Javax- and Jakarta-based servlet process applications in deployments but only consider Jakarta-based ones here
-      unsupportedClasses = compositeIndex.getAllKnownSubclasses(DotName.createSimple("org.cibseven.bpm.application.impl.ServletProcessApplication"));
-      processApplicationAnnotations = getAnnotationsFromSupportedClasses(compositeIndex, ProcessApplication.class, unsupportedClasses);
-      postDeployAnnnotations = getAnnotationsFromSupportedClasses(compositeIndex, PostDeploy.class, unsupportedClasses);
-      preUndeployAnnnotations = getAnnotationsFromSupportedClasses(compositeIndex, PreUndeploy.class, unsupportedClasses);
-      servletProcessApplications = compositeIndex.getAllKnownSubclasses(DotName.createSimple(JakartaServletProcessApplication.class.getName()));
+      processApplicationAnnotations = compositeIndex.getAnnotations(DotName.createSimple(ProcessApplication.class.getName()));
+      postDeployAnnnotations = compositeIndex.getAnnotations(DotName.createSimple(PostDeploy.class.getName()));
+      preUndeployAnnnotations = compositeIndex.getAnnotations(DotName.createSimple(PreUndeploy.class.getName()));
+      servletProcessApplications = new HashSet<>(compositeIndex.getAllKnownSubclasses(DotName.createSimple(JakartaServletProcessApplication.class.getName())));
+      // the index only covers the deployment, not the engine module, so it cannot see that the deprecated
+      // ServletProcessApplication extends JakartaServletProcessApplication: collect its subclasses explicitly
+      @SuppressWarnings("deprecation")
+      DotName deprecatedServletProcessApplication = DotName.createSimple(ServletProcessApplication.class.getName());
+      servletProcessApplications.addAll(compositeIndex.getAllKnownSubclasses(deprecatedServletProcessApplication));
     } else {
       return null;
     }
@@ -219,28 +221,6 @@ public class ProcessApplicationProcessor implements DeploymentUnitProcessor {
       }
 
       return paComponent;
-    }
-  }
-
-  protected List<AnnotationInstance> getAnnotationsFromSupportedClasses(CompositeIndex compositeIndex, Class<?> annotationClass, Set<ClassInfo> unsupportedClasses) {
-    List<AnnotationInstance> annotations = compositeIndex.getAnnotations(DotName.createSimple(annotationClass.getName()));
-    return annotations.stream()
-        .filter(annotation -> {
-          ClassInfo classInfo = getClassInfo(annotation);
-          return classInfo == null || !unsupportedClasses.contains(classInfo);
-        })
-        .collect(Collectors.toList());
-  }
-
-  protected ClassInfo getClassInfo(AnnotationInstance annotation) {
-    AnnotationTarget target = annotation.target();
-    switch (target.kind()) {
-    case METHOD:
-      return target.asMethod().declaringClass();
-    case CLASS:
-      return target.asClass();
-    default:
-      return null;
     }
   }
 

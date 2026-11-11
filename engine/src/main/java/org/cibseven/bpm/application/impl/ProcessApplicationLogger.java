@@ -95,7 +95,7 @@ public class ProcessApplicationLogger extends ProcessEngineLogger {
   public ProcessEngineException ejbPaCannotLookupSelfReference(NamingException e) {
     return new ProcessEngineException(exceptionMessage(
         "009",
-        "Cannot lookup self reference to EjbProcessApplication"), e);
+        "Cannot lookup self reference to JakartaEjbProcessApplication"), e);
   }
 
   public ProcessEngineException ejbPaCannotAutodetectName(NamingException e) {

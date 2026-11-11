@@ -17,30 +17,36 @@
 package org.cibseven.bpm.springboot.project.qa.spin;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.RuntimeService;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
+import org.cibseven.bpm.spring.boot.starter.spin.CamundaJackson3FormatConfiguratorParameterNames;
+import org.cibseven.bpm.spring.boot.starter.spin.CamundaJacksonFormatConfiguratorJSR310;
+import org.cibseven.bpm.spring.boot.starter.spin.CamundaJacksonFormatConfiguratorJdk8;
+import org.cibseven.bpm.spring.boot.starter.spin.CamundaJacksonFormatConfiguratorParameterNames;
+import org.cibseven.spin.Spin;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = { SpinApplication.class },
                 webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@SuppressWarnings("removal")
 public class SpinApplicationTestIT {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   @Autowired
   RuntimeService runtimeService;
 
   @Autowired
   HistoryService historyService;
+
+  @Autowired
+  ApplicationContext applicationContext;
 
   @Test
   public void shouldDeserializeSuccessfully() {
@@ -53,11 +59,30 @@ public class SpinApplicationTestIT {
   }
 
   @Test
-  public void shouldFailWithSpinException() {
-    // given
-    thrown.expectMessage("SPIN/JACKSON-JSON-01006 Cannot deserialize");
+  public void shouldDeserializeJavaTimeWithJackson3() {
+    // Jackson 3 supports java.time out of the box; with Jackson 2, this failed with
+    // SPIN/JACKSON-JSON-01006 unless jackson-datatype-jsr310 was registered
+    assertThatCode(() -> runtimeService.startProcessInstanceByKey("spinJava8ServiceProcess"))
+      .doesNotThrowAnyException();
+  }
 
-    // when
-    runtimeService.startProcessInstanceByKey("spinJava8ServiceProcess");
+  @Test
+  public void shouldNotRegisterJackson2Configurators() {
+    // the Jackson 2 module configurators of the starter apply only to cibseven-spin-dataformat-json-jackson2
+    assertThat(applicationContext.getBeanNamesForType(CamundaJacksonFormatConfiguratorJSR310.class)).isEmpty();
+    assertThat(applicationContext.getBeanNamesForType(CamundaJacksonFormatConfiguratorJdk8.class)).isEmpty();
+    assertThat(applicationContext.getBeanNamesForType(CamundaJacksonFormatConfiguratorParameterNames.class)).isEmpty();
+  }
+
+  @Test
+  public void shouldUseConstructorParameterNames() {
+    // the starter turns parameter names on again for Jackson 3 (Spin's Jackson 2 defaults turn them off);
+    // with Jackson 2, the ParameterNames module did this
+    assertThat(applicationContext.getBeanNamesForType(CamundaJackson3FormatConfiguratorParameterNames.class)).hasSize(1);
+
+    SpinConstructorDto dto = Spin.JSON("{\"name\":\"order\",\"amount\":3}").mapTo(SpinConstructorDto.class);
+
+    assertThat(dto.getName()).isEqualTo("order");
+    assertThat(dto.getAmount()).isEqualTo(3);
   }
 }

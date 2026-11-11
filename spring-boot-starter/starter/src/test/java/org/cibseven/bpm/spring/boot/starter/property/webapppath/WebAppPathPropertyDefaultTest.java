@@ -17,21 +17,19 @@
 package org.cibseven.bpm.spring.boot.starter.property.webapppath;
 
 import org.cibseven.bpm.spring.boot.starter.property.ParsePropertiesHelper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class WebAppPathPropertyDefaultTest extends ParsePropertiesHelper {
 
   @Test
-  public void shouldDefaultToCamundaPrefix() {
+  public void shouldDefaultToWebappPrefix() {
     // given
-
     // when
-    String applicationPath = webapp.getLegacyApplicationPath();
+    String applicationPath = webapp.getApplicationPath();
 
     // then
-    assertThat(applicationPath).isEqualTo("/camunda");
+    assertThat(applicationPath).isEqualTo("/webapp");
   }
-
 }

@@ -17,6 +17,7 @@
 package org.cibseven.bpm.client.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.client.util.ProcessModels.BPMN_ERROR_EXTERNAL_TASK_PROCESS;
 import static org.cibseven.bpm.client.util.ProcessModels.EXTERNAL_TASK_PRIORITY;
@@ -45,7 +46,7 @@ import org.cibseven.bpm.client.dto.ProcessDefinitionDto;
 import org.cibseven.bpm.client.exception.EngineException;
 import org.cibseven.bpm.client.exception.ExternalTaskClientException;
 import org.cibseven.bpm.client.exception.RestException;
-import org.cibseven.bpm.client.rule.ClientRule;
+import org.cibseven.bpm.client.rule.ClientExtension;
 import org.cibseven.bpm.client.rule.EngineRule;
 import org.cibseven.bpm.client.task.ExternalTask;
 import org.cibseven.bpm.client.topic.TopicSubscription;
@@ -56,11 +57,9 @@ import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * @author Tassilo Weidner
@@ -76,19 +75,17 @@ public class ClientIT {
     BASE_URL = engineRest + engineName;
   }
 
-  protected ClientRule clientRule = new ClientRule(() -> ExternalTaskClient.create().baseUrl(BASE_URL)); // without lock duration
+  @RegisterExtension
+  protected ClientExtension clientRule = new ClientExtension(() -> ExternalTaskClient.create().baseUrl(BASE_URL)); // without lock duration
+  @RegisterExtension
   protected EngineRule engineRule = new EngineRule();
-  protected ExpectedException thrown = ExpectedException.none();
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(clientRule).around(thrown);
 
   protected ExternalTaskClient client;
 
   protected ProcessDefinitionDto processDefinition;
   protected RecordingExternalTaskHandler handler = new RecordingExternalTaskHandler();
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     client = clientRule.client();
     handler.clear();
@@ -192,115 +189,110 @@ public class ClientIT {
 
   @Test
   public void shouldThrowExceptionDueToBaseUrlIsEmpty() {
-    ExternalTaskClient client = null;
+    final ExternalTaskClient[] client = new ExternalTaskClient[1];
 
     try {
       // given
       ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create();
-      
-      // then
-      thrown.expect(ExternalTaskClientException.class);
-      
+
       // when
-      client = externalTaskClientBuilder.build();
+      assertThatExceptionOfType(ExternalTaskClientException.class).isThrownBy(() ->
+      client[0] = externalTaskClientBuilder.build()
+      );
     }
     finally {
-      if (client != null) {
-        client.stop();
+      if (client[0] != null) {
+          client[0].stop();
+        }
       }
-    }
   }
 
   @Test
   public void shouldThrowExceptionDueToBaseUrlIsNull() {
-    ExternalTaskClient client = null;
+	    final ExternalTaskClient[] client = new ExternalTaskClient[1];
 
     try {
       // given
       ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create();
       
-      // then
-      thrown.expect(ExternalTaskClientException.class);
-      
       // when
-      client = externalTaskClientBuilder
-          .baseUrl(null)
-          .build();
+      assertThatExceptionOfType(ExternalTaskClientException.class).isThrownBy(() ->
+	      client[0] = externalTaskClientBuilder
+	          .baseUrl(null)
+	          .build()
+	      );
     }
     finally {
-      if (client != null) {
-        client.stop();
+      if (client[0] != null) {
+        client[0].stop();
       }
     }
   }
 
   @Test
   public void shouldThrowExceptionDueToBaseUrlResolverIsNull() {
-    ExternalTaskClient client = null;
+    final ExternalTaskClient[] client = new ExternalTaskClient[1];
 
     try {
       // given
       ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create();
 
-      // then
-      thrown.expect(ExternalTaskClientException.class);
-
       // when
-      client = externalTaskClientBuilder
+      assertThatExceptionOfType(ExternalTaskClientException.class).isThrownBy(() ->
+      client[0] = externalTaskClientBuilder
           .urlResolver(null)
-          .build();
+          .build()
+      );
     }
     finally {
-      if (client != null) {
-        client.stop();
+      if (client[0] != null) {
+        client[0].stop();
       }
     }
   }
 
   @Test
   public void shouldThrowExceptionDueToBaseUrlAndBaseUrlResolverIsNull() {
-    ExternalTaskClient client = null;
+    final ExternalTaskClient[] client = new ExternalTaskClient[1];
 
     try {
       // given
       ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create();
 
-      // then
-      thrown.expect(ExternalTaskClientException.class);
-
       // when
-      client = externalTaskClientBuilder
-          .baseUrl(null)
-          .urlResolver(null)
-          .build();
+      assertThatExceptionOfType(ExternalTaskClientException.class).isThrownBy(() ->
+	      client[0] = externalTaskClientBuilder
+	          .baseUrl(null)
+	          .urlResolver(null)
+	          .build()
+	  );
     }
     finally {
-      if (client != null) {
-        client.stop();
+      if (client[0] != null) {
+        client[0].stop();
       }
     }
   }
 
   @Test
   public void shouldThrowExceptionDueToMaxTasksNotGreaterThanZero() {
-    ExternalTaskClient client = null;
+    final ExternalTaskClient[] client = new ExternalTaskClient[1];
 
     try {
       // given
       ExternalTaskClientBuilder externalTaskClientBuilder = ExternalTaskClient.create()
           .baseUrl("http://camunda.com/engine-rest");
-      
-      // then
-      thrown.expect(ExternalTaskClientException.class);
-      
+
       // when
-      client = externalTaskClientBuilder
-          .maxTasks(0)
-          .build();
+      assertThatExceptionOfType(ExternalTaskClientException.class).isThrownBy(() ->
+	      client[0] =  externalTaskClientBuilder
+	          .maxTasks(0)
+	          .build()
+      );
     }
     finally {
-      if (client != null) {
-        client.stop();
+      if (client[0] != null) {
+        client[0].stop();
       }
     }
   }
@@ -310,31 +302,25 @@ public class ClientIT {
     // given
     engineRule.startProcessInstance(processDefinition.getId());
 
-    ClientRule clientRule = new ClientRule(() -> ExternalTaskClient.create()
+    ClientExtension clientRule = new ClientExtension(() -> ExternalTaskClient.create()
       .baseUrl(BASE_URL)
       .workerId("aWorkerId"));
 
-    try {
-      clientRule.before();
-
-      // when
-      clientRule.client().subscribe(EXTERNAL_TASK_TOPIC_FOO)
-        .handler(handler)
-        .open();
-
-      // then
-      clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
-    } finally {
-      clientRule.after();
-    }
-
+    // when
+    clientRule.client().subscribe(EXTERNAL_TASK_TOPIC_FOO)
+      .handler(handler)
+      .open();
+  
+    // then
+    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
+  
     ExternalTask task = handler.getHandledTasks().get(0);
     assertThat(task.getWorkerId()).isEqualTo("aWorkerId");
   }
 
   @Test
   public void shouldThrowExceptionDueToAsyncResponseTimeoutNotGreaterThanZero() {
-    ExternalTaskClient client = null;
+    final ExternalTaskClient[] client = new ExternalTaskClient[1];
 
     try {
       // given
@@ -343,14 +329,15 @@ public class ClientIT {
           .asyncResponseTimeout(0);
       
       // then
-      thrown.expect(ExternalTaskClientException.class);
-      
-      // when
-      client = clientBuilder.build();
+      assertThatExceptionOfType(ExternalTaskClientException.class).isThrownBy(() -> {
+	      
+	      // when
+	      client[0] =  clientBuilder.build();
+      });
     }
     finally {
-      if (client != null) {
-        client.stop();
+      if (client[0] != null) {
+        client[0].stop();
       }
     }
   }
@@ -380,25 +367,19 @@ public class ClientIT {
     // given
     engineRule.startProcessInstance(processDefinition.getId());
 
-    ClientRule clientRule = new ClientRule(() -> ExternalTaskClient.create()
+    ClientExtension clientRule = new ClientExtension(() -> ExternalTaskClient.create()
       .baseUrl(BASE_URL)
       .lockDuration(1000 * 60 * 30));
 
     TopicSubscription topicSubscription = null;
-    try {
-      clientRule.before();
-
-      // when
-      topicSubscription = clientRule.client().subscribe(EXTERNAL_TASK_TOPIC_FOO)
-        .handler(handler)
-        .open();
-
-      // then
-      clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
-    } finally {
-      clientRule.after();
-    }
-
+    // when
+    topicSubscription = clientRule.client().subscribe(EXTERNAL_TASK_TOPIC_FOO)
+      .handler(handler)
+      .open();
+  
+    // then
+    clientRule.waitForFetchAndLockUntil(() -> !handler.getHandledTasks().isEmpty());
+  
     assertThat(topicSubscription.getLockDuration()).isNull();
 
     // not the most reliable way to test it
@@ -408,7 +389,7 @@ public class ClientIT {
 
   @Test
   public void shouldThrowExceptionDueToClientLockDurationNotGreaterThanZero() {
-    ExternalTaskClient client = null;
+    final ExternalTaskClient[] client = new ExternalTaskClient[1];
 
     try {
       // given
@@ -417,21 +398,22 @@ public class ClientIT {
           .lockDuration(0);
       
       // then
-      thrown.expect(ExternalTaskClientException.class);
-      
-      // when
-      client = externalTaskClientBuilder.build();
+      assertThatExceptionOfType(ExternalTaskClientException.class).isThrownBy(() -> {
+	      
+	      // when
+	      client[0] =  externalTaskClientBuilder.build();
+	  });
     }
     finally {
-      if (client != null) {
-        client.stop();
+      if (client[0] != null) {
+        client[0].stop();
       }
     }
   }
 
   @Test
   public void shouldThrowExceptionDueToInterceptorIsNull() {
-    ExternalTaskClient client = null;
+    final ExternalTaskClient[] client = new ExternalTaskClient[1];
 
     try {
       // given
@@ -440,14 +422,15 @@ public class ClientIT {
         .addInterceptor(null);
 
       // then
-      thrown.expect(ExternalTaskClientException.class);
-
-      // when
-      client = externalTaskClientBuilder.build();
+      assertThatExceptionOfType(ExternalTaskClientException.class).isThrownBy(() -> {
+	
+	      // when
+	      client[0] =  externalTaskClientBuilder.build();
+	  });
     }
     finally {
-      if (client != null) {
-        client.stop();
+      if (client[0] != null) {
+        client[0].stop();
       }
     }
   }
@@ -463,23 +446,17 @@ public class ClientIT {
       }
     };
 
-    ClientRule clientRule = new ClientRule(() -> ExternalTaskClient.create()
+    ClientExtension clientRule = new ClientExtension(() -> ExternalTaskClient.create()
       .baseUrl(BASE_URL)
       .backoffStrategy(backOffStrategy));
 
-    try {
-      clientRule.before();
+    // when
+    clientRule.client().subscribe(EXTERNAL_TASK_TOPIC_FOO)
+      .handler(handler)
+      .open();
 
-      // when
-      clientRule.client().subscribe(EXTERNAL_TASK_TOPIC_FOO)
-        .handler(handler)
-        .open();
-
-      // then
-      clientRule.waitForFetchAndLockUntil(isBackoffPerformed::get);
-    } finally {
-      clientRule.after();
-    }
+    // then
+    clientRule.waitForFetchAndLockUntil(isBackoffPerformed::get);
 
     assertThat(isBackoffPerformed.get()).isTrue();
   }
@@ -495,25 +472,19 @@ public class ClientIT {
       }
     };
 
-    ClientRule clientRule = new ClientRule(() -> ExternalTaskClient.create()
+    ClientExtension clientRule = new ClientExtension(() -> ExternalTaskClient.create()
       .baseUrl(BASE_URL)
       .backoffStrategy(backOffStrategy));
 
-    try {
-      clientRule.before();
+    // when
+    clientRule.client().subscribe(EXTERNAL_TASK_TOPIC_FOO)
+      .handler(handler)
+      .open();
 
-      // when
-      clientRule.client().subscribe(EXTERNAL_TASK_TOPIC_FOO)
-        .handler(handler)
-        .open();
+    engineRule.startProcessInstance(processDefinition.getId());
 
-      engineRule.startProcessInstance(processDefinition.getId());
-
-      // then
-      clientRule.waitForFetchAndLockUntil(isBackoffReset::get);
-    } finally {
-      clientRule.after();
-    }
+    // then
+    clientRule.waitForFetchAndLockUntil(isBackoffReset::get);
 
     // then
     assertThat(isBackoffReset.get()).isTrue();
@@ -530,31 +501,25 @@ public class ClientIT {
       }
     };
 
-    ClientRule clientRule = new ClientRule(() -> ExternalTaskClient.create()
+    ClientExtension clientRule = new ClientExtension(() -> ExternalTaskClient.create()
       .baseUrl(BASE_URL)
       .disableBackoffStrategy()
       .backoffStrategy(backoffStrategy));
 
-    try {
-      clientRule.before();
+    clientRule.client().subscribe(EXTERNAL_TASK_TOPIC_FOO)
+      .handler(handler)
+      .open();
 
-      clientRule.client().subscribe(EXTERNAL_TASK_TOPIC_FOO)
-        .handler(handler)
-        .open();
+    engineRule.startProcessInstance(processDefinition.getId());
 
-      engineRule.startProcessInstance(processDefinition.getId());
+    // At this point TopicSubscriptionManager#acquire might not have been executed completely
+    clientRule.waitForFetchAndLockUntil(() -> handler.getHandledTasks().size() == 1);
 
-      // At this point TopicSubscriptionManager#acquire might not have been executed completely
-      clientRule.waitForFetchAndLockUntil(() -> handler.getHandledTasks().size() == 1);
+    engineRule.startProcessInstance(processDefinition.getId());
 
-      engineRule.startProcessInstance(processDefinition.getId());
-
-      // when
-      // At this point TopicSubscriptionManager#acquire have been executed completely at least once
-      clientRule.waitForFetchAndLockUntil(() -> handler.getHandledTasks().size() == 2);
-    } finally {
-      clientRule.after();
-    }
+    // when
+    // At this point TopicSubscriptionManager#acquire have been executed completely at least once
+    clientRule.waitForFetchAndLockUntil(() -> handler.getHandledTasks().size() == 2);
 
     // then
     assertThat(isBackoffStrategyIgnored.get()).isTrue();

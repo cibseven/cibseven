@@ -23,14 +23,14 @@ import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class SyncApiUserOperationLogLimitConfigurationTest {
 
   ProcessEngine engine;
 
-  @After
+  @AfterEach
   public void tearDown() {
     if(engine != null) {
       engine.close();

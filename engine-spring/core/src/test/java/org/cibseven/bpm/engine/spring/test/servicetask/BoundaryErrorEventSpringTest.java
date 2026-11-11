@@ -16,10 +16,12 @@
  */
 package org.cibseven.bpm.engine.spring.test.servicetask;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.cibseven.bpm.engine.spring.test.SpringProcessEngineTestCase;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.springframework.test.context.ContextConfiguration;
+import org.junit.jupiter.api.Test;
 
 /**
  * @see http://jira.codehaus.org/browse/ACT-1166
@@ -30,6 +32,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class BoundaryErrorEventSpringTest extends SpringProcessEngineTestCase {
 
   @Deployment
+  @Test
   public void testCatchErrorThrownByJavaDelegateOnServiceTask() {
     String procId = runtimeService.startProcessInstanceByKey("catchErrorThrownByExpressionDelegateOnServiceTask").getId();
     assertThatErrorHasBeenCaught(procId);
@@ -38,7 +41,7 @@ public class BoundaryErrorEventSpringTest extends SpringProcessEngineTestCase {
   private void assertThatErrorHasBeenCaught(String procId) {
     // The service task will throw an error event,
     // which is caught on the service task boundary
-    assertEquals("No tasks found in task list.", 1, taskService.createTaskQuery().count());
+    assertEquals(1, taskService.createTaskQuery().count(), "No tasks found in task list.");
     Task task = taskService.createTaskQuery().singleResult();
     assertEquals("Escalated Task", task.getName());
 

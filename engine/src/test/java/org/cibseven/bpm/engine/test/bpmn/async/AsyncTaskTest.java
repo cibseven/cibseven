@@ -18,12 +18,12 @@ package org.cibseven.bpm.engine.test.bpmn.async;
 
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.assertThat;
 import static org.cibseven.bpm.engine.test.util.ActivityInstanceAssert.describeActivityInstanceTree;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -45,8 +45,8 @@ import org.cibseven.bpm.engine.test.bpmn.executionlistener.RecorderExecutionList
 import org.cibseven.bpm.engine.test.bpmn.executionlistener.RecorderExecutionListener.RecordedEvent;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.engine.variable.Variables;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -347,7 +347,7 @@ public class AsyncTaskTest extends PluggableProcessEngineTest {
 
   // TODO: Think about this:
   @Deployment
-  @Ignore
+  @Disabled
   @Test
   public void testFailingAsyncServiceTimerWithMessageJob() {
     // start process
@@ -861,7 +861,7 @@ public class AsyncTaskTest extends PluggableProcessEngineTest {
   }
 
   @Deployment
-  @Ignore
+  @Disabled
   @Test
   public void testLongProcessDefinitionKey() {
     String key = "myrealrealrealrealrealrealrealrealrealrealreallongprocessdefinitionkeyawesome";

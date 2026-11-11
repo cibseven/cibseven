@@ -1,0 +1,18 @@
+<!--
+  ~ WildFly ships its own com.github.ben-manes.caffeine module (for Infinispan),
+  ~ but it is declared jboss.api=private and its version is tied to the WildFly
+  ~ release. We therefore ship the caffeine version the engine plugins are built
+  ~ against in a dedicated slot, so that we neither depend on a private module
+  ~ nor shadow the one the container uses internally.
+  -->
+<module xmlns="urn:jboss:module:1.1" name="com.github.ben-manes.caffeine" slot="cibseven">
+  <resources>
+    <resource-root path="caffeine-@version.caffeine@.jar" />
+  </resources>
+
+  <dependencies>
+    <module name="java.base" />
+    <module name="java.logging" />
+    <module name="jdk.unsupported" />
+  </dependencies>
+</module>

@@ -29,16 +29,16 @@ import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate;
 import org.cibseven.bpm.qa.upgrade.util.ThrowBpmnErrorDelegate.ThrowBpmnErrorDelegateException;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 
 @ScenarioUnderTest("ParallelMultiInstanceSubprocessScenario")
 @Origin("1.1.0")
 public class ParallelMultiInstanceScenarioTest {
 
-  @Rule
+  @RegisterExtension
   public UpgradeTestRule rule = new UpgradeTestRule();
 
   @Test
@@ -97,7 +97,7 @@ public class ParallelMultiInstanceScenarioTest {
   }
 
   // TODO: update the expected structure for CIB seven migration and enable the test 
-  @Ignore("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
+  @Disabled("The structure is not as expected: migration from Camunda 7.2.0 and migration from CIB seven 1.1.0 engine")
   @Test
   @ScenarioUnderTest("initNonInterruptingBoundaryEvent.4")
   public void testInitNonInterruptingBoundaryEventActivityInstanceTree() {
@@ -108,7 +108,7 @@ public class ParallelMultiInstanceScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
         describeActivityInstanceTree(instance.getProcessDefinitionId())
           .activity("afterBoundaryTask")
@@ -150,10 +150,10 @@ public class ParallelMultiInstanceScenarioTest {
     rule.getTaskService().complete(miSubprocessTask.getId());
 
     // then
-    Assert.assertEquals(2, rule.taskQuery().count());
+    Assertions.assertEquals(2, rule.taskQuery().count());
 
     Task escalatedTask = rule.taskQuery().taskDefinitionKey("escalatedTask").singleResult();
-    Assert.assertNotNull(escalatedTask);
+    Assertions.assertNotNull(escalatedTask);
 
     // and
     rule.getTaskService().complete(escalatedTask.getId());
@@ -175,10 +175,10 @@ public class ParallelMultiInstanceScenarioTest {
     // then
     try {
       rule.getTaskService().complete(miSubprocessTask.getId());
-      Assert.fail("should throw a ThrowBpmnErrorDelegateException");
+      Assertions.fail("should throw a ThrowBpmnErrorDelegateException");
 
     } catch (ThrowBpmnErrorDelegateException e) {
-      Assert.assertEquals("unhandledException", e.getMessage());
+      Assertions.assertEquals("unhandledException", e.getMessage());
     }
   }
 

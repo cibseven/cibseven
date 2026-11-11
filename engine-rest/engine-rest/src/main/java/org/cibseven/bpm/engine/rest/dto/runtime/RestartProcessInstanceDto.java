@@ -23,7 +23,7 @@ import org.cibseven.bpm.engine.rest.dto.history.HistoricProcessInstanceQueryDto;
 import org.cibseven.bpm.engine.rest.dto.runtime.modification.ProcessInstanceModificationInstructionDto;
 import org.cibseven.bpm.engine.runtime.RestartProcessInstanceBuilder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * 

@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.test.api.authorization;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,8 +34,8 @@ import org.cibseven.bpm.engine.management.SchemaLogEntry;
 import org.cibseven.bpm.engine.management.TableMetaData;
 import org.cibseven.bpm.engine.management.TablePage;
 import org.cibseven.bpm.engine.telemetry.TelemetryData;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -51,7 +51,7 @@ public class ManagementAuthorizationTest extends AuthorizationTest {
   private static final String LICENSE_KEY = "{\"customer\":\"testCompany\"}";
 
   @Override
-  @After
+  @AfterEach
   public void tearDown() {
     super.tearDown();
     managementService.deleteProperty(DUMMY_PROPERTY);

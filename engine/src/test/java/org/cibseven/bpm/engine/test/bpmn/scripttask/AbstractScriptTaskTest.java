@@ -16,8 +16,6 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.scripttask;
 
-import static org.junit.Assert.fail;
-
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,13 +23,15 @@ import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
+
+import static org.junit.jupiter.api.Assertions.fail;
 
 public abstract class AbstractScriptTaskTest extends PluggableProcessEngineTest {
 
   private List<String> deploymentIds = new ArrayList<>();
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     deploymentIds.forEach(deploymentId -> repositoryService.deleteDeployment(deploymentId, true));
   }

@@ -18,12 +18,14 @@ package org.cibseven.bpm.dmn.engine.test;
 
 import org.cibseven.bpm.dmn.engine.DmnEngine;
 import org.cibseven.bpm.dmn.engine.DmnEngineConfiguration;
-import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
 
 /**
- * JUnit rule for {@link DmnEngine} initialization.
+ * Test helper for {@link DmnEngine} initialization.
+ * <p>
+ * This is a plain object, not a JUnit rule or extension: the DMN engine is built
+ * in the constructor, so a field is enough and no {@code @Rule} or
+ * {@code @RegisterExtension} annotation is needed.
+ * </p>
  * <p>
  * Usage:
  * </p>
@@ -31,10 +33,16 @@ import org.junit.runner.Description;
  * <pre>
  * public class YourDmnTest {
  *
- *   &#64;Rule
- *   public DmnEngineRule dmnEngineRule = new DmnEngineRule();
+ *   protected DmnEngineRule dmnEngineRule = new DmnEngineRule();
  *
- *   ...
+ *   // or with a custom configuration
+ *   protected DmnEngineRule customDmnEngineRule = new DmnEngineRule(yourDmnEngineConfiguration);
+ *
+ *   &#64;Test
+ *   public void shouldEvaluateDecision() {
+ *     DmnEngine dmnEngine = dmnEngineRule.getDmnEngine();
+ *     ...
+ *   }
  * }
  * </pre>
  *
@@ -46,7 +54,7 @@ import org.junit.runner.Description;
  * {@link #DmnEngineRule(DmnEngineConfiguration)} constructor.
  * </p>
  */
-public class DmnEngineRule extends TestWatcher {
+public class DmnEngineRule {
 
   protected DmnEngine dmnEngine;
   protected DmnEngineConfiguration dmnEngineConfiguration;
@@ -68,6 +76,8 @@ public class DmnEngineRule extends TestWatcher {
     else {
       this.dmnEngineConfiguration = DmnEngineConfiguration.createDefaultDmnEngineConfiguration();
     }
+    // Initialize dmnEngine directly for JUnit 5
+    this.dmnEngine = this.dmnEngineConfiguration.buildEngine();
   }
 
   /**
@@ -75,13 +85,6 @@ public class DmnEngineRule extends TestWatcher {
    */
   public DmnEngine getDmnEngine() {
     return dmnEngine;
-  }
-
-  @Override
-  protected void starting(Description description) {
-    if (dmnEngine == null) {
-      dmnEngine = dmnEngineConfiguration.buildEngine();
-    }
   }
 
 }

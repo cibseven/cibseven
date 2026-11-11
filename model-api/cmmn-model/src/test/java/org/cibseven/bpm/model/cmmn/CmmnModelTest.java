@@ -17,8 +17,9 @@
 package org.cibseven.bpm.model.cmmn;
 
 import org.cibseven.bpm.model.cmmn.util.ParseCmmnModelRule;
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 /**
  * @author Roman Smirnov
@@ -26,12 +27,12 @@ import org.junit.Rule;
  */
 public abstract class CmmnModelTest {
 
-  @Rule
+  @RegisterExtension
   public final ParseCmmnModelRule parseCmmnModelRule = new ParseCmmnModelRule();
 
   protected CmmnModelInstance cmmnModelInstance;
 
-  @Before
+  @BeforeEach
   public void setup() {
     cmmnModelInstance = parseCmmnModelRule.getCmmnModel();
   }

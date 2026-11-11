@@ -16,7 +16,7 @@
  */
 package org.cibseven.bpm.engine.rest.sub.identity.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.impl.identity.Authentication;
@@ -27,10 +27,10 @@ import org.cibseven.bpm.engine.rest.dto.identity.UserProfileDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.sub.identity.UserResource;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.List;
 

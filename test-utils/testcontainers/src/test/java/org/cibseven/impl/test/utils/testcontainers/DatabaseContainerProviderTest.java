@@ -24,54 +24,34 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.stream.Stream;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.Arguments;
 
 /**
  * This test should not be run on our CI, as it requires a Docker-in-Docker image to run successfully.
  */
-@Ignore
-@RunWith(Parameterized.class)
+@Disabled
 public class DatabaseContainerProviderTest {
 
-
-  @Parameterized.Parameter(0)
-  public String jdbcUrl;
-  @Parameterized.Parameter(1)
-  public String versionStatement;
-  @Parameterized.Parameter(2)
-  public String dbVersion;
-
-  @Parameterized.Parameters(name = "Job DueDate is set: {0}")
-  public static Collection<Object[]> scenarios() throws ParseException {
-    return Arrays.asList(new Object[][] {
-      // The Camunda PostgreSQL 13.2 image is compatible with Testcontainers.
-      // For older versions, please use the public Docker images (DockerHub repo: postgres).
-      { "jdbc:tc:campostgresql:13.2:///process-engine", "SELECT version();", "13.2" },
-      // The current Camunda MariaDB images are compatible with Testcontainers.
-      // The username and password need to be explicitly declared.
-      { "jdbc:tc:cammariadb:10.0://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "10.0" },
-      // The current Camunda MySQL images are compatible with Testcontainers.
-      // The username and password need to be explicitly declared.
-      { "jdbc:tc:cammysql:5.7://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "5.7" },
-      { "jdbc:tc:cammysql:8.0://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "8.0" },
-      // The current Camunda SqlServer 2017/2019 images are compatible with Testcontainers.
-      { "jdbc:tc:camsqlserver:2017:///process-engine", "SELECT @@VERSION", "2017" },
-      { "jdbc:tc:camsqlserver:2019:///process-engine", "SELECT @@VERSION", "2019" },
-      // The current Camunda DB2 images are not compatible with Testcontainers.
-//      { "jdbc:tc:camdb2:11.1:///engine?user=camunda&password=camunda", "SELECT * FROM SYSIBMADM.ENV_INST_INFO;", "11.1"},
-      // The current Camunda Oracle images are not compatible with Testcontainers.
-//      { "jdbc:tc:camoracle:thin:@localhost:1521:xe?user=camunda&password=camunda", "SELECT * FROM v$version;", "18" }
-    });
+  static Stream<Arguments> scenarios() throws ParseException {
+    return Stream.of(
+      Arguments.of("jdbc:tc:campostgresql:13.2:///process-engine", "SELECT version();", "13.2"),
+      Arguments.of("jdbc:tc:cammariadb:10.0://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "10.0"),
+      Arguments.of("jdbc:tc:cammysql:5.7://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "5.7"),
+      Arguments.of("jdbc:tc:cammysql:8.0://localhost:3306/process-engine?user=camunda&password=camunda", "SELECT version();", "8.0"),
+      Arguments.of("jdbc:tc:camsqlserver:2017:///process-engine", "SELECT @@VERSION", "2017"),
+      Arguments.of("jdbc:tc:camsqlserver:2019:///process-engine", "SELECT @@VERSION", "2019")
+      // DB2 and Oracle commented out as before
+    );
   }
 
-  @Test
-  public void testJdbcTestcontainersUrl() {
+  @ParameterizedTest(name = "Job DueDate is set: {0}")
+  @MethodSource("scenarios")
+  void testJdbcTestcontainersUrl(String jdbcUrl, String versionStatement, String dbVersion) {
     // when
     try (Connection connection = DriverManager.getConnection(jdbcUrl)) {
       connection.setAutoCommit(false);

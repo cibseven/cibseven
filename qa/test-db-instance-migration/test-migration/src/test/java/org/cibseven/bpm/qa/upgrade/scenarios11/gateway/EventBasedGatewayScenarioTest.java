@@ -26,9 +26,9 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.qa.upgrade.Origin;
 import org.cibseven.bpm.qa.upgrade.ScenarioUnderTest;
 import org.cibseven.bpm.qa.upgrade.UpgradeTestRule;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -38,7 +38,7 @@ import org.junit.Test;
 @Origin("1.1.0")
 public class EventBasedGatewayScenarioTest {
 
-  @Rule
+  @RegisterExtension
   public UpgradeTestRule rule = new UpgradeTestRule();
 
   @Test
@@ -51,7 +51,7 @@ public class EventBasedGatewayScenarioTest {
     ActivityInstance activityInstance = rule.getRuntimeService().getActivityInstance(instance.getId());
 
     // then
-    Assert.assertNotNull(activityInstance);
+    Assertions.assertNotNull(activityInstance);
     assertThat(activityInstance).hasStructure(
       describeActivityInstanceTree(instance.getProcessDefinitionId())
         .activity("gateway")
@@ -69,8 +69,8 @@ public class EventBasedGatewayScenarioTest {
 
     // then the follow-up task is reached and can be completed
     Task task1 = rule.taskQuery().singleResult();
-    Assert.assertNotNull(task1);
-    Assert.assertEquals("task1", task1.getTaskDefinitionKey());
+    Assertions.assertNotNull(task1);
+    Assertions.assertEquals("task1", task1.getTaskDefinitionKey());
 
     rule.getTaskService().complete(task1.getId());
 

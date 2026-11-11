@@ -20,11 +20,11 @@ import org.cibseven.bpm.engine.cdi.BusinessProcess;
 import org.cibseven.bpm.engine.delegate.DelegateTask;
 import org.cibseven.bpm.engine.delegate.TaskListener;
 
-import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author Sebastian Menski

@@ -17,6 +17,7 @@
 package org.cibseven.bpm.client.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -26,7 +27,7 @@ import org.apache.hc.core5.util.Timeout;
 import org.cibseven.bpm.client.ExternalTaskClient;
 import org.cibseven.bpm.client.UrlResolver;
 import org.cibseven.bpm.engine.impl.util.ReflectUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 public class ExternalTaskClientBuilderImplTest {
@@ -101,4 +102,35 @@ public class ExternalTaskClientBuilderImplTest {
     assertThat(builder.urlResolver).isNotNull();
   }
 
+  @Test
+  public void testRestMapperKeepsTheNestingDepthOfJackson2() throws Exception {
+    // given: the REST mapper of the client (Jackson 3 alone would stop at 500 levels); no Jackson
+    // imports, so the test also runs in cibseven-external-task-client-jackson2, which shares it
+    var clientBuilder = new ExternalTaskClientBuilderImpl();
+    clientBuilder.initObjectMapper();
+    var objectMapper = clientBuilder.getObjectMapper();
+    String deepJson = "[".repeat(700) + "]".repeat(700);
+
+    // when
+    var node = objectMapper.readTree(deepJson);
+
+    // then
+    assertThat(node.isArray()).isTrue();
+    assertThat(objectMapper.writeValueAsString(node)).isEqualTo(deepJson);
+  }
+
+  @Test
+  public void testRestMapperKeepsTheReadLimitsOfJackson2() {
+    // given: the REST mapper of the client; Jackson 3 alone accepts strings of up to 100 million characters
+    // and stops at 500 levels. No Jackson imports, see above
+    var clientBuilder = new ExternalTaskClientBuilderImpl();
+    clientBuilder.initObjectMapper();
+    var objectMapper = clientBuilder.getObjectMapper();
+    String longString = "\"" + "a".repeat(20_000_001) + "\"";
+    String depth1001 = "[".repeat(1001) + "]".repeat(1001);
+
+    // when / then
+    assertThatThrownBy(() -> objectMapper.readTree(longString)).hasStackTraceContaining("20000000");
+    assertThatThrownBy(() -> objectMapper.readTree(depth1001)).hasStackTraceContaining("maximum allowed (1000");
+  }
 }

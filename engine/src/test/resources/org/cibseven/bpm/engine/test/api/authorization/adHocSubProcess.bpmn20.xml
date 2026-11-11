@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             targetNamespace="http://cibseven.org/authorization">
+
+  <process id="adHocAuthProcess" isExecutable="true">
+
+    <startEvent id="start" />
+    <sequenceFlow id="toAdHoc" sourceRef="start" targetRef="adHoc" />
+
+    <adHocSubProcess id="adHoc">
+      <userTask id="taskA" name="Task A" />
+      <userTask id="taskB" name="Task B" />
+    </adHocSubProcess>
+
+    <sequenceFlow id="toEnd" sourceRef="adHoc" targetRef="end" />
+    <endEvent id="end" />
+
+  </process>
+</definitions>

@@ -24,15 +24,15 @@ import org.cibseven.bpm.engine.history.HistoricCaseInstance;
 import org.cibseven.bpm.engine.impl.HistoricCaseInstanceQueryImpl;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_AUDIT)
 public class HistoricCaseInstanceQueryVariableIgnoreCaseTest extends AbstractVariableIgnoreCaseTest<HistoricCaseInstanceQueryImpl, HistoricCaseInstance> {
 
   RepositoryService repositoryService;
 
-  @Before
+  @BeforeEach
   public void init() {
     repositoryService = engineRule.getRepositoryService();
 
@@ -41,7 +41,7 @@ public class HistoricCaseInstanceQueryVariableIgnoreCaseTest extends AbstractVar
     instance = engineRule.getHistoryService().createHistoricCaseInstanceQuery().singleResult();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     for (Deployment deployment : repositoryService.createDeploymentQuery().list()) {
       repositoryService.deleteDeployment(deployment.getId(), true);

@@ -16,8 +16,9 @@
  */
 package org.cibseven.bpm.dmn.engine.impl.el;
 
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
+import jakarta.el.ExpressionFactory;
 
 import org.cibseven.bpm.engine.variable.context.VariableContext;
 
@@ -30,13 +31,27 @@ import org.cibseven.bpm.impl.juel.SimpleContext;
 public class JuelElContextFactory {
 
   protected final ELResolver resolver;
+  protected final ExpressionFactory expressionFactory;
 
   public JuelElContextFactory(ELResolver resolver) {
+    this(resolver, null);
+  }
+
+  /**
+   * @param expressionFactory the factory that is put into every context, so that
+   *          {@link ELContext#convertToType(Object, Class)} converts with JUEL instead of
+   *          the global {@link jakarta.el.ELManager} (CIB7-2609); may be {@code null}
+   */
+  public JuelElContextFactory(ELResolver resolver, ExpressionFactory expressionFactory) {
     this.resolver = resolver;
+    this.expressionFactory = expressionFactory;
   }
 
   public ELContext createElContext(VariableContext variableContext) {
     SimpleContext elContext = new SimpleContext(resolver);
+    if (expressionFactory != null) {
+      elContext.putContext(ExpressionFactory.class, expressionFactory);
+    }
     elContext.putContext(VariableContext.class, variableContext);
     return elContext;
   }

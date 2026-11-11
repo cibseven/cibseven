@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getDecisionStatistics"
       tag = "Historic Decision Requirements Definition"
-      summary = "Get DRD Statistics"
+      summary = "Get Historic Decision Requirements Definition Statistics"
       desc = "Retrieves evaluation statistics of a given decision requirements definition."
   />
 

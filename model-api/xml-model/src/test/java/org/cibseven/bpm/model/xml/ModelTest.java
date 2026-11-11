@@ -19,8 +19,8 @@ package org.cibseven.bpm.model.xml;
 import org.cibseven.bpm.model.xml.testmodel.TestModel;
 import org.cibseven.bpm.model.xml.testmodel.instance.*;
 import org.cibseven.bpm.model.xml.type.ModelElementType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 
@@ -34,7 +34,7 @@ public class ModelTest {
 
   private Model model;
 
-  @Before
+  @BeforeEach
   public void createModel() {
     model = TestModel.getTestModel();
   }

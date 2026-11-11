@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.integrationtest.functional.ejb.local.bean;
 
-import javax.ejb.Local;
-import javax.ejb.Stateless;
+import jakarta.ejb.Local;
+import jakarta.ejb.Stateless;
 
 /**
  * A SLSB with a local business interface 

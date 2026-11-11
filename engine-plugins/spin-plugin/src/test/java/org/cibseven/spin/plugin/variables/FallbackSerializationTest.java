@@ -16,15 +16,17 @@
  */
 package org.cibseven.spin.plugin.variables;
 
+import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import org.cibseven.bpm.engine.ProcessEngineException;
-import org.cibseven.bpm.engine.impl.test.PluggableProcessEngineTestCase;
-import org.cibseven.bpm.engine.impl.variable.serializer.VariableSerializerFactory;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
-import org.cibseven.bpm.engine.variable.value.TypedValue;
-import org.junit.Test;
+import org.cibseven.bpm.engine.impl.test.PluggableProcessEngineTestCase;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -35,6 +37,7 @@ public class FallbackSerializationTest extends PluggableProcessEngineTestCase {
   protected static final String ONE_TASK_PROCESS = "org/cibseven/spin/plugin/oneTaskProcess.bpmn20.xml";
 
   @Deployment(resources = ONE_TASK_PROCESS)
+  @Test
   public void testSerializationOfUnknownFormat() {
     // given
     ProcessInstance instance = runtimeService.startProcessInstanceByKey("oneTaskProcess");

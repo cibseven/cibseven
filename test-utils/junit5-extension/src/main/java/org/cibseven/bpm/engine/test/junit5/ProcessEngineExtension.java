@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.test.junit5;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -46,7 +47,9 @@ import org.cibseven.bpm.engine.impl.test.TestHelper;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
@@ -56,6 +59,10 @@ import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.jupiter.api.extension.TestInstancePostProcessor;
 import org.junit.jupiter.api.extension.TestWatcher;
+import org.junit.platform.commons.support.AnnotationSupport;
+import org.junit.platform.commons.support.HierarchyTraversalMode;
+import org.junit.platform.commons.support.ReflectionSupport;
+import org.opentest4j.TestAbortedException;
 import org.slf4j.Logger;
 
 /**
@@ -104,6 +111,15 @@ import org.slf4j.Logger;
  * {@link RequiredHistoryLevel} annotation. If the current history level of the
  * process engine is lower than the specified one then the test is skipped.
  * </p>
+ * <p>
+ * JUnit Jupiter calls the {@code @BeforeEach} methods of the test class before
+ * the deployment is created and the {@code @AfterEach} methods after it is
+ * deleted. The extension does not call them itself, unless a test runner skips
+ * them: Arquillian's JUnit 5 integration does so for an embedded container that
+ * runs the test through the Arquillian "Local" protocol (e.g.
+ * {@code arquillian-weld-embedded}). Only for such a setup, let the extension
+ * call them with {@link #invokeBeforeAndAfterEachMethods(boolean)}.
+ * </p>
  */
 public class ProcessEngineExtension implements TestWatcher,
     TestInstancePostProcessor, BeforeTestExecutionCallback, AfterTestExecutionCallback,
@@ -129,6 +145,7 @@ public class ProcessEngineExtension implements TestWatcher,
   protected String configurationResource = "camunda.cfg.xml";
   protected String deploymentId;
   protected boolean ensureCleanAfterTest = false;
+  protected boolean invokeBeforeAndAfterEachMethods = false;
   protected List<String> additionalDeployments = new ArrayList<>();
 
   // SETUP
@@ -196,6 +213,10 @@ public class ProcessEngineExtension implements TestWatcher,
     final Method testMethod = context.getTestMethod().orElseThrow(illegalStateException("testMethod not set"));
     final Class<?> testClass = context.getTestClass().orElseThrow(illegalStateException("testClass not set"));
 
+    if (invokeBeforeAndAfterEachMethods) {
+      context.getTestInstance().ifPresent(this::invokeBeforeEachMethods);
+    }
+
     deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, testClass, testMethod.getName(), null, testMethod.getParameterTypes());
     boolean hasRequiredHistoryLevel = TestHelper.annotationRequiredHistoryLevelCheck(processEngine, testClass, testMethod.getName(), testMethod.getParameterTypes());
     boolean hasRequiredDatabase = TestHelper.annotationRequiredDatabaseCheck(processEngine, testClass, testMethod.getName(), testMethod.getParameterTypes());
@@ -220,9 +241,25 @@ public class ProcessEngineExtension implements TestWatcher,
    ClockUtil.reset();
    PlatformDiagnosticsRegistry.clear();
 
-   // finally clear database and fail test if database is dirty
+   Throwable failure = null;
+   if (invokeBeforeAndAfterEachMethods) {
+     try {
+       context.getTestInstance().ifPresent(this::invokeAfterEachMethods);
+     } catch (Throwable t) {
+       failure = t;
+     }
+   }
+
+   // finally clear database and fail test if database is dirty, also after a failing @AfterEach method
    if (ensureCleanAfterTest) {
-     TestHelper.assertAndEnsureCleanDbAndCache(processEngine);
+     try {
+       TestHelper.assertAndEnsureCleanDbAndCache(processEngine);
+     } catch (Throwable t) {
+       failure = addSuppressed(failure, t);
+     }
+   }
+   if (failure != null) {
+     rethrow(failure);
    }
   }
 
@@ -237,8 +274,81 @@ public class ProcessEngineExtension implements TestWatcher,
       initializeProcessEngine();
     }
     Arrays.stream(testInstance.getClass().getDeclaredFields())
-      .filter(field -> field.getType() == ProcessEngine.class)
-      .forEach(field -> inject(testInstance, field));
+    .filter(field -> field.getType() == ProcessEngine.class)
+    .forEach(field -> inject(testInstance, field));
+  }
+
+  /**
+   * Invokes the {@code @BeforeEach} methods of the test instance, superclass
+   * methods first (the order of JUnit Jupiter). Only used if
+   * {@link #invokeBeforeAndAfterEachMethods(boolean)} is enabled.
+   */
+  protected void invokeBeforeEachMethods(Object testInstance) {
+    invokeAnnotatedMethods(testInstance, BeforeEach.class, HierarchyTraversalMode.TOP_DOWN, false);
+  }
+
+  /**
+   * Invokes the {@code @AfterEach} methods of the test instance, subclass
+   * methods first (the order of JUnit Jupiter). Only used if
+   * {@link #invokeBeforeAndAfterEachMethods(boolean)} is enabled.
+   */
+  protected void invokeAfterEachMethods(Object testInstance) {
+    invokeAnnotatedMethods(testInstance, AfterEach.class, HierarchyTraversalMode.BOTTOM_UP, true);
+  }
+
+  /**
+   * Invokes the annotated methods like JUnit Jupiter does: exceptions are passed
+   * on unchanged, so a failed assumption aborts the test instead of failing it.
+   * The first failing {@code @BeforeEach} method stops the remaining ones; all
+   * {@code @AfterEach} methods run, and further failures are added as suppressed
+   * exceptions to the first real failure (see {@link #addSuppressed(Throwable, Throwable)}).
+   */
+  private void invokeAnnotatedMethods(Object testInstance, Class<? extends Annotation> annotation,
+      HierarchyTraversalMode traversalMode, boolean continueAfterFailure) {
+    String annotationLabel = "@" + annotation.getSimpleName();
+    Throwable failure = null;
+    for (Method method : AnnotationSupport.findAnnotatedMethods(testInstance.getClass(), annotation, traversalMode)) {
+      if (method.getParameterCount() != 0) {
+        LOG.warn("{} method '{}' has parameters and will not be invoked automatically.", annotationLabel, method.getName());
+        continue;
+      }
+      try {
+        ReflectionSupport.invokeMethod(method, testInstance);
+      } catch (Throwable t) {
+        if (!continueAfterFailure) {
+          throw t;
+        }
+        failure = addSuppressed(failure, t);
+      }
+    }
+    if (failure != null) {
+      rethrow(failure);
+    }
+  }
+
+  /**
+   * Combines two throwables the way JUnit Jupiter's own throwable collection does:
+   * a real failure takes precedence over an aborted assumption, so the test is
+   * reported as failed and not as aborted; the same instance thrown twice is kept
+   * once, because {@link Throwable#addSuppressed(Throwable)} rejects
+   * self-suppression.
+   */
+  private static Throwable addSuppressed(Throwable first, Throwable next) {
+    if (first == null || first == next) {
+      return first == null ? next : first;
+    }
+    if (first instanceof TestAbortedException && !(next instanceof TestAbortedException)) {
+      next.addSuppressed(first);
+      return next;
+    }
+    first.addSuppressed(next);
+    return first;
+  }
+
+  /** Throws the throwable unchanged, also a checked one (as JUnit Jupiter's own lifecycle method invocation does). */
+  @SuppressWarnings("unchecked")
+  private static <T extends Throwable> void rethrow(Throwable throwable) throws T {
+    throw (T) throwable;
   }
 
   // FLUENT BUILDER
@@ -259,6 +369,24 @@ public class ProcessEngineExtension implements TestWatcher,
 
   public ProcessEngineExtension ensureCleanAfterTest(boolean ensureCleanAfterTest) {
     this.ensureCleanAfterTest = ensureCleanAfterTest;
+    return this;
+  }
+
+  /**
+   * Lets the extension invoke the {@code @BeforeEach} and {@code @AfterEach}
+   * methods of the test instance itself: the {@code @BeforeEach} methods right
+   * before the {@link Deployment} is created, the {@code @AfterEach} methods
+   * right after it is deleted. Methods with parameters are not invoked.
+   * <p>
+   * Default: {@code false}. Enable it only if the test runner skips these
+   * methods, e.g. Arquillian's JUnit 5 integration with an embedded container
+   * that uses the Arquillian "Local" protocol such as
+   * {@code arquillian-weld-embedded}. In a plain JUnit Jupiter run, JUnit already
+   * calls them, so enabling it would call each of them twice per test.
+   * </p>
+   */
+  public ProcessEngineExtension invokeBeforeAndAfterEachMethods(boolean invokeBeforeAndAfterEachMethods) {
+    this.invokeBeforeAndAfterEachMethods = invokeBeforeAndAfterEachMethods;
     return this;
   }
 

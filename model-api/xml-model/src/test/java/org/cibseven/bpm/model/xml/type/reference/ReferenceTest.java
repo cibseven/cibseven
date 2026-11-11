@@ -18,7 +18,7 @@ package org.cibseven.bpm.model.xml.type.reference;
 
 import org.cibseven.bpm.model.xml.ModelInstance;
 import org.cibseven.bpm.model.xml.UnsupportedModelOperationException;
-import org.cibseven.bpm.model.xml.impl.parser.AbstractModelParser;
+import org.cibseven.bpm.model.xml.impl.ModelImpl;
 import org.cibseven.bpm.model.xml.impl.type.reference.AttributeReferenceImpl;
 import org.cibseven.bpm.model.xml.impl.type.reference.QNameAttributeReferenceImpl;
 import org.cibseven.bpm.model.xml.testmodel.Gender;
@@ -27,15 +27,16 @@ import org.cibseven.bpm.model.xml.testmodel.TestModelTest;
 import org.cibseven.bpm.model.xml.testmodel.instance.*;
 import org.cibseven.bpm.model.xml.type.ModelElementType;
 import org.cibseven.bpm.model.xml.type.attribute.Attribute;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.model.xml.test.assertions.ModelAssertions.assertThat;
-import static org.junit.Assert.fail;
-import static org.junit.runners.Parameterized.Parameters;
 
 /**
  * @author Sebastian Menski
@@ -54,17 +55,11 @@ public class ReferenceTest extends TestModelTest {
   private AttributeReferenceImpl<Animal> motherReference;
   private ElementReferenceCollection<FlyingAnimal, FlightPartnerRef> flightPartnerRefsColl;
 
-  public ReferenceTest(String testName, ModelInstance testModelInstance, AbstractModelParser modelParser) {
-    super(testName, testModelInstance, modelParser);
+  public static Stream<Arguments> models() {
+    return Stream.of(createModel(), parseModel(ReferenceTest.class)).map(Arguments::of);
   }
 
-  @Parameters(name="Model {0}")
-  public static Collection<Object[]> models() {
-    Object[][] models = {createModel(), parseModel(ReferenceTest.class)};
-    return Arrays.asList(models);
-  }
-
-  public static Object[] createModel() {
+  private static ParsedModel createModel() {
     TestModelParser modelParser = new TestModelParser();
     ModelInstance modelInstance = modelParser.getEmptyModel();
 
@@ -81,14 +76,13 @@ public class ReferenceTest extends TestModelTest {
 
     tweety.getFlightPartnerRefs().add(daffy);
 
-    return new Object[]{"created", modelInstance, modelParser};
+    return new ParsedModel("created", modelInstance, modelParser);
   }
 
-  @Before
   @SuppressWarnings("unchecked")
-  public void copyModelInstance() {
-    modelInstance = cloneModelInstance();
-
+  public void setUp(ParsedModel parsedModel) {
+    initializeTestModelTest(parsedModel);
+    ModelImpl modelImpl = (ModelImpl) modelInstance.getModel();
     tweety = modelInstance.getModelElementById("tweety");
     daffy = modelInstance.getModelElementById("daffy");
     daisy = modelInstance.getModelElementById("daisy");
@@ -110,15 +104,19 @@ public class ReferenceTest extends TestModelTest {
     flightPartnerRef = (FlightPartnerRef) modelInstance.getModelElementsByType(flightPartnerRefType).iterator().next();
   }
 
-  @Test
-  public void testReferenceIdentifier() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testReferenceIdentifier(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(fatherReference).hasIdentifier(tweety, daffy.getId());
     assertThat(motherReference).hasIdentifier(tweety, daisy.getId());
     assertThat(flightPartnerRefsColl).hasIdentifier(tweety, daffy.getId());
   }
 
-  @Test
-  public void testReferenceTargetElement() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testReferenceTargetElement(ParsedModel parsedModel) {
+    setUp(parsedModel);
     assertThat(fatherReference).hasTargetElement(tweety, daffy);
     assertThat(motherReference).hasTargetElement(tweety, daisy);
     assertThat(flightPartnerRefsColl).hasTargetElement(tweety, daffy);
@@ -132,8 +130,10 @@ public class ReferenceTest extends TestModelTest {
     assertThat(flightPartnerRefsColl).hasTargetElement(tweety, daisy);
   }
 
-  @Test
-  public void testReferenceTargetAttribute() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testReferenceTargetAttribute(ParsedModel parsedModel) {
+    setUp(parsedModel);
     Attribute<?> idAttribute = animalType.getAttribute("id");
     assertThat(idAttribute).hasIncomingReferences(fatherReference, motherReference);
 
@@ -142,8 +142,10 @@ public class ReferenceTest extends TestModelTest {
     assertThat(flightPartnerRefsColl).hasTargetAttribute(idAttribute);
   }
 
-  @Test
-  public void testReferenceSourceAttribute() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testReferenceSourceAttribute(ParsedModel parsedModel) {
+    setUp(parsedModel);
     Attribute<?> fatherAttribute = animalType.getAttribute("father");
     Attribute<?> motherAttribute = animalType.getAttribute("mother");
 
@@ -151,8 +153,10 @@ public class ReferenceTest extends TestModelTest {
     assertThat(motherReference).hasSourceAttribute(motherAttribute);
   }
 
-  @Test
-  public void testRemoveReference() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testRemoveReference(ParsedModel parsedModel) {
+    setUp(parsedModel);
     fatherReference.referencedElementRemoved(daffy, daffy.getId());
 
     assertThat(fatherReference).hasNoTargetElement(tweety);
@@ -163,8 +167,10 @@ public class ReferenceTest extends TestModelTest {
     assertThat(tweety.getMother()).isNull();
   }
 
-  @Test
-  public void testTargetElementsCollection() {
+  @ParameterizedTest
+  @MethodSource("models")
+  public void testTargetElementsCollection(ParsedModel parsedModel) {
+    setUp(parsedModel);
     Collection<FlyingAnimal> referenceTargetElements = flightPartnerRefsColl.getReferenceTargetElements(tweety);
     Collection<FlyingAnimal> flightPartners = Arrays.asList(new FlyingAnimal[]{birdo, daffy, daisy, plucky});
 

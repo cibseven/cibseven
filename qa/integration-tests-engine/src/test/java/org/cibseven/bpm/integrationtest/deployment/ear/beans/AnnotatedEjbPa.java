@@ -18,15 +18,16 @@ package org.cibseven.bpm.integrationtest.deployment.ear.beans;
 
 import org.cibseven.bpm.application.ProcessApplication;
 import org.cibseven.bpm.application.ProcessApplicationInterface;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.ejb.ConcurrencyManagement;
-import javax.ejb.ConcurrencyManagementType;
-import javax.ejb.Local;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.ejb.ConcurrencyManagement;
+import jakarta.ejb.ConcurrencyManagementType;
+import jakarta.ejb.Local;
+import jakarta.ejb.Singleton;
+import jakarta.ejb.Startup;
+import jakarta.ejb.TransactionAttribute;
+import jakarta.ejb.TransactionAttributeType;
+import org.cibseven.bpm.application.impl.JakartaEjbProcessApplication;
 
 /**
  * @author Tassilo Weidner
@@ -37,8 +38,7 @@ import javax.ejb.TransactionAttributeType;
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
 @ProcessApplication(deploymentDescriptors = {"deployment-descriptor-with-custom-filename.xml"})
 @Local(ProcessApplicationInterface.class)
-// Using fully-qualified class name instead of import statement to allow for automatic Jakarta transformation
-public class AnnotatedEjbPa extends org.cibseven.bpm.application.impl.EjbProcessApplication {
+public class AnnotatedEjbPa extends JakartaEjbProcessApplication {
 
   @PostConstruct
   public void start() {

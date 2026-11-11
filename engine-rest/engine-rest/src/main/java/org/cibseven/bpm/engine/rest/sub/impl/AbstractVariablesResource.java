@@ -21,9 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.BadUserRequestException;
@@ -41,9 +41,8 @@ import org.cibseven.bpm.engine.runtime.DeserializationTypeValidator;
 import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
 
 
 public abstract class AbstractVariablesResource implements VariableResource {
@@ -167,7 +166,7 @@ public abstract class AbstractVariablesResource implements VariableResource {
 
   protected Object deserializeJsonObject(String className, byte[] data) {
     try {
-      JavaType type = TypeFactory.defaultInstance().constructFromCanonical(className);
+      JavaType type = objectMapper.getTypeFactory().constructFromCanonical(className);
       validateType(type);
       return objectMapper.readValue(new String(data, Charset.forName("UTF-8")), type);
     } catch(Exception e) {

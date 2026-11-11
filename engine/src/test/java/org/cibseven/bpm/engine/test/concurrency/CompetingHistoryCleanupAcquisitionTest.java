@@ -38,23 +38,25 @@ import org.cibseven.bpm.engine.test.jobexecutor.ControllableJobExecutor;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 /**
  * @author Tassilo Weidner
  */
 public class CompetingHistoryCleanupAcquisitionTest extends ConcurrencyTestHelper {
 
-  protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(this::configureEngine);
-  protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(bootstrapRule).around(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(1) protected ProcessEngineBootstrapRule bootstrapRule = new ProcessEngineBootstrapRule(this::configureEngine);
+  @RegisterExtension
+  @Order(7) protected ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected HistoryService historyService;
   protected ManagementService managementService;
@@ -69,7 +71,7 @@ public class CompetingHistoryCleanupAcquisitionTest extends ConcurrencyTestHelpe
 
   protected ThreadControl acquisitionThread;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     historyService = engineRule.getHistoryService();
@@ -81,7 +83,7 @@ public class CompetingHistoryCleanupAcquisitionTest extends ConcurrencyTestHelpe
     ClockUtil.setCurrentTime(CURRENT_DATE);
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     if (jobExecutor.isActive()) {
       jobExecutor.shutdown();

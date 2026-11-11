@@ -16,8 +16,12 @@
  */
 package org.cibseven.bpm.engine.spring.test;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.cibseven.bpm.engine.impl.ProcessEngineImpl;
 import org.springframework.test.context.ContextConfiguration;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Thorben Lindhauer
@@ -26,6 +30,7 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(classes = ExampleConfiguration.class)
 public class SpringProcessEngineTestCaseTest extends SpringProcessEngineTestCase {
 
+  @Test
   public void testProgrammaticContextConfiguration() {
     assertNotNull(processEngine);
     assertTrue(((ProcessEngineImpl) processEngine).getProcessEngineConfiguration().isJobExecutorDeploymentAware());

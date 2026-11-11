@@ -19,22 +19,22 @@ package org.cibseven.bpm.engine.rest.hal.cache;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
-
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.util.ReflectUtil;
 import org.cibseven.bpm.engine.rest.cache.Cache;
 import org.cibseven.bpm.engine.rest.hal.Hal;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class HalRelationCacheBootstrap implements ServletContextListener {
 
   public final static String CONTEXT_PARAM_NAME = "org.cibseven.bpm.engine.rest.hal.cache.config";
 
-  protected ObjectMapper objectMapper = new ObjectMapper();
+  protected ObjectMapper objectMapper = JsonMapper.builderWithJackson2Defaults().build();
 
   public void contextInitialized(ServletContextEvent sce) {
     String contextParameter = sce.getServletContext().getInitParameter(CONTEXT_PARAM_NAME);

@@ -16,14 +16,13 @@
  */
 package org.cibseven.bpm;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.openqa.selenium.chrome.ChromeDriverService;
 
 import kong.unirest.ObjectMapper;
@@ -61,30 +60,23 @@ public abstract class AbstractWebIntegrationTest {
   protected String csrfToken;
   protected String sessionId;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpClass() {
     Unirest.config().reset().enableCookieManagement(false).setObjectMapper(new ObjectMapper() {
-      final com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+      // Jackson 3; its exceptions are unchecked
+      final tools.jackson.databind.ObjectMapper mapper = tools.jackson.databind.json.JsonMapper.builderWithJackson2Defaults().build();
 
       public String writeValue(Object value) {
-        try {
-          return mapper.writeValueAsString(value);
-        } catch (JsonProcessingException e) {
-          throw new RuntimeException(e);
-        }
+        return mapper.writeValueAsString(value);
       }
 
       public <T> T readValue(String value, Class<T> valueType) {
-        try {
-          return mapper.readValue(value, valueType);
-        } catch (JsonProcessingException e) {
-          throw new RuntimeException(e);
-        }
+        return mapper.readValue(value, valueType);
       }
     });
   }
 
-  @Before
+  @BeforeEach
   public void before() throws Exception {
     testProperties = new TestProperties(48080);
   }

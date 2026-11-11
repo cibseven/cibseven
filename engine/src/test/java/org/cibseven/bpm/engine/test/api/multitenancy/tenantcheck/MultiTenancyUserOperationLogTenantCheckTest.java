@@ -19,7 +19,7 @@ package org.cibseven.bpm.engine.test.api.multitenancy.tenantcheck;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.ProcessEngineConfiguration.HISTORY_FULL;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Arrays;
 
@@ -36,10 +36,12 @@ import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 @RequiredHistoryLevel(HISTORY_FULL)
 public class MultiTenancyUserOperationLogTenantCheckTest {
@@ -55,20 +57,17 @@ public class MultiTenancyUserOperationLogTenantCheckTest {
   protected static final String AN_ANNOTATION = "anAnnotation";
 
   protected static final BpmnModelInstance MODEL = Bpmn.createExecutableProcess(PROCESS_NAME).startEvent().userTask("aTaskId").done();
-
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-
-  protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
-
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
 
   protected TaskService taskService;
   protected HistoryService historyService;
   protected RuntimeService runtimeService;
   protected IdentityService identityService;
 
-  @Before
+  @BeforeEach
   public void init() {
     taskService = engineRule.getTaskService();
     historyService = engineRule.getHistoryService();

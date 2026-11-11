@@ -20,13 +20,13 @@ import org.cibseven.bpm.engine.rest.MetricsRestService;
 import org.cibseven.bpm.engine.rest.sub.metrics.MetricsResource;
 import org.cibseven.bpm.engine.rest.sub.metrics.MetricsResourceImpl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 import org.cibseven.bpm.engine.management.MetricsQuery;
 import org.cibseven.bpm.engine.rest.dto.metrics.MetricsIntervalResultDto;
 import org.cibseven.bpm.engine.management.MetricIntervalValue;

@@ -17,12 +17,14 @@
 package org.cibseven.bpm.engine.test.util;
 
 import org.cibseven.bpm.engine.impl.util.SingleConsumerCondition;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 public class SingleConsumerConditionTest {
 
-  @Test(timeout=10000)
+  @Test
+  @Timeout(10)
   public void shouldNotBlockIfSignalAvailable() {
     SingleConsumerCondition condition = new SingleConsumerCondition(Thread.currentThread());
 
@@ -33,7 +35,8 @@ public class SingleConsumerConditionTest {
     condition.await(100000);
   }
 
-  @Test(timeout=10000)
+  @Test
+  @Timeout(10)
   public void shouldNotBlockIfSignalAvailableDifferentThread() throws InterruptedException {
 
     final SingleConsumerCondition condition = new SingleConsumerCondition(Thread.currentThread());
@@ -60,7 +63,7 @@ public class SingleConsumerConditionTest {
     // when then
     try {
       condition.await(0);
-      Assert.fail("expected exception");
+      fail("expected exception");
     }
     catch (RuntimeException e) {
       // expected
@@ -71,7 +74,7 @@ public class SingleConsumerConditionTest {
   public void cannotCreateWithNull() {
     try {
       new SingleConsumerCondition(null);
-      Assert.fail("expected exception");
+      fail("expected exception");
     }
     catch (IllegalArgumentException e) {
       // expected

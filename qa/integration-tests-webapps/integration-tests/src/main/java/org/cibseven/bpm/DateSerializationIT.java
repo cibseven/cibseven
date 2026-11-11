@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -29,14 +29,14 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import org.cibseven.bpm.engine.rest.mapper.JacksonConfigurator;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DateSerializationIT extends AbstractWebIntegrationTest {
   
   private static final String SCHEMA_LOG_PATH = "api/engine/engine/default/schema/log";
   
-  @Before
+  @BeforeEach
   public void createClient() throws Exception {
     preventRaceConditions();
     createClient(getWebappCtxPath());
@@ -53,7 +53,7 @@ public class DateSerializationIT extends AbstractWebIntegrationTest {
         .asJson();
 
     // then
-    assertEquals(200, response.getStatus());
+    assertThat(response.getStatus()).isEqualTo(200);
     JSONArray logArray = response.getBody().getArray();
     JSONObject logElement = logArray.getJSONObject(0);
     String timestamp = logElement.getString("timestamp");

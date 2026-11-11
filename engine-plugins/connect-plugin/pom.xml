@@ -4,7 +4,7 @@
   <parent>
     <artifactId>cibseven-engine-plugins</artifactId>
     <groupId>org.cibseven.bpm</groupId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -59,6 +59,42 @@
       <artifactId>groovy-jsr223</artifactId>
       <scope>test</scope>
     </dependency>
+    
+    <!-- JUnit 5 dependencies for test discovery and execution -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+    
+    <!-- JUnit 5 Process Engine Extension -->
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-bpm-junit5</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- ArchUnit rules, TestMethodRulesTest runs through <dependenciesToScan> -->
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-bpm-archunit</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
 
@@ -68,6 +104,16 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <!-- TestMethodRulesTest: a public test*() method must carry @Test, JUnit 5 silently skips it otherwise -->
+          <dependenciesToScan>
+            <dependency>org.cibseven.bpm:cibseven-bpm-archunit</dependency>
+          </dependenciesToScan>
+          <excludes>
+            <!-- the public API rules of ArchRulesTest do not apply to this module -->
+            <exclude>**/ArchRulesTest.java</exclude>
+            <!-- surefire default, dropped as soon as excludes are configured -->
+            <exclude>**/*$*</exclude>
+          </excludes>
         </configuration>
       </plugin>
     </plugins>

@@ -16,12 +16,9 @@
  */
 package org.cibseven.bpm.engine.impl.el;
 
-import java.beans.FeatureDescriptor;
-import java.util.Collections;
-import java.util.Iterator;
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
 
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
 
 /**
  * @author Thorben Lindhauer
@@ -36,15 +33,6 @@ public abstract class AbstractElResolverDelegate extends ELResolver {
       return null;
     } else {
       return delegate.getCommonPropertyType(context, base);
-    }
-  }
-
-  public Iterator<FeatureDescriptor> getFeatureDescriptors(ELContext context, Object base) {
-    ELResolver delegate = getElResolverDelegate();
-    if(delegate == null) {
-      return Collections.<FeatureDescriptor>emptySet().iterator();
-    } else {
-      return delegate.getFeatureDescriptors(context, base);
     }
   }
 

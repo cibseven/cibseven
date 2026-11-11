@@ -5,7 +5,7 @@
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-database-settings</artifactId>
     <relativePath>../../database</relativePath>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
   
   <groupId>org.cibseven.bpm.wildfly</groupId>
@@ -26,38 +26,6 @@
     </dependencies>
   </dependencyManagement>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.0.0-M1</version>
-        <executions>
-          <execution>
-            <id>enforce-java</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireJavaVersion>
-                  <version>[11,)</version>
-                  <message>
-                    *****************************************************************************************************
-                    *                                                                                                   *
-                    *                You must use at least JDK 11 to compile Camunda Platform Wildfly!!!                *
-                    *                                                                                                   *
-                    *****************************************************************************************************
-                  </message>
-                </requireJavaVersion>
-              </rules>
-              <failFast>true</failFast>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 
   <profiles>
     <profile>
@@ -70,7 +38,16 @@
         <module>assembly</module>
         <module>modules</module>
         <module>subsystem</module>
-        <module>webapp</module>
+        <module>distro</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>legacy-webapps</id>
+      <modules>
+        <module>ai-agent</module>
+        <module>assembly</module>
+        <module>modules</module>
+        <module>subsystem</module>
         <module>distro</module>
       </modules>
     </profile>

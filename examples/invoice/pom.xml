@@ -9,15 +9,38 @@
     <groupId>org.cibseven.bpm.example</groupId>
     <artifactId>cibseven-example-root</artifactId>
     <relativePath>../</relativePath>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>jakarta.platform</groupId>
+        <artifactId>jakarta.jakartaee-bom</artifactId>
+        <version>${version.jakarta-ee-spec}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      </dependencies>
+     </dependencyManagement>
 
   <dependencies>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-      <version>3.0.1</version>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- ArchUnit rules, TestMethodRulesTest runs through <dependenciesToScan> -->
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-bpm-archunit</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -26,6 +49,21 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!-- TestMethodRulesTest: a public test*() method must carry @Test, JUnit 5 silently skips it otherwise -->
+          <dependenciesToScan>
+            <dependency>org.cibseven.bpm:cibseven-bpm-archunit</dependency>
+          </dependenciesToScan>
+          <excludes>
+            <!-- the public API rules of ArchRulesTest do not apply to this module -->
+            <exclude>**/ArchRulesTest.java</exclude>
+            <!-- surefire default, dropped as soon as excludes are configured -->
+            <exclude>**/*$*</exclude>
+          </excludes>
+        </configuration>
       </plugin>
     </plugins>
   </build>

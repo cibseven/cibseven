@@ -17,13 +17,17 @@
       format = "int32"
       desc = "A number of how often the task should be retried. Must be >= 0. If this is 0, an incident is created and
               the task cannot be fetched anymore unless the retries are increased again. The incident's message is set
-              to the `errorMessage` parameter." />
+              to the `errorMessage` parameter. If a retry cycle is configured for the task's activity (modeled or
+              engine-wide default), note that the engine independently decrements its own retries counter by one on
+              every successful fetch of the task, regardless of the value reported here." />
 
   <@lib.property
       name = "retryTimeout"
       type = "integer"
       format = "int64"
-      desc = "A timeout in milliseconds before the external task becomes available again for fetching. Must be >= 0." />
+      desc = "A timeout in milliseconds before the external task becomes available again for fetching. Must be >= 0.
+              Only applied if the task's activity has no configured retry cycle (modeled or engine-wide default); if
+              one applies, its own interval is used for the next attempt's timing instead, and this value is ignored." />
 
 <@lib.property
       name = "variables"

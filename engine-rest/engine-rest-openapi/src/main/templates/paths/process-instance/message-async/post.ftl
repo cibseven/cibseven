@@ -3,7 +3,7 @@
   <@lib.endpointInfo
       id = "correlateMessageAsyncOperation"
       tag = "Process Instance"
-      summary = "Correlate Message Async (POST)"
+      summary = "Correlate Message Async"
       desc = "Correlates a message asynchronously to executions that are waiting for this message. 
               Messages will not be correlated to process definition-level start message events to start process instances." />
 

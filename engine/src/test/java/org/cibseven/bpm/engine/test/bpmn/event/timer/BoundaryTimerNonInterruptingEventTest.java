@@ -17,10 +17,10 @@
 package org.cibseven.bpm.engine.test.bpmn.event.timer;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -45,16 +45,20 @@ import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.task.TaskQuery;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
+import org.cibseven.bpm.engine.test.api.runtime.migration.MigrationTestRule;
 import org.cibseven.bpm.engine.test.util.ClockTestUtil;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Order;
+
 
 /**
  * @author Joram Barrez
@@ -66,11 +70,13 @@ public class BoundaryTimerNonInterruptingEventTest {
   protected static final long ONE_HOUR = TimeUnit.HOURS.toMillis(1L);
   protected static final long TWO_HOURS = TimeUnit.HOURS.toMillis(2L);
 
-  public ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  public ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(9) protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  private  MigrationTestRule migrationRule = new MigrationTestRule(engineRule);
 
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(testHelper);
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected RuntimeService runtimeService;
@@ -79,7 +85,7 @@ public class BoundaryTimerNonInterruptingEventTest {
   protected TaskService taskService;
   protected boolean reevaluateTimeCycleWhenDue;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     processEngineConfiguration = engineRule.getProcessEngineConfiguration();
     runtimeService = engineRule.getRuntimeService();
@@ -89,7 +95,7 @@ public class BoundaryTimerNonInterruptingEventTest {
     reevaluateTimeCycleWhenDue = processEngineConfiguration.isReevaluateTimeCycleWhenDue();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     ClockUtil.reset();
     processEngineConfiguration.getBeans().remove("myCycleTimerBean");
@@ -732,7 +738,8 @@ public class BoundaryTimerNonInterruptingEventTest {
     assertThat(timerJob.getDuedate()).isEqualTo(timerDueDate);
   }
 
-  @Test(timeout = 10000L)
+  @Test
+  @Timeout(10)
   public void shouldExecuteTimeoutListenerJobOnOrAfterDueDate() {
     // given
     Date currentTime = ClockTestUtil.setClockToDateWithoutMilliseconds();

@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.cockpit.plugin.base;
 
-import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.List;
 
@@ -34,9 +34,9 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.runtime.Incident;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.test.Deployment;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author roman.smirnov
@@ -50,7 +50,7 @@ public class IncidentRestServiceTest extends AbstractCockpitPluginTest {
   private IncidentRestService resource;
   protected IdentityService identityService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     super.before();
 
@@ -64,12 +64,12 @@ public class IncidentRestServiceTest extends AbstractCockpitPluginTest {
     resource = new IncidentRestService(processEngine.getName());
   }
 
-  @After
+  @AfterEach
   public void clearAuthentication() {
     identityService.clearAuthentication();
   }
 
-  @After
+  @AfterEach
   public void resetQueryMaxResultsLimit() {
     processEngineConfiguration.setQueryMaxResultsLimit(Integer.MAX_VALUE);
   }

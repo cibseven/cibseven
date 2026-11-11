@@ -26,23 +26,23 @@ import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.identity.ldap.util.LdapTestEnvironment;
 import org.cibseven.bpm.identity.ldap.util.LdapTestEnvironmentRule;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 
 public class LdapPosixGroupQueryTest {
 
-  @ClassRule
-  public static LdapTestEnvironmentRule ldapRule = new LdapTestEnvironmentRule().posix(true);
-  @Rule
-  public ProcessEngineRule engineRule = new ProcessEngineRule("posix.camunda.cfg.xml");
+  @RegisterExtension
+  @Order(2) public static LdapTestEnvironmentRule ldapRule = new LdapTestEnvironmentRule().posix(true);
+  @RegisterExtension
+  @Order(4) public ProcessEngineRule engineRule = new ProcessEngineRule("posix.camunda.cfg.xml");
 
   IdentityService identityService;
   LdapTestEnvironment ldapTestEnvironment;
 
-  @Before
+  @BeforeEach
   public void setup() {
     identityService = engineRule.getIdentityService();
     ldapTestEnvironment = ldapRule.getLdapTestEnvironment();

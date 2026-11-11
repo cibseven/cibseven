@@ -16,13 +16,14 @@
  */
 package org.cibseven.bpm.engine.test.history;
 
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertTrue;
-import static junit.framework.TestCase.fail;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.fail;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.builder.DefaultExternalTaskModelBuilder.DEFAULT_TOPIC;
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.builder.DefaultExternalTaskModelBuilder.createDefaultExternalTaskModel;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 import java.util.List;
@@ -44,11 +45,11 @@ import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.AfterEach;
 
 @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_FULL)
 public class HistoricExternalTaskLogTest {
@@ -58,24 +59,26 @@ public class HistoricExternalTaskLogTest {
   protected final String ERROR_DETAILS = "These are the error details!";
   protected final long LOCK_DURATION = 5 * 60L * 1000L;
 
-  protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
-  protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
-  protected ProcessEngineTestRule testHelper = new ProcessEngineTestRule(engineRule);
-  @Rule
-  public RuleChain ruleChain = RuleChain.outerRule(engineRule).around(authRule).around(testHelper);
+  @RegisterExtension
+  @Order(1) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
+  @RegisterExtension
+  @Order(2) protected AuthorizationTestRule authRule = new AuthorizationTestRule(engineRule);
+  @RegisterExtension
+  @Order(3) protected ProcessEngineTestRule testRule = new ProcessEngineTestRule(engineRule);
+
   protected ProcessInstance processInstance;
   protected RuntimeService runtimeService;
   protected HistoryService historyService;
   protected ExternalTaskService externalTaskService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     runtimeService = engineRule.getRuntimeService();
     historyService = engineRule.getHistoryService();
     externalTaskService = engineRule.getExternalTaskService();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     List<ExternalTask> list = externalTaskService.createExternalTaskQuery().workerId(WORKER_ID).list();
     for (ExternalTask externalTask : list) {
@@ -283,6 +286,7 @@ public class HistoricExternalTaskLogTest {
   protected void assertLogIsInCreatedState(HistoricExternalTaskLog log) {
     assertTrue(log.isCreationLog());
     assertFalse(log.isFailureLog());
+    assertFalse(log.isFetchedLog());
     assertFalse(log.isSuccessLog());
     assertFalse(log.isDeletionLog());
   }
@@ -290,6 +294,7 @@ public class HistoricExternalTaskLogTest {
   protected void assertLogIsInFailedState(HistoricExternalTaskLog log) {
     assertFalse(log.isCreationLog());
     assertTrue(log.isFailureLog());
+    assertFalse(log.isFetchedLog());
     assertFalse(log.isSuccessLog());
     assertFalse(log.isDeletionLog());
   }
@@ -297,13 +302,23 @@ public class HistoricExternalTaskLogTest {
   protected void assertLogIsInSuccessfulState(HistoricExternalTaskLog log) {
     assertFalse(log.isCreationLog());
     assertFalse(log.isFailureLog());
+    assertFalse(log.isFetchedLog());
     assertTrue(log.isSuccessLog());
+    assertFalse(log.isDeletionLog());
+  }
+
+  protected void assertLogIsInFetchedState(HistoricExternalTaskLog log) {
+    assertFalse(log.isCreationLog());
+    assertFalse(log.isFailureLog());
+    assertTrue(log.isFetchedLog());
+    assertFalse(log.isSuccessLog());
     assertFalse(log.isDeletionLog());
   }
 
   protected void assertLogIsInDeletedState(HistoricExternalTaskLog log) {
     assertFalse(log.isCreationLog());
     assertFalse(log.isFailureLog());
+    assertFalse(log.isFetchedLog());
     assertFalse(log.isSuccessLog());
     assertTrue(log.isDeletionLog());
   }
@@ -349,7 +364,7 @@ public class HistoricExternalTaskLogTest {
 
   protected ExternalTask startExternalTaskProcess() {
     BpmnModelInstance oneExternalTaskProcess = createDefaultExternalTaskModel().build();
-    ProcessDefinition sourceProcessDefinition = testHelper.deployAndGetDefinition(oneExternalTaskProcess);
+    ProcessDefinition sourceProcessDefinition = testRule.deployAndGetDefinition(oneExternalTaskProcess);
     ProcessInstance pi = runtimeService.startProcessInstanceById(sourceProcessDefinition.getId());
     return externalTaskService.createExternalTaskQuery().processInstanceId(pi.getId()).singleResult();
   }
@@ -368,4 +383,145 @@ public class HistoricExternalTaskLogTest {
     ClockUtil.setCurrentTime(nowPlus5Seconds);
   }
 
+  @Test
+  public void testHistoricExternalTaskLogFetchedProperties() {
+
+    // given
+    ExternalTask task = startExternalTaskProcess();
+    fetchExternalTasks();
+
+    // when
+    HistoricExternalTaskLog log = historyService
+      .createHistoricExternalTaskLogQuery()
+      .fetchedLog()
+      .singleResult();
+
+    // then
+    assertHistoricLogPropertiesAreProperlySet(task, log);
+    assertEquals(WORKER_ID, log.getWorkerId());
+    assertLogIsInFetchedState(log);
+  }
+
+  @Test
+  public void testNoFetchedLogWithoutFetch() {
+
+    // given
+    startExternalTaskProcess();
+
+    // when
+    long count = historyService
+      .createHistoricExternalTaskLogQuery()
+      .fetchedLog()
+      .count();
+
+    // then
+    assertEquals(0, count);
+  }
+
+  @Test
+  public void testFetchedLogIsWrittenForEveryFetch() {
+
+    // given a task that is fetched, fails and is fetched again
+    ExternalTask task = startExternalTaskProcess();
+    reportExternalTaskFailure(task.getId());       // fetch #1 + failure (retries = 1)
+    ensureEnoughTimePassedByForTimestampOrdering();
+    fetchExternalTasks();                          // fetch #2
+
+    // when
+    List<HistoricExternalTaskLog> logs = historyService
+      .createHistoricExternalTaskLogQuery()
+      .fetchedLog()
+      .orderByTimestamp().asc()
+      .list();
+
+    // then there is one fetched log per fetch
+    assertEquals(2, logs.size());
+    for (HistoricExternalTaskLog log : logs) {
+      assertLogIsInFetchedState(log);
+      assertEquals(WORKER_ID, log.getWorkerId());
+      assertEquals(task.getId(), log.getExternalTaskId());
+    }
+
+    // and each one carries the retries at the time of the fetch
+    assertNull(logs.get(0).getRetries());
+    assertEquals(Integer.valueOf(1), logs.get(1).getRetries());
+  }
+
+  @Test
+  public void testFetchedLogInLifecycleOrder() {
+
+    // given
+    ExternalTask task = startExternalTaskProcess();
+    ensureEnoughTimePassedByForTimestampOrdering();
+    fetchExternalTasks();
+    ensureEnoughTimePassedByForTimestampOrdering();
+    externalTaskService.complete(task.getId(), WORKER_ID);
+
+    // when
+    List<HistoricExternalTaskLog> logs = historyService
+      .createHistoricExternalTaskLogQuery()
+      .externalTaskId(task.getId())
+      .orderByTimestamp().asc()
+      .list();
+
+    // then: created -> fetched -> successful
+    assertEquals(3, logs.size());
+    assertLogIsInCreatedState(logs.get(0));
+    assertLogIsInFetchedState(logs.get(1));
+    assertLogIsInSuccessfulState(logs.get(2));
+  }
+
+  @Test
+  public void testFetchedLogOnlyForFetchedTasks() {
+
+    // given two tasks, only one is fetched
+    ExternalTask fetchedTask = startExternalTaskProcess();
+    ExternalTask otherTask = startExternalTaskProcess();
+
+    externalTaskService.fetchAndLock(1, WORKER_ID, false)
+      .topic(DEFAULT_TOPIC, LOCK_DURATION)
+      .execute();
+
+    // when
+    List<HistoricExternalTaskLog> logs = historyService
+      .createHistoricExternalTaskLogQuery()
+      .fetchedLog()
+      .list();
+
+    // then exactly one fetched log exists, for one of the two tasks
+    assertEquals(1, logs.size());
+    String loggedTaskId = logs.get(0).getExternalTaskId();
+    assertTrue(loggedTaskId.equals(fetchedTask.getId()) || loggedTaskId.equals(otherTask.getId()));
+  }
+
+  /**
+   * Only valid if the event is fired in ExternalTaskEntity#lock(),
+   * which is also used by ExternalTaskService#lock(...).
+   * Remove this test if the event is fired in FetchExternalTasksCmd only.
+   */
+  @Test
+  public void testFetchedLogWhenLockedById() {
+
+    // given
+    ExternalTask task = startExternalTaskProcess();
+
+    // when
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // then
+    HistoricExternalTaskLog log = historyService
+      .createHistoricExternalTaskLogQuery()
+      .fetchedLog()
+      .singleResult();
+
+    assertHistoricLogPropertiesAreProperlySet(task, log);
+    assertEquals(WORKER_ID, log.getWorkerId());
+    assertLogIsInFetchedState(log);
+  }
+
+  protected void fetchExternalTasks() {
+    externalTaskService.fetchAndLock(100, WORKER_ID, false)
+      .topic(DEFAULT_TOPIC, LOCK_DURATION)
+      .execute();
+  }
 }

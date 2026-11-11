@@ -96,6 +96,11 @@
     "type": "boolean",
     "desc": "Only include failure logs. Value may only be `true`, as `false` is the default behavior."
   },
+  "fetchedLog": {
+    "type": "boolean",
+    "desc": "Only include fetched logs, i.e. logs written when a worker locked the external task.
+             Value may only be `true`, as `false` is the default behavior."
+  },
   "successLog": {
     "type": "boolean",
     "desc": "Only include success logs. Value may only be `true`, as `false` is the default behavior."

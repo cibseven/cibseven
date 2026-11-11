@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getHistoricProcessInstance"
       tag = "Historic Process Instance"
-      summary = "Get"
+      summary = "Get Historic Process Instance"
       desc = "Retrieves a historic process instance by id, according to the `HistoricProcessInstance` interface in the engine." />
 
   "parameters" : [

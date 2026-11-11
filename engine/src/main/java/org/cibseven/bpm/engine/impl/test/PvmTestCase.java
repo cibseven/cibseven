@@ -16,36 +16,39 @@
  */
 package org.cibseven.bpm.engine.impl.test;
 
-import junit.framework.AssertionFailedError;
-import junit.framework.TestCase;
 import org.cibseven.bpm.engine.delegate.Expression;
 import org.cibseven.bpm.engine.impl.cmmn.behavior.CaseControlRuleImpl;
 import org.cibseven.bpm.engine.impl.el.FixedValue;
+import org.opentest4j.AssertionFailedError;
 
 
 /**
+ * Plain helper base class (assertions) for tests.
+ *
+ * <p>Since the JUnit 5 migration this class no longer extends {@code junit.framework.TestCase}:
+ * it has no test life cycle of its own, and test methods of subclasses must be annotated with
+ * {@link org.junit.jupiter.api.Test @Test} (JUnit 3 style {@code public void testXxx()} methods
+ * are not discovered anymore).</p>
+ *
  * @author Tom Baeyens
  */
-public class PvmTestCase extends TestCase {
+public class PvmTestCase {
   /**
    * This class isn't used in the Process Engine test suite anymore.
    * However, some Test classes in the following modules still use it:
-   *   * camunda-engine-plugin-spin
-   *   * camunda-engine-plugin-connect
-   *   * camunda-engine-spring
-   *   * camunda-identity-ldap
+   *   * cibseven-engine-plugin-spin
+   *   * cibseven-engine-plugin-connect
+   *   * cibseven-engine-spring
    *
-   * It should be removed once those Test classes are migrated to JUnit 4.
+   * It should be removed once those Test classes are migrated to the JUnit 5 ProcessEngineExtension.
    */
 
   /**
    * Asserts if the provided text is part of some text.
    */
   public void assertTextPresent(String expected, String actual) {
-    if ( (actual==null)
-         || (actual.indexOf(expected)==-1)
-       ) {
-      throw new AssertionFailedError("expected presence of ["+expected+"], but was ["+actual+"]");
+    if ((actual == null) || (!actual.contains(expected))) {
+      throw new AssertionFailedError("expected presence of [" + expected + "], but was [" + actual + "]");
     }
   }
 
@@ -61,5 +64,4 @@ public class PvmTestCase extends TestCase {
     CaseControlRuleImpl caseControlRule = new CaseControlRuleImpl(expression);
     return caseControlRule;
   }
-
 }

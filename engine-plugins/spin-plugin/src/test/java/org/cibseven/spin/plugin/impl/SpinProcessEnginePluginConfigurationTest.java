@@ -23,16 +23,16 @@ import java.util.List;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.engine.test.util.ProcessEngineBootstrapRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 public class SpinProcessEnginePluginConfigurationTest {
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineBootstrapRule bootstrapRule
       = new ProcessEngineBootstrapRule("custom.camunda.cfg.xml");
 
-  @Rule
+  @RegisterExtension
   public ProvidedProcessEngineRule engineRule = new ProvidedProcessEngineRule(bootstrapRule);
 
   @Test

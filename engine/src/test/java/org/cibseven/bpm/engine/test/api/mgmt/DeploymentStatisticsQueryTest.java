@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.test.api.mgmt;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Calendar;
 import java.util.HashMap;
@@ -30,8 +30,8 @@ import org.cibseven.bpm.engine.management.IncidentStatistics;
 import org.cibseven.bpm.engine.runtime.Incident;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class DeploymentStatisticsQueryTest extends PluggableProcessEngineTest {
 
@@ -50,14 +50,14 @@ public class DeploymentStatisticsQueryTest extends PluggableProcessEngineTest {
     List<DeploymentStatistics> statistics =
         managementService.createDeploymentStatisticsQuery().includeFailedJobs().list();
 
-    Assert.assertEquals(1, statistics.size());
+    Assertions.assertEquals(1, statistics.size());
 
     DeploymentStatistics result = statistics.get(0);
-    Assert.assertEquals(2, result.getInstances());
-    Assert.assertEquals(0, result.getFailedJobs());
+    Assertions.assertEquals(2, result.getInstances());
+    Assertions.assertEquals(0, result.getFailedJobs());
 
-    Assert.assertEquals(deployment.getId(), result.getId());
-    Assert.assertEquals(deploymentName, result.getName());
+    Assertions.assertEquals(deployment.getId(), result.getId());
+    Assertions.assertEquals(deploymentName, result.getName());
 
     // only compare time on second level (i.e. drop milliseconds)
     Calendar cal1 = Calendar.getInstance();
@@ -68,7 +68,7 @@ public class DeploymentStatisticsQueryTest extends PluggableProcessEngineTest {
     cal2.setTime(result.getDeploymentTime());
     cal2.set(Calendar.MILLISECOND, 0);
 
-    Assert.assertTrue(cal1.equals(cal2));
+    Assertions.assertTrue(cal1.equals(cal2));
 
     repositoryService.deleteDeployment(deployment.getId(), true);
   }
@@ -93,10 +93,10 @@ public class DeploymentStatisticsQueryTest extends PluggableProcessEngineTest {
 
     long count = managementService.createDeploymentStatisticsQuery().includeFailedJobs().count();
 
-    Assert.assertEquals(2, count);
+    Assertions.assertEquals(2, count);
 
     List<DeploymentStatistics> statistics = managementService.createDeploymentStatisticsQuery().includeFailedJobs().listPage(0, 1);
-    Assert.assertEquals(1, statistics.size());
+    Assertions.assertEquals(1, statistics.size());
 
     repositoryService.deleteDeployment(deployment.getId(), true);
     repositoryService.deleteDeployment(anotherDeployment.getId(), true);
@@ -119,7 +119,7 @@ public class DeploymentStatisticsQueryTest extends PluggableProcessEngineTest {
         managementService.createDeploymentStatisticsQuery().includeFailedJobs().list();
 
     DeploymentStatistics result = statistics.get(0);
-    Assert.assertEquals(1, result.getFailedJobs());
+    Assertions.assertEquals(1, result.getFailedJobs());
   }
 
   @Test
@@ -238,7 +238,7 @@ public class DeploymentStatisticsQueryTest extends PluggableProcessEngineTest {
 
     DeploymentStatistics result = statistics.get(0);
 
-    Assert.assertEquals(1, result.getFailedJobs());
+    Assertions.assertEquals(1, result.getFailedJobs());
 
     List<IncidentStatistics> incidentStatistics = result.getIncidentStatistics();
     assertFalse(incidentStatistics.isEmpty());
@@ -269,7 +269,7 @@ public class DeploymentStatisticsQueryTest extends PluggableProcessEngineTest {
     DeploymentStatistics result = statistics.get(0);
 
     // has one failed job
-    Assert.assertEquals(1, result.getFailedJobs());
+    Assertions.assertEquals(1, result.getFailedJobs());
 
     List<IncidentStatistics> incidentStatistics = result.getIncidentStatistics();
     assertFalse(incidentStatistics.isEmpty());
@@ -288,11 +288,11 @@ public class DeploymentStatisticsQueryTest extends PluggableProcessEngineTest {
     List<DeploymentStatistics> statistics =
         managementService.createDeploymentStatisticsQuery().includeFailedJobs().list();
 
-    Assert.assertEquals(1, statistics.size());
+    Assertions.assertEquals(1, statistics.size());
 
     DeploymentStatistics result = statistics.get(0);
-    Assert.assertEquals(0, result.getInstances());
-    Assert.assertEquals(0, result.getFailedJobs());
+    Assertions.assertEquals(0, result.getInstances());
+    Assertions.assertEquals(0, result.getFailedJobs());
   }
 
   @Deployment(resources = "org/cibseven/bpm/engine/test/api/mgmt/StatisticsTest.testFailedTimerStartEvent.bpmn20.xml")

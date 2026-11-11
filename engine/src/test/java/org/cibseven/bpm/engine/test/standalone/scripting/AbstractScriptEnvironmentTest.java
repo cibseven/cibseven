@@ -32,8 +32,8 @@ import org.cibseven.bpm.engine.impl.scripting.engine.ScriptingEngines;
 import org.cibseven.bpm.engine.impl.scripting.env.ScriptEnvResolver;
 import org.cibseven.bpm.engine.impl.scripting.env.ScriptingEnvironment;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 public abstract class AbstractScriptEnvironmentTest extends PluggableProcessEngineTest {
 
@@ -43,7 +43,7 @@ public abstract class AbstractScriptEnvironmentTest extends PluggableProcessEngi
   protected ScriptFactory scriptFactory;
   protected EmbeddedProcessApplication processApplication;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     scriptFactory = processEngineConfiguration.getScriptFactory();
     resolver = getResolver();
@@ -51,7 +51,7 @@ public abstract class AbstractScriptEnvironmentTest extends PluggableProcessEngi
     processApplication = new EmbeddedProcessApplication();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     processEngineConfiguration.getEnvScriptResolvers().remove(resolver);
   }

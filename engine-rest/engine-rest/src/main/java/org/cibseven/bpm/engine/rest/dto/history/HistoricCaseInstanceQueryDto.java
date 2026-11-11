@@ -36,10 +36,10 @@ import org.cibseven.bpm.engine.rest.dto.converter.StringSetConverter;
 import org.cibseven.bpm.engine.rest.dto.converter.VariableListConverter;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class HistoricCaseInstanceQueryDto extends AbstractQueryDto<HistoricCaseInstanceQuery> {
 

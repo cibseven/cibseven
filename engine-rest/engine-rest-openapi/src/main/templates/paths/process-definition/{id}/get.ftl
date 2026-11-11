@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "getProcessDefinition"
       tag = "Process Definition"
-      summary = "Get"
+      summary = "Get Process Definition"
       desc = "Retrieves a process definition according to the `ProcessDefinition` interface in the engine." />
 
   "parameters" : [

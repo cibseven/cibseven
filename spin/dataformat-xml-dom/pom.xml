@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.cibseven.spin</groupId>
     <artifactId>cibseven-spin-root</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cibseven-spin-dataformat-xml-dom</artifactId>
@@ -27,14 +27,22 @@
     </dependency>
 
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${version.junit5}</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
+      <version>${version.assertj}</version>
       <scope>test</scope>
     </dependency>
 
@@ -65,6 +73,7 @@
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js</artifactId>
+      <type>pom</type>
       <scope>test</scope>
     </dependency>
     
@@ -81,14 +90,8 @@
     </dependency>
     
     <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-module-junit4</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito2</artifactId>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
 
@@ -98,145 +101,74 @@
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <groupId>jakarta.xml.bind</groupId>
+      <artifactId>jakarta.xml.bind-api</artifactId>
+      <version>${version.jakarta.xml.bind-api}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+      <version>${version.xml.jaxb-impl4}</version>
+      <scope>runtime</scope>
+    </dependency>
   </dependencies>
-
-  <profiles>
-    <profile>
-      <id>jdk-9-and-onwards</id>
-      <activation>
-        <jdk>[9,)</jdk>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>jakarta.xml.bind</groupId>
-          <artifactId>jakarta.xml.bind-api</artifactId>
-          <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-          <groupId>com.sun.xml.bind</groupId>
-          <artifactId>jaxb-impl</artifactId>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <profile>
-      <id>disable-javascript-tests</id>
-      <activation>
-        <jdk>(,1.8)</jdk>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <argLine>-XX:PermSize=128m -Duser.timezone=GMT+02:00</argLine>
-              <excludes>
-                <exclude>**/javascript/**</exclude>
-              </excludes>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    
-    <profile>
-      <id>jdk-15-and-onwards</id>
-      <activation>
-        <jdk>[15,)</jdk>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <argLine>-Duser.timezone=GMT+02:00</argLine>
-              <excludes combine.children="append">
-                <exclude>**/nashorn/**</exclude>
-              </excludes>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>jdk-16-and-onwards</id>
-      <activation>
-        <jdk>[16,)</jdk>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <argLine>-XX:MetaspaceSize=128m -Duser.timezone=GMT+02:00</argLine>
-              <excludes combine.children="append">
-                <exclude>**/nashorn/**</exclude>
-              </excludes>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    
-    <!-- check for api differences between latest minor release -->
-    <profile>
-      <id>check-api-compatibility</id>
-      <activation>
-        <jdk>(,)</jdk>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>clirr-maven-plugin</artifactId>
-            <version>2.8</version>
-            <configuration>
-              <comparisonVersion>${spin.version.old}</comparisonVersion>
-              <logResults>true</logResults>
-              <excludes>
-                <exclude>org/cibseven/spin/impl/**</exclude>
-              </excludes>
-            </configuration>
-            <executions>
-              <execution>
-                <id>all</id>
-                <phase>verify</phase>
-                <goals>
-                  <goal>check-no-fork</goal>
-                </goals>
-                <configuration>
-                  <textOutputFile>${project.build.directory}/clirr-all.txt</textOutputFile>
-                  <failOnWarning>false</failOnWarning>
-                  <failOnError>false</failOnError>
-                </configuration>
-              </execution>
-              <execution>
-                <id>restrictive</id>
-                <phase>verify</phase>
-                <goals>
-                  <goal>check-no-fork</goal>
-                </goals>
-                <configuration>
-                  <textOutputFile>${project.build.directory}/clirr-restrictive.txt</textOutputFile>
-                  <failOnWarning>true</failOnWarning>
-                  <ignoredDifferencesFile>../.clirr-jenkins-ignore.xml</ignoredDifferencesFile>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>-XX:MetaspaceSize=128m -Duser.timezone=GMT+02:00</argLine>
+          <excludes combine.children="append">
+            <!-- Nashorn is not part of the JDK anymore -->
+            <exclude>**/nashorn/**</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <!-- check for api differences between latest minor release -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>clirr-maven-plugin</artifactId>
+        <version>2.8</version>
+        <configuration>
+          <comparisonVersion>${spin.version.old}</comparisonVersion>
+          <logResults>true</logResults>
+          <excludes>
+            <exclude>org/cibseven/spin/impl/**</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <id>all</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check-no-fork</goal>
+            </goals>
+            <configuration>
+              <textOutputFile>${project.build.directory}/clirr-all.txt</textOutputFile>
+              <failOnWarning>false</failOnWarning>
+              <failOnError>false</failOnError>
+            </configuration>
+          </execution>
+          <execution>
+            <id>restrictive</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check-no-fork</goal>
+            </goals>
+            <configuration>
+              <textOutputFile>${project.build.directory}/clirr-restrictive.txt</textOutputFile>
+              <failOnWarning>true</failOnWarning>
+              <ignoredDifferencesFile>../.clirr-jenkins-ignore.xml</ignoredDifferencesFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>

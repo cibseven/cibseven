@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.MismatchingMessageCorrelationException;
@@ -43,16 +43,15 @@ import org.cibseven.bpm.engine.rest.helper.VariableTypeHelper;
 import org.cibseven.bpm.engine.rest.util.VariablesBuilder;
 import org.cibseven.bpm.engine.rest.util.container.TestContainerRule;
 import org.cibseven.bpm.engine.runtime.MessageCorrelationBuilder;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import java.util.ArrayList;
 import java.util.List;
-import junit.framework.Assert;
 import org.cibseven.bpm.engine.runtime.MessageCorrelationResult;
 import org.cibseven.bpm.engine.runtime.MessageCorrelationResultType;
 import org.cibseven.bpm.engine.runtime.MessageCorrelationResultWithVariables;
@@ -61,10 +60,10 @@ import org.cibseven.bpm.engine.variable.type.ValueType;
 import static org.mockito.Mockito.when;
 import static io.restassured.RestAssured.given;
 import static io.restassured.path.json.JsonPath.from;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.doThrow;
@@ -73,7 +72,7 @@ import static org.mockito.Mockito.verify;
 
 public class MessageRestServiceTest extends AbstractRestServiceTest {
 
-  @ClassRule
+  @RegisterExtension
   public static TestContainerRule rule = new TestContainerRule();
 
   protected static final String MESSAGE_URL = TEST_RESOURCE_ROOT_PATH +  MessageRestService.PATH;
@@ -89,7 +88,7 @@ public class MessageRestServiceTest extends AbstractRestServiceTest {
   private MessageCorrelationResultWithVariables executionResultWithVariables;
   private List<MessageCorrelationResultWithVariables> execResultWithVariablesList;
 
-  @Before
+  @BeforeEach
   public void setupMocks() {
     runtimeServiceMock = mock(RuntimeService.class);
     when(processEngine.getRuntimeService()).thenReturn(runtimeServiceMock);
@@ -258,13 +257,13 @@ public class MessageRestServiceTest extends AbstractRestServiceTest {
   protected void checkProcessInstanceResult(String content, int idx) {
     //resultType should be set to process definition
     String resultType = from(content).get("[" + idx + "].resultType");
-    Assert.assertEquals(MessageCorrelationResultType.ProcessDefinition.name(), resultType);
+    assertEquals(MessageCorrelationResultType.ProcessDefinition.name(), resultType);
 
     //process instance should be filled and execution should be null
-    Assert.assertEquals(MockProvider.EXAMPLE_PROCESS_INSTANCE_ID, from(content).get("[" + idx + "].processInstance.id"));
-    Assert.assertEquals(MockProvider.EXAMPLE_PROCESS_DEFINITION_ID, from(content).get("[" + idx + "].processInstance.definitionId"));
-    Assert.assertEquals(MockProvider.EXAMPLE_PROCESS_DEFINITION_KEY, from(content).get("[" + idx + "].processInstance.definitionKey"));
-    Assert.assertNull(from(content).get("[" + idx + "].execution"));
+    assertEquals(MockProvider.EXAMPLE_PROCESS_INSTANCE_ID, from(content).get("[" + idx + "].processInstance.id"));
+    assertEquals(MockProvider.EXAMPLE_PROCESS_DEFINITION_ID, from(content).get("[" + idx + "].processInstance.definitionId"));
+    assertEquals(MockProvider.EXAMPLE_PROCESS_DEFINITION_KEY, from(content).get("[" + idx + "].processInstance.definitionKey"));
+    assertNull(from(content).get("[" + idx + "].execution"));
   }
 
   @Test

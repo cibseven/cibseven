@@ -6,7 +6,7 @@
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-database-settings</artifactId>
     <relativePath>../database</relativePath>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <groupId>org.cibseven.bpm.juel</groupId>
@@ -17,19 +17,59 @@
     <!-- We only wrap and maintain external code in here that has
     its own license header already -->
     <license.skip>true</license.skip>
-    <!-- We shade artifacts into the jar, so we need to generate
-    a dependency BOM for the license book -->
-    <skip-third-party-bom>false</skip-third-party-bom>
-    <!-- Using Jakarta Expression Language 4.0 for Java 8 compatibility -->
-    <version.jakarta.el>4.0.0</version.jakarta.el>
   </properties>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>jakarta.platform</groupId>
+        <artifactId>jakarta.jakartaee-bom</artifactId>
+        <version>${version.jakarta-ee-spec}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
+    <!-- Jakarta Expression Language API, version from the Jakarta EE BOM. Optional: in a container
+         the EL API comes from the container. -->
     <dependency>
       <groupId>jakarta.el</groupId>
       <artifactId>jakarta.el-api</artifactId>
-      <version>${version.jakarta.el}</version>
       <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${version.assertj}</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- an EL implementation for the EL API's own conversion, which SimpleContextTest compares with -->
+    <dependency>
+      <groupId>org.glassfish.expressly</groupId>
+      <artifactId>expressly</artifactId>
+      <version>${version.expressly}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -45,33 +85,6 @@
             <goals>
               <goal>jar-no-fork</goal>
             </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
-              <shadeSourcesContent>true</shadeSourcesContent>
-              <artifactSet>
-                <includes>
-                  <include>jakarta.el:jakarta.el-api</include>
-                </includes>
-              </artifactSet>
-              <relocations>
-                <relocation>
-                  <pattern>jakarta.el</pattern>
-                  <shadedPattern>org.cibseven.bpm.impl.juel.jakarta.el</shadedPattern>
-                </relocation>
-              </relocations>
-            </configuration>
           </execution>
         </executions>
       </plugin>

@@ -27,27 +27,27 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.Test;
 
 public class SpinJRubyScriptTaskTest {
 
-  @Rule
+  @RegisterExtension
   public ProcessEngineRule engineRule = new ProcessEngineRule();
 
   private RuntimeService runtimeService;
   private RepositoryService repositoryService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     this.runtimeService = engineRule.getRuntimeService();
     this.repositoryService = engineRule.getRepositoryService();
   }
 
   @Test
-  @Ignore("CAM-11114")
+  @Disabled("CAM-11114")
   public void shouldNotLeakVariables() {
     // given
     String varName = "var";

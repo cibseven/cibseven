@@ -16,7 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.api.authorization.util;
 
-import static junit.framework.TestCase.assertEquals;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.HashMap;
 import java.util.Map;

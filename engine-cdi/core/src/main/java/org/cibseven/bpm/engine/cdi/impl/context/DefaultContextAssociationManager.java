@@ -23,12 +23,13 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.enterprise.context.ContextNotActiveException;
-import javax.enterprise.context.ConversationScoped;
-import javax.enterprise.context.RequestScoped;
-import javax.enterprise.inject.spi.BeanManager;
-import javax.inject.Inject;
-import javax.inject.Scope;
+import jakarta.enterprise.context.ContextNotActiveException;
+import jakarta.enterprise.context.ConversationScoped;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.inject.Inject;
+import jakarta.inject.Scope;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.RuntimeService;
@@ -55,6 +56,7 @@ import org.cibseven.bpm.engine.variable.value.TypedValue;
  * @author Daniel Meyer
  */
 @SuppressWarnings("serial")
+@Dependent
 public class DefaultContextAssociationManager implements ContextAssociationManager, Serializable {
 
   protected final static Logger log = Logger.getLogger(DefaultContextAssociationManager.class.getName());

@@ -25,7 +25,9 @@ import org.cibseven.connect.spi.Connector;
  * shows every supported input/output parameter; only {@code agentName} and
  * {@code message} are required, the rest are optional. When {@code instruction}
  * is empty, the bundled default system prompt from
- * {@code /org/cibseven/connect/ai/agent/default-instruction.txt} is used.
+ * {@code /org/cibseven/connect/ai/agent/default-instruction.txt} is used; when
+ * the connector drives an agentic ad hoc sub process, the one from
+ * {@code /org/cibseven/connect/ai/agent/default-instruction-adhoc.txt}.
  * <pre>{@code
  * <camunda:connector>
  *     <camunda:connectorId>cibseven-ai-agent</camunda:connectorId>
@@ -38,10 +40,17 @@ import org.cibseven.connect.spi.Connector;
  *       <camunda:inputParameter name="model">gpt-5.4-nano</camunda:inputParameter>
  *       <camunda:inputParameter name="message">${userMessage}</camunda:inputParameter>
  *
- *       <!-- LLM endpoint / authentication -->
+ *       <!-- Process context: allowlist of variable NAMES (not expressions).
+ *            Everything listed is required; the second list names the exceptions. -->
+ *       <camunda:inputParameter name="contextVariables">orderId,totalAmount,escalationReason</camunda:inputParameter>
+ *       <camunda:inputParameter name="optionalContextVariables">escalationReason</camunda:inputParameter>
+ *
+ *       <!-- LLM endpoint. No apiKey: the connector reads OPENAI_API_KEY from the server's
+ *            environment. A key in a process variable is stored in the database and, with
+ *            history on, in the history; a key or token written here, in customHeaders or in
+ *            mcpServers, is stored in the deployed model. -->
  *       <camunda:inputParameter name="baseUrl">http://localhost:11434/v1</camunda:inputParameter>
- *       <camunda:inputParameter name="apiKey">${secrets.OPENAI_API_KEY}</camunda:inputParameter>
- *       <camunda:inputParameter name="customHeaders">{"Authorization": "Basic dXNlcjpwYXNz", "X-Tenant": "acme"}</camunda:inputParameter>
+ *       <camunda:inputParameter name="customHeaders">{"X-Tenant": "acme"}</camunda:inputParameter>
  *
  *       <!-- Reasoning controls -->
  *       <camunda:inputParameter name="reasoningEffort">medium</camunda:inputParameter>
@@ -53,7 +62,7 @@ import org.cibseven.connect.spi.Connector;
  *       <!-- Tools: MCP servers (JSON array) -->
  *       <camunda:inputParameter name="mcpServers">
  *         [
- *           {"url": "http://server1/mcp", "headers": {"Authorization": "Bearer abc"}},
+ *           {"url": "http://server1/mcp", "headers": {"X-Tenant": "acme"}},
  *           {"url": "http://server2/mcp"}
  *         ]
  *       </camunda:inputParameter>
@@ -66,13 +75,14 @@ import org.cibseven.connect.spi.Connector;
  *       <!-- EU AI Act audit -->
  *       <camunda:inputParameter name="persistChatLog">true</camunda:inputParameter>
  *
- *       <!-- RAG / pgvector embedding store -->
+ *       <!-- RAG / pgvector embedding store. pgPassword is left out: in a process variable or
+ *            written here it would be stored as above, and there is no server-side place for
+ *            it yet. -->
  *       <camunda:inputParameter name="pgHost">localhost</camunda:inputParameter>
  *       <camunda:inputParameter name="pgPort">5432</camunda:inputParameter>
  *       <camunda:inputParameter name="pgDatabase">vectors</camunda:inputParameter>
  *       <camunda:inputParameter name="pgUser">postgres</camunda:inputParameter>
- *       <camunda:inputParameter name="pgPassword">${secrets.PG_PASSWORD}</camunda:inputParameter>
- *       <camunda:inputParameter name="pgTable">embeddings</camunda:inputParameter>
+ * *       <camunda:inputParameter name="pgTable">embeddings</camunda:inputParameter>
  *       <camunda:inputParameter name="maxRagResults">5</camunda:inputParameter>
  *       <camunda:inputParameter name="minRagScore">0.7</camunda:inputParameter>
  *       <camunda:inputParameter name="embeddingDimension">384</camunda:inputParameter>
@@ -86,14 +96,42 @@ import org.cibseven.connect.spi.Connector;
  * </camunda:connector>
  * }</pre>
  *
- * <p>The chat log is persisted automatically into a process-scoped variable named
- * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId>} and updated on every
- * {@code request}/{@code response}/{@code error} event of the underlying chat model.
- * If a variable with that name already exists when the connector runs, its content
- * is deserialised and used as the starting point — so multiple invocations of the
- * same service task within one process instance accumulate into a single timeline.
+ * <p>The chat log is persisted automatically into process-scoped variables named
+ * {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "~" + <eventSeq>}, the
+ * {@code eventSeq} padded with zeros to ten digits, one per model call, written once
+ * on the {@code response} or {@code error} event that ends it; the {@code request}
+ * event and any {@code retrieval} before it are part of that chunk. Precisely, a chunk
+ * holds the events since the last write: a failed retrieval is written at once, as a
+ * chunk of its own; what no model call's end wrote is written as one when the
+ * invocation ends; and after a write that failed, the next chunk holds that model
+ * call's events too. Numbering continues across invocations of the same service task, so they
+ * form a single timeline when the chunks are read in the order of their names, after a
+ * variable {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId>} written before chunking
+ * (see {@link AgentConnectorConstants#AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR}).
  * The chat log is not exposed as an output parameter because its serialised form
  * regularly exceeds the {@code VARCHAR(4000)} limit of Camunda's TEXT_ column.
+ *
+ * <p><b>Upgrading:</b> versions before CIB7-2156 kept the chat log of an activity in
+ * the single variable {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId>}. Anything that
+ * reads chat logs by that prefix (the webclient's AI chat view, custom audit exports)
+ * has to read the chunks as described at
+ * {@link AgentConnectorConstants#AGENT_CONNECTOR_LOG_CHUNK_SEPARATOR}, and so has to
+ * be updated together with the connector; an older reader shows each model call as an
+ * activity of its own.
+ *
+ * <p>An activity has about as many chat-log variables as it made model calls, and
+ * every one of them is loaded whenever all variables of the process instance are
+ * (a variables tab, {@code GET /process-instance/{id}/variables}). They hold, taken
+ * together, what the single variable held before; their history, at level
+ * {@code full}, now grows with the events rather than with their square.
+ * {@code persistChatLog=false}, or the {@code chatLogVariable.enabled} setting, turns
+ * them off where the audit trail goes to an external sink instead.
+ *
+ * <p>A chunk's name, {@code AGENT_CONNECTOR_LOG_PREFIX + <activityId> + "~"} and ten digits,
+ * has to fit into the 255 bytes (UTF-8) the engine stores as a variable name, so
+ * that it fits on a database counting the column in bytes (DB2) as well. An activity id of
+ * at most 218 ASCII characters fits (fewer where it has other characters); a longer one
+ * gets no chat log, with a warning, rather than failing the invocation.
  */
 public interface AgentConnector extends Connector<AgentRequest> {
 
@@ -113,7 +151,10 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * the connector falls back to the bundled default prompt at
    * {@code /org/cibseven/connect/ai/agent/default-instruction.txt}, which
    * describes the generic CIB seven agent role and its possible capabilities
-   * (tools, RAG, chat memory, reasoning). Override this parameter to specialise
+   * (tools, RAG, chat memory, reasoning); when the connector drives an agentic
+   * ad hoc sub process, at
+   * {@code /org/cibseven/connect/ai/agent/default-instruction-adhoc.txt}, which
+   * describes an agent that runs the sub process. Override this parameter to specialise
    * the agent for a concrete task. See {@link #PARAM_NAME_INSTRUCTION_MODE} for
    * how this value is combined with the bundled default.
    */
@@ -162,15 +203,18 @@ public interface AgentConnector extends Connector<AgentRequest> {
   String PARAM_NAME_BASE_URL = "baseUrl";
 
   /**
-   * Optional. Override the {@code OPENAI_API_KEY} for this specific request.
-   * The environment variable {@code OPENAI_API_KEY} is the recommended approach.
+   * Optional. Override the {@code OPENAI_API_KEY} for this specific request. Leave it unset
+   * so that the connector reads the environment variable {@code OPENAI_API_KEY} of the server.
+   * Do not pass a key in a process variable: it is stored in the database and, with history
+   * on, in the history. Do not write it into the model either: it is stored in the deployment.
    */
   String PARAM_NAME_API_KEY = "apiKey";
 
   /**
    * Optional. Custom HTTP headers attached to every request sent to the OpenAI-compatible
    * endpoint. Format: JSON object of {@code String} → {@code String} pairs.
-   * Example: {@code {"Authorization": "Basic dXNlcjpwYXNz", "X-Tenant": "acme"}}
+   * Example: {@code {"X-Tenant": "acme"}}. Not for credentials: like {@link #PARAM_NAME_API_KEY},
+   * a header value in the model or in a process variable is stored.
    */
   String PARAM_NAME_CUSTOM_HEADERS = "customHeaders";
 
@@ -184,12 +228,151 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * object of {@code String} → {@code String} pairs. Example:
    * <pre>{@code
    * [
-   *   {"url": "http://server1/mcp", "headers": {"Authorization": "Bearer abc"}},
+   *   {"url": "http://server1/mcp", "headers": {"X-Tenant": "acme"}},
    *   {"url": "http://server2/mcp"}
    * ]
    * }</pre>
+   * Not for tokens: like {@link #PARAM_NAME_CUSTOM_HEADERS}, a header value in the model or in a
+   * process variable is stored.
    */
   String PARAM_NAME_MCP_SERVERS = "mcpServers";
+
+  // ── Process context input parameter names ─────────────────────────────────
+
+  /**
+   * Optional. Comma-separated allowlist of process-variable <em>names</em> whose
+   * values are rendered into a structured {@code <process-context>} block and
+   * appended to the system prompt. Empty (the default) means no context is
+   * passed — the agent sees exactly what {@link #PARAM_NAME_MESSAGE} carries,
+   * which is the behaviour of every release before this parameter existed.
+   *
+   * <p>Names, not {@code ${expressions}}: the Connect boundary unwraps every
+   * {@code TypedValue} before the connector runs, so an expression would arrive
+   * stripped of its type (and, for files, of filename and mime type). The
+   * connector reads {@code execution.getVariableTyped(name, false)} itself, so
+   * types survive and {@code null} stays distinguishable from an empty string.
+   *
+   * <p>Example: {@code "orderId,customerName,totalAmount"}
+   *
+   * <p>Every name listed here is <b>required</b> unless it also appears in
+   * {@link #PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES}: if it cannot reach the model,
+   * the activity fails and the agent is not invoked. That default is deliberate —
+   * declaring a variable means the task needs it, and the alternative (proceeding
+   * over missing data) fails silently.
+   *
+   * <p>Variables holding files or raw bytes are rendered as a descriptor, never
+   * as content. Values are escaped and capped: at
+   * {@value AgentConnectorConstants#DEFAULT_MAX_CONTEXT_VALUE_CHARS} characters
+   * per value, counted on the value itself, and
+   * {@value AgentConnectorConstants#DEFAULT_MAX_CONTEXT_BLOCK_CHARS} for the
+   * whole block. A required value is sent whole or the activity fails, naming it
+   * and its length; an optional one is sent cut. Cuts and omissions are visible
+   * in the block and in the {@code context} audit event.
+   *
+   * <p><b>Access:</b> the declared variables are process data, read like any
+   * other service task reads them — no user's permissions are checked, whoever
+   * triggered the task and whether it runs synchronously or as a job. The same
+   * holds for {@link #PARAM_NAME_DOCUMENTS}. The declaration is the control.
+   *
+   * <p><b>Security:</b> everything listed here goes to the model provider as it
+   * is, so list only what the model may see. Tokens, passwords and keys belong in
+   * system variables (environment or system properties), as the connector's own
+   * {@code OPENAI_API_KEY} does, not in process variables listed here — in
+   * particular, do not build this list from all variable names. The connector's
+   * own variables (chat log, chat memory) are not meant to be listed either.
+   * Process variables also routinely hold user- or document-sourced text, which
+   * becomes part of the prompt of a possibly tool-enabled agent.
+   */
+  String PARAM_NAME_CONTEXT_VARIABLES = "contextVariables";
+
+  /**
+   * Optional. Comma-separated subset of {@link #PARAM_NAME_CONTEXT_VARIABLES}
+   * that is allowed to be missing. Such a variable renders as {@code (absent)},
+   * {@code null} or {@code (unreadable)}, whichever applies, and the agent runs
+   * on; everything else declared fails the activity when it cannot reach the
+   * model.
+   *
+   * <p>Use it for context that legitimately exists on only some paths — an
+   * escalation reason written by a branch that is often skipped, a decision from
+   * a previous loop iteration, an answer to an optional enquiry. Requiring those
+   * would force the modeler to pre-initialise them, which collapses the
+   * {@code (absent)} / empty distinction this block exists to preserve.
+   *
+   * <p>This list is a pure <em>modifier</em>: it never adds a name to the
+   * allowlist. A name listed here but absent from
+   * {@link #PARAM_NAME_CONTEXT_VARIABLES} is ignored with a warning, so there is
+   * exactly one place that decides what the agent sees.
+   *
+   * <p>Note that an <em>empty string</em> counts as a value. A required variable
+   * fails the activity in five cases, not only when it was never written: it is
+   * not set, it holds {@code null}, it cannot be read, its value is longer than
+   * {@value AgentConnectorConstants#DEFAULT_MAX_CONTEXT_VALUE_CHARS} characters,
+   * or it was omitted because the block reached
+   * {@value AgentConnectorConstants#DEFAULT_MAX_CONTEXT_BLOCK_CHARS} characters.
+   * List a variable here if any of these is acceptable for the task; a value that
+   * is too long is then sent cut, with a marker.
+   */
+  String PARAM_NAME_OPTIONAL_CONTEXT_VARIABLES = "optionalContextVariables";
+
+  // ── Document input parameter names ────────────────────────────────────────
+
+  /**
+   * Optional. Comma-separated list of process-variable <em>names</em> holding
+   * files that are sent to the model with {@link #PARAM_NAME_MESSAGE}, which
+   * must then not be empty. PDFs and images go as native attachments — a PDF as
+   * a PDF, an image as an image, rather than as text spliced into the prompt.
+   * Text, JSON, XML and YAML documents are the exception: they are inserted into
+   * the prompt as a delimited block and count in full as input tokens.
+   *
+   * <p>Accepts {@code FileValue} variables (which carry filename and mime type)
+   * and {@code BytesValue} variables (which carry neither, so their mime type
+   * has to come from {@link #PARAM_NAME_DOCUMENT_MIME_TYPES}).
+   *
+   * <p>Names, not {@code ${expressions}} — and here the reason is not just type
+   * loss: Connect hands over {@code FileValue.getValue()}, which is a bare
+   * {@code InputStream}, so filename and mime type are already gone, and the
+   * request-parameter accessor is an unchecked cast that would fail with a
+   * {@code ClassCastException} rather than a usable message.
+   *
+   * <p>Every declared document must exist. Unlike
+   * {@link #PARAM_NAME_CONTEXT_VARIABLES} there is no optional variant: an
+   * agent asked to read an invoice that was not attached is not working on
+   * degraded input, it is working on a different task.
+   *
+   * <p>Read as process data without a permission check, like
+   * {@link #PARAM_NAME_CONTEXT_VARIABLES}; see there.
+   *
+   * <p>With chat memory, the documents belong to this turn only: memory keeps
+   * the text of the user message, not the attachments, so a later turn on the
+   * same memory id does not see them unless it declares them again. RAG content
+   * retrieved for such a turn is not kept in memory either.
+   *
+   * <p>Example: {@code "invoicePdf,signatureScan"}
+   */
+  String PARAM_NAME_DOCUMENTS = "documents";
+
+  /**
+   * Optional. JSON object of variable name → mime type, used when a document's
+   * own metadata does not say what it is, or to override it.
+   *
+   * <p>Required for every {@code BytesValue} variable listed in
+   * {@link #PARAM_NAME_DOCUMENTS}: raw bytes carry no mime type, and guessing
+   * one from the leading bytes would fail silently when it guesses wrong.
+   *
+   * <p>Example: {@code {"scan": "image/png", "report": "application/pdf"}}
+   */
+  String PARAM_NAME_DOCUMENT_MIME_TYPES = "documentMimeTypes";
+
+  /**
+   * Optional. Detail level requested for image attachments — {@code AUTO}
+   * (default), {@code LOW} or {@code HIGH}. Higher levels cost more input tokens.
+   * Ignored for non-image documents.
+   *
+   * <p>LangChain4j also defines {@code MEDIUM} and {@code ULTRA_HIGH}, but its
+   * OpenAI mapping — on the chat-completions and the Responses path alike —
+   * throws on both, so they are rejected here instead of at the first model call.
+   */
+  String PARAM_NAME_DOCUMENT_DETAIL_LEVEL = "documentDetailLevel";
 
   /**
    * Optional. Reasoning effort hint for reasoning-capable models
@@ -225,7 +408,11 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * active and this parameter is {@code null} or empty, the connector generates
    * a new UUID and exposes it as the {@link #PARAM_NAME_MEMORY_ID} output so
    * the caller can persist it (e.g. into a process variable) and pass it back
-   * on the next invocation.
+   * on the next invocation. An AI agent task that the agent of an agentic ad hoc
+   * sub process calls as a tool gets an id derived from the sub process instead:
+   * with {@code perEntry} its calls share one conversation within an entry, with
+   * {@code perActivity} one across all entries. It stays a process variable until
+   * the process instance ends.
    */
   String PARAM_NAME_MEMORY_ID = "memoryId";
 
@@ -237,8 +424,8 @@ public interface AgentConnector extends Connector<AgentRequest> {
   String PARAM_NAME_CHAT_MEMORY_MAX_MESSAGES = "chatMemoryMaxMessages";
 
   /**
-   * Optional. Per-activity override for the EU AI Act chat-log audit variable
-   * ({@code cibseven-connect-ai-agent_<activityId>}). Tri-state:
+   * Optional. Per-activity override for the EU AI Act chat-log audit variables
+   * ({@code cibseven-connect-ai-agent_<activityId>~<eventSeq>}). Tri-state:
    * <ul>
    *   <li>{@code null} / empty / unset — fall through to the deployment-wide
    *       default (system property {@code cibseven.connect.ai-agent.chatLogVariable.enabled}
@@ -275,7 +462,10 @@ public interface AgentConnector extends Connector<AgentRequest> {
   /** Optional. PostgreSQL user. */
   String PARAM_NAME_PG_USER = "pgUser";
 
-  /** Optional. PostgreSQL password. */
+  /**
+   * Optional. PostgreSQL password. Like {@link #PARAM_NAME_API_KEY}, a value in a process
+   * variable or written into the model is stored there.
+   */
   String PARAM_NAME_PG_PASSWORD = "pgPassword";
 
   /**

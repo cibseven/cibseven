@@ -6,12 +6,17 @@
   <parent>
     <groupId>org.cibseven.bpm.quarkus</groupId>
     <artifactId>cibseven-bpm-quarkus-engine-parent</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cibseven-bpm-quarkus-engine-deployment</artifactId>
 
   <name>CIB seven - Quarkus Extension - Engine - Deployment</name>
+
+  <properties>
+    <!-- Build-time only: upstream quarkus-*-deployment brings JUnit and Testcontainers at compile scope -->
+    <cibseven.enforcer.allowTestLibraries>true</cibseven.enforcer.allowTestLibraries>
+  </properties>
 
   <dependencies>
 

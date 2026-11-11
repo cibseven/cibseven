@@ -9,9 +9,8 @@
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-database-settings</artifactId>
     <relativePath>../database</relativePath>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
-
   <dependencyManagement>
     <dependencies>
 
@@ -26,7 +25,7 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-framework-bom</artifactId>
-        <version>${version.spring.framework6}</version>
+        <version>${version.spring.framework7}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -114,6 +113,15 @@
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
+      <exclusions>
+        <!-- Gson (since 2.11) declares error_prone_annotations as a dependency. They are
+             compile-time only annotations that Gson does not need at runtime; excluded so that
+             the shade plugin does not copy them unrelocated into the engine jar (CIB7-2634). -->
+        <exclusion>
+          <groupId>com.google.errorprone</groupId>
+          <artifactId>error_prone_annotations</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- provided dependencies -->
@@ -135,24 +143,32 @@
       <artifactId>java-uuid-generator</artifactId>
       <scope>provided</scope>
     </dependency>
-
     <dependency>
-      <groupId>org.jboss.spec</groupId>
-      <artifactId>jboss-javaee-web-6.0</artifactId>
-      <type>pom</type>
+      <groupId>jakarta.enterprise</groupId>
+      <artifactId>jakarta.enterprise.cdi-api</artifactId>
+      <!-- Provided, like every other Jakarta EE API of the engine: the engine only uses the
+           @Dependent annotation on RepositoryService, which the JVM ignores when CDI is absent.
+           A compile-scope cdi-api is shaded into the engine jar together with its transitive
+           APIs (jakarta.inject, jakarta.annotation, jakarta.interceptor, the CDI lang-model),
+           and the Jakarta EE 11 BOM no longer manages it with a wildcard exclusion as the
+           Jakarta EE 10 BOM did. On WildFly the engine module is a dependency of every process
+           application, and a second copy of jakarta.inject.Named made Weld drop the bean names
+           of EJB-module process applications (CIB7-2582). The container or the application
+           classpath provides the CDI API. -->
       <scope>provided</scope>
       <exclusions>
         <exclusion>
-          <groupId>org.jboss.spec.javax.xml.bind</groupId>
-          <artifactId>jboss-jaxb-api_2.2_spec</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.jboss.spec.javax.servlet.jsp</groupId>
-          <artifactId>jboss-jsp-api_2.2_spec</artifactId>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
 
+    <dependency>
+        <groupId>jakarta.mail</groupId>
+        <artifactId>jakarta.mail-api</artifactId>
+        <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>jakarta.transaction</groupId>
       <artifactId>jakarta.transaction-api</artifactId>
@@ -172,6 +188,12 @@
     </dependency>
 
     <dependency>
+      <groupId>jakarta.el</groupId>
+      <artifactId>jakarta.el-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.apache.tomcat</groupId>
       <artifactId>tomcat-catalina</artifactId>
       <scope>provided</scope>
@@ -187,12 +209,6 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-email</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
       <scope>provided</scope>
     </dependency>
 
@@ -230,8 +246,9 @@
     </dependency>
 
     <dependency>
-      <groupId>org.subethamail</groupId>
-      <artifactId>subethasmtp-wiser</artifactId>
+      <groupId>io.github.frshdn</groupId>
+      <artifactId>subethasmtp-java17</artifactId>
+      <version>3.1.7</version>
       <scope>test</scope>
     </dependency>
 
@@ -251,7 +268,6 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>3.18.0</version>
       <scope>test</scope>
     </dependency>
 
@@ -269,14 +285,9 @@
     </dependency>
 
     <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-library</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
+      <version>${version.assertj}</version>
       <scope>test</scope>
     </dependency>
 
@@ -299,8 +310,9 @@
     </dependency>
 
     <dependency>
-      <groupId>com.github.tomakehurst</groupId>
+      <groupId>org.wiremock</groupId>
       <artifactId>wiremock</artifactId>
+      <version>${version.wiremock}</version>
       <scope>test</scope>
     </dependency>
 
@@ -332,13 +344,16 @@
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js</artifactId>
+      <type>pom</type>
       <scope>test</scope>
+      <version>${version.graal.js}</version>
     </dependency>
 
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js-scriptengine</artifactId>
       <scope>test</scope>
+      <version>${version.graal.js}</version>
     </dependency>
 
     <dependency>
@@ -349,12 +364,44 @@
     </dependency>
 
     <dependency>
+      <groupId>com.ibm.icu</groupId>
+      <artifactId>icu4j</artifactId>
+      <version>${version.icu.icu4j}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>com.github.h-thurow</groupId>
       <artifactId>simple-jndi</artifactId>
       <version>0.24.0</version>
       <scope>test</scope>
     </dependency>
 
+    <!-- JUnit 5 Jupiter API for unit testing -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${version.junit5}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${version.junit5}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest</artifactId>
+        <version>${version.hamcrest}</version>
+        <scope>test</scope>
+    </dependency>
   </dependencies>
 
 
@@ -366,10 +413,6 @@
     <mail.server.port>5025</mail.server.port>
     <authorizationCheckRevokes>auto</authorizationCheckRevokes>
     <jdbcBatchProcessing>true</jdbcBatchProcessing>
-
-    <!-- We shade artifacts into the jar, so we need to generate a dependency BOM
-    for the license book -->
-    <skip-third-party-bom>false</skip-third-party-bom>
 
     <cibseven.artifact>
       org.cibseven.bpm
@@ -386,12 +429,12 @@
       junit*;resolution:=optional,
       org.junit*;resolution:=optional,
       com.sun*;resolution:=optional,
-      javax.persistence*;resolution:=optional,
-      javax.servlet*;resolution:=optional,
-      javax.transaction*;resolution:=optional,
-      javax.ejb*;resolution:=optional,
+      jakarta.persistence*;resolution:=optional,
+      jakarta.servlet*;resolution:=optional,
+      jakarta.transaction*;resolution:=optional,
+      jakarta.ejb*;resolution:=optional,
       javax.xml*;resolution:=optional,
-      javax.mail*;resolution:=optional,
+      jakarta.mail*;resolution:=optional,
       org.apache.catalina*;resolution:=optional,
       org.apache.commons.mail;resolution:=optional,
       org.apache.tools.ant*;resolution:=optional,
@@ -454,6 +497,49 @@
             <dependency>org.cibseven.bpm:cibseven-bpm-archunit</dependency>
           </dependenciesToScan>
         </configuration>
+        <executions>
+          <!-- JUEL method calls and argument conversion behave as in 2.2 on the EL APIs of the
+               servers too (CIB7-2609): run the EL tests again with Tomcat's EL API (tomcat-el-api
+               comes with tomcat-catalina) and with the one of WildFly instead of the upstream
+               jakarta.el-api. Expressly stays the global EL implementation. -->
+          <execution>
+            <id>el-api-tomcat</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <test>ExpressionManagerTest,JuelScriptEngineTest,ProcessEngineElContextTest,DmnExpressionLanguageTest</test>
+              <dependenciesToScan combine.self="override" />
+              <reportsDirectory>${project.build.directory}/surefire-reports-el-api-tomcat</reportsDirectory>
+              <classpathDependencyExcludes>
+                <classpathDependencyExclude>jakarta.el:jakarta.el-api</classpathDependencyExclude>
+              </classpathDependencyExcludes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>el-api-wildfly</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <test>ExpressionManagerTest,JuelScriptEngineTest,ProcessEngineElContextTest,DmnExpressionLanguageTest</test>
+              <dependenciesToScan combine.self="override" />
+              <reportsDirectory>${project.build.directory}/surefire-reports-el-api-wildfly</reportsDirectory>
+              <classpathDependencyExcludes>
+                <classpathDependencyExclude>jakarta.el:jakarta.el-api</classpathDependencyExclude>
+                <classpathDependencyExclude>org.apache.tomcat:tomcat-el-api</classpathDependencyExclude>
+              </classpathDependencyExcludes>
+              <additionalClasspathDependencies>
+                <!-- the EL API of WildFly 42 -->
+                <additionalClasspathDependency>
+                  <groupId>org.jboss.spec.jakarta.el</groupId>
+                  <artifactId>jakarta.el-api</artifactId>
+                  <version>6.0.2.Final</version>
+                </additionalClasspathDependency>
+              </additionalClasspathDependencies>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.felix</groupId>
@@ -493,21 +579,16 @@
           <createSourcesJar>true</createSourcesJar>
           <createDependencyReducedPom>true</createDependencyReducedPom>
           <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
+          <!-- Allowlist (CIB7-2636): only these libraries go into the engine jar, relocated
+               to camundajar.impl.* below. Every other dependency stays a regular dependency
+               that applications and containers can replace or exclude. A denylist let new
+               transitive dependencies in unnoticed: spring-core 7 (via spring-beans) brought
+               commons-logging and jspecify into the jar unrelocated. -->
           <artifactSet>
-            <excludes>
-              <exclude>org.cibseven.bpm.model:*</exclude>
-              <exclude>org.cibseven.bpm.dmn:*</exclude>
-              <exclude>org.cibseven.bpm.juel:*</exclude>
-              <exclude>org.cibseven.commons:*</exclude>
-              <exclude>org.camunda.feel:*</exclude>
-
-              <exclude>org.springframework:*</exclude>
-              <exclude>org.slf4j:*</exclude>
-              <exclude>com.sun.mail:*</exclude>
-              <exclude>javax.activation:*</exclude>
-              <exclude>org.mybatis:mybatis:*</exclude>
-              <exclude>joda-time:*</exclude>
-            </excludes>
+            <includes>
+              <include>com.google.code.gson:gson</include>
+              <include>com.cronutils:cron-utils</include>
+            </includes>
           </artifactSet>
           <relocations>
             <relocation>
@@ -522,6 +603,18 @@
           <transformers>
             <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
           </transformers>
+          <filters>
+            <filter>
+              <!-- Gson's JPMS module descriptor (multi-release folder) and ProGuard rules name the
+                   unrelocated com.google.gson packages; they do not apply to the relocated copy
+                   (CIB7-2634). -->
+              <artifact>com.google.code.gson:gson</artifact>
+              <excludes>
+                <exclude>META-INF/versions/**</exclude>
+                <exclude>META-INF/proguard/**</exclude>
+              </excludes>
+            </filter>
+          </filters>
           <shadeTestJar>true</shadeTestJar>
         </configuration>
       </plugin>
@@ -544,6 +637,76 @@
                   <fileset dir="target/classes/org/cibseven/bpm/engine/db/upgrade" excludes="*_6.*_*,*_7.0_*,*_7.1_*,*_7.2_*,*_7.3_*,*_7.4_*,*_7.5_*,*_7.6_*,*_7.7_*, *_7.8_*,*_7.9_*,*_7.10_*,*_7.11_*,*_7.12_*,*_7.13_*,*_7.14_*,*_7.15_*" />
                 </copy>
 
+              </target>
+            </configuration>
+          </execution>
+          <!-- The shaded engine jar must not carry its own copy of any Jakarta EE / Java EE API
+               (jakarta.*, javax.*): the container or the application classpath provides these
+               APIs, a second copy breaks class identity (CIB7-2582). No exceptions; a library
+               that needs such an API inside the jar must be relocated. Beyond that, the jar may
+               only contain the engine's own classes and resources and the libraries relocated
+               to camundajar.* (CIB7-2636). Bound to verify, after the shade plugin has replaced
+               the jar in the package phase. -->
+          <execution>
+            <id>verify-no-jakarta-api-in-shaded-jar</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <!-- Patterns of the two checks below, shared with their self-test. -->
+                <property name="engine.jar.allowed" value="org/cibseven/**,camundajar/**,META-INF/MANIFEST.MF,META-INF/NOTICE,META-INF/maven/**,META-INF/services/**,*.xsd" />
+                <property name="engine.jar.forbidden.ee" value="jakarta/**,javax/**,org/glassfish/expressly/**,com/sun/el/**" />
+                <!-- Self-test: a sample jar with allowed and forbidden entries; each check must flag
+                     exactly the forbidden ones, so a broken pattern cannot let a foreign library pass. -->
+                <property name="engine.jar.selftest" value="${project.build.directory}/engine-jar-guard-selftest.jar" />
+                <zip destfile="${engine.jar.selftest}">
+                  <zipfileset file="${basedir}/pom.xml" fullpath="org/cibseven/bpm/engine/Allowed.class" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="camundajar/impl/com/google/gson/Allowed.class" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="META-INF/services/org.cibseven.Allowed" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="allowed.xsd" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="org/apache/commons/logging/LogFactory.class" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="org/jspecify/annotations/Nullable.class" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="META-INF/versions/9/module-info.class" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="javax/annotation/Forbidden.class" />
+                </zip>
+                <fail message="Self-test of the engine jar checks failed: the allowlist must flag exactly the 4 forbidden entries of ${engine.jar.selftest}.">
+                  <condition>
+                    <not>
+                      <resourcecount when="equal" count="4">
+                        <zipfileset src="${engine.jar.selftest}" includes="**" excludes="${engine.jar.allowed}" />
+                      </resourcecount>
+                    </not>
+                  </condition>
+                </fail>
+                <fail message="Self-test of the engine jar checks failed: the Jakarta check must flag exactly the javax entry of ${engine.jar.selftest}.">
+                  <condition>
+                    <not>
+                      <resourcecount when="equal" count="1">
+                        <zipfileset src="${engine.jar.selftest}" includes="${engine.jar.forbidden.ee}" />
+                      </resourcecount>
+                    </not>
+                  </condition>
+                </fail>
+                <fail message="${project.build.finalName}.jar bundles unrelocated jakarta.* or javax.* classes or an EL implementation. Jakarta EE APIs must come from the container or the application classpath: declare them provided (see jakarta.enterprise.cdi-api), and never add them to the maven-shade-plugin artifactSet includes, which list only the libraries shaded into the engine jar (Gson, cron-utils).">
+                  <condition>
+                    <resourcecount when="greater" count="0">
+                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="${engine.jar.forbidden.ee}" />
+                    </resourcecount>
+                  </condition>
+                </fail>
+                <!-- Allowlist of the jar's entries (CIB7-2636; it also covers Gson's
+                     error_prone_annotations dependency and module descriptor, CIB7-2634).
+                     META-INF/NOTICE is written by the ApacheNoticeResourceTransformer that
+                     release-parent configures for every shaded jar. -->
+                <fail message="${project.build.finalName}.jar contains entries outside org/cibseven/, camundajar/, META-INF/MANIFEST.MF, META-INF/NOTICE, META-INF/maven/, META-INF/services/ and the root *.xsd files, e.g. an unrelocated library (commons-logging, jspecify, com.google.*) or a multi-release META-INF/versions/ folder. Shade only the libraries of the maven-shade-plugin artifactSet includes, relocated to camundajar.impl.*, and keep every other library a regular dependency.">
+                  <condition>
+                    <resourcecount when="greater" count="0">
+                      <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="**" excludes="${engine.jar.allowed}" />
+                    </resourcecount>
+                  </condition>
+                </fail>
               </target>
             </configuration>
           </execution>
@@ -840,7 +1003,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <argLine>-Xmx968m</argLine>
+              <argLine>-Xmx4g</argLine>
             </configuration>
           </plugin>
         </plugins>
@@ -901,28 +1064,6 @@
       </build>
     </profile>
 
-    <profile>
-     <id>exclude-post-jdk15-tests</id>
-      <activation>
-        <jdk>[15,)</jdk>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <configuration>
-                <!-- Nashorn is not part of the JDK anymore in Java 15+ -->
-                <excludes combine.children="append">
-                  <exclude>**/*NashornTest.java</exclude>
-                </excludes>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
-
     <!-- test profiles -->
     <profile>
      <id>testBpmn</id>
@@ -971,24 +1112,6 @@
      <properties>
       <test.excludes>bpmn|cmmn</test.excludes>
      </properties>
-    </profile>
-
-    <profile>
-      <id>java11</id>
-      <activation>
-        <jdk>11</jdk>
-      </activation>
-      <dependencyManagement>
-        <dependencies>
-          <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-framework-bom</artifactId>
-            <version>${version.spring.framework}</version>
-            <type>pom</type>
-            <scope>import</scope>
-          </dependency>
-        </dependencies>
-      </dependencyManagement>
     </profile>
 
   </profiles>

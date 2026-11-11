@@ -26,12 +26,12 @@ import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.TestContainer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
@@ -41,7 +41,7 @@ import java.util.List;
  *
  * @author Nikola Koevski
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class DeserializableVariableTest extends AbstractFoxPlatformIntegrationTest {
 
   @Deployment
@@ -70,7 +70,7 @@ public class DeserializableVariableTest extends AbstractFoxPlatformIntegrationTe
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("testDeserializeVariable");
 
     // when
-    Assert.assertNull(runtimeService.createProcessInstanceQuery().processInstanceId(pi.getId()).singleResult());
+    Assertions.assertNull(runtimeService.createProcessInstanceQuery().processInstanceId(pi.getId()).singleResult());
     runtimeService.restartProcessInstances(pi.getProcessDefinitionId())
       .startAfterActivity("servicetask1")
       .processInstanceIds(pi.getId())
@@ -83,7 +83,7 @@ public class DeserializableVariableTest extends AbstractFoxPlatformIntegrationTe
     List<HistoricVariableInstance> variableInstances = historyService.createHistoricVariableInstanceQuery().disableCustomObjectDeserialization().list();
     for (HistoricVariableInstance variable : variableInstances) {
       if (variable.getProcessInstanceId() != pi.getId() && variable instanceof HistoricVariableInstanceEntity) {
-        Assert.assertNotNull(((HistoricVariableInstanceEntity) variable).getByteArrayValue());
+        Assertions.assertNotNull(((HistoricVariableInstanceEntity) variable).getByteArrayValue());
       }
     }
   }

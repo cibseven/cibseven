@@ -16,16 +16,17 @@
  */
 package org.cibseven.bpm.engine.rest.application;
 
-import com.fasterxml.jackson.jaxrs.base.JsonMappingExceptionMapper;
-import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.cibseven.bpm.engine.rest.exception.ExceptionHandler;
 import org.cibseven.bpm.engine.rest.exception.ProcessEngineExceptionHandler;
 import org.cibseven.bpm.engine.rest.exception.RestExceptionHandler;
+import org.cibseven.bpm.engine.rest.mapper.CibsevenJacksonJsonProvider;
 import org.cibseven.bpm.engine.rest.mapper.JacksonConfigurator;
 
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
+import tools.jackson.jakarta.rs.base.DatabindExceptionMapper;
+import tools.jackson.jakarta.rs.base.StreamReadExceptionMapper;
+
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.core.Application;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -44,9 +45,9 @@ public class TestCustomResourceApplication extends Application {
 
     PROVIDERS.add(JacksonConfigurator.class);
 
-    PROVIDERS.add(JacksonJsonProvider.class);
-    PROVIDERS.add(JsonMappingExceptionMapper.class);
-    PROVIDERS.add(JsonParseExceptionMapper.class);
+    PROVIDERS.add(CibsevenJacksonJsonProvider.class);
+    PROVIDERS.add(DatabindExceptionMapper.class);
+    PROVIDERS.add(StreamReadExceptionMapper.class);
 
     PROVIDERS.add(ProcessEngineExceptionHandler.class);
     PROVIDERS.add(RestExceptionHandler.class);

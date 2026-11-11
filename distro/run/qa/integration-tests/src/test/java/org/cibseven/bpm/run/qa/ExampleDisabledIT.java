@@ -20,9 +20,9 @@ import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.is;
 import java.io.IOException;
 import org.cibseven.bpm.run.qa.util.SpringBootManagedContainer;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 
 import io.restassured.response.Response;
 
@@ -30,7 +30,7 @@ public class ExampleDisabledIT {
 
   static SpringBootManagedContainer container;
 
-  @After
+  @AfterEach
   public void stopApp() {
     try {
       if (container != null) {
@@ -43,7 +43,7 @@ public class ExampleDisabledIT {
     }
   }
 
-  @Before
+  @BeforeEach
   public void runStartScript() throws IOException {
     container = new SpringBootManagedContainer();
 

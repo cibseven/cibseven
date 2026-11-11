@@ -18,8 +18,8 @@ package org.cibseven.bpm.dmn.feel.impl.juel.el;
 
 import java.lang.reflect.Method;
 
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ExpressionFactory;
+import jakarta.el.ELContext;
+import jakarta.el.ExpressionFactory;
 
 import org.cibseven.bpm.engine.variable.context.VariableContext;
 

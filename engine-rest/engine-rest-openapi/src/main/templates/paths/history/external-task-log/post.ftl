@@ -4,7 +4,7 @@
   <@lib.endpointInfo
       id = "queryHistoricExternalTaskLogs"
       tag = "Historic External Task Log"
-      summary = "Get External Task Logs (POST)"
+      summary = "Get Historic External Task Logs"
       desc = "Queries for historic external task logs that fulfill the given parameters.
               This method is slightly more powerful than the
               [Get External Task Logs](${docsUrl}/reference/rest/history/external-task-log/get-external-task-log-query/)
@@ -52,6 +52,7 @@
                            "tenantId": null,
                            "creationLog": false,
                            "failureLog": true,
+                           "fetchedLog": false,
                            "successLog": false,
                            "deletionLog": false,
                            "removalTime": "2018-02-10T14:33:19.000+0200",

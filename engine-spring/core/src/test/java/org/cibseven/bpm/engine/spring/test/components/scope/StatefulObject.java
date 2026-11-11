@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.spring.test.components.scope;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
@@ -106,7 +107,7 @@ public class StatefulObject implements Serializable,InitializingBean  {
 	}
 
 	public void afterPropertiesSet() throws Exception {
-	 Assert.notNull(this.processInstance, "the processInstance should be equal to the currently active processInstance!");
+	 assertNotNull(this.processInstance, "the processInstance should be equal to the currently active processInstance!");
 		logger.info("the 'processInstance' property is non-null: PI ID# "+ this.processInstance.getId());
 	}
 }

@@ -18,7 +18,7 @@ package org.cibseven.bpm.engine.rest.dto.history;
 
 import static java.lang.Boolean.TRUE;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.history.HistoricExternalTaskLogQuery;
 import org.cibseven.bpm.engine.rest.dto.AbstractQueryDto;
@@ -27,7 +27,7 @@ import org.cibseven.bpm.engine.rest.dto.converter.BooleanConverter;
 import org.cibseven.bpm.engine.rest.dto.converter.LongConverter;
 import org.cibseven.bpm.engine.rest.dto.converter.StringArrayConverter;
 
-import javax.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -84,6 +84,7 @@ public class HistoricExternalTaskLogQueryDto extends AbstractQueryDto<HistoricEx
   protected Boolean withoutTenantId;
   protected Boolean creationLog;
   protected Boolean failureLog;
+  protected Boolean fetchedLog;
   protected Boolean successLog;
   protected Boolean deletionLog;
 
@@ -178,6 +179,11 @@ public class HistoricExternalTaskLogQueryDto extends AbstractQueryDto<HistoricEx
     this.failureLog = failureLog;
   }
 
+  @CamundaQueryParam(value="fetchedLog", converter = BooleanConverter.class)
+  public void setFetchedLog(Boolean fetchedLog) {
+    this.fetchedLog = fetchedLog;
+  }
+
   @CamundaQueryParam(value="successLog", converter = BooleanConverter.class)
   public void setSuccessLog(Boolean successLog) {
     this.successLog = successLog;
@@ -251,6 +257,10 @@ public class HistoricExternalTaskLogQueryDto extends AbstractQueryDto<HistoricEx
 
     if (failureLog != null && failureLog) {
       query.failureLog();
+    }
+
+    if (fetchedLog != null && fetchedLog) {
+      query.fetchedLog();
     }
 
     if (successLog != null && successLog) {

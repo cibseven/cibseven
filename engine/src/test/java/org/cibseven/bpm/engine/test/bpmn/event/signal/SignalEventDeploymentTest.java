@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.bpmn.event.signal;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 
@@ -27,7 +27,7 @@ import org.cibseven.bpm.engine.impl.persistence.entity.EventSubscriptionEntity;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.EventSubscription;
 import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Philipp Ossler

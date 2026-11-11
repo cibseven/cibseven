@@ -21,19 +21,19 @@ import org.cibseven.bpm.integrationtest.deployment.ear.beans.AnnotatedEjbPa;
 import org.cibseven.bpm.integrationtest.util.AbstractFoxPlatformIntegrationTest;
 import org.cibseven.bpm.integrationtest.util.DeploymentHelper;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Tassilo Weidner
  */
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class TestPaAnnotatedEjb extends AbstractFoxPlatformIntegrationTest {
 
   /**
@@ -72,7 +72,7 @@ public class TestPaAnnotatedEjb extends AbstractFoxPlatformIntegrationTest {
   public void testPaAnnotatedEjb() {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("process1");
 
-    Assert.assertNotNull(processInstance);
+    Assertions.assertNotNull(processInstance);
   }
 
 }

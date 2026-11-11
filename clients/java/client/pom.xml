@@ -10,7 +10,7 @@
   <parent>
     <groupId>org.cibseven.bpm</groupId>
     <artifactId>cibseven-external-task-client-root</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <properties>
@@ -23,6 +23,7 @@
 
     <cargo.timeout>240000</cargo.timeout>
     <cargo.deploy.timeout>60000</cargo.deploy.timeout>
+
   </properties>
 
   <dependencyManagement>
@@ -35,15 +36,21 @@
         <type>pom</type>
       </dependency>
       <dependency>
-        <groupId>com.fasterxml.jackson</groupId>
+        <groupId>tools.jackson</groupId>
         <artifactId>jackson-bom</artifactId>
-        <version>${version.jackson}</version>
+        <version>${version.jackson3}</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
+      <dependency>
+          <groupId>org.junit</groupId>
+          <artifactId>junit-bom</artifactId>
+          <version>${version.junit5}</version>
+          <type>pom</type>
+          <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
-
   <dependencies>
 
     <!-- mandatory dependencies -->
@@ -63,8 +70,9 @@
       <version>${version.httpclient5}</version>
     </dependency>
 
+    <!-- Jackson 3; the Jackson 2 variant of the client is cibseven-external-task-client-jackson2 -->
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
+      <groupId>tools.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
     </dependency>
 
@@ -80,18 +88,32 @@
       <version>${version.jjwt}</version>
       <optional>true</optional>
     </dependency>
+    <!-- jjwt has no Jackson 3 serializer (jjwt-jackson is Jackson 2 only), so the optional JWT support uses Gson -->
     <dependency>
       <groupId>io.jsonwebtoken</groupId>
-      <artifactId>jjwt-jackson</artifactId> <!-- or jjwt-gson if Gson is preferred -->
+      <artifactId>jjwt-gson</artifactId>
       <version>${version.jjwt}</version>
       <optional>true</optional>
     </dependency>
 
-
-    <!-- test dependencies -->
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-launcher</artifactId>
       <scope>test</scope>
     </dependency>
 
@@ -104,6 +126,7 @@
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
+      <version>${version.assertj}</version>
       <scope>test</scope>
     </dependency>
 
@@ -149,7 +172,7 @@
 
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-rest-jakarta</artifactId>
+      <artifactId>cibseven-engine-rest</artifactId>
       <scope>test</scope>
       <type>war</type>
       <classifier>tomcat</classifier>
@@ -165,10 +188,16 @@
     </dependency>
 
     <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-impl</artifactId>
+      <groupId>jakarta.xml.bind</groupId>
+      <artifactId>jakarta.xml.bind-api</artifactId>
+      <version>${version.jakarta.xml.bind-api}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
       <version>${version.xml.jaxb-impl4}</version>
-      <scope>provided</scope>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
@@ -343,7 +372,7 @@
           <deployables>
             <deployable>
               <groupId>org.cibseven.bpm</groupId>
-              <artifactId>cibseven-engine-rest-jakarta</artifactId>
+              <artifactId>cibseven-engine-rest</artifactId>
               <type>war</type>
               <classifier>tomcat</classifier>
               <pingURL>

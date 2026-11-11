@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.rest.sub.repository.impl;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.ProcessEngine;
@@ -28,7 +28,7 @@ import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
 import org.cibseven.bpm.engine.rest.sub.runtime.IncidentResource;
 import org.cibseven.bpm.engine.runtime.Incident;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class IncidentResourceImpl implements IncidentResource {
 

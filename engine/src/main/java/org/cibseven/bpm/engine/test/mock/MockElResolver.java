@@ -16,22 +16,15 @@
  */
 package org.cibseven.bpm.engine.test.mock;
 
-import java.beans.FeatureDescriptor;
-import java.util.Iterator;
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
 
-import org.cibseven.bpm.impl.juel.jakarta.el.ELContext;
-import org.cibseven.bpm.impl.juel.jakarta.el.ELResolver;
 
 public class MockElResolver extends ELResolver {
 
   @Override
   public Class< ? > getCommonPropertyType(ELContext context, Object base) {
     return Object.class;
-  }
-
-  @Override
-  public Iterator<FeatureDescriptor> getFeatureDescriptors(ELContext context, Object base) {
-    return null;
   }
 
   @Override

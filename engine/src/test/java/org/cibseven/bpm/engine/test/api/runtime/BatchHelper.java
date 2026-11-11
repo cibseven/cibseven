@@ -16,8 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.api.runtime;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.List;
@@ -38,7 +38,7 @@ import org.cibseven.bpm.engine.test.util.PluggableProcessEngineTest;
 
 public class BatchHelper {
 
-  protected ProcessEngineRule engineRule;
+  public ProcessEngineRule engineRule;
   protected PluggableProcessEngineTest testCase;
 
   public BatchHelper(ProcessEngineRule engineRule) {
@@ -65,7 +65,7 @@ public class BatchHelper {
   }
 
   public void executeJob(Job job) {
-    assertNotNull("Job to execute does not exist", job);
+    assertNotNull(job, "Job to execute does not exist");
     try {
       getManagementService().executeJob(job.getId());
     }
