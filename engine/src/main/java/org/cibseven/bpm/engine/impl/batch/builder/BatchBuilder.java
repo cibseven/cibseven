@@ -39,8 +39,6 @@ public class BatchBuilder {
 
   protected Integer totalJobsCount;
 
-  protected boolean bindSeedJobToDeployment = true;
-
   protected Permission permission;
   protected PermissionHandler permissionHandler;
 
@@ -68,22 +66,6 @@ public class BatchBuilder {
 
   public BatchBuilder totalJobs(int totalJobsCount) {
     this.totalJobsCount = totalJobsCount;
-    return this;
-  }
-
-  /**
-   * By default (<code>true</code>) the seed job definition, and with it every seed job of
-   * the batch, is bound to the deployment of the first id mapping of the configuration, so
-   * that a deployment-aware job executor only acquires the seed jobs on a node that has
-   * this deployment registered.
-   *
-   * Set to <code>false</code> to create the seed job definition without a deployment id.
-   * This is required for batches that delete the deployments they are mapped to: once the
-   * deployment the seed jobs are bound to is deleted, it is no longer registered for the
-   * job executor and the remaining seed jobs would never be acquired again.
-   */
-  public BatchBuilder bindSeedJobToDeployment(boolean bindSeedJobToDeployment) {
-    this.bindSeedJobToDeployment = bindSeedJobToDeployment;
     return this;
   }
 
@@ -182,7 +164,7 @@ public class BatchBuilder {
     commandContext.getBatchManager().insertBatch(batch);
 
     String seedDeploymentId = null;
-    if (bindSeedJobToDeployment && config.getIdMappings() != null && !config.getIdMappings().isEmpty()) {
+    if (config.getIdMappings() != null && !config.getIdMappings().isEmpty()) {
       seedDeploymentId = config.getIdMappings().get(0).getDeploymentId();
     }
 
