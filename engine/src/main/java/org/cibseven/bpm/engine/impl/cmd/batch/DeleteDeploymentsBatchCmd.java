@@ -71,6 +71,9 @@ public class DeleteDeploymentsBatchCmd implements Command<Batch> {
     return new BatchBuilder(commandContext)
         .type(Batch.TYPE_DEPLOYMENT_DELETION)
         .config(getConfiguration(ids))
+        // the batch deletes the deployments of its id mappings: a seed job bound to the first
+        // of them could not be acquired by a deployment-aware job executor after its deletion
+        .bindSeedJobToDeployment(false)
         .permission(BatchPermissions.CREATE_BATCH_DELETE_DEPLOYMENTS)
         .permissionHandler(ctx -> checkDeleteDeploymentPermissions(ctx, ids))
         .operationLogHandler(this::writeUserOperationLog)

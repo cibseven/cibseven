@@ -35,6 +35,10 @@ import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.batch.Batch;
 import org.cibseven.bpm.engine.batch.history.HistoricBatch;
 import org.cibseven.bpm.engine.history.UserOperationLogEntry;
+import org.cibseven.bpm.engine.impl.cmd.AcquireJobsCmd;
+import org.cibseven.bpm.engine.impl.jobexecutor.AcquiredJobs;
+import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
+import org.cibseven.bpm.engine.management.JobDefinition;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
@@ -69,6 +73,7 @@ public class DeleteDeploymentsBatchTest {
   protected IdentityService identityService;
 
   protected int defaultInvocationsPerBatchJob;
+  protected boolean defaultJobExecutorDeploymentAware;
   protected final List<String> createdDeploymentIds = new ArrayList<>();
 
   @BeforeEach
@@ -79,12 +84,14 @@ public class DeleteDeploymentsBatchTest {
     historyService = engineRule.getHistoryService();
     identityService = engineRule.getIdentityService();
     defaultInvocationsPerBatchJob = engineRule.getProcessEngineConfiguration().getInvocationsPerBatchJob();
+    defaultJobExecutorDeploymentAware = engineRule.getProcessEngineConfiguration().isJobExecutorDeploymentAware();
   }
 
   @AfterEach
   public void tearDown() {
     identityService.clearAuthentication();
     engineRule.getProcessEngineConfiguration().setInvocationsPerBatchJob(defaultInvocationsPerBatchJob);
+    engineRule.getProcessEngineConfiguration().setJobExecutorDeploymentAware(defaultJobExecutorDeploymentAware);
 
     for (Batch batch : managementService.createBatchQuery().list()) {
       managementService.deleteBatch(batch.getId(), true);
@@ -149,6 +156,12 @@ public class DeleteDeploymentsBatchTest {
     return managementService.createJobQuery().jobDefinitionId(batch.getSeedJobDefinitionId()).singleResult();
   }
 
+  /** The jobs the job executor acquires next, same as in {@code DeploymentAwareJobExecutorTest}. */
+  protected AcquiredJobs getExecutableJobs(JobExecutor jobExecutor) {
+    return engineRule.getProcessEngineConfiguration().getCommandExecutorTxRequired()
+        .execute(new AcquireJobsCmd(jobExecutor));
+  }
+
   // ---------------------------------------------------------------- creation
 
   @Test
@@ -210,6 +223,62 @@ public class DeleteDeploymentsBatchTest {
     assertThat(executionJobs)
         .extracting(Job::getDeploymentId)
         .containsExactlyInAnyOrder(d1, d2);
+  }
+
+  // ---------------------------------------------------------------- deployment-aware job executor
+
+  /**
+   * The batch deletes the deployments it is mapped to, so its seed jobs must not be bound to
+   * one of them (CIB7-2038).
+   */
+  @Test
+  public void shouldNotSetDeploymentIdOnSeedJob() {
+    String d1 = deploy("process1", "src");
+    String d2 = deploy("process2", "src");
+
+    Batch batch = repositoryService.deleteDeploymentsAsync(Arrays.asList(d1, d2), null, false, false, false);
+
+    JobDefinition seedJobDefinition = managementService.createJobDefinitionQuery()
+        .jobDefinitionId(batch.getSeedJobDefinitionId()).singleResult();
+    assertThat(seedJobDefinition.getDeploymentId()).isNull();
+    assertThat(getSeedJob(batch).getDeploymentId()).isNull();
+
+    // the follow-up seed job is created from the same job definition
+    managementService.executeJob(getSeedJob(batch).getId());
+    assertThat(getSeedJob(batch).getDeploymentId()).isNull();
+  }
+
+  /**
+   * Regression test for CIB7-2038: deleting a deployment unregisters it from the job executor.
+   * A deployment-aware job executor then no longer acquired the remaining seed jobs, because
+   * they were bound to the first deployment of the batch, and the batch never finished.
+   */
+  @Test
+  public void shouldAcquireSeedJobAfterFirstDeploymentIsDeleted() {
+    engineRule.getProcessEngineConfiguration().setJobExecutorDeploymentAware(true);
+    String d1 = deploy("process1", "src");
+    String d2 = deploy("process2", "src");
+    String d3 = deploy("process3", "src");
+
+    Batch batch = repositoryService.deleteDeploymentsAsync(Arrays.asList(d1, d2, d3), null, false, false, false);
+
+    // the first seed job run creates the execution job of the first deployment only
+    managementService.executeJob(getSeedJob(batch).getId());
+    Job executionJob = managementService.createJobQuery()
+        .jobDefinitionId(batch.getBatchJobDefinitionId()).singleResult();
+    assertThat(executionJob.getDeploymentId()).isEqualTo(d1);
+
+    managementService.executeJob(executionJob.getId());
+    assertThat(deploymentExists(d1)).isFalse();
+    assertThat(managementService.getRegisteredDeployments()).doesNotContain(d1).contains(d2, d3);
+
+    // the seed job for the remaining deployments must still be acquired
+    Job nextSeedJob = getSeedJob(batch);
+    assertThat(nextSeedJob).isNotNull();
+    AcquiredJobs acquiredJobs = getExecutableJobs(engineRule.getProcessEngineConfiguration().getJobExecutor());
+    assertThat(acquiredJobs.contains(nextSeedJob.getId()))
+        .as("seed job is acquired by the deployment-aware job executor")
+        .isTrue();
   }
 
   // ---------------------------------------------------------------- deletion
