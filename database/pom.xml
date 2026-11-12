@@ -35,6 +35,15 @@
 
     <!-- Testcontainers JDBC URL parameters. By default, an empty string -->
     <database.tc.params />
+
+    <!--
+      Raw variants of the connection settings, for consumers that read the Maven property
+      directly (the sql-maven-plugin and liquibase-maven-plugin below) instead of through a
+      filtered XML resource, which decodes the entities again. They default to the normal
+      properties and are only overridden where a value has to be XML encoded - see aurora15.
+    -->
+    <database.url.raw>${database.url}</database.url.raw>
+    <database.password.raw>${database.password}</database.password.raw>
   </properties>
 
   <dependencyManagement>
@@ -85,9 +94,9 @@
           <artifactId>sql-maven-plugin</artifactId>
           <configuration>
             <driver>${database.driver}</driver>
-            <url>${database.url}</url>
+            <url>${database.url.raw}</url>
             <username>${database.username}</username>
-            <password>${database.password}</password>
+            <password>${database.password.raw}</password>
           </configuration>
         </plugin>
         <plugin>
@@ -96,9 +105,9 @@
           <version>${version.liquibase}</version>
           <configuration>
             <driver>${database.driver}</driver>
-            <url>${database.url}</url> 
+            <url>${database.url.raw}</url>
             <username>${database.username}</username>
-            <password>${database.password}</password>
+            <password>${database.password.raw}</password>
             <hubMode>off</hubMode>
             <promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>
           </configuration>
@@ -523,6 +532,8 @@
           burns another 5s (gssResponseTimeout) before the SSL request is even sent.
         -->
         <database.url>jdbc:postgresql://${database.host}:${database.port}/${database.name}?sslmode=require&amp;amp;gssEncMode=disable&amp;amp;connectTimeout=90&amp;amp;loginTimeout=90&amp;amp;sslResponseTimeout=90000</database.url>
+        <!-- the same URL, but with plain '&' - keep both in sync -->
+        <database.url.raw>jdbc:postgresql://${database.host}:${database.port}/${database.name}?sslmode=require&amp;gssEncMode=disable&amp;connectTimeout=90&amp;loginTimeout=90&amp;sslResponseTimeout=90000</database.url.raw>
       </properties>
     </profile>
 

@@ -394,18 +394,31 @@ public class SqlScriptTest {
     String databaseUser = properties.getProperty("database.username");
     String databasePassword = properties.getProperty("database.password");
     String databaseClass = properties.getProperty("database.driver");
-    // Properties files don't decode XML entities, but database URLs from
-    // database/pom.xml use &amp; encoding (intended for XML resource filtering).
-    // Unescape so the JDBC URL contains proper '&' characters.
-    if (databaseUrl != null) {
-      databaseUrl = databaseUrl.replace("&amp;", "&");
-    }
+    // Properties files don't decode XML entities, but the URL from database/pom.xml and the
+    // password passed in by the CI job are XML encoded (intended for XML resource filtering).
+    databaseUrl = unescapeXml(databaseUrl);
+    databasePassword = unescapeXml(databasePassword);
     // Testcontainers jdbc:tc: URLs require the Testcontainers JDBC driver
     if (databaseUrl != null && databaseUrl.startsWith("jdbc:tc:")) {
       databaseClass = "org.testcontainers.jdbc.ContainerDatabaseDriver";
     }
     return DatabaseFactory.getInstance().openDatabase(databaseUrl, databaseUser, databasePassword, databaseClass, null,
         null, null, new ClassLoaderResourceAccessor());
+  }
+
+  /**
+   * Decodes the XML entities that the resource filtering leaves in a properties file.
+   * &amp;amp; is decoded last, so that an encoded entity like &amp;amp;lt; is not decoded twice.
+   */
+  protected static String unescapeXml(String value) {
+    if (value == null) {
+      return null;
+    }
+    return value.replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&quot;", "\"")
+        .replace("&apos;", "'")
+        .replace("&amp;", "&");
   }
 
   protected Liquibase getLiquibase() throws URISyntaxException {
