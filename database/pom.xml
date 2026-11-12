@@ -515,7 +515,14 @@
       <!-- Amazon Aurora PostgreSQL 15 -->
       <id>aurora15</id>
       <properties>
-        <database.url>jdbc:postgresql://${database.host}:${database.port}/${database.name}?sslmode=require&amp;amp;connectTimeout=90&amp;amp;loginTimeout=90</database.url>
+        <!--
+          connectTimeout and loginTimeout are in seconds, sslResponseTimeout in milliseconds.
+          sslResponseTimeout is the one that matters while the cluster resumes: it limits the
+          wait for the answer to the SSL upgrade request and defaults to 5s. gssEncMode=disable
+          skips the GSSAPI upgrade request, which these clusters do not use and which otherwise
+          burns another 5s (gssResponseTimeout) before the SSL request is even sent.
+        -->
+        <database.url>jdbc:postgresql://${database.host}:${database.port}/${database.name}?sslmode=require&amp;amp;gssEncMode=disable&amp;amp;connectTimeout=90&amp;amp;loginTimeout=90&amp;amp;sslResponseTimeout=90000</database.url>
       </properties>
     </profile>
 
