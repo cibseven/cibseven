@@ -29,6 +29,7 @@ import static org.cibseven.bpm.engine.impl.db.entitymanager.operation.DbOperatio
 import static org.cibseven.bpm.engine.impl.db.entitymanager.operation.DbOperationType.UPDATE_BULK;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.cibseven.bpm.engine.OptimisticLockingException;
@@ -296,16 +297,37 @@ public class DbEntityManager implements Session, EntityLoadListener {
   }
 
   /**
-   * Flushes within a command, before the regular flush at the end of the command.
+   * Flushes only the given cached entities within a command, before the regular flush
+   * at the end of the command. All other cached entities and all operations queued so
+   * far (e.g. bulk operations) stay untouched and are flushed by the regular flush.
    *
-   * A plain {@link #flush()} keeps the executed operations in the operation manager,
-   * so the regular flush would execute them a second time. Here they are discarded
-   * after the flush, so the regular flush only executes the operations added afterwards.
-   * The entity cache needs no reset: it already takes a new copy of each flushed entity.
+   * This must not be widened to the whole cache: the command may be nested in an outer
+   * command (e.g. called from a delegate), whose history entities would then be inserted
+   * early. Later changes to them would be lost, because history events have a constant
+   * persistent state and are therefore never dirty after a flush.
+   *
+   * The flushed entities get a new copy in the cache, so the regular flush only updates
+   * them again if they change afterwards. Failed operations are handled by the registered
+   * {@link OptimisticLockingListener}s as in a regular flush.
    */
-  public void flushIntermediate() {
-    flush();
+  public void flushEntitiesIntermediate(Collection<? extends DbEntity> entities) {
+    DbOperationManager queuedOperations = dbOperationManager;
+    boolean ignoreForeignKeys = isIgnoreForeignKeysForNextFlush;
+
     dbOperationManager = new DbOperationManager();
+    isIgnoreForeignKeysForNextFlush = false;
+    try {
+      for (DbEntity entity : entities) {
+        CachedDbEntity cachedEntity = dbEntityCache.getCachedEntity(entity);
+        if (cachedEntity != null) {
+          flushCachedEntity(cachedEntity);
+        }
+      }
+      flushDbOperationManager();
+    } finally {
+      dbOperationManager = queuedOperations;
+      isIgnoreForeignKeysForNextFlush = ignoreForeignKeys;
+    }
   }
 
   public void setIgnoreForeignKeysForNextFlush(boolean ignoreForeignKeysForNextFlush) {

@@ -138,9 +138,11 @@ public class FetchExternalTasksCmd implements Command<List<LockedExternalTask>> 
    * inserts before the updates, a history event created together with the lock would be
    * written even for a lost lock.
    *
-   * Hence the locks are flushed first, and the events are created afterwards for the tasks
-   * that are still in the result. The regular flush at the end of the command then writes
-   * the events in the same transaction, so no second database connection is needed.
+   * Hence the locks of these tasks are flushed first, and the events are created afterwards
+   * for the tasks that are still in the result. The regular flush at the end of the command
+   * then writes the events in the same transaction, so no second database connection is
+   * needed. Only the external tasks are flushed early: the command may run nested in an
+   * outer command, whose pending changes must stay for the regular flush.
    */
   protected void produceFetchedEvents(CommandContext commandContext,
                                       List<ExternalTaskEntity> fetchedEventTasks,
@@ -149,7 +151,7 @@ public class FetchExternalTasksCmd implements Command<List<LockedExternalTask>> 
       return;
     }
 
-    commandContext.getDbEntityManager().flushIntermediate();
+    commandContext.getDbEntityManager().flushEntitiesIntermediate(fetchedEventTasks);
 
     Set<String> lockedTaskIds = new HashSet<>();
     for (LockedExternalTask lockedTask : result) {
