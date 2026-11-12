@@ -45,6 +45,7 @@ import org.cibseven.bpm.engine.impl.jobexecutor.AcquiredJobs;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
 import org.cibseven.bpm.engine.management.JobDefinition;
 import org.cibseven.bpm.engine.repository.Deployment;
+import org.cibseven.bpm.engine.repository.ProcessDefinition;
 import org.cibseven.bpm.engine.runtime.Job;
 import org.cibseven.bpm.engine.test.ProcessEngineRule;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
@@ -135,6 +136,23 @@ public class DeleteDeploymentsBatchTest {
     return deployment.getId();
   }
 
+  /** Deploys one more version of a process that starts by the message "order received". */
+  protected String deployMessageStart(String processKey) {
+    BpmnModelInstance model = Bpmn.createExecutableProcess(processKey)
+        .startEvent()
+          .message("order received")
+        .userTask("task")
+        .endEvent()
+        .done();
+
+    Deployment deployment = repositoryService.createDeployment()
+        .addModelInstance(processKey + ".bpmn", model)
+        .deploy();
+
+    createdDeploymentIds.add(deployment.getId());
+    return deployment.getId();
+  }
+
   protected boolean deploymentExists(String deploymentId) {
     return repositoryService.createDeploymentQuery().deploymentId(deploymentId).count() > 0;
   }
@@ -204,7 +222,7 @@ public class DeleteDeploymentsBatchTest {
   }
 
   @Test
-  public void shouldGroupDeploymentsByInvocationsPerBatchJob() {
+  public void shouldCreateOneExecutionJobPerProcess() {
     engineRule.getProcessEngineConfiguration().setInvocationsPerBatchJob(2);
     String d1 = deploy("process1", "src");
     String d2 = deploy("process2", "src");
@@ -212,19 +230,47 @@ public class DeleteDeploymentsBatchTest {
 
     Batch batch = repositoryService.deleteDeploymentsAsync(Arrays.asList(d1, d2, d3), null, false, false, false);
 
-    // ceil(3 / 2) = 2
-    assertThat(batch.getTotalJobs()).isEqualTo(2);
+    // one job per group of deployments of the same process (CIB7-2038); deployments of
+    // different processes are not put into one job, whatever invocationsPerBatchJob says
+    assertThat(batch.getTotalJobs()).isEqualTo(3);
 
     executeSeedJobs(batch);
-
-    // the batch has no deployment mappings (CIB7-2038), so invocationsPerBatchJob groups
-    // the deployments as in other batches and the number of jobs matches the total
-    assertThat(getExecutionJobs(batch)).hasSize(2);
+    assertThat(getExecutionJobs(batch)).hasSize(3);
 
     executeBatch(batch);
     assertThat(deploymentExists(d1)).isFalse();
     assertThat(deploymentExists(d2)).isFalse();
     assertThat(deploymentExists(d3)).isFalse();
+  }
+
+  /**
+   * Regression test for CIB7-2038: deleting the latest version of a process moves its start
+   * events to the previous version. Versions of one process are therefore deleted by one job,
+   * newest first, so that the version that stays keeps its message start.
+   */
+  @Test
+  public void shouldDeleteVersionsOfOneProcessInOneJob() {
+    String v1 = deployMessageStart("order");
+    String v2 = deployMessageStart("order");
+    String v3 = deployMessageStart("order");
+    String other = deploy("process1", "src");
+
+    Batch batch = repositoryService.deleteDeploymentsAsync(Arrays.asList(v2, other, v3), null, true, false, false);
+
+    assertThat(batch.getTotalJobs()).isEqualTo(2);
+    executeSeedJobs(batch);
+    assertThat(getExecutionJobs(batch)).hasSize(2);
+
+    executeBatch(batch);
+    assertThat(deploymentExists(v1)).isTrue();
+    assertThat(deploymentExists(v2)).isFalse();
+    assertThat(deploymentExists(v3)).isFalse();
+    assertThat(deploymentExists(other)).isFalse();
+
+    ProcessDefinition first = repositoryService.createProcessDefinitionQuery().deploymentId(v1).singleResult();
+    assertThat(runtimeService.createEventSubscriptionQuery().eventName("order received").count()).isEqualTo(1);
+    assertThat(runtimeService.createMessageCorrelation("order received").correlateStartMessage().getProcessDefinitionId())
+        .isEqualTo(first.getId());
   }
 
   // ---------------------------------------------------------------- deployment-aware job executor
