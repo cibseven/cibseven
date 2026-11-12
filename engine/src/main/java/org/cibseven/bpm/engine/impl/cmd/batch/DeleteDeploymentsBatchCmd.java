@@ -23,8 +23,6 @@ import org.cibseven.bpm.engine.exception.NotFoundException;
 import org.cibseven.bpm.engine.history.UserOperationLogEntry;
 import org.cibseven.bpm.engine.impl.DeploymentQueryImpl;
 import org.cibseven.bpm.engine.impl.batch.BatchConfiguration;
-import org.cibseven.bpm.engine.impl.batch.DeploymentMapping;
-import org.cibseven.bpm.engine.impl.batch.DeploymentMappings;
 import org.cibseven.bpm.engine.impl.batch.builder.BatchBuilder;
 import org.cibseven.bpm.engine.impl.batch.deletion.DeleteDeploymentBatchConfiguration;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
@@ -118,10 +116,11 @@ public class DeleteDeploymentsBatchCmd implements Command<Batch> {
   }
 
   public BatchConfiguration getConfiguration(List<String> ids) {
-    // each id maps to its own deployment, so batch execution jobs are only acquired
-    // by nodes that have the respective deployment registered (deployment-aware job executor)
-    DeploymentMappings mappings = new DeploymentMappings();
-    ids.forEach(id -> mappings.add(new DeploymentMapping(id, 1)));
-    return new DeleteDeploymentBatchConfiguration(ids, mappings, cascade, skipCustomListeners, skipIoMappings);
+    // no deployment mappings on purpose, so that neither the seed jobs nor the execution jobs
+    // are bound to a deployment (CIB7-2038). A deployment-aware job executor only acquires jobs
+    // of deployments that are registered on its node. This batch deletes the deployments it
+    // works on, which also unregisters them, and it must be able to delete deployments that
+    // are not registered on any node, as the synchronous deletion does.
+    return new DeleteDeploymentBatchConfiguration(ids, cascade, skipCustomListeners, skipIoMappings);
   }
 }
