@@ -506,11 +506,16 @@
       the connection parameters are kept here next to the rest of the database settings.
       See also the "What about database technology X in environment Y?" section in TESTING.md.
     -->
+    <!--
+      The database.url is filtered into the XML test configurations (camunda.cfg.xml),
+      which are not parsed again by Maven, so the separator between the URL parameters has to
+      survive as the XML entity &amp; - hence the double escaping of &amp;amp;amp; below.
+    -->
     <profile>
       <!-- Amazon Aurora PostgreSQL 15 -->
       <id>aurora15</id>
       <properties>
-        <database.url>jdbc:postgresql://${database.host}:${database.port}/${database.name}?sslmode=require</database.url>
+        <database.url>jdbc:postgresql://${database.host}:${database.port}/${database.name}?sslmode=require&amp;amp;connectTimeout=90&amp;amp;loginTimeout=90</database.url>
       </properties>
     </profile>
 
@@ -518,7 +523,7 @@
       <!-- Azure SQL Database -->
       <id>azuresql</id>
       <properties>
-        <database.url>jdbc:sqlserver://${database.host}:${database.port};databaseName=${database.name};encrypt=true;trustServerCertificate=false</database.url>
+        <database.url>jdbc:sqlserver://${database.host}:${database.port};databaseName=${database.name};encrypt=true;trustServerCertificate=false;loginTimeout=90</database.url>
       </properties>
     </profile>
 
