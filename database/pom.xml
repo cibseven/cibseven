@@ -530,6 +530,12 @@
       <!-- Azure SQL Database -->
       <id>azuresql</id>
       <properties>
+        <!-- the sqlserver profile names the database camengine, this one is called like the Aurora ones -->
+        <database.name>process-engine</database.name>
+        <!--
+          loginTimeout is in seconds and covers the whole login including the TLS prelogin,
+          so it is the only knob needed while the database resumes from auto-pause (default 30).
+        -->
         <database.url>jdbc:sqlserver://${database.host}:${database.port};databaseName=${database.name};encrypt=true;trustServerCertificate=false;loginTimeout=90</database.url>
       </properties>
     </profile>
