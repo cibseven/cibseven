@@ -66,6 +66,14 @@
       </exclusions>
     </dependency>
 
+    <!-- openapi.json of the REST API of this version, read from the classpath by default
+         (cibseven.openapi.url: openapi.json in configuration/default.yml) -->
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine-rest-openapi</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- Supplied at runtime by the cibseven-bpm-run-core uberjar or by other modules, hence not copied here.
          Declared as direct dependencies (instead of dependencyManagement entries) so that their versions come
          from the Spring Boot BOM imported by the run root pom: a versionless dependencyManagement entry

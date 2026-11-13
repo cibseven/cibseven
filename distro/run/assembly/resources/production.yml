@@ -105,6 +105,25 @@ spring.datasource:
 spring.web.resources:
   static-locations: NULL
 
+# MCP REST API: exposes the REST API of this engine as MCP tools under /mcp, e.g. for AI agents.
+# https://docs.cibseven.org/manual/latest/user-guide/mcp-restapi/
+# Its libraries are only on the classpath with the ai option or AI_AGENT_ENABLED / MCP_ENABLED=true;
+# the MCP server is switched off here even then. To switch it on, set enabled to true and uncomment
+# the cibseven.mcp and cibseven.openapi lines below.
+# Security: https://docs.cibseven.org/manual/latest/user-guide/mcp-restapi/#security
+# Without the oauth2 option the MCP endpoint relays the Authorization header of each request to the
+# REST API, which authenticates it (camunda.bpm.run.auth above). With the oauth2 option the MCP endpoint
+# is an OAuth2 resource server and needs spring.security.oauth2.resourceserver.jwt.issuer-uri.
+spring.ai.mcp.server:
+  enabled: false
+  protocol: STATELESS
+  type: SYNC
+  streamable-http.mcp-endpoint: /mcp
+  annotation-scanner.enabled: false
+#cibseven.mcp.restapi-mcp: true
+# openapi.json of the REST API of this version; a file path or URL selects another document
+#cibseven.openapi.url: openapi.json
+
 # All parameters below belong to cibseven-webclient configuration, for more info - see here:
 # https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#cib-seven-webclient-properties
 spring:

@@ -22,11 +22,10 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,56 +39,61 @@ import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import io.restassured.http.ContentType;
-import io.restassured.response.ValidatableResponse;
+import io.restassured.response.Response;
 
 /**
- * The MCP REST API in configuration/userlib-ai/ (on the classpath with --ai) generates its tools
- * from the OpenAPI document of this CIB seven version and calls the REST API of Run with them.
+ * The MCP REST API of Run with configuration/default.yml as shipped. MCP_ENABLED=true switches
+ * it on: the start script puts configuration/userlib-ai/ on the classpath, default.yml turns on
+ * the MCP server and the library, which generates its tools from openapi.json of this version
+ * (on the classpath) and calls the REST API of Run with them.
  *
  * <ul>
- * <li>--rest --ai: the MCP REST API has only the libraries of userlib-ai/ and of the
- * cibseven-bpm-run-core uberjar. If one is missing, e.g. Jackson 2 for swagger-parser, Run does
- * not start (CIB7-2740).</li>
- * <li>--rest --webapps --ai: userlib-ai/ comes first on the loader path, so its swagger-core is
- * used by springdoc of the webclient as well (/v3/api-docs failed with NoClassDefFoundError,
- * CIB7-2737).</li>
+ * <li>--rest, MCP_ENABLED=true: the MCP REST API has only the libraries of userlib-ai/ and of
+ * the cibseven-bpm-run-core uberjar. If one is missing, e.g. Jackson 2 for swagger-parser, Run
+ * does not start (CIB7-2740).</li>
+ * <li>--rest --webapps, MCP_ENABLED=true: userlib-ai/ comes first on the loader path, so its
+ * swagger-core is used by springdoc of the webclient as well (/v3/api-docs failed with
+ * NoClassDefFoundError, CIB7-2737).</li>
+ * <li>--rest --ai without MCP_ENABLED (the AI agent on, as in the Docker image): no MCP
+ * endpoint.</li>
  * </ul>
  */
-@ParameterizedClass(name = "Test instance: {index}. Commands: {0}")
+@ParameterizedClass(name = "Test instance: {index}. Commands: {0}, MCP_ENABLED: {1}")
 @MethodSource("commands")
 public class McpRestApiIT {
 
-  private static final String OPENAPI_FILE = "configuration/mcp-restapi-openapi.json";
+  private static final String SHIPPED_DEFAULT_YML = "run.shipped.default.yml";
+  /** JUnit does not pass null to a parameterized class, hence a marker for an unset variable. */
+  private static final String NOT_SET = "not set";
 
   @Parameter(0)
   public String[] commands;
   @Parameter(1)
+  public String mcpEnabledVariable;
+  @Parameter(2)
+  public boolean mcpAvailable;
+  @Parameter(3)
   public boolean webappsAvailable;
 
   public static Collection<Object[]> commands() {
     return Arrays.asList(new Object[][] {
-      { new String[]{"--rest", "--ai"}, false },
-      { new String[]{"--rest", "--webapps", "--ai"}, true }
+      { new String[]{"--rest"}, "true", true, false },
+      { new String[]{"--rest", "--webapps"}, "true", true, true },
+      { new String[]{"--rest", "--ai"}, NOT_SET, false, false }
     });
   }
 
   private static SpringBootManagedContainer container;
 
   @BeforeParameterizedClassInvocation
-  public static void runStartScript(String[] commands, boolean webappsAvailable) throws IOException {
+  public static void runStartScript(String[] commands, String mcpEnabledVariable, boolean mcpAvailable,
+      boolean webappsAvailable) throws Exception {
     container = new SpringBootManagedContainer(commands);
-
-    // openapi.json of cibseven-engine-rest-openapi (test dependency) as a file for the MCP REST API
-    try (InputStream openApi = McpRestApiIT.class.getClassLoader().getResourceAsStream("openapi.json")) {
-      container.createConfigurationYml(OPENAPI_FILE, openApi);
+    try (InputStream shipped = Files.newInputStream(Paths.get(System.getProperty(SHIPPED_DEFAULT_YML)))) {
+      container.replaceConfigurationYml(SpringBootManagedContainer.APPLICATION_YML_PATH, shipped);
     }
-    String configuration;
-    try (InputStream yml = McpRestApiIT.class.getClassLoader().getResourceAsStream("mcp-restapi.yml")) {
-      configuration = new String(yml.readAllBytes(), StandardCharsets.UTF_8)
-          .replace("@OPENAPI_FILE@", Paths.get(SpringBootManagedContainer.getRunHome(), OPENAPI_FILE).toString());
-    }
-    container.replaceConfigurationYml(SpringBootManagedContainer.APPLICATION_YML_PATH,
-        new ByteArrayInputStream(configuration.getBytes(StandardCharsets.UTF_8)));
+    container.setEnvironmentVariable("MCP_ENABLED", NOT_SET.equals(mcpEnabledVariable) ? null : mcpEnabledVariable);
+    container.setEnvironmentVariable("AI_AGENT_ENABLED", null);
 
     try {
       container.start();
@@ -112,16 +116,28 @@ public class McpRestApiIT {
   }
 
   @Test
-  public void shouldListToolsOfTheOpenApiDocument() {
-    mcp("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\"}")
-      .body("error", nullValue())
-      .body("result.tools.name", hasItem("getProcessEngineNames"));
+  public void shouldListToolsOfTheRestApi() {
+    Response response = mcp("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\"}");
+    if (mcpAvailable) {
+      response.then()
+        .statusCode(200)
+        .contentType(ContentType.JSON)
+        .body("error", nullValue())
+        .body("result.tools.name", hasItem("getProcessEngineNames"));
+    } else {
+      response.then()
+        .statusCode(404);
+    }
   }
 
   @Test
   public void shouldCallTheRestApiWithATool() {
+    assumeTrue(mcpAvailable, "MCP is switched off");
     mcp("{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\","
         + "\"params\":{\"name\":\"getProcessEngineNames\",\"arguments\":{}}}")
+      .then()
+      .statusCode(200)
+      .contentType(ContentType.JSON)
       .body("error", nullValue())
       .body("result.isError", is(false))
       .body("result.content[0].text", containsString("\"default\""));
@@ -134,15 +150,12 @@ public class McpRestApiIT {
       .statusCode(webappsAvailable ? 200 : 404);
   }
 
-  private static ValidatableResponse mcp(String request) {
+  private static Response mcp(String request) {
     return given()
         .contentType(ContentType.JSON)
         .accept("application/json, text/event-stream")
         .body(request)
       .when()
-        .post(container.getBaseUrl() + "/mcp")
-      .then()
-        .statusCode(200)
-        .contentType(ContentType.JSON);
+        .post(container.getBaseUrl() + "/mcp");
   }
 }

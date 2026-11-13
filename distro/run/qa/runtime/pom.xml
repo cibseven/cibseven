@@ -130,20 +130,6 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- openapi.json of this version, from which the MCP REST API generates its tools (McpRestApiIT) -->
-    <dependency>
-      <groupId>org.cibseven.bpm</groupId>
-      <artifactId>cibseven-engine-rest-openapi</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
   </dependencies>
 
   <profiles>
@@ -172,6 +158,7 @@
               </dependenciesToScan>
               <systemPropertyVariables>
                 <camunda.run.home>${run-home}</camunda.run.home>
+                <run.shipped.default.yml>${project.build.directory}/run/shipped/configuration/default.yml</run.shipped.default.yml>
                 <example.plugin.home>${example-plugin-home}</example.plugin.home>
                 <selenium.screenshot.directory>${project.build.directory}/selenium-screenshots</selenium.screenshot.directory>
               </systemPropertyVariables>
@@ -201,6 +188,23 @@
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory>${run-home}</outputDirectory>
                   <excludes>configuration/default.yml,configuration/production.yml</excludes>
+                </configuration>
+              </execution>
+              <execution>
+                <!-- configuration/default.yml as shipped, for tests of the shipped configuration (McpRestApiIT) -->
+                <id>copy-run-default-yml</id>
+                <goals>
+                  <goal>unpack-dependencies</goal>
+                </goals>
+                <phase>generate-test-resources</phase>
+                <configuration>
+                  <includeArtifactIds>cibseven-bpm-run</includeArtifactIds>
+                  <overWriteSnapshots>true</overWriteSnapshots>
+                  <excludeTransitive>true</excludeTransitive>
+                  <outputDirectory>${project.build.directory}/run/shipped</outputDirectory>
+                  <includes>configuration/default.yml</includes>
+                  <!-- own markers, otherwise the unpack above marks the artifact as done -->
+                  <markersDirectory>${project.build.directory}/dependency-maven-plugin-markers-shipped</markersDirectory>
                 </configuration>
               </execution>
               <execution>
