@@ -31,6 +31,7 @@ import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguratio
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.scripting.engine.CamundaScriptEngineManager;
 import org.cibseven.bpm.engine.impl.scripting.engine.DefaultScriptEngineResolver;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -97,6 +98,19 @@ public class GraalJsNumberNarrowingTest {
     // then: each with the type of its mode; GraalJS would reject a second host access on one polyglot engine
     assertThat(fromFirst).isEqualTo(LONG.equals(first) ? (Object) 5 : (Object) 5L);
     assertThat(fromSecond).isEqualTo(LONG.equals(second) ? (Object) 5 : (Object) 5L);
+  }
+
+  @Test
+  public void shouldKeepTheBindingsOfTheScriptEngineManager() throws ScriptException {
+    // given
+    DefaultScriptEngineResolver resolver = sharedResolver();
+    resolver.getScriptEngineManager().put("globalBean", 7L);
+
+    // when
+    Object globalBean = evaluate(resolver, configuration(LONG), true, "sink.set(globalBean)");
+
+    // then
+    assertThat(globalBean).isEqualTo(7);
   }
 
 }

@@ -25,6 +25,8 @@ import java.util.WeakHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import javax.script.Bindings;
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
@@ -124,8 +126,9 @@ public final class GraalJsNumberNarrowing {
 
   /**
    * Creates a GraalJS script engine like the given one, which its script engine factory created: with the default
-   * options of the factory and the host access of this class, on a polyglot engine of this class for that factory.
-   * If that fails, it logs a warning and returns the given script engine.
+   * options of the factory and the host access of this class, on a polyglot engine of this class for that factory,
+   * and with the global bindings of the given one (those of its script engine manager). If that fails, it logs a
+   * warning and returns the given script engine.
    */
   public static ScriptEngine createScriptEngine(ScriptEngine factoryScriptEngine) {
     try {
@@ -135,6 +138,10 @@ public final class GraalJsNumberNarrowing {
       builder = graal.allowHostAccess.invoke(builder, graal.hostAccess);
 
       ScriptEngine scriptEngine = (ScriptEngine) graal.create.invoke(null, polyglotEngine, builder);
+      Bindings globalBindings = factoryScriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
+      if (globalBindings != null) {
+        scriptEngine.setBindings(globalBindings, ScriptContext.GLOBAL_SCOPE);
+      }
       markOwnHostAccess(scriptEngine);
       return scriptEngine;
 
