@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/DMN/20151101/dmn.xsd"
+             id="numberDefinitions" name="numberDefinitions"
+             namespace="http://camunda.org/schema/1.0/dmn">
+  <decision id="numberDecision" name="Number decision">
+    <decisionTable id="numberDecisionTable">
+      <input id="input_1">
+        <inputExpression id="inputExpression_1" expressionLanguage="javascript">
+          <text>lng</text>
+        </inputExpression>
+      </input>
+      <output id="output_1" name="result" />
+      <rule id="rule_1">
+        <inputEntry id="inputEntry_1">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="outputEntry_1" expressionLanguage="javascript">
+          <text>lng</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>
