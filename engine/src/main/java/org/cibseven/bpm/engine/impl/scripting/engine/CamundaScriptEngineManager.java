@@ -201,8 +201,7 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
         // make sure Graal JS can provide access to the host and can lookup classes,
         // with the number types of javaScriptNumberNarrowing
         var hostAccess = narrowNumbers
-            ? GraalJsNumberNarrowing.getHostAccess(this, hostAccessClass.getClassLoader(),
-                config.getJavaScriptNumberNarrowing())
+            ? GraalJsNumberNarrowing.getHostAccess(this, graalJSEngineClass)
             : hostAccessClass.getField("ALL").get(null);
         var allowHostAccess = builderClass.getMethod("allowHostAccess", hostAccessClass);
         builder = allowHostAccess.invoke(builder, hostAccess);

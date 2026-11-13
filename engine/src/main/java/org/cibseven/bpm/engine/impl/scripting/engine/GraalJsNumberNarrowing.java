@@ -16,9 +16,9 @@
  */
 package org.cibseven.bpm.engine.impl.scripting.engine;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -49,9 +49,11 @@ import org.cibseven.bpm.engine.impl.scripting.ScriptLogger;
  * The mapping has the precedence {@code LOW}: of a Java method overloaded for {@code int} and {@code Object}, such
  * as {@code List.remove}, the same one is chosen as without the mapping.
  * <p>
- * All contexts of one polyglot engine must use the same host access, so there is one host access per owner of a
- * polyglot engine (the script engine factory) and mode. GraalJS is used through reflection: the process engine has
- * no compile dependency on it.
+ * All contexts of one polyglot engine must use the same host access. A narrowed script engine therefore runs on a
+ * polyglot engine of this class, one per owner, and never on the polyglot engine of the script engine factory:
+ * script engines without narrowing use that one with {@code HostAccess.ALL}, for example those of a process
+ * application that two process engines with different modes share. GraalJS is used through reflection: the
+ * process engine has no compile dependency on it.
  */
 public final class GraalJsNumberNarrowing {
 
@@ -80,14 +82,11 @@ public final class GraalJsNumberNarrowing {
       Collections.synchronizedMap(new WeakHashMap<>());
 
   /**
-   * The host access per owner and mode. An owner is the script engine factory whose polyglot engine the contexts
-   * share, or another object that creates script engines. Weak keys: the host access does not refer to its owner,
-   * so the entry goes with the owner (for example with the script engine manager of an undeployed application).
+   * The GraalJS of each owner: the script engine factory whose script engines are narrowed, or another object that
+   * creates script engines. Weak keys, and nothing in a value refers to its key: the entry goes with the owner (for
+   * example with the script engine manager of an undeployed application).
    */
-  private static final Map<Object, Map<String, Object>> HOST_ACCESSES = new WeakHashMap<>();
-
-  /** Whether the JavaScript language of a GraalJS class loader knows {@code js.charset}. */
-  private static final Map<ClassLoader, Boolean> KNOWS_CHARSET_OPTION = new WeakHashMap<>();
+  private static final Map<Object, Graal> GRAALS = new WeakHashMap<>();
 
   /** The failure is logged once, not at every script. */
   private static volatile boolean failureLogged;
@@ -124,66 +123,131 @@ public final class GraalJsNumberNarrowing {
   }
 
   /**
-   * Creates a GraalJS script engine like the given one, which its script engine factory created: on the
-   * polyglot engine of that factory, with the default options of the factory and with the host access of the
-   * mode. If that fails, it logs a warning and returns the given script engine.
+   * Creates a GraalJS script engine like the given one, which its script engine factory created: with the default
+   * options of the factory and the host access of this class, on a polyglot engine of this class for that factory.
+   * If that fails, it logs a warning and returns the given script engine.
    */
-  public static ScriptEngine createScriptEngine(ScriptEngine factoryScriptEngine, String mode) {
+  public static ScriptEngine createScriptEngine(ScriptEngine factoryScriptEngine) {
     try {
-      ClassLoader graalJsClassLoader = factoryScriptEngine.getClass().getClassLoader();
-      Class<?> contextClass = Class.forName("org.graalvm.polyglot.Context", false, graalJsClassLoader);
-      Class<?> engineClass = Class.forName("org.graalvm.polyglot.Engine", false, graalJsClassLoader);
-      Class<?> hostAccessClass = Class.forName("org.graalvm.polyglot.HostAccess", false, graalJsClassLoader);
+      Graal graal = graal(factoryScriptEngine.getFactory(), factoryScriptEngine.getClass());
+      Object polyglotEngine = graal.polyglotEngine();
+      Object builder = graal.newContextBuilder(polyglotEngine);
+      builder = graal.allowHostAccess.invoke(builder, graal.hostAccess);
 
-      Object factory = factoryScriptEngine.getFactory();
-      Object polyglotEngine = factory.getClass().getMethod("getPolyglotEngine").invoke(factory);
-
-      Object builder = contextClass.getMethod("newBuilder", String[].class).invoke(null, (Object) new String[] {"js"});
-      Class<?> builderClass = builder.getClass();
-      builder = builderClass.getMethod("allowExperimentalOptions", boolean.class).invoke(builder, true);
-      Method option = builderClass.getMethod("option", String.class, String.class);
-      for (String[] nameAndValue : DEFAULT_CONTEXT_OPTIONS) {
-        builder = option.invoke(builder, nameAndValue[0], nameAndValue[1]);
-      }
-      if (knowsCharsetOption(graalJsClassLoader, engineClass, polyglotEngine)) {
-        builder = option.invoke(builder, CHARSET_OPTION[0], CHARSET_OPTION[1]);
-      }
-      builder = builderClass.getMethod("allowHostAccess", hostAccessClass)
-          .invoke(builder, getHostAccess(factory, graalJsClassLoader, mode));
-
-      ScriptEngine scriptEngine = (ScriptEngine) factoryScriptEngine.getClass()
-          .getMethod("create", engineClass, builderClass)
-          .invoke(null, polyglotEngine, builder);
+      ScriptEngine scriptEngine = (ScriptEngine) graal.create.invoke(null, polyglotEngine, builder);
       markOwnHostAccess(scriptEngine);
       return scriptEngine;
 
     } catch (ReflectiveOperationException | RuntimeException e) {
       if (!failureLogged) {
         failureLogged = true;
-        LOG.logGraalJsNumberNarrowingFailed(mode, e);
+        LOG.logGraalJsNumberNarrowingFailed(LONG, e);
       }
       return factoryScriptEngine;
     }
   }
 
   /**
-   * @param owner the script engine factory whose polyglot engine the contexts share, or the object that creates
-   *   script engines each with a polyglot engine of its own
-   * @return {@code HostAccess.ALL} with the number mapping of the mode: the same object for the same owner and mode
+   * @param owner the object that creates script engines each with a polyglot engine of its own
+   * @param graalJsScriptEngineClass the class {@code GraalJSScriptEngine}
+   * @return {@code HostAccess.ALL} with the number mapping: the same object for the same owner
    */
-  public static synchronized Object getHostAccess(Object owner, ClassLoader graalJsClassLoader, String mode)
+  public static Object getHostAccess(Object owner, Class<?> graalJsScriptEngineClass)
       throws ReflectiveOperationException {
-    Map<String, Object> byMode = HOST_ACCESSES.computeIfAbsent(owner, key -> new HashMap<>());
-    Object hostAccess = byMode.get(mode);
-    if (hostAccess == null) {
-      hostAccess = createHostAccess(graalJsClassLoader, mode);
-      byMode.put(mode, hostAccess);
+    return graal(owner, graalJsScriptEngineClass).hostAccess;
+  }
+
+  private static synchronized Graal graal(Object owner, Class<?> graalJsScriptEngineClass)
+      throws ReflectiveOperationException {
+    Graal graal = GRAALS.get(owner);
+    if (graal == null) {
+      graal = new Graal(graalJsScriptEngineClass);
+      GRAALS.put(owner, graal);
     }
-    return hostAccess;
+    return graal;
+  }
+
+  /**
+   * GraalJS for one owner: the methods looked up once, the host access, and the polyglot engine that the narrowed
+   * script engines of the owner share.
+   */
+  private static final class Graal {
+
+    final Method newContextBuilder;
+    final Method allowExperimentalOptions;
+    final Method option;
+    final Method allowHostAccess;
+    final Method create;
+    final Method newEngineBuilder;
+    final Method allowExperimentalEngineOptions;
+    final Method buildEngine;
+    final Method getLanguages;
+    final Class<?> optionDescriptorsClass;
+    final Object hostAccess;
+
+    /** Weak, as the polyglot engine of the factory: it goes when no script engine uses it, and comes again. */
+    WeakReference<Object> polyglotEngine;
+    Boolean knowsCharsetOption;
+
+    Graal(Class<?> graalJsScriptEngineClass) throws ReflectiveOperationException {
+      ClassLoader loader = graalJsScriptEngineClass.getClassLoader();
+      Class<?> contextClass = Class.forName("org.graalvm.polyglot.Context", false, loader);
+      Class<?> engineClass = Class.forName("org.graalvm.polyglot.Engine", false, loader);
+      Class<?> hostAccessClass = Class.forName("org.graalvm.polyglot.HostAccess", false, loader);
+      Class<?> contextBuilderClass = Class.forName("org.graalvm.polyglot.Context$Builder", false, loader);
+      Class<?> engineBuilderClass = Class.forName("org.graalvm.polyglot.Engine$Builder", false, loader);
+
+      newContextBuilder = contextClass.getMethod("newBuilder", String[].class);
+      allowExperimentalOptions = contextBuilderClass.getMethod("allowExperimentalOptions", boolean.class);
+      option = contextBuilderClass.getMethod("option", String.class, String.class);
+      allowHostAccess = contextBuilderClass.getMethod("allowHostAccess", hostAccessClass);
+      create = graalJsScriptEngineClass.getMethod("create", engineClass, contextBuilderClass);
+      newEngineBuilder = engineClass.getMethod("newBuilder");
+      allowExperimentalEngineOptions = engineBuilderClass.getMethod("allowExperimentalOptions", boolean.class);
+      buildEngine = engineBuilderClass.getMethod("build");
+      getLanguages = engineClass.getMethod("getLanguages");
+      optionDescriptorsClass = Class.forName("org.graalvm.options.OptionDescriptors", false, loader);
+      hostAccess = createHostAccess(loader, hostAccessClass.getField("ALL").get(null));
+    }
+
+    /** @return the polyglot engine, built as GraalJSEngineFactory builds its own */
+    synchronized Object polyglotEngine() throws ReflectiveOperationException {
+      Object engine = polyglotEngine == null ? null : polyglotEngine.get();
+      if (engine == null) {
+        Object builder = allowExperimentalEngineOptions.invoke(newEngineBuilder.invoke(null), true);
+        engine = buildEngine.invoke(builder);
+        polyglotEngine = new WeakReference<>(engine);
+      }
+      return engine;
+    }
+
+    /** @return a context builder with the options that GraalJSScriptEngine sets when it creates one itself */
+    Object newContextBuilder(Object polyglotEngine) throws ReflectiveOperationException {
+      Object builder = newContextBuilder.invoke(null, (Object) new String[] {"js"});
+      builder = allowExperimentalOptions.invoke(builder, true);
+      for (String[] nameAndValue : DEFAULT_CONTEXT_OPTIONS) {
+        builder = option.invoke(builder, nameAndValue[0], nameAndValue[1]);
+      }
+      if (knowsCharsetOption(polyglotEngine)) {
+        builder = option.invoke(builder, CHARSET_OPTION[0], CHARSET_OPTION[1]);
+      }
+      return builder;
+    }
+
+    synchronized boolean knowsCharsetOption(Object polyglotEngine) throws ReflectiveOperationException {
+      if (knowsCharsetOption == null) {
+        Map<?, ?> languages = (Map<?, ?>) getLanguages.invoke(polyglotEngine);
+        Object javaScript = languages.get("js");
+        Object options = javaScript == null ? null : javaScript.getClass().getMethod("getOptions").invoke(javaScript);
+        knowsCharsetOption = options != null
+            && optionDescriptorsClass.getMethod("get", String.class).invoke(options, CHARSET_OPTION[0]) != null;
+      }
+      return knowsCharsetOption;
+    }
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
-  private static Object createHostAccess(ClassLoader graalJsClassLoader, String mode)
+  private static Object createHostAccess(ClassLoader graalJsClassLoader, Object baseHostAccess)
       throws ReflectiveOperationException {
     Class<?> hostAccessClass = Class.forName("org.graalvm.polyglot.HostAccess", false, graalJsClassLoader);
     Class<?> valueClass = Class.forName("org.graalvm.polyglot.Value", false, graalJsClassLoader);
@@ -214,29 +278,11 @@ public final class GraalJsNumberNarrowing {
       }
     };
 
-    Object all = hostAccessClass.getField("ALL").get(null);
-    Object builder = hostAccessClass.getMethod("newBuilder", hostAccessClass).invoke(null, all);
+    Object builder = hostAccessClass.getMethod("newBuilder", hostAccessClass).invoke(null, baseHostAccess);
     builder.getClass()
         .getMethod("targetTypeMapping", Class.class, Class.class, Predicate.class, Function.class, precedenceClass)
         .invoke(builder, valueClass, Object.class, narrows, toInteger, Enum.valueOf((Class) precedenceClass, "LOW"));
     return builder.getClass().getMethod("build").invoke(builder);
-  }
-
-  /** @return true if the JavaScript language of the polyglot engine knows the option {@code js.charset} */
-  private static synchronized boolean knowsCharsetOption(ClassLoader graalJsClassLoader, Class<?> engineClass,
-      Object polyglotEngine) throws ReflectiveOperationException {
-    Boolean knows = KNOWS_CHARSET_OPTION.get(graalJsClassLoader);
-    if (knows == null) {
-      Class<?> optionDescriptorsClass = Class.forName("org.graalvm.options.OptionDescriptors", false,
-          graalJsClassLoader);
-      Map<?, ?> languages = (Map<?, ?>) engineClass.getMethod("getLanguages").invoke(polyglotEngine);
-      Object javaScript = languages.get("js");
-      Object options = javaScript == null ? null : javaScript.getClass().getMethod("getOptions").invoke(javaScript);
-      knows = options != null
-          && optionDescriptorsClass.getMethod("get", String.class).invoke(options, CHARSET_OPTION[0]) != null;
-      KNOWS_CHARSET_OPTION.put(graalJsClassLoader, knows);
-    }
-    return knows;
   }
 
 }

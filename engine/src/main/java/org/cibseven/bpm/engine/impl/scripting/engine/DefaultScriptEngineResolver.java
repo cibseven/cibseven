@@ -113,7 +113,7 @@ public class DefaultScriptEngineResolver implements ScriptEngineResolver {
         || !scriptEngineManager.getEngineFactories().contains(scriptEngine.getFactory())) {
       return scriptEngine;
     }
-    return GraalJsNumberNarrowing.createScriptEngine(scriptEngine, config.getJavaScriptNumberNarrowing());
+    return GraalJsNumberNarrowing.createScriptEngine(scriptEngine);
   }
 
   protected ScriptEngine getJavaScriptScriptEngine(String language) {
