@@ -63,6 +63,23 @@
           <groupId>org.jetbrains.kotlin</groupId>
           <artifactId>kotlin-stdlib-common</artifactId>
         </exclusion>
+        <!-- swagger-parser-v3 pulls the javax variants of swagger-core, swagger-models and
+             swagger-annotations. In userlib-ai/ they shadow swagger-core-jakarta of springdoc
+             (same packages io.swagger.v3.*) and /v3/api-docs of the webclient fails with
+             NoClassDefFoundError javax/xml/bind/annotation/XmlElement. The jakarta variants
+             of springdoc (2.2.52) are on the Run classpath and serve swagger-parser as well. -->
+        <exclusion>
+          <groupId>io.swagger.core.v3</groupId>
+          <artifactId>swagger-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.swagger.core.v3</groupId>
+          <artifactId>swagger-models</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.swagger.core.v3</groupId>
+          <artifactId>swagger-annotations</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
 
