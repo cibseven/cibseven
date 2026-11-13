@@ -84,7 +84,7 @@ cibseven:
   #
   # The AI agent itself, the connector and agentic ad hoc sub processes alike,
   # is switched on and off by the start script (--ai, --production and the
-  # AI_AGENT_ENABLED environment variable), not here.
+  # AI_AGENT_ENABLED / MCP_ENABLED environment variables), not here.
   #
   # The connector reads JVM system properties (and environment-variable
   # fallbacks), not YAML keys. To override the default LLM model used when
@@ -165,8 +165,6 @@ cibseven:
     datasource:
       fileValue:
         enabled: false
-    cockpit:
-      url: /camunda/app/cockpit/default/
     theme: cib
 
     services:

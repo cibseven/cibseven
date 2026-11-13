@@ -139,6 +139,7 @@
         <module>modules/example</module>
         <module>modules/webapps</module>
         <module>modules/ai-agent</module>
+        <module>modules/mcp-restapi</module>
         <module>modules/http-client</module>
         <module>modules/soap-http-client</module>
         <module>core</module>
@@ -149,6 +150,7 @@
     <profile>
       <id>integration-test-run</id>
       <modules>
+        <module>core</module>
         <module>qa</module>
       </modules>
     </profile>

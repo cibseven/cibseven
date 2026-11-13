@@ -16,15 +16,8 @@
  */
 package org.cibseven.bpm.spring.boot.starter.security;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
 public class SampleApplication {
@@ -33,15 +26,4 @@ public class SampleApplication {
     SpringApplication.run(SampleApplication.class, args);
   }
 
-  @RestController
-  @RequestMapping("/camunda/api/engine/engine")
-  public static class TestController {
-
-    @GetMapping("/{username}/user")
-    public List<Map<String, String>> getUserInfo(@PathVariable("username") String username) {
-      Map<String, String> users = new HashMap<>();
-      users.put("name", username);
-      return List.of(users);
-    }
-  }
 }

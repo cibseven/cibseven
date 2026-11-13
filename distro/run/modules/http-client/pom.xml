@@ -13,6 +13,17 @@
   <name>CIB seven - Run - Module HTTP Connector</name>
   <packaging>pom</packaging>
 
+  <dependencyManagement>
+    <dependencies>
+      <!-- already part of the cibseven-bpm-run-core uberjar (same version.slf4j) -->
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <scope>provided</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
 
     <dependency>
