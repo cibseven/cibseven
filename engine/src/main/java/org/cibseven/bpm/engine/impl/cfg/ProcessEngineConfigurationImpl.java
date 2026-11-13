@@ -616,9 +616,8 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected boolean enableScriptEngineNashornCompatibility = false;
   protected boolean configureScriptEngineHostAccess = true;
   /**
-   * Which numbers that JavaScript scripts on GraalJS hand to Java become an Integer, as in CIB seven 2.2:
-   * {@code long} (a Java long in int range), {@code integral} (every integral number in int range, also a double
-   * such as 6.0) or {@code none} (the Long and Double that GraalJS 24 and later give). Applies when
+   * Whether a Java long in int range that a JavaScript script on GraalJS hands to Java becomes an Integer, as in
+   * CIB seven 2.2: {@code long} (it does) or {@code none} (the Long that GraalJS 24 and later give). Applies when
    * {@link #configureScriptEngineHostAccess} is true. See {@link GraalJsNumberNarrowing}.
    */
   protected String javaScriptNumberNarrowing = GraalJsNumberNarrowing.LONG;
@@ -4680,7 +4679,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   }
 
   /**
-   * @param javaScriptNumberNarrowing {@code long} (default), {@code integral} or {@code none}, see
+   * @param javaScriptNumberNarrowing {@code long} (default) or {@code none}, see
    *   {@link GraalJsNumberNarrowing}
    */
   public ProcessEngineConfigurationImpl setJavaScriptNumberNarrowing(String javaScriptNumberNarrowing) {

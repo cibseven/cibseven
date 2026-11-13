@@ -18,7 +18,6 @@ package org.cibseven.bpm.engine.test.bpmn.scripttask;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.cibseven.bpm.engine.impl.scripting.engine.GraalJsNumberNarrowing.INTEGRAL;
 import static org.cibseven.bpm.engine.impl.scripting.engine.GraalJsNumberNarrowing.LONG;
 import static org.cibseven.bpm.engine.impl.scripting.engine.GraalJsNumberNarrowing.NONE;
 
@@ -143,32 +142,6 @@ public class ScriptTaskGraalJsNumberTest extends AbstractScriptTaskTest {
 
   @ParameterizedTest(name = "useCibSevenNamespaceInScripting={0}")
   @MethodSource("paths")
-  public void shouldStoreIntegralNumbersInIntRangeAsIntegerInModeIntegral(boolean useCibSevenNamespace) {
-    // given
-    useMode(INTEGRAL, useCibSevenNamespace);
-    deployProcess(JAVASCRIPT, SCRIPT);
-
-    // when
-    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testProcess", inputs());
-
-    // then
-    Map<String, Object> variables = runtimeService.getVariables(processInstance.getId());
-    assertThat(variables.get("longValueOf")).isEqualTo(7);
-    assertThat(variables.get("longVariable")).isEqualTo(5);
-    assertThat(variables.get("longBinding")).isEqualTo(5);
-    assertThat(variables.get("queryCount")).isEqualTo(0);
-    assertThat(variables.get("longValueOfSum")).isEqualTo(6);
-    assertThat(variables.get("longPlusOne")).isEqualTo(6);
-    assertThat(variables.get("bigLong")).isEqualTo(1L << 40);
-    assertThat(variables.get("intPlusOne")).isEqualTo(6);
-    assertThat(variables.get("fraction")).isEqualTo(2.5d);
-    assertThat(variables.get("listAfterRemove")).isEqualTo("[10, 20, 30, 40, 50]");
-    // unlike CIB seven 2.2 (Double 3.0): an integral double is an Integer in this mode
-    assertThat(variables.get("doubleVariable")).isEqualTo(3);
-  }
-
-  @ParameterizedTest(name = "useCibSevenNamespaceInScripting={0}")
-  @MethodSource("paths")
   public void shouldKeepTheTypesOfGraalJsInModeNone(boolean useCibSevenNamespace) {
     // given
     useMode(NONE, useCibSevenNamespace);
@@ -248,7 +221,15 @@ public class ScriptTaskGraalJsNumberTest extends AbstractScriptTaskTest {
   public void shouldRejectAnUnknownMode() {
     assertThatThrownBy(() -> processEngineConfiguration.setJavaScriptNumberNarrowing("int"))
         .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("javaScriptNumberNarrowing must be one of 'long', 'integral', 'none', not 'int'");
+        .hasMessageContaining("javaScriptNumberNarrowing must be 'long' or 'none', not 'int'");
+  }
+
+  @Test
+  public void shouldRejectModeIntegral() {
+    // integral turned integral Double variables such as 3.0 into Integer too: removed
+    assertThatThrownBy(() -> processEngineConfiguration.setJavaScriptNumberNarrowing("integral"))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("javaScriptNumberNarrowing must be 'long' or 'none', not 'integral'");
   }
 
 }

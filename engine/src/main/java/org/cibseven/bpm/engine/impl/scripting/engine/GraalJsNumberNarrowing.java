@@ -44,8 +44,6 @@ import org.cibseven.bpm.engine.impl.scripting.ScriptLogger;
  * <ul>
  * <li>{@link #LONG} (the default): a Java long in int range becomes an Integer. A double stays a Double, also the
  * result of arithmetic with a long ({@code lng + 1} gives {@code 6.0}).</li>
- * <li>{@link #INTEGRAL}: every integral number in int range that is not an Integer yet, also a double such as
- * {@code lng + 1}. A Double variable with an integral value such as {@code 3.0} then becomes an Integer too.</li>
  * <li>{@link #NONE}: the types GraalJS gives (Long, Double).</li>
  * </ul>
  * The mapping has the precedence {@code LOW}: of a Java method overloaded for {@code int} and {@code Object}, such
@@ -61,8 +59,6 @@ public final class GraalJsNumberNarrowing {
   public static final String NONE = "none";
   /** A Java long in int range becomes an Integer (the default). */
   public static final String LONG = "long";
-  /** Every integral number in int range becomes an Integer, also a double such as 6.0. */
-  public static final String INTEGRAL = "integral";
 
   private static final ScriptLogger LOG = ProcessEngineLogger.SCRIPT_LOGGER;
 
@@ -101,20 +97,20 @@ public final class GraalJsNumberNarrowing {
 
   /**
    * @return the given mode in lower case
-   * @throws ProcessEngineException if the mode is none of {@link #NONE}, {@link #LONG}, {@link #INTEGRAL}
+   * @throws ProcessEngineException if the mode is neither {@link #LONG} nor {@link #NONE}
    */
   public static String checkMode(String mode) {
     String lowerCase = mode == null ? null : mode.trim().toLowerCase(Locale.ROOT);
-    if (NONE.equals(lowerCase) || LONG.equals(lowerCase) || INTEGRAL.equals(lowerCase)) {
+    if (NONE.equals(lowerCase) || LONG.equals(lowerCase)) {
       return lowerCase;
     }
-    throw new ProcessEngineException("javaScriptNumberNarrowing must be one of '" + LONG + "', '" + INTEGRAL
-        + "', '" + NONE + "', not '" + mode + "'");
+    throw new ProcessEngineException("javaScriptNumberNarrowing must be '" + LONG + "' or '" + NONE + "', not '"
+        + mode + "'");
   }
 
   /** @return true if the mode changes the type of numbers */
   public static boolean isNarrowing(String mode) {
-    return LONG.equals(mode) || INTEGRAL.equals(mode);
+    return LONG.equals(mode);
   }
 
   /** @return true if the script engine was created with the host access of this class */
@@ -198,17 +194,14 @@ public final class GraalJsNumberNarrowing {
     Method fitsInInt = valueClass.getMethod("fitsInInt");
     Method as = valueClass.getMethod("as", Class.class);
     Method asInt = valueClass.getMethod("asInt");
-    boolean integral = INTEGRAL.equals(mode);
 
-    // a JavaScript number in int range that GraalJS would hand over as a Long (mode long), or as a Long or a Double
-    // (mode integral); for a JavaScript int it gives an Integer already
+    // a number in int range that GraalJS would hand over as a Long; for a JavaScript int it gives an Integer already
     Predicate<Object> narrows = value -> {
       try {
         if (!(Boolean) isNumber.invoke(value) || !(Boolean) fitsInInt.invoke(value)) {
           return false;
         }
-        Object number = as.invoke(value, Number.class);
-        return integral ? !(number instanceof Integer) : number instanceof Long;
+        return as.invoke(value, Number.class) instanceof Long;
       } catch (ReflectiveOperationException e) {
         return false;
       }
