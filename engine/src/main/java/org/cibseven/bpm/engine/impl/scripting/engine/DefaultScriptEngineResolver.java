@@ -79,7 +79,7 @@ public class DefaultScriptEngineResolver implements ScriptEngineResolver {
         ScriptingEngines.ECMASCRIPT_SCRIPTING_LANGUAGE.equalsIgnoreCase(language)) {
       scriptEngine = getJavaScriptScriptEngine(language);
     } else {
-      scriptEngine = scriptEngineManager.getEngineByName(language);
+      scriptEngine = getScriptEngineByName(language);
     }
 
     if (scriptEngine != null) {
@@ -88,16 +88,44 @@ public class DefaultScriptEngineResolver implements ScriptEngineResolver {
     return scriptEngine;
   }
 
+  /**
+   * Returns the script engine of the script engine manager for the name; for GraalJS one whose host access maps
+   * numbers as the property {@code javaScriptNumberNarrowing} says, see {@link GraalJsNumberNarrowing}.
+   */
+  protected ScriptEngine getScriptEngineByName(String name) {
+    return applyGraalJsNumberNarrowing(scriptEngineManager.getEngineByName(name));
+  }
+
+  /**
+   * Replaces a GraalJS script engine that a factory of the script engine manager created by one whose host access
+   * maps numbers. Keeps every other script engine, also a GraalJS script engine that has its own host access
+   * already ({@link CamundaScriptEngineManager} with {@code useCibSevenNamespaceInScripting}) or that someone
+   * created in another way.
+   */
+  protected ScriptEngine applyGraalJsNumberNarrowing(ScriptEngine scriptEngine) {
+    ProcessEngineConfigurationImpl config = Context.getProcessEngineConfiguration();
+    if (scriptEngine == null
+        || config == null
+        || !config.isConfigureScriptEngineHostAccess()
+        || !GraalJsNumberNarrowing.isNarrowing(config.getJavaScriptNumberNarrowing())
+        || !ScriptingEngines.GRAAL_JS_SCRIPT_ENGINE_NAME.equals(scriptEngine.getFactory().getEngineName())
+        || GraalJsNumberNarrowing.hasOwnHostAccess(scriptEngine)
+        || !scriptEngineManager.getEngineFactories().contains(scriptEngine.getFactory())) {
+      return scriptEngine;
+    }
+    return GraalJsNumberNarrowing.createScriptEngine(scriptEngine, config.getJavaScriptNumberNarrowing());
+  }
+
   protected ScriptEngine getJavaScriptScriptEngine(String language) {
     ScriptEngine scriptEngine = null;
     ProcessEngineConfigurationImpl config = Context.getProcessEngineConfiguration();
     if (config != null && config.getScriptEngineNameJavaScript() != null) {
-      scriptEngine = scriptEngineManager.getEngineByName(config.getScriptEngineNameJavaScript());
+      scriptEngine = getScriptEngineByName(config.getScriptEngineNameJavaScript());
     } else {
-      scriptEngine = scriptEngineManager.getEngineByName(ScriptingEngines.DEFAULT_JS_SCRIPTING_LANGUAGE);
+      scriptEngine = getScriptEngineByName(ScriptingEngines.DEFAULT_JS_SCRIPTING_LANGUAGE);
       if (scriptEngine == null) {
         // default engine is not available, try to fetch any existing JS script engine
-        scriptEngine = scriptEngineManager.getEngineByName(language);
+        scriptEngine = getScriptEngineByName(language);
       }
     }
     return scriptEngine;
@@ -142,8 +170,11 @@ public class DefaultScriptEngineResolver implements ScriptEngineResolver {
     ProcessEngineConfigurationImpl config = Context.getProcessEngineConfiguration();
     if (config != null) {
       if (config.isConfigureScriptEngineHostAccess()) {
-        // make sure Graal JS can provide access to the host and can lookup classes
-        scriptEngine.getContext().setAttribute("polyglot.js.allowHostAccess", true, ScriptContext.ENGINE_SCOPE);
+        // make sure Graal JS can provide access to the host and can lookup classes; a script engine with its own
+        // host access (javaScriptNumberNarrowing) keeps it: this attribute would replace it with HostAccess.ALL
+        if (!GraalJsNumberNarrowing.hasOwnHostAccess(scriptEngine)) {
+          scriptEngine.getContext().setAttribute("polyglot.js.allowHostAccess", true, ScriptContext.ENGINE_SCOPE);
+        }
         scriptEngine.getContext().setAttribute("polyglot.js.allowHostClassLookup", true, ScriptContext.ENGINE_SCOPE);
       }
       if (config.isEnableScriptEngineLoadExternalResources()) {

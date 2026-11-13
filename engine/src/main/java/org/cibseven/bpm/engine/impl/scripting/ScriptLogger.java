@@ -44,4 +44,10 @@ public class ScriptLogger extends ProcessEngineLogger {
         "003", "Failed to close script engine: {}", e.getMessage());
   }
 
+  public void logGraalJsNumberNarrowingFailed(String mode, Exception e) {
+    logWarn(
+        "004", "Cannot create the GraalJS script engine with javaScriptNumberNarrowing '{}': numbers keep the types GraalJS gives. Reason: {}",
+        mode, e.getMessage());
+  }
+
 }
