@@ -180,7 +180,7 @@
           "label": "HTTP headers",
           "type": "Text",
           "group": "agent",
-          "description": "Additional request headers as a JSON object, e.g. {\"X-Request-Source\": \"cibseven\"}. Do not write a key or token here: the text is stored in the deployed model.",
+          "description": "Additional request headers as a JSON object, e.g. {\"X-Request-Source\": \"cibseven\"}. A key or token written here is stored in the deployed model, and one read from a process variable is stored with the variable: there is no server-side place for it yet.",
           "placeholder": "{\"X-Request-Source\": \"cibseven\"}",
           "binding": {
             "type": "camunda:inputParameter",
@@ -222,7 +222,7 @@
           "label": "MCP servers",
           "type": "Text",
           "group": "tools",
-          "description": "JSON array of MCP server configs: [{\"name\": \"...\", \"url\": \"...\", \"headers\": {...}}]. The optional 'name' (1-32 chars of [a-zA-Z0-9_-]) is used as a prefix to disambiguate tool names across servers — the agent sees '<name>__<toolName>' instead of just '<toolName>', so two MCP servers exposing the same tool name no longer collide. When 'name' is omitted, the connector derives a slug from the URL host/port (e.g. localhost:8081 → 'localhost-8081'). Each entry's headers is a JSON object of header name → value. Use http://localhost:8080/mcp if the mcp-process-executor plugin is enabled on this instance. Do not write a key or token into headers: the text is stored in the deployed model.",
+          "description": "JSON array of MCP server configs: [{\"name\": \"...\", \"url\": \"...\", \"headers\": {...}}]. The optional 'name' (1-32 chars of [a-zA-Z0-9_-]) is used as a prefix to disambiguate tool names across servers — the agent sees '<name>__<toolName>' instead of just '<toolName>', so two MCP servers exposing the same tool name no longer collide. When 'name' is omitted, the connector derives a slug from the URL host/port (e.g. localhost:8081 → 'localhost-8081'). Each entry's headers is a JSON object of header name → value. Use http://localhost:8080/mcp if the mcp-process-executor plugin is enabled on this instance. A key or token in headers is stored in the deployed model, and one read from a process variable is stored with the variable: there is no server-side place for it yet.",
           "placeholder": "[{\"name\": \"engine\", \"url\": \"http://localhost:8081/mcp\"}, {\"name\": \"krank\", \"url\": \"http://localhost:8082/mcp\", \"headers\": {\"X-Tenant\": \"sales\"}}]",
           "binding": {
             "type": "camunda:inputParameter",

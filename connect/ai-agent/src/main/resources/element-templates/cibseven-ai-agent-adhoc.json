@@ -284,7 +284,7 @@
           "label": "HTTP headers",
           "type": "Text",
           "group": "agent",
-          "description": "Additional request headers as a JSON object, e.g. {\"X-Request-Source\": \"cibseven\"}. Do not write a key or token here: the text is stored in the deployed model.",
+          "description": "Additional request headers as a JSON object, e.g. {\"X-Request-Source\": \"cibseven\"}. A key or token written here is stored in the deployed model, and one read from a process variable is stored with the variable: there is no server-side place for it yet.",
           "placeholder": "{\"X-Request-Source\": \"cibseven\"}",
           "binding": {
             "type": "camunda:inputParameter",
