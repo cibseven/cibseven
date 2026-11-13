@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,12 +41,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import io.restassured.response.ValidatableResponse;
 
 /**
- * The MCP REST API of Run with configuration/default.yml as shipped. MCP_ENABLED=true switches
- * it on: the start script puts configuration/userlib-ai/ on the classpath, default.yml turns on
- * the MCP server and the library, which generates its tools from openapi.json of this version
- * (on the classpath) and calls the REST API of Run with them.
+ * The MCP REST API of Run with configuration/default.yml and production.yml as shipped.
+ * MCP_ENABLED=true switches it on: the start script puts configuration/userlib-ai/ on the
+ * classpath, the configuration turns on the MCP server and the library, which generates its tools
+ * from openapi.json of this version (on the classpath) and calls the REST API of Run with them.
  *
  * <ul>
  * <li>--rest, MCP_ENABLED=true: the MCP REST API has only the libraries of userlib-ai/ and of
@@ -56,13 +58,16 @@ import io.restassured.response.Response;
  * NoClassDefFoundError, CIB7-2737).</li>
  * <li>--rest --ai without MCP_ENABLED (the AI agent on, as in the Docker image): no MCP
  * endpoint.</li>
+ * <li>--production: the same switch in production.yml. The REST API requires authentication
+ * there, and a tool call without credentials must not get around it.</li>
  * </ul>
  */
 @ParameterizedClass(name = "Test instance: {index}. Commands: {0}, MCP_ENABLED: {1}")
 @MethodSource("commands")
 public class McpRestApiIT {
 
-  private static final String SHIPPED_DEFAULT_YML = "run.shipped.default.yml";
+  private static final String SHIPPED_CONFIGURATION = "run.shipped.configuration";
+  private static final String PRODUCTION = "--production";
   /** JUnit does not pass null to a parameterized class, hence a marker for an unset variable. */
   private static final String NOT_SET = "not set";
 
@@ -79,7 +84,9 @@ public class McpRestApiIT {
     return Arrays.asList(new Object[][] {
       { new String[]{"--rest"}, "true", true, false },
       { new String[]{"--rest", "--webapps"}, "true", true, true },
-      { new String[]{"--rest", "--ai"}, NOT_SET, false, false }
+      { new String[]{"--rest", "--ai"}, NOT_SET, false, false },
+      { new String[]{PRODUCTION, "--rest"}, "true", true, false },
+      { new String[]{PRODUCTION, "--rest", "--ai"}, NOT_SET, false, false }
     });
   }
 
@@ -89,8 +96,15 @@ public class McpRestApiIT {
   public static void runStartScript(String[] commands, String mcpEnabledVariable, boolean mcpAvailable,
       boolean webappsAvailable) throws Exception {
     container = new SpringBootManagedContainer(commands);
-    try (InputStream shipped = Files.newInputStream(Paths.get(System.getProperty(SHIPPED_DEFAULT_YML)))) {
-      container.replaceConfigurationYml(SpringBootManagedContainer.APPLICATION_YML_PATH, shipped);
+    Path shipped = Paths.get(System.getProperty(SHIPPED_CONFIGURATION));
+    if (isProduction(commands)) {
+      try (InputStream production = Files.newInputStream(shipped.resolve("production.yml"))) {
+        container.createConfigurationYml("configuration/production.yml", production);
+      }
+    } else {
+      try (InputStream defaults = Files.newInputStream(shipped.resolve("default.yml"))) {
+        container.replaceConfigurationYml(SpringBootManagedContainer.APPLICATION_YML_PATH, defaults);
+      }
     }
     container.setEnvironmentVariable("MCP_ENABLED", NOT_SET.equals(mcpEnabledVariable) ? null : mcpEnabledVariable);
     container.setEnvironmentVariable("AI_AGENT_ENABLED", null);
@@ -133,14 +147,21 @@ public class McpRestApiIT {
   @Test
   public void shouldCallTheRestApiWithATool() {
     assumeTrue(mcpAvailable, "MCP is switched off");
-    mcp("{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\","
-        + "\"params\":{\"name\":\"getProcessEngineNames\",\"arguments\":{}}}")
+    // GET /process-definition/count; unlike GET /engine it needs authentication when the REST API has it on
+    ValidatableResponse response = mcp("{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\","
+        + "\"params\":{\"name\":\"getProcessDefinitionsCount\",\"arguments\":{}}}")
       .then()
       .statusCode(200)
       .contentType(ContentType.JSON)
-      .body("error", nullValue())
-      .body("result.isError", is(false))
-      .body("result.content[0].text", containsString("\"default\""));
+      .body("error", nullValue());
+    if (isProduction(commands)) {
+      // the request has no credentials: the REST API rejects it, the MCP endpoint does not get around it
+      response.body("result.isError", is(true));
+    } else {
+      response
+        .body("result.isError", is(false))
+        .body("result.content[0].text", containsString("\"count\""));
+    }
   }
 
   @Test
@@ -148,6 +169,10 @@ public class McpRestApiIT {
     when().get(container.getBaseUrl() + "/webapp/v3/api-docs")
       .then()
       .statusCode(webappsAvailable ? 200 : 404);
+  }
+
+  private static boolean isProduction(String[] commands) {
+    return Arrays.asList(commands).contains(PRODUCTION);
   }
 
   private static Response mcp(String request) {

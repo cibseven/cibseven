@@ -158,7 +158,7 @@
               </dependenciesToScan>
               <systemPropertyVariables>
                 <camunda.run.home>${run-home}</camunda.run.home>
-                <run.shipped.default.yml>${project.build.directory}/run/shipped/configuration/default.yml</run.shipped.default.yml>
+                <run.shipped.configuration>${project.build.directory}/run/shipped/configuration</run.shipped.configuration>
                 <example.plugin.home>${example-plugin-home}</example.plugin.home>
                 <selenium.screenshot.directory>${project.build.directory}/selenium-screenshots</selenium.screenshot.directory>
               </systemPropertyVariables>
@@ -191,8 +191,8 @@
                 </configuration>
               </execution>
               <execution>
-                <!-- configuration/default.yml as shipped, for tests of the shipped configuration (McpRestApiIT) -->
-                <id>copy-run-default-yml</id>
+                <!-- configuration/default.yml and production.yml as shipped, for tests of the shipped configuration (McpRestApiIT) -->
+                <id>copy-run-shipped-configuration</id>
                 <goals>
                   <goal>unpack-dependencies</goal>
                 </goals>
@@ -202,7 +202,7 @@
                   <overWriteSnapshots>true</overWriteSnapshots>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory>${project.build.directory}/run/shipped</outputDirectory>
-                  <includes>configuration/default.yml</includes>
+                  <includes>configuration/default.yml,configuration/production.yml</includes>
                   <!-- own markers, otherwise the unpack above marks the artifact as done -->
                   <markersDirectory>${project.build.directory}/dependency-maven-plugin-markers-shipped</markersDirectory>
                 </configuration>
