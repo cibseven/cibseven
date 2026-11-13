@@ -336,30 +336,51 @@ public class Jackson2CompatibilityTest {
 
   @Test
   public void shouldReadBackUnwrappedClassWithComputedProperty() {
-    String json = format.writeValue(new Located());
+    Located value = new Located();
+    value.name = "Kiosk";
+    value.spot.street = "Rhine 7";
+    value.spot.city = "Cologne";
+    String json = format.writeValue(value);
 
-    assertThat(json).isEqualTo("{\"name\":\"Shop\",\"street\":\"Main 1\",\"city\":\"Bonn\",\"label\":\"Main 1, Bonn\"}");
+    assertThat(json).isEqualTo("{\"name\":\"Kiosk\",\"street\":\"Rhine 7\",\"city\":\"Cologne\",\"label\":\"Rhine 7, Cologne\"}");
     // Jackson 3.1 alone (databind#650): Unrecognized property "label" (class ...Located)
     Located located = format.readValue(json, Located.class);
-    assertThat(located.name).isEqualTo("Shop");
-    assertThat(located.spot.street).isEqualTo("Main 1");
-    assertThat(located.spot.city).isEqualTo("Bonn");
+    assertThat(located.name).isEqualTo("Kiosk");
+    assertThat(located.spot.street).isEqualTo("Rhine 7");
+    assertThat(located.spot.city).isEqualTo("Cologne");
+    assertThat(format.writeValue(located)).isEqualTo(json);
   }
 
   @Test
   public void shouldReadBackNestedAndPrefixedUnwrappedClasses() {
+    Building value = new Building();
+    value.id = "B9";
+    value.floor.level = "5";
+    value.floor.spot.street = "Rhine 7";
+    value.floor.spot.city = "Cologne";
+    String json = format.writeValue(value);
     // Jackson 3.1 alone: Unrecognized property "label" (class ...Building)
-    Building building = format.readValue(format.writeValue(new Building()), Building.class);
-    assertThat(building.id).isEqualTo("B1");
-    assertThat(building.floor.level).isEqualTo("2");
-    assertThat(building.floor.spot.city).isEqualTo("Bonn");
+    Building building = format.readValue(json, Building.class);
+    assertThat(building.id).isEqualTo("B9");
+    assertThat(building.floor.level).isEqualTo("5");
+    assertThat(building.floor.spot.street).isEqualTo("Rhine 7");
+    assertThat(building.floor.spot.city).isEqualTo("Cologne");
+    assertThat(format.writeValue(building)).isEqualTo(json);
 
-    String json = format.writeValue(new Contacts());
-    assertThat(json).contains("\"home_label\":\"Main 1, Bonn\"", "\"work_label\":\"Main 1, Bonn\"");
+    Contacts contacts = new Contacts();
+    contacts.home.street = "Home 1";
+    contacts.home.city = "Bonn";
+    contacts.work.street = "Work 2";
+    contacts.work.city = "Essen";
+    json = format.writeValue(contacts);
+    assertThat(json).contains("\"home_label\":\"Home 1, Bonn\"", "\"work_label\":\"Work 2, Essen\"");
     // Jackson 3.1 alone: Unrecognized property "home_label" (class ...Contacts)
-    Contacts contacts = format.readValue(json, Contacts.class);
-    assertThat(contacts.home.street).isEqualTo("Main 1");
-    assertThat(contacts.work.city).isEqualTo("Bonn");
+    Contacts readBack = format.readValue(json, Contacts.class);
+    assertThat(readBack.home.street).isEqualTo("Home 1");
+    assertThat(readBack.home.city).isEqualTo("Bonn");
+    assertThat(readBack.work.street).isEqualTo("Work 2");
+    assertThat(readBack.work.city).isEqualTo("Essen");
+    assertThat(format.writeValue(readBack)).isEqualTo(json);
   }
 
   @Test
@@ -370,7 +391,10 @@ public class Jackson2CompatibilityTest {
     // Jackson 3.1 alone: Unrecognized property "fax" (class ...Person)
     Person person = format.readValue(stored, Person.class);
     assertThat(person.name).isEqualTo("Old");
+    assertThat(person.address.street).isEqualTo("Main 1");
     assertThat(person.address.city).isEqualTo("Bonn");
+    // written again without "fax", as Jackson 2 does
+    assertThat(format.writeValue(person)).isEqualTo("{\"name\":\"Old\",\"street\":\"Main 1\",\"city\":\"Bonn\"}");
   }
 
   @Test
