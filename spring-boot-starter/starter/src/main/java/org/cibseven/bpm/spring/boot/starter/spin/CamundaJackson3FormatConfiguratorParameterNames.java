@@ -41,8 +41,10 @@ import tools.jackson.databind.cfg.ConstructorDetector;
  * <p>
  * The constructor detector configured so far is kept: Spin applies an application's configurators registered
  * in {@code META-INF/services} before this one. An application that wants Jackson 3's rule registers its
- * configurator in {@code spring.factories} (applied after this one) or defines a bean named
- * {@code spinDataFormatConfiguratorJackson3ParameterNames}.
+ * configurator in {@code spring.factories} (applied after this one), or replaces the starter's bean with a subclass
+ * of this class named {@code spinDataFormatConfiguratorJackson3ParameterNames}. The plugin takes this configurator
+ * by its type: a bean of another type with that name only switches the starter's one off, and parameter names
+ * with it.
  */
 public class CamundaJackson3FormatConfiguratorParameterNames implements DataFormatConfigurator<JacksonJsonDataFormat> {
 
