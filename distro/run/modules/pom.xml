@@ -17,6 +17,29 @@
     Boot ZIP and are not needed in the resulting dependency sets here -->
   <dependencyManagement>
     <dependencies>
+      <!-- Same versions in every Run folder: the ones in configuration/userlib-ai/ come first on the
+           loader path and would otherwise shadow the ones of the webclient in internal/webapps/. -->
+      <dependency>
+        <groupId>io.swagger.core.v3</groupId>
+        <artifactId>swagger-core-jakarta</artifactId>
+        <version>${version.swagger-core-jakarta}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.swagger.core.v3</groupId>
+        <artifactId>swagger-models-jakarta</artifactId>
+        <version>${version.swagger-core-jakarta}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.swagger.core.v3</groupId>
+        <artifactId>swagger-annotations-jakarta</artifactId>
+        <version>${version.swagger-core-jakarta}</version>
+      </dependency>
+      <!-- ai-agent requests 2.16.1 (djl, commons-compress), the MCP REST API 2.22.0 (swagger-parser) -->
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.22.0</version>
+      </dependency>
       <dependency>
         <groupId>org.cibseven.bpm.springboot</groupId>
         <artifactId>cibseven-bpm-spring-boot-starter</artifactId>

@@ -42,7 +42,12 @@
     <!-- Version for cibseven-webclient-web -->
     <cibseven-webapp.version>${project.version}</cibseven-webapp.version>
     <!-- Version for cibseven-mcp-restapi -->
-    <cibseven-mcp-restapi.version>0.0.5</cibseven-mcp-restapi.version>
+    <cibseven-mcp-restapi.version>0.0.6-SNAPSHOT</cibseven-mcp-restapi.version>
+    <!-- swagger-core-jakarta (and -models, -annotations) of springdoc in cibseven-webclient (springdoc 3.1.0).
+         Run ships it in internal/webapps/ (webclient) and in configuration/userlib-ai/ (MCP REST API, and the
+         annotations for Spring AI); both folders must have the same version, because userlib-ai/ comes first
+         on the loader path. Update it together with springdoc in the webclient. -->
+    <version.swagger-core-jakarta>2.2.52</version.swagger-core-jakarta>
     <version.junit5>5.13.4</version.junit5>
     <!-- The Spring Framework 7 / Spring Boot 4 trees run on JUnit 6; spring-test 7 is
          compiled against it and calls ExtensionContext.Store.computeIfAbsent, absent from JUnit 5. -->
