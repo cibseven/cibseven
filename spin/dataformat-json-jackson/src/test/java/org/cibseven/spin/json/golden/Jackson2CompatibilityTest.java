@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -46,6 +47,7 @@ import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
@@ -182,6 +184,17 @@ public class Jackson2CompatibilityTest {
     public Set<String> strings;
     public Collection<Priority> collection;
     public List<Priority> list;
+  }
+
+  /** Map properties whose values carry a type id. */
+  public static class PolymorphicMapValues {
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "kind")
+    @JsonSubTypes(@JsonSubTypes.Type(value = HashMap.class, name = "hash"))
+    public Map<String, Map<Priority, Integer>> enumKeys;
+
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "kind")
+    @JsonSubTypes(@JsonSubTypes.Type(value = HashMap.class, name = "hash"))
+    public Map<String, Map<String, Integer>> stringKeys;
   }
 
   /** What Jackson 2 writes for an {@link EnumContainers} with a LinkedHashMap HIGH=3, LOW=1. */
@@ -345,7 +358,7 @@ public class Jackson2CompatibilityTest {
 
   @Test
   public void shouldReadOtherContainerTypesLikeJackson2() {
-    // the same in Jackson 2 and Jackson 3: only Map and Set themselves are mapped to LinkedHashMap and HashSet
+    // the same in Jackson 2 and Jackson 3: only Map and Set of enums are read differently
     OtherContainers value = read(OTHER_CONTAINERS_JSON, OtherContainers.class);
 
     assertThat(value.sortedMap).isExactlyInstanceOf(TreeMap.class).containsExactly(entry(Priority.LOW, 1), entry(Priority.HIGH, 3));
@@ -357,6 +370,24 @@ public class Jackson2CompatibilityTest {
     assertThat(value.strings).isExactlyInstanceOf(HashSet.class);
     assertThat(value.collection).isExactlyInstanceOf(ArrayList.class).containsExactly(Priority.HIGH, Priority.LOW);
     assertThat(value.list).isExactlyInstanceOf(ArrayList.class).containsExactly(Priority.HIGH, Priority.LOW);
+  }
+
+  @Test
+  public void shouldCheckTypeIdsOfMapValuesLikeJackson2() {
+    PolymorphicMapValues value = read("{\"enumKeys\":{\"a\":{\"kind\":\"hash\",\"HIGH\":3}},"
+        + "\"stringKeys\":{\"a\":{\"kind\":\"hash\",\"b\":2}}}", PolymorphicMapValues.class);
+    assertThat(value.enumKeys.get("a")).isExactlyInstanceOf(HashMap.class).containsExactly(entry(Priority.HIGH, 3));
+    assertThat(value.stringKeys.get("a")).isExactlyInstanceOf(HashMap.class).containsExactly(entry("b", 2));
+
+    // unknown and missing type ids fail as in Jackson 2; with LinkedHashMap as default implementation they would not
+    assertThatThrownBy(() -> read("{\"enumKeys\":{\"a\":{\"kind\":\"bogus\",\"HIGH\":3}}}", PolymorphicMapValues.class))
+        .hasStackTraceContaining("bogus");
+    assertThatThrownBy(() -> read("{\"enumKeys\":{\"a\":{\"HIGH\":3}}}", PolymorphicMapValues.class))
+        .hasStackTraceContaining("missing type id");
+    assertThatThrownBy(() -> read("{\"stringKeys\":{\"a\":{\"kind\":\"bogus\",\"b\":2}}}", PolymorphicMapValues.class))
+        .hasStackTraceContaining("bogus");
+    assertThatThrownBy(() -> read("{\"stringKeys\":{\"a\":{\"b\":2}}}", PolymorphicMapValues.class))
+        .hasStackTraceContaining("missing type id");
   }
 
   protected String write(Object value) {

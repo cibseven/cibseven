@@ -35,6 +35,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.jayway.jsonpath.spi.json.Jackson3JsonProvider;
 import com.jayway.jsonpath.spi.mapper.Jackson3MappingProvider;
 import org.cibseven.spin.DataFormats;
@@ -53,6 +55,7 @@ import tools.jackson.core.StreamWriteConstraints;
 import tools.jackson.core.json.JsonFactory;
 import tools.jackson.databind.AnnotationIntrospector;
 import tools.jackson.databind.BeanDescription;
+import tools.jackson.databind.DeserializationConfig;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.JsonNode;
@@ -66,19 +69,26 @@ import tools.jackson.databind.ValueSerializer;
 import tools.jackson.databind.annotation.JsonPOJOBuilder;
 import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.cfg.MapperConfig;
+import tools.jackson.databind.deser.Deserializers;
+import tools.jackson.databind.deser.jdk.CollectionDeserializer;
 import tools.jackson.databind.deser.jdk.JDKFromStringDeserializer;
+import tools.jackson.databind.deser.jdk.JDKValueInstantiators;
+import tools.jackson.databind.deser.jdk.MapDeserializer;
 import tools.jackson.databind.ext.javatime.ser.YearSerializer;
 import tools.jackson.databind.ext.sql.JavaSqlDateSerializer;
 import tools.jackson.databind.introspect.AccessorNamingStrategy;
 import tools.jackson.databind.introspect.AnnotatedClass;
 import tools.jackson.databind.introspect.DefaultAccessorNamingStrategy;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.jsontype.TypeDeserializer;
 import tools.jackson.databind.module.SimpleModule;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 import tools.jackson.databind.ser.Serializers;
 import tools.jackson.databind.ser.jdk.EnumSerializer;
 import tools.jackson.databind.ser.std.ToStringSerializer;
+import tools.jackson.databind.type.CollectionType;
+import tools.jackson.databind.type.MapType;
 import tools.jackson.databind.type.TypeFactory;
 import tools.jackson.databind.util.StdDateFormat;
 
@@ -502,10 +512,8 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
 
   /**
    * The Jackson 2 compatible serializers and deserializers of this mapper. Registered after Jackson 3's own java.time
-   * support, so they take precedence. Properties declared as {@link Map} with an enum key or as {@link Set} of an enum
-   * are read as {@link LinkedHashMap} and {@link HashSet} like Jackson 2; Jackson 3 alone reads them as
-   * {@link java.util.EnumMap} and {@link java.util.EnumSet} (databind#1853), which changes the key order of a variable
-   * that is read and stored again and rejects {@code null} in such a set.
+   * support, so they take precedence. {@link Map} with an enum key and {@link Set} of an enum are read like Jackson 2
+   * ({@link Jackson2EnumContainerDeserializers}).
    */
   public static class Jackson2CompatibilityModule extends SimpleModule {
 
@@ -518,14 +526,67 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
       addKeyDeserializer(Locale.class, new Jackson2LocaleKeyDeserializer());
       addSerializer(Year.class, new Jackson2YearSerializer());
       addSerializer(java.sql.Date.class, new Jackson2SqlDateSerializer());
-      addAbstractTypeMapping(Map.class, LinkedHashMap.class);
-      addAbstractTypeMapping(Set.class, HashSet.class);
     }
 
     @Override
     public void setupModule(SetupContext context) {
       super.setupModule(context);
       context.addSerializers(new Jackson2EnumLikeSerializers());
+      context.addDeserializers(new Jackson2EnumContainerDeserializers());
+    }
+  }
+
+  /**
+   * Properties declared as {@link Map} with an enum key or as {@link Set} of an enum, read as {@link LinkedHashMap} and
+   * {@link HashSet} like Jackson 2; Jackson 3 alone reads them as {@link java.util.EnumMap} and
+   * {@link java.util.EnumSet} (databind#1853), which changes the key order of a variable that is read and stored again
+   * and rejects {@code null} in such a set. Only the deserializer of these two declarations is chosen here, so type ids
+   * of polymorphic values, {@code @JsonDeserialize(as = ...)} and all other declarations stay as they are: an abstract
+   * type mapping {@code Map -> LinkedHashMap} would also become the default implementation of polymorphic values and
+   * accept missing or unknown type ids.
+   */
+  public static class Jackson2EnumContainerDeserializers extends Deserializers.Base {
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public ValueDeserializer<?> findMapDeserializer(MapType type, DeserializationConfig config,
+        BeanDescription.Supplier beanDescRef, KeyDeserializer keyDeserializer,
+        TypeDeserializer elementTypeDeserializer, ValueDeserializer<?> elementDeserializer) {
+      if (!type.hasRawClass(Map.class) || !type.getKeyType().isEnumType()) {
+        return null;
+      }
+      // what Jackson builds for an abstract Map with any other key type
+      MapType mapType = (MapType) config.getTypeFactory().constructSpecializedType(type, LinkedHashMap.class, true);
+      MapDeserializer deserializer = new MapDeserializer(mapType,
+          JDKValueInstantiators.findStdValueInstantiator(config, LinkedHashMap.class), keyDeserializer,
+          (ValueDeserializer<Object>) elementDeserializer, elementTypeDeserializer);
+      JsonIgnoreProperties.Value ignorals = config.getDefaultPropertyIgnorals(Map.class, beanDescRef.getClassInfo());
+      deserializer.setIgnorableProperties(ignorals == null ? null : ignorals.findIgnoredForDeserialization());
+      JsonIncludeProperties.Value inclusions = config.getDefaultPropertyInclusions(Map.class,
+          beanDescRef.getClassInfo());
+      deserializer.setIncludableProperties(inclusions == null ? null : inclusions.getIncluded());
+      return deserializer;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public ValueDeserializer<?> findCollectionDeserializer(CollectionType type, DeserializationConfig config,
+        BeanDescription.Supplier beanDescRef, TypeDeserializer elementTypeDeserializer,
+        ValueDeserializer<?> elementDeserializer) {
+      // Jackson 3 uses EnumSet only without an annotated element deserializer
+      if (!type.hasRawClass(Set.class) || !type.getContentType().isEnumType() || elementDeserializer != null) {
+        return null;
+      }
+      CollectionType setType = (CollectionType) config.getTypeFactory()
+          .constructSpecializedType(type, HashSet.class, true);
+      return new CollectionDeserializer(setType, (ValueDeserializer<Object>) elementDeserializer,
+          elementTypeDeserializer, JDKValueInstantiators.findStdValueInstantiator(config, HashSet.class),
+          beanDescRef.getClassInfo());
+    }
+
+    @Override
+    public boolean hasDeserializerFor(DeserializationConfig config, Class<?> valueType) {
+      return false;
     }
   }
 
