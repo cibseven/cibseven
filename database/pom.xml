@@ -317,8 +317,11 @@
           The parameters are separated by ? instead of &: Testcontainers accepts both and the URL
           then needs no XML escaping. With &amp;amp; the Maven plugins above read the escaped value,
           i.e. "amp;password", and would start a second container instead of using the one of the tests.
+          TC_TMPFS puts the data directory in memory: the MariaDB/MySQL tests are I/O bound, which
+          makes them about 30 % faster. Note that this is the memory of the Docker host, i.e. of the
+          Docker-in-Docker sidecar in CI.
         -->
-        <database.tc.params>/${database.name}?user=${database.username}?password=${database.password}${database.tc.reuse}</database.tc.params>
+        <database.tc.params>/${database.name}?user=${database.username}?password=${database.password}?TC_TMPFS=/var/lib/mysql:rw${database.tc.reuse}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
         <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
       </properties>
@@ -363,8 +366,8 @@
         <database.driver>com.mysql.cj.jdbc.Driver</database.driver>
         <database.datasource.class>com.mysql.cj.jdbc.MysqlDataSource</database.datasource.class>
         <database.tc.url>cammysql:8.0</database.tc.url>
-        <!-- ? instead of &, see the mariadb profile above -->
-        <database.tc.params>/${database.name}?user=${database.username}?password=${database.password}?sendFractionalSeconds=false${database.tc.reuse}</database.tc.params>
+        <!-- ? instead of & and TC_TMPFS, see the mariadb profile above -->
+        <database.tc.params>/${database.name}?user=${database.username}?password=${database.password}?sendFractionalSeconds=false?TC_TMPFS=/var/lib/mysql:rw${database.tc.reuse}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
         <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
       </properties>

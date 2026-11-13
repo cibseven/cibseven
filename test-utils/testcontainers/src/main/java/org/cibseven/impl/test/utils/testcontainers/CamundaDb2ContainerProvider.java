@@ -26,7 +26,7 @@ public class CamundaDb2ContainerProvider extends Db2ContainerProvider {
   public JdbcDatabaseContainer newInstance(String tag) {
   
   DockerImageName dockerImageName = TestcontainersHelper
-      .resolveDockerImageName("ibmdb2", tag, "ibmcom/db2");
+      .resolveDockerImageName("db2", tag, "ibmcom/db2");
 
     Db2Container db2Container = new Db2Container(dockerImageName) {
       @Override
