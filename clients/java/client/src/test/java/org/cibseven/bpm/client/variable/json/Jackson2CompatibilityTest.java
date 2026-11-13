@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /**
  * Cases where Jackson 3 differs from Jackson 2 out of the box and the client's JSON data format keeps the
@@ -148,6 +149,66 @@ public class Jackson2CompatibilityTest {
     public Map<Locale, Integer> keys = new LinkedHashMap<>();
   }
 
+  /** An unwrapped class with a computed property: Jackson writes "label", and there is nothing to set it on. */
+  public static class Spot {
+    public String street = "Main 1";
+    public String city = "Bonn";
+
+    public String getLabel() {
+      return street + ", " + city;
+    }
+  }
+
+  public static class Located {
+    public String name = "Shop";
+    @JsonUnwrapped
+    public Spot spot = new Spot();
+  }
+
+  public static class Floor {
+    public String level = "2";
+    @JsonUnwrapped
+    public Spot spot = new Spot();
+  }
+
+  /** Unwraps a class that unwraps another one. */
+  public static class Building {
+    public String id = "B1";
+    @JsonUnwrapped
+    public Floor floor = new Floor();
+  }
+
+  /** Two unwrapped properties of the same class, told apart by prefixes. */
+  public static class Contacts {
+    @JsonUnwrapped(prefix = "home_")
+    public Spot home = new Spot();
+    @JsonUnwrapped(prefix = "work_")
+    public Spot work = new Spot();
+  }
+
+  public static class Address {
+    public String street;
+    public String city;
+  }
+
+  public static class Person {
+    public String name;
+    @JsonUnwrapped
+    public Address address;
+  }
+
+  public static class Plain {
+    public String name;
+  }
+
+  /** Holds an unwrapped class and, as a normal property, a class without @JsonUnwrapped. */
+  public static class PersonWithPlain {
+    public String name;
+    @JsonUnwrapped
+    public Address address;
+    public Plain plain;
+  }
+
   /** What Jackson 2 writes for {@link Accessors}; the order of the properties without a field is not fixed. */
   protected static final String ACCESSORS_JSON = "{\"url\":\"u\",\"x\":1,\"ok\":true,\"iban\":\"i\",\"value\":\"v\",\"a1\":\"a1\","
       + "\"urlvalue\":\"uv\",\"xcoordinate\":2,\"aBc\":\"abc\",\"_links\":\"l\",\"1st\":\"f\"}";
@@ -260,5 +321,57 @@ public class Jackson2CompatibilityTest {
     String json = "\"" + "a".repeat(20_000_001) + "\"";
 
     assertThatThrownBy(() -> format.readValue(json, String.class)).hasStackTraceContaining("20000000");
+  }
+
+  @Test
+  public void shouldReadBackUnwrappedClassWithComputedProperty() {
+    String json = format.writeValue(new Located());
+
+    assertThat(json).isEqualTo("{\"name\":\"Shop\",\"street\":\"Main 1\",\"city\":\"Bonn\",\"label\":\"Main 1, Bonn\"}");
+    // Jackson 3.1 alone (databind#650): Unrecognized property "label" (class ...Located)
+    Located located = format.readValue(json, Located.class);
+    assertThat(located.name).isEqualTo("Shop");
+    assertThat(located.spot.street).isEqualTo("Main 1");
+    assertThat(located.spot.city).isEqualTo("Bonn");
+  }
+
+  @Test
+  public void shouldReadBackNestedAndPrefixedUnwrappedClasses() {
+    // Jackson 3.1 alone: Unrecognized property "label" (class ...Building)
+    Building building = format.readValue(format.writeValue(new Building()), Building.class);
+    assertThat(building.id).isEqualTo("B1");
+    assertThat(building.floor.level).isEqualTo("2");
+    assertThat(building.floor.spot.city).isEqualTo("Bonn");
+
+    String json = format.writeValue(new Contacts());
+    assertThat(json).contains("\"home_label\":\"Main 1, Bonn\"", "\"work_label\":\"Main 1, Bonn\"");
+    // Jackson 3.1 alone: Unrecognized property "home_label" (class ...Contacts)
+    Contacts contacts = format.readValue(json, Contacts.class);
+    assertThat(contacts.home.street).isEqualTo("Main 1");
+    assertThat(contacts.work.city).isEqualTo("Bonn");
+  }
+
+  @Test
+  public void shouldIgnoreRemovedPropertyOfUnwrappedClass() {
+    // stored by an earlier version of the application whose Address still had "fax"
+    String stored = "{\"name\":\"Old\",\"street\":\"Main 1\",\"city\":\"Bonn\",\"fax\":\"0228-1\"}";
+
+    // Jackson 3.1 alone: Unrecognized property "fax" (class ...Person)
+    Person person = format.readValue(stored, Person.class);
+    assertThat(person.name).isEqualTo("Old");
+    assertThat(person.address.city).isEqualTo("Bonn");
+  }
+
+  @Test
+  public void shouldStillRejectUnknownPropertyOfClassWithoutUnwrapped() {
+    assertThatThrownBy(() -> format.readValue("{\"name\":\"x\",\"extra\":1}", Plain.class))
+        .hasStackTraceContaining("UnrecognizedPropertyException").hasStackTraceContaining("\"extra\"");
+    // the unwrapped class read on its own
+    assertThatThrownBy(() -> format.readValue("{\"street\":\"Main 1\",\"label\":\"x\"}", Spot.class))
+        .hasStackTraceContaining("UnrecognizedPropertyException").hasStackTraceContaining("\"label\"");
+    // a class without @JsonUnwrapped held by a class with @JsonUnwrapped
+    assertThatThrownBy(() -> format.readValue("{\"name\":\"n\",\"street\":\"s\",\"plain\":{\"name\":\"p\",\"extra\":1}}",
+        PersonWithPlain.class))
+        .hasStackTraceContaining("UnrecognizedPropertyException").hasStackTraceContaining("\"extra\"");
   }
 }
