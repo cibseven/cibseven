@@ -34,6 +34,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 
+import org.cibseven.bpm.engine.impl.form.FormFieldDto;
 import org.cibseven.bpm.engine.rest.dto.VariableValueDto;
 import org.cibseven.bpm.engine.rest.dto.task.CompleteTaskDto;
 import org.cibseven.bpm.engine.rest.dto.task.FormDto;
@@ -132,6 +133,12 @@ public interface TaskResource {
   @Path("/form-variables")
   @Produces(MediaType.APPLICATION_JSON)
   Map<String, VariableValueDto> getFormVariables(@QueryParam("variableNames") String variableNames,
+      @QueryParam(VariableResource.DESERIALIZE_VALUES_QUERY_PARAM) @DefaultValue("true") boolean deserializeValues);
+
+  @GET
+  @Path("/form-variables-local")
+  @Produces(MediaType.APPLICATION_JSON)
+  Map<String, FormFieldDto> getFormVariablesLocal(@QueryParam("variableNames") String variableNames,
       @QueryParam(VariableResource.DESERIALIZE_VALUES_QUERY_PARAM) @DefaultValue("true") boolean deserializeValues);
 
   @PUT
