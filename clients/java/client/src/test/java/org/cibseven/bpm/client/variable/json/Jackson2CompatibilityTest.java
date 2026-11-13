@@ -18,15 +18,26 @@ package org.cibseven.bpm.client.variable.json;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.entry;
 
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.TimeZone;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.cibseven.bpm.client.variable.impl.format.json.JacksonJsonDataFormat;
 import org.junit.jupiter.api.Test;
@@ -148,6 +159,38 @@ public class Jackson2CompatibilityTest {
     public Map<Locale, Integer> keys = new LinkedHashMap<>();
   }
 
+  public enum Priority { LOW, MEDIUM, HIGH }
+
+  /** Map and Set with an enum key or element, declared as the interfaces. */
+  public static class EnumContainers {
+    public Map<Priority, Integer> perPriority;
+    public Set<Priority> enabled;
+    public Map<String, Map<Priority, Integer>> nested;
+  }
+
+  /** Declarations Jackson 2 and Jackson 3 already read into the same classes. */
+  public static class OtherContainers {
+    public SortedMap<Priority, Integer> sortedMap;
+    public TreeMap<Priority, Integer> treeMap;
+    public SortedSet<Priority> sortedSet;
+    public EnumMap<Priority, Integer> enumMap;
+    public EnumSet<Priority> enumSet;
+    public Map<String, Integer> stringKeys;
+    public Set<String> strings;
+    public Collection<Priority> collection;
+    public List<Priority> list;
+  }
+
+  /** What Jackson 2 writes for an {@link EnumContainers} with a LinkedHashMap HIGH=3, LOW=1. */
+  protected static final String ENUM_CONTAINERS_JSON =
+      "{\"perPriority\":{\"HIGH\":3,\"LOW\":1},\"enabled\":null,\"nested\":{\"a\":{\"HIGH\":3,\"LOW\":1}}}";
+
+  /** JSON with the same entries in every property of {@link OtherContainers}. */
+  protected static final String OTHER_CONTAINERS_JSON = "{\"sortedMap\":{\"HIGH\":3,\"LOW\":1},"
+      + "\"treeMap\":{\"HIGH\":3,\"LOW\":1},\"sortedSet\":[\"HIGH\",\"LOW\"],\"enumMap\":{\"HIGH\":3,\"LOW\":1},"
+      + "\"enumSet\":[\"HIGH\",\"LOW\"],\"stringKeys\":{\"b\":2,\"a\":1},\"strings\":[\"b\",\"a\"],"
+      + "\"collection\":[\"HIGH\",\"LOW\"],\"list\":[\"HIGH\",\"LOW\"]}";
+
   /** What Jackson 2 writes for {@link Accessors}; the order of the properties without a field is not fixed. */
   protected static final String ACCESSORS_JSON = "{\"url\":\"u\",\"x\":1,\"ok\":true,\"iban\":\"i\",\"value\":\"v\",\"a1\":\"a1\","
       + "\"urlvalue\":\"uv\",\"xcoordinate\":2,\"aBc\":\"abc\",\"_links\":\"l\",\"1st\":\"f\"}";
@@ -252,6 +295,57 @@ public class Jackson2CompatibilityTest {
     // Jackson 3 alone writes a zero offset as "Z"
     assertThat(format.writeValue(new FormattedDates()))
         .isEqualTo("{\"date\":\"1970-01-01T00:00:00.000+00:00\",\"calendar\":\"1970-01-01T00:00:00.000+00:00\"}");
+  }
+
+  @Test
+  public void shouldReadEnumKeyedMapInInsertionOrderLikeJackson2() {
+    // when: Jackson 3 alone reads Map<ENUM, V> as EnumMap (databind#1853)
+    EnumContainers value = format.readValue(ENUM_CONTAINERS_JSON, EnumContainers.class);
+
+    // then
+    assertThat(value.perPriority).isExactlyInstanceOf(LinkedHashMap.class)
+        .containsExactly(entry(Priority.HIGH, 3), entry(Priority.LOW, 1));
+    assertThat(value.nested.get("a")).isExactlyInstanceOf(LinkedHashMap.class)
+        .containsExactly(entry(Priority.HIGH, 3), entry(Priority.LOW, 1));
+    // a variable read and stored again keeps its JSON; Jackson 3 alone writes {"LOW":1,"HIGH":3}
+    assertThat(format.writeValue(value)).isEqualTo(ENUM_CONTAINERS_JSON);
+  }
+
+  @Test
+  public void shouldReadSetOfEnumsAsHashSetLikeJackson2() {
+    // when: Jackson 3 alone reads Set<ENUM> as EnumSet (databind#1853), which fails on null
+    EnumContainers value = format.readValue("{\"enabled\":[\"HIGH\",null,\"LOW\"]}", EnumContainers.class);
+
+    // then
+    assertThat(value.enabled).isExactlyInstanceOf(HashSet.class)
+        .containsExactlyInAnyOrder(Priority.HIGH, null, Priority.LOW);
+  }
+
+  @Test
+  public void shouldReadEnumKeyedMapAndSetOfEnumsAsRootTypeLikeJackson2() {
+    // type names as in mapTo("java.util.Map<...>"); Jackson 3 alone reads EnumMap and EnumSet
+    Object map = format.readValue("{\"HIGH\":3,\"LOW\":1}", "java.util.Map<" + Priority.class.getName() + ",java.lang.Integer>");
+    Object set = format.readValue("[\"HIGH\",\"LOW\"]", "java.util.Set<" + Priority.class.getName() + ">");
+
+    assertThat(map).isExactlyInstanceOf(LinkedHashMap.class);
+    assertThat(format.writeValue(map)).isEqualTo("{\"HIGH\":3,\"LOW\":1}");
+    assertThat(set).isExactlyInstanceOf(HashSet.class);
+  }
+
+  @Test
+  public void shouldReadOtherContainerTypesLikeJackson2() {
+    // the same in Jackson 2 and Jackson 3: only Map and Set themselves are mapped to LinkedHashMap and HashSet
+    OtherContainers value = format.readValue(OTHER_CONTAINERS_JSON, OtherContainers.class);
+
+    assertThat(value.sortedMap).isExactlyInstanceOf(TreeMap.class).containsExactly(entry(Priority.LOW, 1), entry(Priority.HIGH, 3));
+    assertThat(value.treeMap).isExactlyInstanceOf(TreeMap.class);
+    assertThat(value.sortedSet).isExactlyInstanceOf(TreeSet.class).containsExactly(Priority.LOW, Priority.HIGH);
+    assertThat(value.enumMap).isExactlyInstanceOf(EnumMap.class).containsExactly(entry(Priority.LOW, 1), entry(Priority.HIGH, 3));
+    assertThat(value.enumSet).isInstanceOf(EnumSet.class).containsExactly(Priority.LOW, Priority.HIGH);
+    assertThat(value.stringKeys).isExactlyInstanceOf(LinkedHashMap.class).containsExactly(entry("b", 2), entry("a", 1));
+    assertThat(value.strings).isExactlyInstanceOf(HashSet.class);
+    assertThat(value.collection).isExactlyInstanceOf(ArrayList.class).containsExactly(Priority.HIGH, Priority.LOW);
+    assertThat(value.list).isExactlyInstanceOf(ArrayList.class).containsExactly(Priority.HIGH, Priority.LOW);
   }
 
   @Test

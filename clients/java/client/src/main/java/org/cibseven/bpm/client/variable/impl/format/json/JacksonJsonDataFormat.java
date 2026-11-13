@@ -26,9 +26,13 @@ import java.time.Month;
 import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.IllformedLocaleException;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import org.cibseven.bpm.client.impl.ExternalTaskClientLogger;
 import org.cibseven.bpm.client.spi.DataFormat;
@@ -331,7 +335,10 @@ public class JacksonJsonDataFormat implements DataFormat {
 
   /**
    * The Jackson 2 compatible serializers and deserializers of this mapper. Registered after Jackson 3's own java.time
-   * support, so they take precedence.
+   * support, so they take precedence. Properties declared as {@link Map} with an enum key or as {@link Set} of an enum
+   * are read as {@link LinkedHashMap} and {@link HashSet} like Jackson 2; Jackson 3 alone reads them as
+   * {@link java.util.EnumMap} and {@link java.util.EnumSet} (databind#1853), which changes the key order of a variable
+   * that is read and stored again and rejects {@code null} in such a set.
    */
   public static class Jackson2CompatibilityModule extends SimpleModule {
 
@@ -344,6 +351,8 @@ public class JacksonJsonDataFormat implements DataFormat {
       addKeyDeserializer(Locale.class, new Jackson2LocaleKeyDeserializer());
       addSerializer(Year.class, new Jackson2YearSerializer());
       addSerializer(java.sql.Date.class, new Jackson2SqlDateSerializer());
+      addAbstractTypeMapping(Map.class, LinkedHashMap.class);
+      addAbstractTypeMapping(Set.class, HashSet.class);
     }
 
     @Override
