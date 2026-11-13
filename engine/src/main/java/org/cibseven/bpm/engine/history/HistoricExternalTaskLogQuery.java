@@ -80,9 +80,15 @@ public interface HistoricExternalTaskLogQuery extends Query<HistoricExternalTask
   /**
    * Only select fetched historic external task log entries.
    *
+   * Default method, so that existing implementations of this interface
+   * keep compiling; they do not support this filter.
+   *
+   * @throws UnsupportedOperationException if the implementation does not support this filter
    * @since cibseven 3.0.0
    */
-  HistoricExternalTaskLogQuery fetchedLog();
+  default HistoricExternalTaskLogQuery fetchedLog() {
+    throw new UnsupportedOperationException("fetchedLog() is not supported by " + getClass().getName());
+  }
 
   /** Only select successful historic external task log entries. */
   HistoricExternalTaskLogQuery successLog();

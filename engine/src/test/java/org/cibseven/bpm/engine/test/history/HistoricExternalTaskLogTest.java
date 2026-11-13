@@ -33,8 +33,13 @@ import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.RuntimeService;
+import org.cibseven.bpm.engine.delegate.DelegateExecution;
+import org.cibseven.bpm.engine.delegate.JavaDelegate;
 import org.cibseven.bpm.engine.externaltask.ExternalTask;
+import org.cibseven.bpm.engine.externaltask.LockedExternalTask;
+import org.cibseven.bpm.engine.history.HistoricActivityInstance;
 import org.cibseven.bpm.engine.history.HistoricExternalTaskLog;
+import org.cibseven.bpm.engine.history.HistoricProcessInstance;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExternalTaskEntity;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
@@ -44,6 +49,7 @@ import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
 import org.cibseven.bpm.engine.test.api.authorization.util.AuthorizationTestRule;
 import org.cibseven.bpm.engine.test.util.ProcessEngineTestRule;
 import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
+import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
@@ -84,6 +90,7 @@ public class HistoricExternalTaskLogTest {
     for (ExternalTask externalTask : list) {
       externalTaskService.unlock(externalTask.getId());
     }
+    ClockUtil.reset();
   }
 
   @Test
@@ -495,10 +502,124 @@ public class HistoricExternalTaskLogTest {
   }
 
   /**
-   * Only valid if the event is fired in ExternalTaskEntity#lock(),
-   * which is also used by ExternalTaskService#lock(...).
-   * Remove this test if the event is fired in FetchExternalTasksCmd only.
+   * fetchAndLock nested in a delegate runs in the command context of the enclosing process.
+   * Writing the locks early must not flush the pending history of that process: its end
+   * times would then never be written.
    */
+  @Test
+  public void testFetchInDelegateKeepsHistoryOfEnclosingProcess() {
+
+    // given an external task to fetch
+    ExternalTask task = startExternalTaskProcess();
+
+    // and a process whose service task fetches it
+    BpmnModelInstance fetchingProcess = Bpmn.createExecutableProcess("fetchingProcess")
+        .startEvent()
+        .serviceTask("fetchingTask")
+          .camundaClass(FetchAndLockDelegate.class.getName())
+        .endEvent()
+        .done();
+    testRule.deploy(fetchingProcess);
+
+    // when
+    String processInstanceId = runtimeService.startProcessInstanceByKey("fetchingProcess").getId();
+
+    // then the task is fetched
+    HistoricExternalTaskLog log = historyService.createHistoricExternalTaskLogQuery()
+        .fetchedLog()
+        .singleResult();
+    assertNotNull(log);
+    assertEquals(task.getId(), log.getExternalTaskId());
+    assertEquals(WORKER_ID, log.getWorkerId());
+
+    // and the history of the enclosing process is complete
+    HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery()
+        .processInstanceId(processInstanceId)
+        .singleResult();
+    assertNotNull(historicProcessInstance.getEndTime());
+
+    HistoricActivityInstance fetchingTask = historyService.createHistoricActivityInstanceQuery()
+        .processInstanceId(processInstanceId)
+        .activityId("fetchingTask")
+        .singleResult();
+    assertNotNull(fetchingTask.getEndTime());
+  }
+
+  public static class FetchAndLockDelegate implements JavaDelegate {
+    @Override
+    public void execute(DelegateExecution execution) {
+      List<LockedExternalTask> tasks = execution.getProcessEngineServices().getExternalTaskService()
+          .fetchAndLock(1, "aWorkerId")
+          .topic(DEFAULT_TOPIC, 5 * 60L * 1000L)
+          .execute();
+      assertEquals(1, tasks.size());
+    }
+  }
+
+  @Test
+  public void testNoFetchedLogWhenOwnerLocksAgain() {
+
+    // given a task locked by the worker
+    ExternalTask task = startExternalTaskProcess();
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // when the same worker locks it again while the lock is still valid
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // then the lock is only extended, no second 'fetched' entry
+    assertEquals(1, historyService.createHistoricExternalTaskLogQuery().fetchedLog().count());
+  }
+
+  @Test
+  public void testNoFetchedLogWhenOwnerLocksFetchedTaskAgain() {
+
+    // given a task fetched by the worker
+    ExternalTask task = startExternalTaskProcess();
+    fetchExternalTasks();
+
+    // when the worker extends the lock through lock(...)
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // then
+    assertEquals(1, historyService.createHistoricExternalTaskLogQuery().fetchedLog().count());
+  }
+
+  @Test
+  public void testFetchedLogWhenOwnerLocksAgainAfterExpiry() {
+
+    // given a task locked by the worker
+    ExternalTask task = startExternalTaskProcess();
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // when the lock expired and the worker locks the task again
+    ClockUtil.setCurrentTime(new Date(ClockUtil.getCurrentTime().getTime() + LOCK_DURATION + 1000L));
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // then it counts as a new fetch
+    assertEquals(2, historyService.createHistoricExternalTaskLogQuery().fetchedLog().count());
+  }
+
+  @Test
+  public void testFetchedLogWhenOtherWorkerLocksAfterExpiry() {
+
+    // given a task locked by another worker
+    ExternalTask task = startExternalTaskProcess();
+    externalTaskService.lock(task.getId(), "anotherWorkerId", LOCK_DURATION);
+
+    // when the lock expired and the worker locks the task
+    ClockUtil.setCurrentTime(new Date(ClockUtil.getCurrentTime().getTime() + LOCK_DURATION + 1000L));
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // then both locks are logged
+    List<HistoricExternalTaskLog> logs = historyService.createHistoricExternalTaskLogQuery()
+        .fetchedLog()
+        .orderByWorkerId().asc()
+        .list();
+    assertEquals(2, logs.size());
+    assertEquals(WORKER_ID, logs.get(0).getWorkerId());
+    assertEquals("anotherWorkerId", logs.get(1).getWorkerId());
+  }
+
   @Test
   public void testFetchedLogWhenLockedById() {
 
