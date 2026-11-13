@@ -209,6 +209,17 @@ public class Jackson2CompatibilityTest {
     public Plain plain;
   }
 
+  /** {@code @JsonUnwrapped} on types Jackson cannot unwrap: the annotation has no effect. */
+  public static class Tagged {
+    public String name;
+    @JsonUnwrapped
+    public String tag;
+    @JsonUnwrapped
+    public Map<String, Object> attributes;
+    @JsonUnwrapped
+    public List<String> items;
+  }
+
   /** What Jackson 2 writes for {@link Accessors}; the order of the properties without a field is not fixed. */
   protected static final String ACCESSORS_JSON = "{\"url\":\"u\",\"x\":1,\"ok\":true,\"iban\":\"i\",\"value\":\"v\",\"a1\":\"a1\","
       + "\"urlvalue\":\"uv\",\"xcoordinate\":2,\"aBc\":\"abc\",\"_links\":\"l\",\"1st\":\"f\"}";
@@ -372,6 +383,18 @@ public class Jackson2CompatibilityTest {
     // a class without @JsonUnwrapped held by a class with @JsonUnwrapped
     assertThatThrownBy(() -> format.readValue("{\"name\":\"n\",\"street\":\"s\",\"plain\":{\"name\":\"p\",\"extra\":1}}",
         PersonWithPlain.class))
+        .hasStackTraceContaining("UnrecognizedPropertyException").hasStackTraceContaining("\"extra\"");
+  }
+
+  @Test
+  public void shouldRejectUnknownPropertyWhereUnwrappingHasNoEffect() {
+    // Jackson ignores @JsonUnwrapped on a String, a Map or a List and reads them under their own names
+    Tagged tagged = format.readValue("{\"name\":\"n\",\"tag\":\"t\",\"attributes\":{\"a\":1},\"items\":[\"i\"]}", Tagged.class);
+    assertThat(tagged.tag).isEqualTo("t");
+    assertThat(tagged.attributes).containsEntry("a", 1);
+    assertThat(tagged.items).containsExactly("i");
+    // so an unknown property fails, as in Jackson 2
+    assertThatThrownBy(() -> format.readValue("{\"name\":\"n\",\"tag\":\"t\",\"extra\":1}", Tagged.class))
         .hasStackTraceContaining("UnrecognizedPropertyException").hasStackTraceContaining("\"extra\"");
   }
 }

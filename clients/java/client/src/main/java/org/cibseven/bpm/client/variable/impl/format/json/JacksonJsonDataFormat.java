@@ -45,6 +45,7 @@ import tools.jackson.databind.BeanDescription;
 import tools.jackson.databind.DeserializationConfig;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.JavaType;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.KeyDeserializer;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
@@ -70,6 +71,7 @@ import tools.jackson.databind.module.SimpleModule;
 import tools.jackson.databind.ser.Serializers;
 import tools.jackson.databind.ser.jdk.EnumSerializer;
 import tools.jackson.databind.ser.std.ToStringSerializer;
+import tools.jackson.databind.util.ClassUtil;
 import tools.jackson.databind.util.StdDateFormat;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -364,7 +366,11 @@ public class JacksonJsonDataFormat implements DataFormat {
    * A class that holds an {@code @JsonUnwrapped} property ignores unknown properties, like Jackson 2. Jackson 3.1
    * rejects them (databind#650), so JSON that Jackson writes itself could no longer be read back: a computed property
    * of the unwrapped class ({@code getLabel()} without a field or setter) or a property that an earlier version of the
-   * class still had. Classes without {@code @JsonUnwrapped} keep rejecting unknown properties.
+   * class still had. Classes without {@code @JsonUnwrapped} keep rejecting unknown properties, and so do classes whose
+   * {@code @JsonUnwrapped} has no effect because Jackson cannot unwrap the property's type (a String, a number, a
+   * Map, a collection, an Optional, an enum). One difference from Jackson 2 stays: with
+   * {@code FAIL_ON_IGNORED_PROPERTIES} (off by default), a property that the unwrapped class ignores
+   * ({@code @JsonIgnoreProperties}, {@code @JsonIncludeProperties}) is skipped instead of failing.
    */
   public static class Jackson2UnwrappedDeserializerModifier extends ValueDeserializerModifier {
 
@@ -375,13 +381,26 @@ public class JacksonJsonDataFormat implements DataFormat {
         BeanDeserializerBuilder builder) {
       AnnotationIntrospector introspector = config.getAnnotationIntrospector();
       for (Iterator<SettableBeanProperty> properties = builder.getProperties(); properties.hasNext(); ) {
-        AnnotatedMember member = properties.next().getMember();
-        if (member != null && introspector.findUnwrappingNameTransformer(config, member) != null) {
+        SettableBeanProperty property = properties.next();
+        AnnotatedMember member = property.getMember();
+        if (member != null && canUnwrap(property.getType())
+            && introspector.findUnwrappingNameTransformer(config, member) != null) {
           builder.setIgnoreUnknownProperties(true);
           break;
         }
       }
       return builder;
+    }
+
+    /**
+     * Only bean deserializers unwrap (also for builders, records and exceptions); on any other type Jackson ignores
+     * {@code @JsonUnwrapped} and reads the property under its own name.
+     */
+    private static boolean canUnwrap(JavaType type) {
+      Class<?> raw = type.getRawClass();
+      return !type.isContainerType() && !type.isReferenceType() && !type.isEnumType() && !type.isPrimitive()
+          && !type.isTypeOrSubTypeOf(JsonNode.class)
+          && (!ClassUtil.isJDKClass(raw) || Throwable.class.isAssignableFrom(raw));
     }
   }
 
