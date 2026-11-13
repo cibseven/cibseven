@@ -130,6 +130,20 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- openapi.json of this version, from which the MCP REST API generates its tools (McpRestApiIT) -->
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine-rest-openapi</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
   </dependencies>
 
   <profiles>
