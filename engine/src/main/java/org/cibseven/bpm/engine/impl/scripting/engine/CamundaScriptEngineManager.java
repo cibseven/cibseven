@@ -201,7 +201,8 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
         // make sure Graal JS can provide access to the host and can lookup classes,
         // with the number types of javaScriptNumberNarrowing
         var hostAccess = narrowNumbers
-            ? GraalJsNumberNarrowing.getHostAccess(this, graalJSEngineClass)
+            ? GraalJsNumberNarrowing.getHostAccess(this, graalJSEngineClass,
+                config.isEnableScriptEngineNashornCompatibility())
             : hostAccessClass.getField("ALL").get(null);
         var allowHostAccess = builderClass.getMethod("allowHostAccess", hostAccessClass);
         builder = allowHostAccess.invoke(builder, hostAccess);
@@ -226,6 +227,12 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
         builder = optionMethod.invoke(builder, JS_ECMASCRIPT_VERSION_OPTION, GRAAL_JS_NASHORN_COMPAT_ECMASCRIPT_VERSION);
         var allowAllAccess = builderClass.getMethod("allowAllAccess", boolean.class);
         builder = allowAllAccess.invoke(builder, true);
+        if (narrowNumbers) {
+          // what the attribute polyglot.js.nashorn-compat sets too, which DefaultScriptEngineResolver does not set on
+          // a script engine with its own host access
+          var useSystemExit = builderClass.getMethod("useSystemExit", boolean.class);
+          builder = useSystemExit.invoke(builder, true);
+        }
       }
 
       // GraalJSScriptEngine.create(null, builder)

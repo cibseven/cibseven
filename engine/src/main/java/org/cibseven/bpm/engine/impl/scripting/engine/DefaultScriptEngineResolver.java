@@ -113,7 +113,7 @@ public class DefaultScriptEngineResolver implements ScriptEngineResolver {
         || !scriptEngineManager.getEngineFactories().contains(scriptEngine.getFactory())) {
       return scriptEngine;
     }
-    return GraalJsNumberNarrowing.createScriptEngine(scriptEngine);
+    return GraalJsNumberNarrowing.createScriptEngine(scriptEngine, config.isEnableScriptEngineNashornCompatibility());
   }
 
   protected ScriptEngine getJavaScriptScriptEngine(String language) {
@@ -182,8 +182,11 @@ public class DefaultScriptEngineResolver implements ScriptEngineResolver {
         scriptEngine.getContext().setAttribute("polyglot.js.allowIO", true, ScriptContext.ENGINE_SCOPE);
       }
       if (config.isEnableScriptEngineNashornCompatibility()) {
-        // enable Nashorn compatibility mode
-        scriptEngine.getContext().setAttribute("polyglot.js.nashorn-compat", true, ScriptContext.ENGINE_SCOPE);
+        // enable Nashorn compatibility mode; a script engine with its own host access has it from its creation: this
+        // attribute would replace that host access with the one of GraalJS for this mode
+        if (!GraalJsNumberNarrowing.hasOwnHostAccess(scriptEngine)) {
+          scriptEngine.getContext().setAttribute("polyglot.js.nashorn-compat", true, ScriptContext.ENGINE_SCOPE);
+        }
         // with the same ECMAScript version as CamundaScriptEngineManager, not ECMAScript 5
         scriptEngine.getContext().setAttribute("polyglot.js.ecmascript-version",
             ScriptingEngines.GRAAL_JS_NASHORN_COMPAT_ECMASCRIPT_VERSION, ScriptContext.ENGINE_SCOPE);

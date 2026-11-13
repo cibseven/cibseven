@@ -20,6 +20,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.cibseven.bpm.engine.impl.scripting.engine.GraalJsNumberNarrowing.LONG;
 import static org.cibseven.bpm.engine.impl.scripting.engine.GraalJsNumberNarrowing.NONE;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.stream.Stream;
 
 import javax.script.ScriptContext;
@@ -32,6 +35,7 @@ import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.scripting.engine.CamundaScriptEngineManager;
 import org.cibseven.bpm.engine.impl.scripting.engine.DefaultScriptEngineResolver;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -55,6 +59,12 @@ public class GraalJsNumberNarrowingTest {
     return new StandaloneInMemProcessEngineConfiguration().setJavaScriptNumberNarrowing(mode);
   }
 
+  protected static ProcessEngineConfigurationImpl nashornCompatibility(String mode, boolean useCibSevenNamespace) {
+    ProcessEngineConfigurationImpl configuration = configuration(mode).setEnableScriptEngineNashornCompatibility(true);
+    configuration.setUseCibSevenNamespaceInScripting(useCibSevenNamespace);
+    return configuration;
+  }
+
   /** As ProcessApplicationScriptEnvironment: one resolver for every process engine of a process application. */
   protected static DefaultScriptEngineResolver sharedResolver() {
     return new DefaultScriptEngineResolver(new CamundaScriptEngineManager());
@@ -73,6 +83,10 @@ public class GraalJsNumberNarrowingTest {
     } finally {
       Context.removeProcessEngineConfiguration();
     }
+  }
+
+  static Stream<Arguments> paths() {
+    return Stream.of(Arguments.of(false), Arguments.of(true));
   }
 
   static Stream<Arguments> modesOneAfterTheOther() {
@@ -98,6 +112,44 @@ public class GraalJsNumberNarrowingTest {
     // then: each with the type of its mode; GraalJS would reject a second host access on one polyglot engine
     assertThat(fromFirst).isEqualTo(LONG.equals(first) ? (Object) 5 : (Object) 5L);
     assertThat(fromSecond).isEqualTo(LONG.equals(second) ? (Object) 5 : (Object) 5L);
+  }
+
+  @ParameterizedTest(name = "useCibSevenNamespaceInScripting={0}")
+  @MethodSource("paths")
+  public void shouldNarrowInTheNashornCompatibilityMode(boolean useCibSevenNamespace) throws ScriptException {
+    // given
+    DefaultScriptEngineResolver resolver = sharedResolver();
+    ProcessEngineConfigurationImpl configuration = nashornCompatibility(LONG, useCibSevenNamespace);
+
+    // when
+    Object longValueOf = evaluate(resolver, configuration, true, "sink.set(java.lang.Long.valueOf(5))");
+    // a conversion of Nashorn: a number for a String parameter
+    Object parsed = evaluate(resolver, configuration, true, "sink.set(java.lang.Integer.parseInt(42))");
+
+    // then
+    assertThat(longValueOf).isEqualTo(5);
+    assertThat(parsed).isEqualTo(42);
+  }
+
+  @Test
+  public void shouldLoadScriptsInTheNashornCompatibilityModeOfTheJvm(@TempDir Path directory)
+      throws ScriptException, IOException {
+    // given: GraalJS initialized before the system property is set, which would else hold for the whole JVM
+    evaluate(sharedResolver(), configuration(LONG), true, "1");
+    Path script = Files.writeString(directory.resolve("loaded.js"), "var loadedValue = 42;");
+    String load = "load('" + script.toAbsolutePath().toString().replace('\\', '/') + "'); "
+        + "sink.set(java.lang.Long.valueOf(loadedValue))";
+
+    System.setProperty("polyglot.js.nashorn-compat", "true");
+    try {
+      // when
+      Object loaded = evaluate(sharedResolver(), configuration(LONG), true, load);
+
+      // then: GraalJS allows all access in this mode
+      assertThat(loaded).isEqualTo(42);
+    } finally {
+      System.clearProperty("polyglot.js.nashorn-compat");
+    }
   }
 
   @Test

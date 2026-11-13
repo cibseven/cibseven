@@ -17,6 +17,7 @@
 package org.cibseven.bpm.engine.impl.scripting.engine;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Locale;
@@ -56,6 +57,11 @@ import org.cibseven.bpm.engine.impl.scripting.ScriptLogger;
  * script engines without narrowing use that one with {@code HostAccess.ALL}, for example those of a process
  * application that two process engines with different modes share. GraalJS is used through reflection: the
  * process engine has no compile dependency on it.
+ * <p>
+ * In the Nashorn compatibility mode ({@code enableScriptEngineNashornCompatibility}), the host access is the one
+ * GraalJS uses in that mode (with the conversions of Nashorn) with the same mapping, and the context gets the
+ * settings GraalJS gives it in that mode. The system property {@code polyglot.js.nashorn-compat} gives a script
+ * engine of the factory these settings too, as GraalJS does.
  */
 public final class GraalJsNumberNarrowing {
 
@@ -75,6 +81,9 @@ public final class GraalJsNumberNarrowing {
   };
   /** Set as well where the option exists: GraalJS 21 does not know it. */
   private static final String[] CHARSET_OPTION = {"js.charset", "UTF-8"};
+  /** The system property with which GraalJSScriptEngine creates its contexts in the Nashorn compatibility mode. */
+  private static final String NASHORN_COMPAT_SYSTEM_PROPERTY = "polyglot.js.nashorn-compat";
+  private static final String NASHORN_COMPAT_OPTION = "js.nashorn-compat";
 
   /**
    * The script engines that were created with their own host access: the magic attribute
@@ -129,13 +138,21 @@ public final class GraalJsNumberNarrowing {
    * options of the factory and the host access of this class, on a polyglot engine of this class for that factory,
    * and with the global bindings of the given one (those of its script engine manager). If that fails, it logs a
    * warning and returns the given script engine.
+   *
+   * @param nashornCompatibility whether the process engine enables the Nashorn compatibility mode
    */
-  public static ScriptEngine createScriptEngine(ScriptEngine factoryScriptEngine) {
+  public static ScriptEngine createScriptEngine(ScriptEngine factoryScriptEngine, boolean nashornCompatibility) {
     try {
       Graal graal = graal(factoryScriptEngine.getFactory(), factoryScriptEngine.getClass());
-      Object polyglotEngine = graal.polyglotEngine();
+      Object polyglotEngine = graal.polyglotEngine(nashornCompatibility);
       Object builder = graal.newContextBuilder(polyglotEngine);
-      builder = graal.allowHostAccess.invoke(builder, graal.hostAccess);
+      if (nashornCompatibility || Boolean.getBoolean(NASHORN_COMPAT_SYSTEM_PROPERTY)) {
+        // the settings GraalJSScriptEngine gives a context in this mode, also when only the system property asks
+        // for it; the host access is the one the factory's script engine ends with: of Nashorn with the property of
+        // the process engine, HostAccess.ALL with the system property alone (polyglot.js.allowHostAccess)
+        builder = graal.nashornCompatibility(builder);
+      }
+      builder = graal.allowHostAccess.invoke(builder, graal.hostAccess(nashornCompatibility));
 
       ScriptEngine scriptEngine = (ScriptEngine) graal.create.invoke(null, polyglotEngine, builder);
       Bindings globalBindings = factoryScriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
@@ -157,11 +174,13 @@ public final class GraalJsNumberNarrowing {
   /**
    * @param owner the object that creates script engines each with a polyglot engine of its own
    * @param graalJsScriptEngineClass the class {@code GraalJSScriptEngine}
-   * @return {@code HostAccess.ALL} with the number mapping: the same object for the same owner
+   * @param nashornCompatibility whether the process engine enables the Nashorn compatibility mode
+   * @return {@code HostAccess.ALL}, or the host access of GraalJS in the Nashorn compatibility mode, with the
+   *   number mapping: the same object for the same owner and mode
    */
-  public static Object getHostAccess(Object owner, Class<?> graalJsScriptEngineClass)
+  public static Object getHostAccess(Object owner, Class<?> graalJsScriptEngineClass, boolean nashornCompatibility)
       throws ReflectiveOperationException {
-    return graal(owner, graalJsScriptEngineClass).hostAccess;
+    return graal(owner, graalJsScriptEngineClass).hostAccess(nashornCompatibility);
   }
 
   private static synchronized Graal graal(Object owner, Class<?> graalJsScriptEngineClass)
@@ -175,32 +194,40 @@ public final class GraalJsNumberNarrowing {
   }
 
   /**
-   * GraalJS for one owner: the methods looked up once, the host access, and the polyglot engine that the narrowed
-   * script engines of the owner share.
+   * GraalJS for one owner: the methods looked up once, and per host access (with or without the Nashorn
+   * compatibility mode) the host access and the polyglot engine that the narrowed script engines of the owner share.
    */
   private static final class Graal {
 
+    final Class<?> graalJsScriptEngineClass;
+    final ClassLoader loader;
     final Method newContextBuilder;
     final Method allowExperimentalOptions;
     final Method option;
     final Method allowHostAccess;
+    final Method allowAllAccess;
+    final Method useSystemExit;
     final Method create;
     final Method newEngineBuilder;
     final Method allowExperimentalEngineOptions;
     final Method buildEngine;
     final Method getLanguages;
     final Class<?> optionDescriptorsClass;
-    final Object hostAccess;
+    final Class<?> hostAccessClass;
 
+    /** Index 0: without, 1: with the Nashorn compatibility mode. */
+    final Object[] hostAccesses = new Object[2];
     /** Weak, as the polyglot engine of the factory: it goes when no script engine uses it, and comes again. */
-    WeakReference<Object> polyglotEngine;
+    @SuppressWarnings("unchecked")
+    final WeakReference<Object>[] polyglotEngines = new WeakReference[2];
     Boolean knowsCharsetOption;
 
     Graal(Class<?> graalJsScriptEngineClass) throws ReflectiveOperationException {
-      ClassLoader loader = graalJsScriptEngineClass.getClassLoader();
+      this.graalJsScriptEngineClass = graalJsScriptEngineClass;
+      loader = graalJsScriptEngineClass.getClassLoader();
       Class<?> contextClass = Class.forName("org.graalvm.polyglot.Context", false, loader);
       Class<?> engineClass = Class.forName("org.graalvm.polyglot.Engine", false, loader);
-      Class<?> hostAccessClass = Class.forName("org.graalvm.polyglot.HostAccess", false, loader);
+      hostAccessClass = Class.forName("org.graalvm.polyglot.HostAccess", false, loader);
       Class<?> contextBuilderClass = Class.forName("org.graalvm.polyglot.Context$Builder", false, loader);
       Class<?> engineBuilderClass = Class.forName("org.graalvm.polyglot.Engine$Builder", false, loader);
 
@@ -208,24 +235,53 @@ public final class GraalJsNumberNarrowing {
       allowExperimentalOptions = contextBuilderClass.getMethod("allowExperimentalOptions", boolean.class);
       option = contextBuilderClass.getMethod("option", String.class, String.class);
       allowHostAccess = contextBuilderClass.getMethod("allowHostAccess", hostAccessClass);
+      allowAllAccess = contextBuilderClass.getMethod("allowAllAccess", boolean.class);
+      useSystemExit = contextBuilderClass.getMethod("useSystemExit", boolean.class);
       create = graalJsScriptEngineClass.getMethod("create", engineClass, contextBuilderClass);
       newEngineBuilder = engineClass.getMethod("newBuilder");
       allowExperimentalEngineOptions = engineBuilderClass.getMethod("allowExperimentalOptions", boolean.class);
       buildEngine = engineBuilderClass.getMethod("build");
       getLanguages = engineClass.getMethod("getLanguages");
       optionDescriptorsClass = Class.forName("org.graalvm.options.OptionDescriptors", false, loader);
-      hostAccess = createHostAccess(loader, hostAccessClass.getField("ALL").get(null));
     }
 
-    /** @return the polyglot engine, built as GraalJSEngineFactory builds its own */
-    synchronized Object polyglotEngine() throws ReflectiveOperationException {
-      Object engine = polyglotEngine == null ? null : polyglotEngine.get();
+    /**
+     * @return {@code HostAccess.ALL}, or in the Nashorn compatibility mode the host access GraalJSScriptEngine uses in
+     *   that mode, with the number mapping
+     */
+    synchronized Object hostAccess(boolean nashornCompatibility) throws ReflectiveOperationException {
+      int index = nashornCompatibility ? 1 : 0;
+      if (hostAccesses[index] == null) {
+        Object base;
+        if (nashornCompatibility) {
+          Field nashornHostAccess = graalJsScriptEngineClass.getDeclaredField("NASHORN_HOST_ACCESS");
+          nashornHostAccess.setAccessible(true);
+          base = nashornHostAccess.get(null);
+        } else {
+          base = hostAccessClass.getField("ALL").get(null);
+        }
+        hostAccesses[index] = createHostAccess(loader, base);
+      }
+      return hostAccesses[index];
+    }
+
+    /** @return the polyglot engine for the host access, built as GraalJSEngineFactory builds its own */
+    synchronized Object polyglotEngine(boolean nashornCompatibility) throws ReflectiveOperationException {
+      int index = nashornCompatibility ? 1 : 0;
+      Object engine = polyglotEngines[index] == null ? null : polyglotEngines[index].get();
       if (engine == null) {
         Object builder = allowExperimentalEngineOptions.invoke(newEngineBuilder.invoke(null), true);
         engine = buildEngine.invoke(builder);
-        polyglotEngine = new WeakReference<>(engine);
+        polyglotEngines[index] = new WeakReference<>(engine);
       }
       return engine;
+    }
+
+    /** @return the builder with the settings GraalJSScriptEngine gives a context in the Nashorn compatibility mode */
+    Object nashornCompatibility(Object builder) throws ReflectiveOperationException {
+      builder = option.invoke(builder, NASHORN_COMPAT_OPTION, "true");
+      builder = allowAllAccess.invoke(builder, true);
+      return useSystemExit.invoke(builder, true);
     }
 
     /** @return a context builder with the options that GraalJSScriptEngine sets when it creates one itself */
