@@ -158,6 +158,39 @@ public class SpinApplicationTestIT {
   }
 
   @Test
+  public void shouldNotRewriteVariableStoredInFieldOrderWhenRead() {
+    // given a JSON variable stored by 2.2 in the order of the fields; written with the parameters of the
+    // constructor first, it would differ and the engine would store it again on its first read
+    String deploymentId = repositoryService.createDeployment()
+        .addModelInstance("spin-order.bpmn", Bpmn.createExecutableProcess("spinOrderProcess")
+            .startEvent().userTask().endEvent().done())
+        .deploy().getId();
+    try {
+      String processInstanceId = runtimeService.startProcessInstanceByKey("spinOrderProcess").getId();
+      String stored = "{\"name\":\"order\",\"amount\":3}";
+      runtimeService.setVariable(processInstanceId, "order", Variables.serializedObjectValue(stored)
+          .serializationDataFormat(DataFormats.JSON_DATAFORMAT_NAME)
+          .objectTypeName(SpinParameterOrderDto.class.getName())
+          .create());
+      long updates = historyService.createHistoricDetailQuery()
+          .processInstanceId(processInstanceId).variableUpdates().count();
+
+      // when
+      SpinParameterOrderDto dto = (SpinParameterOrderDto) runtimeService.getVariable(processInstanceId, "order");
+
+      // then it is read and stays as stored, without another update
+      assertThat(dto.getName()).isEqualTo("order");
+      assertThat(dto.getAmount()).isEqualTo(3);
+      ObjectValue value = runtimeService.getVariableTyped(processInstanceId, "order", false);
+      assertThat(value.getValueSerialized()).isEqualTo(stored);
+      assertThat(historyService.createHistoricDetailQuery()
+          .processInstanceId(processInstanceId).variableUpdates().count()).isEqualTo(updates);
+    } finally {
+      repositoryService.deleteDeployment(deploymentId, true);
+    }
+  }
+
+  @Test
   public void shouldUseJsonCreatorNextToDefaultConstructor() {
     SpinJsonCreatorDto dto = Spin.JSON("{\"name\":\"order\"}").mapTo(SpinJsonCreatorDto.class);
 
