@@ -44,6 +44,24 @@
     -->
     <database.url.raw>${database.url}</database.url.raw>
     <database.password.raw>${database.password}</database.password.raw>
+
+    <!--
+      Connection URL of the externally hosted Aurora PostgreSQL clusters, shared by the aurora*
+      profiles below, which differ only in the host they are given from outside.
+
+      connectTimeout and loginTimeout are in seconds, sslResponseTimeout in milliseconds.
+      sslResponseTimeout is the one that matters while a cluster resumes from auto-pause: it
+      limits the wait for the answer to the SSL upgrade request and defaults to 5s.
+      gssEncMode=disable skips the GSSAPI upgrade request, which these clusters do not use and
+      which otherwise burns another 5s (gssResponseTimeout) before the SSL request is sent.
+
+      aurora.url is filtered into the XML test configurations (camunda.cfg.xml), which Maven does
+      not parse again, so the separator between the URL parameters has to survive as the XML
+      entity &amp;amp; - hence the double escaping of &amp;amp;amp;. aurora.url.raw is the same URL with a
+      plain '&amp;' for the consumers that read the Maven property directly. Keep both in sync.
+    -->
+    <aurora.url>jdbc:postgresql://${database.host}:${database.port}/${database.name}?sslmode=require&amp;amp;gssEncMode=disable&amp;amp;connectTimeout=90&amp;amp;loginTimeout=90&amp;amp;sslResponseTimeout=90000</aurora.url>
+    <aurora.url.raw>jdbc:postgresql://${database.host}:${database.port}/${database.name}?sslmode=require&amp;gssEncMode=disable&amp;connectTimeout=90&amp;loginTimeout=90&amp;sslResponseTimeout=90000</aurora.url.raw>
   </properties>
 
   <dependencyManagement>
@@ -516,24 +534,42 @@
       See also the "What about database technology X in environment Y?" section in TESTING.md.
     -->
     <!--
-      The database.url is filtered into the XML test configurations (camunda.cfg.xml),
-      which are not parsed again by Maven, so the separator between the URL parameters has to
-      survive as the XML entity &amp; - hence the double escaping of &amp;amp;amp; below.
+      One profile per Aurora cluster. They share the URL defined in aurora.url above and differ
+      only in the host, which is supplied from outside together with the credentials.
     -->
     <profile>
       <!-- Amazon Aurora PostgreSQL 15 -->
       <id>aurora15</id>
       <properties>
-        <!--
-          connectTimeout and loginTimeout are in seconds, sslResponseTimeout in milliseconds.
-          sslResponseTimeout is the one that matters while the cluster resumes: it limits the
-          wait for the answer to the SSL upgrade request and defaults to 5s. gssEncMode=disable
-          skips the GSSAPI upgrade request, which these clusters do not use and which otherwise
-          burns another 5s (gssResponseTimeout) before the SSL request is even sent.
-        -->
-        <database.url>jdbc:postgresql://${database.host}:${database.port}/${database.name}?sslmode=require&amp;amp;gssEncMode=disable&amp;amp;connectTimeout=90&amp;amp;loginTimeout=90&amp;amp;sslResponseTimeout=90000</database.url>
-        <!-- the same URL, but with plain '&' - keep both in sync -->
-        <database.url.raw>jdbc:postgresql://${database.host}:${database.port}/${database.name}?sslmode=require&amp;gssEncMode=disable&amp;connectTimeout=90&amp;loginTimeout=90&amp;sslResponseTimeout=90000</database.url.raw>
+        <database.url>${aurora.url}</database.url>
+        <database.url.raw>${aurora.url.raw}</database.url.raw>
+      </properties>
+    </profile>
+
+    <profile>
+      <!-- Amazon Aurora PostgreSQL 16 -->
+      <id>aurora16</id>
+      <properties>
+        <database.url>${aurora.url}</database.url>
+        <database.url.raw>${aurora.url.raw}</database.url.raw>
+      </properties>
+    </profile>
+
+    <profile>
+      <!-- Amazon Aurora PostgreSQL 17 -->
+      <id>aurora17</id>
+      <properties>
+        <database.url>${aurora.url}</database.url>
+        <database.url.raw>${aurora.url.raw}</database.url.raw>
+      </properties>
+    </profile>
+
+    <profile>
+      <!-- Amazon Aurora PostgreSQL 18 -->
+      <id>aurora18</id>
+      <properties>
+        <database.url>${aurora.url}</database.url>
+        <database.url.raw>${aurora.url.raw}</database.url.raw>
       </properties>
     </profile>
 
