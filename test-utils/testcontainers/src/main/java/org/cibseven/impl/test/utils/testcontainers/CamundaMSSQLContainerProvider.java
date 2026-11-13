@@ -39,6 +39,6 @@ public class CamundaMSSQLContainerProvider extends MSSQLServerContainerProvider 
     mssqlServerContainer.acceptLicense();
     mssqlServerContainer.withInitScript("mssqlcontainerinit.sql");
 
-    return mssqlServerContainer;
+    return TestcontainersHelper.withLabel(mssqlServerContainer);
   }
 }

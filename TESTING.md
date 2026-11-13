@@ -145,6 +145,14 @@ engine directory with
 mvn clean test -Ppostgresql,testcontainers
 ```
 
+The QA upgrade tests (`instance-migration`, `rolling-update`, `old-engine`) consist of several Maven modules, plugin executions and
+JVMs, which share one [reusable](https://java.testcontainers.org/features/reuse/) container. Enable the reuse and remove the
+container after the test, e.g.
+```shell
+TESTCONTAINERS_REUSE_ENABLE=true mvn -f qa/test-db-rolling-update/pom.xml verify -Prolling-update,testcontainers,postgresql
+docker rm -f $(docker ps -aq --filter label=org.testcontainers.hash)
+```
+
 # Limiting the Number of Engine Unit Tests
 
 Due to the fact that the number of unit tests in the camunda engine increases daily and that you might just want to test a certain subset of tests the maven-surefire-plugin is configured in a way that you can include/exclude certain packages in your tests.

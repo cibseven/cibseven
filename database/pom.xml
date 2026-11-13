@@ -33,8 +33,20 @@
     <camunda.version.old>7.23.0</camunda.version.old>
     <cibseven.version.old>2.2.0</cibseven.version.old>
 
-    <!-- Testcontainers JDBC URL parameters. By default, an empty string -->
-    <database.tc.params />
+    <!--
+      Appended to the Testcontainers JDBC URL parameters, which are part of the URL of the
+      testcontainers profile in settings/maven/nexus-settings.xml, too: ?TC_REUSABLE=true in the
+      QA tests (see qa/pom.xml), otherwise an empty string.
+    -->
+    <database.tc.reuse />
+    <!-- Testcontainers JDBC URL parameters. By default, only database.tc.reuse -->
+    <database.tc.params>${database.tc.reuse}</database.tc.params>
+    <!--
+      JDBC driver of the Maven plugins below: they load the driver class directly, and a
+      Testcontainers JDBC URL needs the Testcontainers driver. Set by the database profiles that
+      use a Testcontainers URL, and reset by the profiles that point at an external database.
+    -->
+    <database.plugin.driver>${database.driver}</database.plugin.driver>
 
     <!--
       Raw variants of the connection settings, for consumers that read the Maven property
@@ -111,7 +123,7 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>sql-maven-plugin</artifactId>
           <configuration>
-            <driver>${database.driver}</driver>
+            <driver>${database.plugin.driver}</driver>
             <url>${database.url.raw}</url>
             <username>${database.username}</username>
             <password>${database.password.raw}</password>
@@ -122,7 +134,7 @@
           <artifactId>liquibase-maven-plugin</artifactId>
           <version>${version.liquibase}</version>
           <configuration>
-            <driver>${database.driver}</driver>
+            <driver>${database.plugin.driver}</driver>
             <url>${database.url.raw}</url>
             <username>${database.username}</username>
             <password>${database.password.raw}</password>
@@ -145,8 +157,9 @@
         <database.port>50000</database.port>
 
         <database.tc.url>camdb2:11.5.0.0</database.tc.url>
-        <database.tc.params>/${database.name}?TC_DAEMON=true</database.tc.params>
+        <database.tc.params>/${database.name}?TC_DAEMON=true${database.tc.reuse}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
+        <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
 
       </properties>
       <dependencies>
@@ -300,8 +313,14 @@
         <database.driver>org.mariadb.jdbc.Driver</database.driver>
         <database.datasource.class>org.mariadb.jdbc.MySQLDataSource</database.datasource.class>
         <database.tc.url>cammariadb:11.4</database.tc.url>
-        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}</database.tc.params>
+        <!--
+          The parameters are separated by ? instead of &: Testcontainers accepts both and the URL
+          then needs no XML escaping. With &amp;amp; the Maven plugins above read the escaped value,
+          i.e. "amp;password", and would start a second container instead of using the one of the tests.
+        -->
+        <database.tc.params>/${database.name}?user=${database.username}?password=${database.password}${database.tc.reuse}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
+        <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
       </properties>
 
       <dependencies>
@@ -344,8 +363,10 @@
         <database.driver>com.mysql.cj.jdbc.Driver</database.driver>
         <database.datasource.class>com.mysql.cj.jdbc.MysqlDataSource</database.datasource.class>
         <database.tc.url>cammysql:8.0</database.tc.url>
-        <database.tc.params>/${database.name}?user=${database.username}&amp;amp;password=${database.password}&amp;amp;sendFractionalSeconds=false</database.tc.params>
+        <!-- ? instead of &, see the mariadb profile above -->
+        <database.tc.params>/${database.name}?user=${database.username}?password=${database.password}?sendFractionalSeconds=false${database.tc.reuse}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
+        <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
       </properties>
 
       <dependencies>
@@ -388,6 +409,7 @@
         <database.datasource.class>oracle.jdbc.pool.OracleDataSource</database.datasource.class>
         <database.tc.url>camoracle:21-slim-faststart</database.tc.url>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
+        <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
       </properties>
       <dependencies>
         <dependency>
@@ -432,8 +454,9 @@
         <jboss.datasource.filename>postgresql-ds.xml</jboss.datasource.filename>
         <hibernate.dialect>org.hibernate.dialect.PostgreSQLDialect</hibernate.dialect>
         <database.tc.url>campostgresql:13.2</database.tc.url>
-        <database.tc.params>TC_DAEMON=true</database.tc.params>
+        <database.tc.params>TC_DAEMON=true${database.tc.reuse}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}:///${database.name}/${database.tc.params}</database.url>
+        <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
       </properties>
 
       <dependencies>
@@ -483,8 +506,9 @@
         <database.driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</database.driver>
         <database.datasource.class>com.microsoft.sqlserver.jdbc.SQLServerDataSource</database.datasource.class>
         <database.tc.url>camsqlserver:2019-latest</database.tc.url>
-        <database.tc.params>;databaseName=${database.name};user=${database.username};password=${database.password}</database.tc.params>
+        <database.tc.params>;databaseName=${database.name};user=${database.username};password=${database.password}${database.tc.reuse}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
+        <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
       </properties>
 
       <dependencies>
@@ -543,6 +567,8 @@
       <properties>
         <database.url>${aurora.url}</database.url>
         <database.url.raw>${aurora.url.raw}</database.url.raw>
+        <!-- not a Testcontainers URL: undo the Testcontainers driver of the postgresql profile -->
+        <database.plugin.driver>${database.driver}</database.plugin.driver>
       </properties>
     </profile>
 
@@ -552,6 +578,8 @@
       <properties>
         <database.url>${aurora.url}</database.url>
         <database.url.raw>${aurora.url.raw}</database.url.raw>
+        <!-- not a Testcontainers URL: undo the Testcontainers driver of the postgresql profile -->
+        <database.plugin.driver>${database.driver}</database.plugin.driver>
       </properties>
     </profile>
 
@@ -561,6 +589,8 @@
       <properties>
         <database.url>${aurora.url}</database.url>
         <database.url.raw>${aurora.url.raw}</database.url.raw>
+        <!-- not a Testcontainers URL: undo the Testcontainers driver of the postgresql profile -->
+        <database.plugin.driver>${database.driver}</database.plugin.driver>
       </properties>
     </profile>
 
@@ -570,6 +600,8 @@
       <properties>
         <database.url>${aurora.url}</database.url>
         <database.url.raw>${aurora.url.raw}</database.url.raw>
+        <!-- not a Testcontainers URL: undo the Testcontainers driver of the postgresql profile -->
+        <database.plugin.driver>${database.driver}</database.plugin.driver>
       </properties>
     </profile>
 
@@ -584,6 +616,8 @@
           so it is the only knob needed while the database resumes from auto-pause (default 30).
         -->
         <database.url>jdbc:sqlserver://${database.host}:${database.port};databaseName=${database.name};encrypt=true;trustServerCertificate=false;loginTimeout=90</database.url>
+        <!-- not a Testcontainers URL: undo the Testcontainers driver of the sqlserver profile -->
+        <database.plugin.driver>${database.driver}</database.plugin.driver>
       </properties>
     </profile>
 
