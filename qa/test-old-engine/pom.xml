@@ -13,6 +13,9 @@
 
   <properties>
     <cibseven.old.engine.version>2.2.0</cibseven.old.engine.version>
+    <!-- tests of the old engine that cannot pass with the current test runtime; the profile
+         old-engine-jdk25 switches to a file with the additional JDK 25 exclusions -->
+    <old.engine.excludes.file>old-engine-2.2.0-excludes.txt</old.engine.excludes.file>
   </properties>
 
   <build>
@@ -86,6 +89,17 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+
+    <profile>
+      <id>old-engine-jdk25</id>
+      <!-- active whenever Maven runs on JDK 25 or later, together with the profile old-engine -->
+      <activation>
+        <jdk>[25,)</jdk>
+      </activation>
+      <properties>
+        <old.engine.excludes.file>old-engine-2.2.0-excludes-jdk25.txt</old.engine.excludes.file>
+      </properties>
     </profile>
 
     <profile>
@@ -518,7 +532,7 @@
               </excludes>
               <!-- Old engine 2.2.0 lacks the GraalJS 25 builder and parser-isolation fixes. The file excludes
                    single methods where possible, which <excludes> does not allow. -->
-              <excludesFile>${project.basedir}/old-engine-2.2.0-excludes.txt</excludesFile>
+              <excludesFile>${project.basedir}/${old.engine.excludes.file}</excludesFile>
               <testFailureIgnore>false</testFailureIgnore>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <argLine>-Xmx2g -Duser.language=en -Duser.region=US -XX:+HeapDumpOnOutOfMemoryError
