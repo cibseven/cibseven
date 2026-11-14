@@ -36,13 +36,19 @@ import org.cibseven.spin.json.golden.Jackson2CompatibilityTest.VoidGetter;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.Jackson3JsonProvider;
 import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.introspect.DefaultAccessorNamingStrategy;
 import tools.jackson.databind.json.JsonMapper;
@@ -337,4 +343,85 @@ public class JacksonJsonDataFormatTest {
         .hasMessageContaining("'b'");
   }
 
+  @Test
+  public void shouldRejectUnknownPropertyWhereTheUnwrappedTypeHasItsOwnDeserializer() {
+    // given
+    JacksonJsonDataFormat format = new JacksonJsonDataFormat("test");
+
+    // then the property is read under its own name, as in Jackson 2
+    Coded coded = read(format, "{\"name\":\"n\",\"code\":\"c\"}", Coded.class);
+    assertThat(coded.code.value()).isEqualTo("c");
+    assertThat(write(format, coded)).isEqualTo("{\"name\":\"n\",\"code\":\"c\"}");
+    // and an unknown property fails, as in Jackson 2
+    assertThatThrownBy(() -> read(format, "{\"name\":\"n\",\"code\":\"c\",\"extra\":1}", Coded.class))
+        .hasStackTraceContaining("UnrecognizedPropertyException").hasStackTraceContaining("\"extra\"");
+
+    // also when a module registers the deserializer
+    format.setObjectMapper(format.getObjectMapper().rebuild().addModule(tokenModule()).build());
+    assertThat(read(format, "{\"name\":\"n\",\"token\":\"t\"}", Tokened.class).token.value()).isEqualTo("t");
+    assertThatThrownBy(() -> read(format, "{\"name\":\"n\",\"token\":\"t\",\"extra\":1}", Tokened.class))
+        .hasStackTraceContaining("UnrecognizedPropertyException").hasStackTraceContaining("\"extra\"");
+  }
+
+  protected static <T> T read(JacksonJsonDataFormat format, String json, Class<T> type) {
+    Object internal = format.getReader().readInput(new StringReader(json));
+    return type.cast(format.getMapper().mapInternalToJava(internal, type.getName()));
+  }
+
+  /** A type with a deserializer of its own: Jackson cannot unwrap it, so {@code @JsonUnwrapped} has no effect. */
+  @JsonDeserialize(using = CodeDeserializer.class)
+  public static class Code {
+    private final String value;
+
+    public Code(String value) {
+      this.value = value;
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+  }
+
+  public static class CodeDeserializer extends ValueDeserializer<Code> {
+    @Override
+    public Code deserialize(JsonParser p, DeserializationContext ctxt) {
+      return new Code(p.getString());
+    }
+  }
+
+  public static class Coded {
+    public String name;
+    @JsonUnwrapped
+    public Code code;
+  }
+
+  /** The same with the deserializer registered by a module. */
+  public static class Token {
+    private final String value;
+
+    public Token(String value) {
+      this.value = value;
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+  }
+
+  public static class Tokened {
+    public String name;
+    @JsonUnwrapped
+    public Token token;
+  }
+
+  protected static SimpleModule tokenModule() {
+    return new SimpleModule("token").addDeserializer(Token.class, new ValueDeserializer<Token>() {
+      @Override
+      public Token deserialize(JsonParser p, DeserializationContext ctxt) {
+        return new Token(p.getString());
+      }
+    });
+  }
 }

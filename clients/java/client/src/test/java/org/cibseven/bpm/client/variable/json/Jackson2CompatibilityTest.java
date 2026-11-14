@@ -220,6 +220,25 @@ public class Jackson2CompatibilityTest {
     public List<String> items;
   }
 
+  /** {@code @JsonUnwrapped} on an interface: Jackson has no deserializer that could unwrap it. */
+  public interface Badge {
+  }
+
+  public static class Badged {
+    public String name;
+    @JsonUnwrapped
+    public Badge badge;
+  }
+
+  /** An unwrapping class that holds itself, in a list and in a field. */
+  public static class Site {
+    public String name;
+    @JsonUnwrapped
+    public Spot spot = new Spot();
+    public List<Site> parts;
+    public Site next;
+  }
+
   /** What Jackson 2 writes for {@link Accessors}; the order of the properties without a field is not fixed. */
   protected static final String ACCESSORS_JSON = "{\"url\":\"u\",\"x\":1,\"ok\":true,\"iban\":\"i\",\"value\":\"v\",\"a1\":\"a1\","
       + "\"urlvalue\":\"uv\",\"xcoordinate\":2,\"aBc\":\"abc\",\"_links\":\"l\",\"1st\":\"f\"}";
@@ -411,6 +430,29 @@ public class Jackson2CompatibilityTest {
   }
 
   @Test
+  public void shouldReadBackUnwrappedClassThatHoldsItself() {
+    Site value = new Site();
+    value.name = "Campus";
+    value.spot.street = "Rhine 7";
+    value.spot.city = "Cologne";
+    Site hall = new Site();
+    hall.name = "Hall";
+    hall.spot.street = "Rhine 9";
+    Site annex = new Site();
+    annex.name = "Annex";
+    annex.spot.city = "Essen";
+    value.parts = List.of(hall);
+    value.next = annex;
+    String json = format.writeValue(value);
+    // Jackson 3.1 alone: Unrecognized property "label" (class ...Site)
+    Site site = format.readValue(json, Site.class);
+    assertThat(site.spot.street).isEqualTo("Rhine 7");
+    assertThat(site.parts.get(0).spot.street).isEqualTo("Rhine 9");
+    assertThat(site.next.spot.city).isEqualTo("Essen");
+    assertThat(format.writeValue(site)).isEqualTo(json);
+  }
+
+  @Test
   public void shouldRejectUnknownPropertyWhereUnwrappingHasNoEffect() {
     // Jackson ignores @JsonUnwrapped on a String, a Map or a List and reads them under their own names
     Tagged tagged = format.readValue("{\"name\":\"n\",\"tag\":\"t\",\"attributes\":{\"a\":1},\"items\":[\"i\"]}", Tagged.class);
@@ -419,6 +461,9 @@ public class Jackson2CompatibilityTest {
     assertThat(tagged.items).containsExactly("i");
     // so an unknown property fails, as in Jackson 2
     assertThatThrownBy(() -> format.readValue("{\"name\":\"n\",\"tag\":\"t\",\"extra\":1}", Tagged.class))
+        .hasStackTraceContaining("UnrecognizedPropertyException").hasStackTraceContaining("\"extra\"");
+    // nor on an interface: no deserializer could unwrap it
+    assertThatThrownBy(() -> format.readValue("{\"name\":\"n\",\"extra\":1}", Badged.class))
         .hasStackTraceContaining("UnrecognizedPropertyException").hasStackTraceContaining("\"extra\"");
   }
 }

@@ -26,11 +26,13 @@ import java.time.Month;
 import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.IllformedLocaleException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.jayway.jsonpath.spi.json.Jackson3JsonProvider;
@@ -46,11 +48,13 @@ import org.cibseven.spin.spi.TypeDetector;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.Configuration.ConfigurationBuilder;
 import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
 import tools.jackson.core.StreamReadConstraints;
 import tools.jackson.core.StreamWriteConstraints;
 import tools.jackson.core.json.JsonFactory;
 import tools.jackson.databind.AnnotationIntrospector;
 import tools.jackson.databind.BeanDescription;
+import tools.jackson.databind.BeanProperty;
 import tools.jackson.databind.DeserializationConfig;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.JavaType;
@@ -65,10 +69,11 @@ import tools.jackson.databind.ValueSerializer;
 import tools.jackson.databind.annotation.JsonPOJOBuilder;
 import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.cfg.MapperConfig;
-import tools.jackson.databind.deser.BeanDeserializerBuilder;
 import tools.jackson.databind.deser.SettableBeanProperty;
 import tools.jackson.databind.deser.ValueDeserializerModifier;
+import tools.jackson.databind.deser.bean.BeanDeserializerBase;
 import tools.jackson.databind.deser.jdk.JDKFromStringDeserializer;
+import tools.jackson.databind.deser.std.DelegatingDeserializer;
 import tools.jackson.databind.ext.javatime.ser.YearSerializer;
 import tools.jackson.databind.ext.sql.JavaSqlDateSerializer;
 import tools.jackson.databind.introspect.AccessorNamingStrategy;
@@ -76,6 +81,7 @@ import tools.jackson.databind.introspect.AnnotatedClass;
 import tools.jackson.databind.introspect.AnnotatedMember;
 import tools.jackson.databind.introspect.DefaultAccessorNamingStrategy;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.jsontype.TypeDeserializer;
 import tools.jackson.databind.module.SimpleModule;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
@@ -83,7 +89,6 @@ import tools.jackson.databind.ser.Serializers;
 import tools.jackson.databind.ser.jdk.EnumSerializer;
 import tools.jackson.databind.ser.std.ToStringSerializer;
 import tools.jackson.databind.type.TypeFactory;
-import tools.jackson.databind.util.ClassUtil;
 import tools.jackson.databind.util.StdDateFormat;
 
 /**
@@ -530,44 +535,121 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
   }
 
   /**
-   * A class that holds an {@code @JsonUnwrapped} property ignores unknown properties, like Jackson 2. Jackson 3.1
-   * rejects them (databind#650), so JSON that Jackson writes itself could no longer be read back: a computed property
-   * of the unwrapped class ({@code getLabel()} without a field or setter) or a property that an earlier version of the
-   * class still had. Classes without {@code @JsonUnwrapped} keep rejecting unknown properties, and so do classes whose
-   * {@code @JsonUnwrapped} has no effect because Jackson cannot unwrap the property's type (a String, a number, a
-   * Map, a collection, an Optional, an enum). One difference from Jackson 2 stays: with
-   * {@code FAIL_ON_IGNORED_PROPERTIES} (off by default), a property that the unwrapped class ignores
-   * ({@code @JsonIgnoreProperties}, {@code @JsonIncludeProperties}) is skipped instead of failing.
+   * A class whose {@code @JsonUnwrapped} property Jackson really unwraps ignores unknown properties, like Jackson 2.
+   * Jackson 3.1 rejects them (databind#650), so JSON that Jackson writes itself could no longer be read back: a
+   * computed property of the unwrapped class ({@code getLabel()} without a field or setter) or a property that an
+   * earlier version of the class still had. Classes without {@code @JsonUnwrapped} keep rejecting unknown properties,
+   * and so do classes whose {@code @JsonUnwrapped} has no effect: Jackson unwraps a property only if its deserializer
+   * can (a bean), not a String, a number, a Map, a collection, an interface or a type with a deserializer of its own.
+   * One difference from Jackson 2 stays: with {@code FAIL_ON_IGNORED_PROPERTIES} (off by default), a property that
+   * the unwrapped class ignores ({@code @JsonIgnoreProperties}, {@code @JsonIncludeProperties}) is skipped instead of
+   * failing.
    */
   public static class Jackson2UnwrappedDeserializerModifier extends ValueDeserializerModifier {
 
     private static final long serialVersionUID = 1L;
 
     @Override
-    public BeanDeserializerBuilder updateBuilder(DeserializationConfig config, BeanDescription.Supplier beanDescRef,
-        BeanDeserializerBuilder builder) {
+    public ValueDeserializer<?> modifyDeserializer(DeserializationConfig config, BeanDescription.Supplier beanDescRef,
+        ValueDeserializer<?> deserializer) {
+      if (!(deserializer instanceof BeanDeserializerBase)) {
+        return deserializer;
+      }
       AnnotationIntrospector introspector = config.getAnnotationIntrospector();
-      for (Iterator<SettableBeanProperty> properties = builder.getProperties(); properties.hasNext(); ) {
+      Set<String> annotated = new HashSet<>();
+      for (Iterator<SettableBeanProperty> properties = ((BeanDeserializerBase) deserializer).properties();
+          properties.hasNext(); ) {
         SettableBeanProperty property = properties.next();
         AnnotatedMember member = property.getMember();
-        if (member != null && canUnwrap(property.getType())
-            && introspector.findUnwrappingNameTransformer(config, member) != null) {
-          builder.setIgnoreUnknownProperties(true);
-          break;
+        if (member != null && introspector.findUnwrappingNameTransformer(config, member) != null) {
+          annotated.add(property.getName());
         }
       }
-      return builder;
+      return annotated.isEmpty() ? deserializer
+          : new Jackson2UnwrappedDeserializer(deserializer, beanDescRef.getType(), annotated);
+    }
+  }
+
+  /**
+   * Holds the deserializer of a class with {@code @JsonUnwrapped} properties until Jackson has resolved it. Jackson
+   * takes every property that it really unwraps out of {@link BeanDeserializerBase#properties()}; only if one of the
+   * annotated properties is gone does the class ignore unknown properties.
+   */
+  static final class Jackson2UnwrappedDeserializer extends DelegatingDeserializer {
+
+    private final JavaType type;
+    private final Set<String> annotated;
+    private volatile boolean resolved;
+    private volatile ValueDeserializer<Object> forReading;
+
+    Jackson2UnwrappedDeserializer(ValueDeserializer<?> delegatee, JavaType type, Set<String> annotated) {
+      super(delegatee);
+      this.type = type;
+      this.annotated = annotated;
     }
 
-    /**
-     * Only bean deserializers unwrap (also for builders, records and exceptions); on any other type Jackson ignores
-     * {@code @JsonUnwrapped} and reads the property under its own name.
-     */
-    private static boolean canUnwrap(JavaType type) {
-      Class<?> raw = type.getRawClass();
-      return !type.isContainerType() && !type.isReferenceType() && !type.isEnumType() && !type.isPrimitive()
-          && !type.isTypeOrSubTypeOf(JsonNode.class)
-          && (!ClassUtil.isJDKClass(raw) || Throwable.class.isAssignableFrom(raw));
+    @Override
+    protected ValueDeserializer<?> newDelegatingInstance(ValueDeserializer<?> delegatee) {
+      return new Jackson2UnwrappedDeserializer(delegatee, type, annotated);
+    }
+
+    @Override
+    public void resolve(DeserializationContext ctxt) {
+      super.resolve(ctxt);
+      resolved = true;
+    }
+
+    @Override
+    public ValueDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) {
+      ValueDeserializer<?> contextual = ctxt.handleSecondaryContextualization(_delegatee, property, type);
+      if (resolved) {
+        return jackson2(contextual);
+      }
+      // a property that refers back to a class Jackson is still resolving: decide on the first read
+      return contextual == _delegatee ? this : newDelegatingInstance(contextual);
+    }
+
+    @Override
+    public Object deserialize(JsonParser p, DeserializationContext ctxt) {
+      return forReading().deserialize(p, ctxt);
+    }
+
+    @Override
+    public Object deserialize(JsonParser p, DeserializationContext ctxt, Object intoValue) {
+      return forReading().deserialize(p, ctxt, intoValue);
+    }
+
+    @Override
+    public Object deserializeWithType(JsonParser p, DeserializationContext ctxt, TypeDeserializer typeDeserializer) {
+      return forReading().deserializeWithType(p, ctxt, typeDeserializer);
+    }
+
+    @SuppressWarnings("unchecked")
+    private ValueDeserializer<Object> forReading() {
+      ValueDeserializer<Object> deserializer = forReading;
+      if (deserializer == null) {
+        deserializer = (ValueDeserializer<Object>) jackson2(_delegatee);
+        forReading = deserializer;
+      }
+      return deserializer;
+    }
+
+    private ValueDeserializer<?> jackson2(ValueDeserializer<?> deserializer) {
+      if (deserializer instanceof BeanDeserializerBase && unwraps((BeanDeserializerBase) deserializer)) {
+        BeanDeserializerBase lenient = ((BeanDeserializerBase) deserializer).withIgnoreAllUnknown(true);
+        if (lenient.getClass() == deserializer.getClass()) {
+          return lenient;
+        }
+      }
+      return deserializer;
+    }
+
+    private boolean unwraps(BeanDeserializerBase deserializer) {
+      Set<String> unwrapped = new HashSet<>(annotated);
+      for (Iterator<SettableBeanProperty> properties = deserializer.properties(); properties.hasNext(); ) {
+        unwrapped.remove(properties.next().getName());
+      }
+      return !unwrapped.isEmpty();
     }
   }
 
