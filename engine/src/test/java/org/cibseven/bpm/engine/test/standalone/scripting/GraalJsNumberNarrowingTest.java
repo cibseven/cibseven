@@ -191,7 +191,9 @@ public class GraalJsNumberNarrowingTest {
   @Test
   public void shouldLoadScriptsInTheNashornCompatibilityModeOfTheJvm(@TempDir Path directory)
       throws ScriptException, IOException {
-    // given: GraalJS initialized before the system property is set, which would else hold for the whole JVM
+    // given: GraalJS initialized before the system property is set, which would else hold for the whole JVM. Set
+    // after that, the property reaches the narrowed script engines, which read it at their creation (GraalJS reads it
+    // once): the result is the one of a JVM started with the property
     evaluate(sharedResolver(), configuration(LONG), true, "1");
     Path script = Files.writeString(directory.resolve("loaded.js"), "var loadedValue = 42;");
     String load = "load('" + script.toAbsolutePath().toString().replace('\\', '/') + "'); "

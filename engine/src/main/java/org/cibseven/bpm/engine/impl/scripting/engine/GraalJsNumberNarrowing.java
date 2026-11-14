@@ -53,16 +53,19 @@ import org.cibseven.bpm.engine.impl.scripting.ScriptLogger;
  * The mapping has the precedence {@code LOW}: of a Java method overloaded for {@code int} and {@code Object}, such
  * as {@code List.remove}, the same one is chosen as without the mapping.
  * <p>
- * All contexts of one polyglot engine must use the same host access. A narrowed script engine therefore runs on a
- * polyglot engine of this class, one per owner, and never on the polyglot engine of the script engine factory:
- * script engines without narrowing use that one with {@code HostAccess.ALL}, for example those of a process
- * application that two process engines with different modes share. GraalJS is used through reflection: the
- * process engine has no compile dependency on it.
+ * All contexts of one polyglot engine must use the same host access. A narrowed script engine that a script engine
+ * factory would create therefore runs on a polyglot engine of this class, one per factory and host access (with and
+ * without the Nashorn compatibility mode), and never on the polyglot engine of the factory: script engines without
+ * narrowing use that one with {@code HostAccess.ALL}, for example those of a process application that two process
+ * engines with different modes share. {@link CamundaScriptEngineManager} ({@code useCibSevenNamespaceInScripting})
+ * gives each script engine a polyglot engine of its own, and takes only the host access from this class. GraalJS is
+ * used through reflection: the process engine has no compile dependency on it.
  * <p>
  * In the Nashorn compatibility mode ({@code enableScriptEngineNashornCompatibility}), the host access is the one
  * GraalJS uses in that mode (with the conversions of Nashorn) with the same mapping, and the context gets the
  * settings GraalJS gives it in that mode. The system property {@code polyglot.js.nashorn-compat} gives a script
- * engine of the factory these settings too, as GraalJS does.
+ * engine of the factory these settings too, as GraalJS does; unlike GraalJS, which reads it once when its class is
+ * loaded, this class reads it at each script engine it creates.
  */
 public final class GraalJsNumberNarrowing {
 
@@ -95,8 +98,8 @@ public final class GraalJsNumberNarrowing {
 
   /**
    * The GraalJS of each owner: the script engine factory whose script engines are narrowed, or another object that
-   * creates script engines. Weak keys, and nothing in a value refers to its key: the entry goes with the owner (for
-   * example with the script engine manager of an undeployed application).
+   * creates script engines. Weak keys, and nothing in a value refers to its key: the entry goes at the next use of
+   * the map after the owner is collected (for example the script engine manager of an undeployed application).
    */
   private static final Map<Object, Graal> GRAALS = new WeakHashMap<>();
 
