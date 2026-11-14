@@ -57,6 +57,11 @@ public class GraalJsNumberNarrowingTest {
     public void set(Object value) {
       this.value = value;
     }
+
+    /** No mapping applies to a parameter of type {@code Number}: GraalJS chooses the type. */
+    public void setNumber(Number value) {
+      this.value = value;
+    }
   }
 
   protected static ProcessEngineConfigurationImpl configuration(String mode) {
@@ -99,6 +104,29 @@ public class GraalJsNumberNarrowingTest {
         Arguments.of(NONE, LONG, true),
         Arguments.of(LONG, NONE, false),
         Arguments.of(NONE, LONG, false));
+  }
+
+  static Stream<Arguments> numbers() {
+    return Stream.of(
+        // what the script hands to sink.set, the value in mode long, the value in mode none
+        Arguments.of("java.lang.Long.valueOf(-5)", -5, -5L),
+        Arguments.of("java.lang.Long.valueOf(java.lang.Integer.MAX_VALUE)", Integer.MAX_VALUE, (long) Integer.MAX_VALUE),
+        Arguments.of("java.lang.Long.valueOf(java.lang.Integer.MIN_VALUE)", Integer.MIN_VALUE, (long) Integer.MIN_VALUE),
+        Arguments.of("java.lang.Long.valueOf('2147483648')", 2147483648L, 2147483648L),
+        Arguments.of("java.lang.Long.valueOf('-2147483649')", -2147483649L, -2147483649L),
+        Arguments.of("java.lang.Long.valueOf('9007199254740993')", 9007199254740993L, 9007199254740993L),
+        Arguments.of("java.lang.Long.valueOf('-9007199254740993')", -9007199254740993L, -9007199254740993L),
+        Arguments.of("java.lang.Long.MAX_VALUE", Long.MAX_VALUE, Long.MAX_VALUE),
+        // GraalJS hands a Short, a Byte or a Float over as a JavaScript number
+        Arguments.of("java.lang.Short.valueOf(5)", 5, 5),
+        Arguments.of("java.lang.Byte.valueOf(5)", 5, 5),
+        Arguments.of("java.lang.Float.valueOf(1.5)", 1.5d, 1.5d),
+        Arguments.of("java.lang.Double.valueOf(6)", 6.0d, 6.0d),
+        Arguments.of("java.lang.Integer.valueOf(5)", 5, 5),
+        Arguments.of("5", 5, 5),
+        Arguments.of("-5", -5, -5),
+        Arguments.of("2147483648", 2147483648d, 2147483648d),
+        Arguments.of("2.5", 2.5d, 2.5d));
   }
 
   @ParameterizedTest(name = "{0} then {1}, cache {2}")
@@ -167,6 +195,31 @@ public class GraalJsNumberNarrowingTest {
 
     // then
     assertThat(globalBean).isEqualTo(7);
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("numbers")
+  public void shouldNarrowOnlyJavaLongsInIntRange(String number, Object inModeLong, Object inModeNone)
+      throws ScriptException {
+    // given
+    String script = "sink.set(" + number + ")";
+
+    // when
+    Object narrowed = evaluate(sharedResolver(), configuration(LONG), true, script);
+    Object notNarrowed = evaluate(sharedResolver(), configuration(NONE), true, script);
+
+    // then: equal values of other types are not equal
+    assertThat(narrowed).isEqualTo(inModeLong);
+    assertThat(notNarrowed).isEqualTo(inModeNone);
+  }
+
+  @Test
+  public void shouldKeepALongForAParameterOfTypeNumber() throws ScriptException {
+    // when
+    Object number = evaluate(sharedResolver(), configuration(LONG), true, "sink.setNumber(java.lang.Long.valueOf(5))");
+
+    // then: the mapping is for parameters of type Object
+    assertThat(number).isEqualTo(5L);
   }
 
   @Test
