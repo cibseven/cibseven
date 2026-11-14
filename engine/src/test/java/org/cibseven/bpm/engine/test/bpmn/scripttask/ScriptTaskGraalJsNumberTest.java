@@ -90,10 +90,7 @@ public class ScriptTaskGraalJsNumberTest extends AbstractScriptTaskTest {
     processEngineConfiguration.setUseCibSevenNamespaceInScripting(useCibSevenNamespaceBefore);
   }
 
-  /**
-   * A fresh script engine manager: its GraalJS factory has a polyglot engine of its own. Graal JS rejects a second
-   * host access on a polyglot engine whose contexts had another one (the other modes and tests).
-   */
+  /** The mode and the path, with a fresh script engine resolver, as a process engine would have them. */
   protected void useMode(String mode, boolean useCibSevenNamespace) {
     processEngineConfiguration.setJavaScriptNumberNarrowing(mode);
     processEngineConfiguration.setUseCibSevenNamespaceInScripting(useCibSevenNamespace);
@@ -214,6 +211,28 @@ public class ScriptTaskGraalJsNumberTest extends AbstractScriptTaskTest {
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testProcess", inputs());
 
     // then: the engine of the resolver, with the types of GraalJS
+    assertThat(runtimeService.getVariable(processInstance.getId(), "longVariable")).isEqualTo(5L);
+  }
+
+  @Test
+  public void shouldKeepAGraalJsScriptEngineThatACustomScriptEngineManagerCreates() {
+    // given: a script engine manager whose GraalJS was not created by one of its script engine factories
+    processEngineConfiguration.setJavaScriptNumberNarrowing(LONG);
+    processEngineConfiguration.setUseCibSevenNamespaceInScripting(false);
+    processEngineConfiguration.setScriptEngineResolver(new DefaultScriptEngineResolver(new CamundaScriptEngineManager() {
+      @Override
+      public ScriptEngine getEngineByName(String shortName) {
+        return GraalJSScriptEngine.create(null, Context.newBuilder("js")
+            .allowHostAccess(HostAccess.ALL)
+            .allowHostClassLookup(className -> true));
+      }
+    }));
+    deployProcess(JAVASCRIPT, "execution.setVariable('longVariable', execution.getVariable('lng'));");
+
+    // when
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testProcess", inputs());
+
+    // then: kept, with the types of GraalJS
     assertThat(runtimeService.getVariable(processInstance.getId(), "longVariable")).isEqualTo(5L);
   }
 

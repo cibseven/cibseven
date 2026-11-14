@@ -148,19 +148,44 @@ public class GraalJsNumberNarrowingTest {
 
   @ParameterizedTest(name = "useCibSevenNamespaceInScripting={0}")
   @MethodSource("paths")
-  public void shouldNarrowInTheNashornCompatibilityMode(boolean useCibSevenNamespace) throws ScriptException {
+  public void shouldNarrowInTheNashornCompatibilityMode(boolean useCibSevenNamespace, @TempDir Path directory)
+      throws ScriptException, IOException {
     // given
     DefaultScriptEngineResolver resolver = sharedResolver();
     ProcessEngineConfigurationImpl configuration = nashornCompatibility(LONG, useCibSevenNamespace);
+    Path script = Files.writeString(directory.resolve("loaded.js"), "var loadedValue = 42;");
 
     // when
     Object longValueOf = evaluate(resolver, configuration, true, "sink.set(java.lang.Long.valueOf(5))");
     // a conversion of Nashorn: a number for a String parameter
     Object parsed = evaluate(resolver, configuration, true, "sink.set(java.lang.Integer.parseInt(42))");
+    // the settings of the mode: its globals, and the access to files that GraalJS allows in it
+    Object javaImporter = evaluate(resolver, configuration, true, "typeof JavaImporter");
+    Object loaded = evaluate(resolver, configuration, true,
+        "load('" + script.toAbsolutePath().toString().replace('\\', '/') + "'); loadedValue");
 
     // then
     assertThat(longValueOf).isEqualTo(5);
     assertThat(parsed).isEqualTo(42);
+    assertThat(javaImporter).isEqualTo("function");
+    assertThat(loaded).isEqualTo(42);
+  }
+
+  @Test
+  public void shouldKeepTheCamundaNamespaceWhenNarrowing() throws ScriptException {
+    // given: the script engine of CamundaScriptEngineManager, with its class loader for org.camunda
+    DefaultScriptEngineResolver resolver = sharedResolver();
+    ProcessEngineConfigurationImpl configuration = configuration(LONG);
+    configuration.setUseCibSevenNamespaceInScripting(true);
+
+    // when
+    Object className = evaluate(resolver, configuration, true,
+        "Java.type('org.camunda.bpm.engine.variable.Variables').class.getName()");
+    Object longValueOf = evaluate(resolver, configuration, true, "sink.set(java.lang.Long.valueOf(5))");
+
+    // then
+    assertThat(className).isEqualTo("org.cibseven.bpm.engine.variable.Variables");
+    assertThat(longValueOf).isEqualTo(5);
   }
 
   @Test
