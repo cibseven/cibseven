@@ -501,7 +501,9 @@
           <!-- JUEL method calls and argument conversion behave as in 2.2 on the EL APIs of the
                servers too (CIB7-2609): run the EL tests again with Tomcat's EL API (tomcat-el-api
                comes with tomcat-catalina) and with the one of WildFly instead of the upstream
-               jakarta.el-api. Expressly stays the global EL implementation. -->
+               jakarta.el-api. Expressly stays the global EL implementation. The reports go to the
+               default directory with the execution as suffix (TEST-<class>-el-api-tomcat.xml, test
+               class "<class>(el-api-tomcat)"), so that Jenkins collects them as separate results. -->
           <execution>
             <id>el-api-tomcat</id>
             <goals>
@@ -510,7 +512,7 @@
             <configuration>
               <test>ExpressionManagerTest,JuelScriptEngineTest,ProcessEngineElContextTest,DmnExpressionLanguageTest</test>
               <dependenciesToScan combine.self="override" />
-              <reportsDirectory>${project.build.directory}/surefire-reports-el-api-tomcat</reportsDirectory>
+              <reportNameSuffix>el-api-tomcat</reportNameSuffix>
               <classpathDependencyExcludes>
                 <classpathDependencyExclude>jakarta.el:jakarta.el-api</classpathDependencyExclude>
               </classpathDependencyExcludes>
@@ -524,7 +526,7 @@
             <configuration>
               <test>ExpressionManagerTest,JuelScriptEngineTest,ProcessEngineElContextTest,DmnExpressionLanguageTest</test>
               <dependenciesToScan combine.self="override" />
-              <reportsDirectory>${project.build.directory}/surefire-reports-el-api-wildfly</reportsDirectory>
+              <reportNameSuffix>el-api-wildfly</reportNameSuffix>
               <classpathDependencyExcludes>
                 <classpathDependencyExclude>jakarta.el:jakarta.el-api</classpathDependencyExclude>
                 <classpathDependencyExclude>org.apache.tomcat:tomcat-el-api</classpathDependencyExclude>
