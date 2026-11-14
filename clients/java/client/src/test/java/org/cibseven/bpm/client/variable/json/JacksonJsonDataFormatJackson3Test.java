@@ -29,6 +29,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.cibseven.bpm.client.exception.DataFormatException;
 import org.cibseven.bpm.client.impl.ExternalTaskClientBuilderImpl;
@@ -36,6 +40,9 @@ import org.cibseven.bpm.client.spi.DataFormat;
 import org.cibseven.bpm.client.spi.DataFormatConfigurator;
 import org.cibseven.bpm.client.variable.impl.format.json.JacksonJsonDataFormat;
 import org.cibseven.bpm.client.variable.impl.format.json.JacksonJsonDataFormatProvider;
+import org.cibseven.bpm.client.variable.json.Jackson2CompatibilityTest.Located;
+import org.cibseven.bpm.client.variable.json.Jackson2CompatibilityTest.Plain;
+import org.cibseven.bpm.client.variable.json.Jackson2CompatibilityTest.Spot;
 import org.cibseven.bpm.client.variable.json.fixture.FixtureItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,6 +52,8 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 import tools.jackson.core.JsonParser;
+import tools.jackson.databind.BeanDescription;
+import tools.jackson.databind.DeserializationConfig;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.MapperFeature;
@@ -53,6 +62,9 @@ import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.ValueDeserializer;
 import tools.jackson.databind.annotation.JsonDeserialize;
 import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.deser.ValueDeserializerModifier;
+import tools.jackson.databind.deser.bean.BeanDeserializerBase;
+import tools.jackson.databind.deser.std.DelegatingDeserializer;
 import tools.jackson.databind.introspect.DefaultAccessorNamingStrategy;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
@@ -247,6 +259,48 @@ public class JacksonJsonDataFormatJackson3Test {
         .hasStackTraceContaining("UnrecognizedPropertyException").hasStackTraceContaining("\"extra\"");
   }
 
+  @Test
+  public void shouldReadUnwrappedClassThatAnotherThreadUsedWhileJacksonResolvedIt() throws Exception {
+    // given a new mapper: thread 1 reads Race first and is held while Jackson resolves Race, after RaceHolder
+    SlowDeserializer.entered = new CountDownLatch(1);
+    SlowDeserializer.release = new CountDownLatch(1);
+    try {
+      CompletableFuture<Race> first = CompletableFuture.supplyAsync(() ->
+          dataFormat.readValue("{\"name\":\"r\"}", Race.class));
+      assertThat(SlowDeserializer.entered.await(10, TimeUnit.SECONDS)).isTrue();
+      // when thread 2 reads RaceHolder meanwhile
+      assertThat(dataFormat.readValue("{\"id\":\"h\",\"race\":{}}", RaceHolder.class).id).isEqualTo("h");
+      SlowDeserializer.release.countDown();
+      assertThat(first.get(10, TimeUnit.SECONDS).name).isEqualTo("r");
+    } finally {
+      SlowDeserializer.entered = null;
+      SlowDeserializer.release.countDown();
+    }
+
+    // then RaceHolder reads the unwrapped class as Jackson 2 does, also afterwards
+    RaceHolder holder = dataFormat.readValue(
+        "{\"id\":\"h\",\"race\":{\"name\":\"r\",\"street\":\"Main 1\",\"city\":\"Bonn\",\"label\":\"Main 1, Bonn\"}}",
+        RaceHolder.class);
+    assertThat(holder.race.spot.street).isEqualTo("Main 1");
+  }
+
+  @Test
+  public void shouldReadUnwrappedClassWhenAModuleWrapsItsDeserializer() {
+    // given a module added later, whose modifier runs first and wraps every bean deserializer
+    dataFormat.setObjectMapper(dataFormat.getObjectMapper().rebuild().addModule(wrappingModule()).build());
+    Wrapping.READS.set(0);
+
+    // then the unwrapped class is read back as in Jackson 2, through the module's wrapper
+    Located located = dataFormat.readValue(
+        "{\"name\":\"Shop\",\"street\":\"Main 1\",\"city\":\"Bonn\",\"label\":\"Main 1, Bonn\"}",
+        Located.class);
+    assertThat(located.spot.street).isEqualTo("Main 1");
+    assertThat(Wrapping.READS.get()).isPositive();
+    // and a class without @JsonUnwrapped still rejects unknown properties
+    assertThatThrownBy(() -> dataFormat.readValue("{\"name\":\"n\",\"extra\":1}", Plain.class))
+        .hasStackTraceContaining("UnrecognizedPropertyException").hasStackTraceContaining("\"extra\"");
+  }
+
   /** A type with a deserializer of its own: Jackson cannot unwrap it, so {@code @JsonUnwrapped} has no effect. */
   @JsonDeserialize(using = CodeDeserializer.class)
   public static class Code {
@@ -302,5 +356,79 @@ public class JacksonJsonDataFormatJackson3Test {
         return new Token(p.getString());
       }
     });
+  }
+
+  /** Resolving Race, Jackson takes RaceHolder first, which it keeps at once, and then Slow, which holds thread 1. */
+  public static class Race {
+    public String name;
+    @JsonUnwrapped
+    public Spot spot;
+    public RaceHolder holder;
+    public Slow slow;
+  }
+
+  public static class RaceHolder {
+    public String id;
+    public Race race;
+  }
+
+  @JsonDeserialize(using = SlowDeserializer.class)
+  public static class Slow {
+  }
+
+  /** Holds the thread that creates it while {@link #entered} is set, until {@link #release}. */
+  public static class SlowDeserializer extends ValueDeserializer<Slow> {
+    static volatile CountDownLatch entered;
+    static volatile CountDownLatch release;
+
+    public SlowDeserializer() {
+      CountDownLatch latch = entered;
+      if (latch != null) {
+        latch.countDown();
+        try {
+          release.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }
+    }
+
+    @Override
+    public Slow deserialize(JsonParser p, DeserializationContext ctxt) {
+      p.skipChildren();
+      return new Slow();
+    }
+  }
+
+  /** Wraps every bean deserializer, as a module may do to log or check what is read. */
+  public static class Wrapping extends DelegatingDeserializer {
+    static final AtomicInteger READS = new AtomicInteger();
+
+    public Wrapping(ValueDeserializer<?> delegatee) {
+      super(delegatee);
+    }
+
+    @Override
+    protected ValueDeserializer<?> newDelegatingInstance(ValueDeserializer<?> delegatee) {
+      return new Wrapping(delegatee);
+    }
+
+    @Override
+    public Object deserialize(JsonParser p, DeserializationContext ctxt) {
+      READS.incrementAndGet();
+      return super.deserialize(p, ctxt);
+    }
+  }
+
+  protected static SimpleModule wrappingModule() {
+    SimpleModule module = new SimpleModule("wrapping");
+    module.setDeserializerModifier(new ValueDeserializerModifier() {
+      @Override
+      public ValueDeserializer<?> modifyDeserializer(DeserializationConfig config, BeanDescription.Supplier beanDescRef,
+          ValueDeserializer<?> deserializer) {
+        return deserializer instanceof BeanDeserializerBase ? new Wrapping(deserializer) : deserializer;
+      }
+    });
+    return module;
   }
 }

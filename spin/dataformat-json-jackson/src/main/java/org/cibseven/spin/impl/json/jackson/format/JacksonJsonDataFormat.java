@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.jayway.jsonpath.spi.json.Jackson3JsonProvider;
@@ -89,6 +90,7 @@ import tools.jackson.databind.ser.Serializers;
 import tools.jackson.databind.ser.jdk.EnumSerializer;
 import tools.jackson.databind.ser.std.ToStringSerializer;
 import tools.jackson.databind.type.TypeFactory;
+import tools.jackson.databind.util.ClassUtil;
 import tools.jackson.databind.util.StdDateFormat;
 
 /**
@@ -541,9 +543,10 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
    * earlier version of the class still had. Classes without {@code @JsonUnwrapped} keep rejecting unknown properties,
    * and so do classes whose {@code @JsonUnwrapped} has no effect: Jackson unwraps a property only if its deserializer
    * can (a bean), not a String, a number, a Map, a collection, an interface or a type with a deserializer of its own.
-   * One difference from Jackson 2 stays: with {@code FAIL_ON_IGNORED_PROPERTIES} (off by default), a property that
-   * the unwrapped class ignores ({@code @JsonIgnoreProperties}, {@code @JsonIncludeProperties}) is skipped instead of
-   * failing.
+   * A modifier that a module added later runs before this one: if it wraps the bean deserializer in a
+   * {@link DelegatingDeserializer}, the deserializer inside is changed. One difference from Jackson 2 stays: with
+   * {@code FAIL_ON_IGNORED_PROPERTIES} (off by default), a property that the unwrapped class ignores
+   * ({@code @JsonIgnoreProperties}, {@code @JsonIncludeProperties}) is skipped instead of failing.
    */
   public static class Jackson2UnwrappedDeserializerModifier extends ValueDeserializerModifier {
 
@@ -552,13 +555,22 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
     @Override
     public ValueDeserializer<?> modifyDeserializer(DeserializationConfig config, BeanDescription.Supplier beanDescRef,
         ValueDeserializer<?> deserializer) {
-      if (!(deserializer instanceof BeanDeserializerBase)) {
-        return deserializer;
+      if (deserializer instanceof BeanDeserializerBase) {
+        return holdUntilResolved(config, (BeanDeserializerBase) deserializer);
       }
+      if (deserializer instanceof DelegatingDeserializer && !(deserializer instanceof Jackson2UnwrappedDeserializer)) {
+        ValueDeserializer<?> delegatee = deserializer.getDelegatee();
+        ValueDeserializer<?> modified = modifyDeserializer(config, beanDescRef, delegatee);
+        return modified == delegatee ? deserializer : deserializer.replaceDelegatee(modified);
+      }
+      return deserializer;
+    }
+
+    private static ValueDeserializer<?> holdUntilResolved(DeserializationConfig config,
+        BeanDeserializerBase deserializer) {
       AnnotationIntrospector introspector = config.getAnnotationIntrospector();
       Set<String> annotated = new HashSet<>();
-      for (Iterator<SettableBeanProperty> properties = ((BeanDeserializerBase) deserializer).properties();
-          properties.hasNext(); ) {
+      for (Iterator<SettableBeanProperty> properties = deserializer.properties(); properties.hasNext(); ) {
         SettableBeanProperty property = properties.next();
         AnnotatedMember member = property.getMember();
         if (member != null && introspector.findUnwrappingNameTransformer(config, member) != null) {
@@ -566,47 +578,59 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
         }
       }
       return annotated.isEmpty() ? deserializer
-          : new Jackson2UnwrappedDeserializer(deserializer, beanDescRef.getType(), annotated);
+          : new Jackson2UnwrappedDeserializer(deserializer, deserializer.getValueType(), annotated,
+              new AtomicReference<>());
     }
   }
 
   /**
    * Holds the deserializer of a class with {@code @JsonUnwrapped} properties until Jackson has resolved it. Jackson
    * takes every property that it really unwraps out of {@link BeanDeserializerBase#properties()}; only if one of the
-   * annotated properties is gone does the class ignore unknown properties.
+   * annotated properties is gone does the class ignore unknown properties. This is decided once for the class, when
+   * Jackson has resolved it; until then the class reads as Jackson alone would.
    */
   static final class Jackson2UnwrappedDeserializer extends DelegatingDeserializer {
 
     private final JavaType type;
     private final Set<String> annotated;
-    private volatile boolean resolved;
+    /** Whether Jackson unwraps one of the annotated properties: null until it has resolved the class. */
+    private final AtomicReference<Boolean> unwraps;
     private volatile ValueDeserializer<Object> forReading;
 
-    Jackson2UnwrappedDeserializer(ValueDeserializer<?> delegatee, JavaType type, Set<String> annotated) {
+    Jackson2UnwrappedDeserializer(ValueDeserializer<?> delegatee, JavaType type, Set<String> annotated,
+        AtomicReference<Boolean> unwraps) {
       super(delegatee);
       this.type = type;
       this.annotated = annotated;
+      this.unwraps = unwraps;
     }
 
     @Override
     protected ValueDeserializer<?> newDelegatingInstance(ValueDeserializer<?> delegatee) {
-      return new Jackson2UnwrappedDeserializer(delegatee, type, annotated);
+      return new Jackson2UnwrappedDeserializer(delegatee, type, annotated, unwraps);
     }
 
     @Override
     public void resolve(DeserializationContext ctxt) {
       super.resolve(ctxt);
-      resolved = true;
+      unwraps.compareAndSet(null, _delegatee instanceof BeanDeserializerBase
+          && unwraps((BeanDeserializerBase) _delegatee));
     }
 
     @Override
     public ValueDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) {
       ValueDeserializer<?> contextual = ctxt.handleSecondaryContextualization(_delegatee, property, type);
-      if (resolved) {
-        return jackson2(contextual);
+      Boolean decided = unwraps.get();
+      if (decided != null) {
+        return jackson2(contextual, decided);
       }
-      // a property that refers back to a class Jackson is still resolving: decide on the first read
-      return contextual == _delegatee ? this : newDelegatingInstance(contextual);
+      // a property that refers back to a class Jackson is still resolving: decide on the first read after that. Left
+      // as they are: a copy Jackson made of the unresolved deserializer, which does not unwrap (in Jackson 2 neither),
+      // and a non-static inner class, which its outer class can create only from a bean deserializer
+      if (contextual != _delegatee || ClassUtil.isNonStaticInnerClass(type.getRawClass())) {
+        return contextual;
+      }
+      return this;
     }
 
     @Override
@@ -628,14 +652,19 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
     private ValueDeserializer<Object> forReading() {
       ValueDeserializer<Object> deserializer = forReading;
       if (deserializer == null) {
-        deserializer = (ValueDeserializer<Object>) jackson2(_delegatee);
+        Boolean decided = unwraps.get();
+        if (decided == null) {
+          // another thread still resolves the class: read as Jackson alone would, and keep nothing
+          return (ValueDeserializer<Object>) _delegatee;
+        }
+        deserializer = (ValueDeserializer<Object>) jackson2(_delegatee, decided);
         forReading = deserializer;
       }
       return deserializer;
     }
 
-    private ValueDeserializer<?> jackson2(ValueDeserializer<?> deserializer) {
-      if (deserializer instanceof BeanDeserializerBase && unwraps((BeanDeserializerBase) deserializer)) {
+    private static ValueDeserializer<?> jackson2(ValueDeserializer<?> deserializer, boolean unwraps) {
+      if (unwraps && deserializer instanceof BeanDeserializerBase) {
         BeanDeserializerBase lenient = ((BeanDeserializerBase) deserializer).withIgnoreAllUnknown(true);
         if (lenient.getClass() == deserializer.getClass()) {
           return lenient;

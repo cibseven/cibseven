@@ -32,6 +32,7 @@ import org.cibseven.bpm.client.variable.impl.format.json.JacksonJsonDataFormat;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
@@ -228,6 +229,30 @@ public class Jackson2CompatibilityTest {
     public String name;
     @JsonUnwrapped
     public Badge badge;
+  }
+
+  /** Ignores the property of {@link Tagged} whose {@code @JsonUnwrapped} has no effect. */
+  public static class TaggedHolder {
+    @JsonIgnoreProperties("tag")
+    public Tagged tagged;
+  }
+
+  /** Has a non-static inner class that unwraps a class and refers back to its outer class. */
+  public static class Office {
+    public String name;
+    public Desk desk;
+
+    public class Desk {
+      public String id;
+      @JsonUnwrapped
+      public Spot spot;
+      public Office office;
+    }
+  }
+
+  /** Holds the inner class of {@link Office}, so that Jackson can meet it before {@link Office}. */
+  public static class DeskHolder {
+    public Office.Desk desk;
   }
 
   /** An unwrapping class that holds itself, in a list and in a field. */
@@ -465,5 +490,22 @@ public class Jackson2CompatibilityTest {
     // nor on an interface: no deserializer could unwrap it
     assertThatThrownBy(() -> format.readValue("{\"name\":\"n\",\"extra\":1}", Badged.class))
         .hasStackTraceContaining("UnrecognizedPropertyException").hasStackTraceContaining("\"extra\"");
+    // nor where a holder ignores the annotated property: Jackson leaves it out of the deserializer for that holder
+    assertThatThrownBy(() -> format.readValue("{\"tagged\":{\"name\":\"n\",\"extra\":1}}", TaggedHolder.class))
+        .hasStackTraceContaining("UnrecognizedPropertyException").hasStackTraceContaining("\"extra\"");
+  }
+
+  @Test
+  public void shouldReadInnerClassThatRefersBackToItsOuterClass() {
+    // Jackson meets the inner class first in another class
+    assertThat(format.readValue("{\"desk\":null}", DeskHolder.class).desk).isNull();
+
+    // then the outer class can still create it
+    Office office = format.readValue(
+        "{\"name\":\"Head office\",\"desk\":{\"id\":\"D1\",\"street\":\"Main 1\",\"city\":\"Bonn\"}}",
+        Office.class);
+    assertThat(office.desk.id).isEqualTo("D1");
+    assertThat(office.desk.spot.street).isEqualTo("Main 1");
+    assertThat(office.desk.spot.city).isEqualTo("Bonn");
   }
 }
