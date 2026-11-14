@@ -203,6 +203,7 @@ public final class GraalJsNumberNarrowing {
     final Method option;
     final Method allowHostAccess;
     final Method allowAllAccess;
+    /** Null where GraalJS does not have it (21.3): its Nashorn compatibility mode does not set it either. */
     final Method useSystemExit;
     final Method create;
     final Method newEngineBuilder;
@@ -233,7 +234,7 @@ public final class GraalJsNumberNarrowing {
       option = contextBuilderClass.getMethod("option", String.class, String.class);
       allowHostAccess = contextBuilderClass.getMethod("allowHostAccess", hostAccessClass);
       allowAllAccess = contextBuilderClass.getMethod("allowAllAccess", boolean.class);
-      useSystemExit = contextBuilderClass.getMethod("useSystemExit", boolean.class);
+      useSystemExit = optionalMethod(contextBuilderClass, "useSystemExit", boolean.class);
       create = graalJsScriptEngineClass.getMethod("create", engineClass, contextBuilderClass);
       newEngineBuilder = engineClass.getMethod("newBuilder");
       allowExperimentalEngineOptions = engineBuilderClass.getMethod("allowExperimentalOptions", boolean.class);
@@ -278,7 +279,7 @@ public final class GraalJsNumberNarrowing {
     Object nashornCompatibility(Object builder) throws ReflectiveOperationException {
       builder = option.invoke(builder, NASHORN_COMPAT_OPTION, "true");
       builder = allowAllAccess.invoke(builder, true);
-      return useSystemExit.invoke(builder, true);
+      return useSystemExit == null ? builder : useSystemExit.invoke(builder, true);
     }
 
     /** @return a context builder with the options that GraalJSScriptEngine sets when it creates one itself */
@@ -303,6 +304,15 @@ public final class GraalJsNumberNarrowing {
             && optionDescriptorsClass.getMethod("get", String.class).invoke(options, CHARSET_OPTION[0]) != null;
       }
       return knowsCharsetOption;
+    }
+  }
+
+  /** @return the public method, or null if the class does not have it */
+  private static Method optionalMethod(Class<?> type, String name, Class<?>... parameterTypes) {
+    try {
+      return type.getMethod(name, parameterTypes);
+    } catch (NoSuchMethodException e) {
+      return null;
     }
   }
 

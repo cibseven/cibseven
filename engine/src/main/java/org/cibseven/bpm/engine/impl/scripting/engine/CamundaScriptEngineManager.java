@@ -230,8 +230,12 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
         if (narrowNumbers) {
           // what the attribute polyglot.js.nashorn-compat sets too, which DefaultScriptEngineResolver does not set on
           // a script engine with its own host access
-          var useSystemExit = builderClass.getMethod("useSystemExit", boolean.class);
-          builder = useSystemExit.invoke(builder, true);
+          try {
+            var useSystemExit = builderClass.getMethod("useSystemExit", boolean.class);
+            builder = useSystemExit.invoke(builder, true);
+          } catch (NoSuchMethodException e) {
+            // GraalJS 21.3 does not have it, and its Nashorn compatibility mode does not set it either
+          }
         }
       }
 
