@@ -231,6 +231,9 @@ public class GraalJsNumberNarrowingTest {
     assertThatThrownBy(() -> GraalJsNumberNarrowing.createScriptEngine(groovy, false))
         .isInstanceOf(ProcessEngineException.class)
         .hasMessageContaining("ENGINE-21004")
+        // the cause in the message, not only in the stack trace
+        .hasMessageContaining("NoSuchMethodException")
+        .hasMessageNotContaining("{}")
         .hasMessageContaining("Set javaScriptNumberNarrowing to 'none'");
   }
 
