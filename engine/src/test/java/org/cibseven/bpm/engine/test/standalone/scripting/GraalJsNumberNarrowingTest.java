@@ -17,6 +17,7 @@
 package org.cibseven.bpm.engine.test.standalone.scripting;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cibseven.bpm.engine.impl.scripting.engine.GraalJsNumberNarrowing.LONG;
 import static org.cibseven.bpm.engine.impl.scripting.engine.GraalJsNumberNarrowing.NONE;
 
@@ -27,13 +28,16 @@ import java.util.stream.Stream;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.scripting.engine.CamundaScriptEngineManager;
 import org.cibseven.bpm.engine.impl.scripting.engine.DefaultScriptEngineResolver;
+import org.cibseven.bpm.engine.impl.scripting.engine.GraalJsNumberNarrowing;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -163,6 +167,18 @@ public class GraalJsNumberNarrowingTest {
 
     // then
     assertThat(globalBean).isEqualTo(7);
+  }
+
+  @Test
+  public void shouldFailIfTheNarrowedScriptEngineCannotBeCreated() {
+    // given: a script engine that cannot be created again with the host access of the narrowing
+    ScriptEngine groovy = new ScriptEngineManager().getEngineByName("groovy");
+
+    // when/then: an error that names the way out, not a script engine that gives other variable types
+    assertThatThrownBy(() -> GraalJsNumberNarrowing.createScriptEngine(groovy, false))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("ENGINE-21004")
+        .hasMessageContaining("Set javaScriptNumberNarrowing to 'none'");
   }
 
 }

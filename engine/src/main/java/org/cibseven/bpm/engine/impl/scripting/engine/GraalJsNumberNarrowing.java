@@ -18,6 +18,7 @@ package org.cibseven.bpm.engine.impl.scripting.engine;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Locale;
@@ -99,9 +100,6 @@ public final class GraalJsNumberNarrowing {
    */
   private static final Map<Object, Graal> GRAALS = new WeakHashMap<>();
 
-  /** The failure is logged once, not at every script. */
-  private static volatile boolean failureLogged;
-
   private GraalJsNumberNarrowing() {
   }
 
@@ -136,10 +134,11 @@ public final class GraalJsNumberNarrowing {
   /**
    * Creates a GraalJS script engine like the given one, which its script engine factory created: with the default
    * options of the factory and the host access of this class, on a polyglot engine of this class for that factory,
-   * and with the global bindings of the given one (those of its script engine manager). If that fails, it logs a
-   * warning and returns the given script engine.
+   * and with the global bindings of the given one (those of its script engine manager).
    *
    * @param nashornCompatibility whether the process engine enables the Nashorn compatibility mode
+   * @throws ProcessEngineException if that script engine cannot be created: a script that ran with the types GraalJS
+   *   gives would store other variable types than its process expects
    */
   public static ScriptEngine createScriptEngine(ScriptEngine factoryScriptEngine, boolean nashornCompatibility) {
     try {
@@ -162,12 +161,10 @@ public final class GraalJsNumberNarrowing {
       markOwnHostAccess(scriptEngine);
       return scriptEngine;
 
+    } catch (InvocationTargetException e) {
+      throw LOG.graalJsNumberNarrowingFailed(LONG, e.getCause() != null ? e.getCause() : e);
     } catch (ReflectiveOperationException | RuntimeException e) {
-      if (!failureLogged) {
-        failureLogged = true;
-        LOG.logGraalJsNumberNarrowingFailed(LONG, e);
-      }
-      return factoryScriptEngine;
+      throw LOG.graalJsNumberNarrowingFailed(LONG, e);
     }
   }
 

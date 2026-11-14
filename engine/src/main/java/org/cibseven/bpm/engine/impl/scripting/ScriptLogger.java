@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.impl.scripting;
 
+import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 
 /**
@@ -44,10 +45,11 @@ public class ScriptLogger extends ProcessEngineLogger {
         "003", "Failed to close script engine: {}", e.getMessage());
   }
 
-  public void logGraalJsNumberNarrowingFailed(String mode, Exception e) {
-    logWarn(
-        "004", "Cannot create the GraalJS script engine with javaScriptNumberNarrowing '{}': numbers keep the types GraalJS gives. Reason: {}",
-        mode, e.getMessage());
+  public ProcessEngineException graalJsNumberNarrowingFailed(String mode, Throwable cause) {
+    return new ProcessEngineException(exceptionMessage(
+        "004", "Cannot create the GraalJS script engine with javaScriptNumberNarrowing '{}': {}. Set "
+            + "javaScriptNumberNarrowing to 'none' to run JavaScript with the number types GraalJS gives.",
+        mode, cause), cause);
   }
 
 }
