@@ -22,6 +22,8 @@ import static org.cibseven.bpm.engine.impl.scripting.engine.GraalJsNumberNarrowi
 import static org.cibseven.bpm.engine.impl.scripting.engine.GraalJsNumberNarrowing.NONE;
 
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
@@ -38,12 +40,20 @@ import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.scripting.engine.CamundaScriptEngineManager;
 import org.cibseven.bpm.engine.impl.scripting.engine.DefaultScriptEngineResolver;
 import org.cibseven.bpm.engine.impl.scripting.engine.GraalJsNumberNarrowing;
+import org.graalvm.collections.EconomicMap;
+import org.graalvm.nativeimage.ImageInfo;
+import org.graalvm.polyglot.Engine;
+import org.graalvm.polyglot.HostAccess;
+import org.graalvm.word.WordBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.js.scriptengine.GraalJSScriptEngine;
 
 /**
  * CIB7-2665: the script engines of {@code javaScriptNumberNarrowing} with the script engine resolvers of the
@@ -360,6 +370,52 @@ public class GraalJsNumberNarrowingTest {
 
     // then
     assertThat(longValueOf).isEqualTo(5);
+  }
+
+  /**
+   * GraalJS as the WildFly modules of CIB seven load it: everything in one class loader but the classes of
+   * org.graalvm.sdk.nativeimage, whose class loader cannot see org.graalvm.sdk.word.
+   */
+  protected static class GraalJsWithoutWordForNativeImage extends URLClassLoader {
+    protected final ClassLoader nativeImage;
+
+    protected GraalJsWithoutWordForNativeImage(URL[] graalJs, ClassLoader nativeImage) {
+      super(graalJs, ClassLoader.getPlatformClassLoader());
+      this.nativeImage = nativeImage;
+    }
+
+    @Override
+    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+      return name.startsWith("org.graalvm.nativeimage.") ? nativeImage.loadClass(name) : super.loadClass(name, resolve);
+    }
+  }
+
+  protected static URL jarOf(Class<?> type) {
+    return type.getProtectionDomain().getCodeSource().getLocation();
+  }
+
+  @Test
+  public void shouldLookUpGraalJsWhereTheTypesOfNativeImageCannotBeLinked() throws Exception {
+    // given: Engine.storeCache(Path, WordPointer), a type of org.graalvm.sdk.nativeimage that extends one of
+    // org.graalvm.sdk.word: Class.getMethod on Engine links it and fails, as with the WildFly modules
+    URL[] graalJs = {jarOf(GraalJSScriptEngine.class), jarOf(Engine.class), jarOf(Truffle.class),
+        jarOf(EconomicMap.class), jarOf(WordBase.class)};
+    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+    try (URLClassLoader nativeImage = new URLClassLoader(new URL[] {jarOf(ImageInfo.class)},
+            ClassLoader.getPlatformClassLoader());
+        URLClassLoader loader = new GraalJsWithoutWordForNativeImage(graalJs, nativeImage)) {
+      Class<?> graalJsScriptEngine = loader.loadClass(GraalJSScriptEngine.class.getName());
+      // the polyglot implementation is found through the context class loader
+      Thread.currentThread().setContextClassLoader(loader);
+
+      // when
+      Object hostAccess = GraalJsNumberNarrowing.getHostAccess(new Object(), graalJsScriptEngine, false);
+
+      // then
+      assertThat(hostAccess).isInstanceOf(loader.loadClass(HostAccess.class.getName()));
+    } finally {
+      Thread.currentThread().setContextClassLoader(contextClassLoader);
+    }
   }
 
   @Test

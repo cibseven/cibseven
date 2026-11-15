@@ -16,6 +16,9 @@
  */
 package org.cibseven.bpm.engine.impl.scripting.engine;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -166,7 +169,7 @@ public final class GraalJsNumberNarrowing {
 
     } catch (InvocationTargetException e) {
       throw LOG.graalJsNumberNarrowingFailed(LONG, e.getCause() != null ? e.getCause() : e);
-    } catch (ReflectiveOperationException | RuntimeException e) {
+    } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
       throw LOG.graalJsNumberNarrowingFailed(LONG, e);
     }
   }
@@ -209,10 +212,10 @@ public final class GraalJsNumberNarrowing {
     /** Null where GraalJS does not have it (21.3): its Nashorn compatibility mode does not set it either. */
     final Method useSystemExit;
     final Method create;
-    final Method newEngineBuilder;
-    final Method allowExperimentalEngineOptions;
-    final Method buildEngine;
-    final Method getLanguages;
+    final MethodHandle newEngineBuilder;
+    final MethodHandle allowExperimentalEngineOptions;
+    final MethodHandle buildEngine;
+    final MethodHandle getLanguages;
     final Class<?> optionDescriptorsClass;
     final Class<?> hostAccessClass;
 
@@ -239,10 +242,15 @@ public final class GraalJsNumberNarrowing {
       allowAllAccess = contextBuilderClass.getMethod("allowAllAccess", boolean.class);
       useSystemExit = optionalMethod(contextBuilderClass, "useSystemExit", boolean.class);
       create = graalJsScriptEngineClass.getMethod("create", engineClass, contextBuilderClass);
-      newEngineBuilder = engineClass.getMethod("newBuilder");
-      allowExperimentalEngineOptions = engineBuilderClass.getMethod("allowExperimentalOptions", boolean.class);
-      buildEngine = engineBuilderClass.getMethod("build");
-      getLanguages = engineClass.getMethod("getLanguages");
+      // one method at a time: Class.getMethod on Engine links the types of all its methods, also the WordPointer of
+      // Engine.storeCache, which the WildFly module org.graalvm.sdk.nativeimage cannot link (it does not see
+      // org.graalvm.sdk.word): a NoClassDefFoundError for every script
+      MethodHandles.Lookup lookup = MethodHandles.publicLookup();
+      newEngineBuilder = lookup.findStatic(engineClass, "newBuilder", MethodType.methodType(engineBuilderClass));
+      allowExperimentalEngineOptions = lookup.findVirtual(engineBuilderClass, "allowExperimentalOptions",
+          MethodType.methodType(engineBuilderClass, boolean.class));
+      buildEngine = lookup.findVirtual(engineBuilderClass, "build", MethodType.methodType(engineClass));
+      getLanguages = lookup.findVirtual(engineClass, "getLanguages", MethodType.methodType(Map.class));
       optionDescriptorsClass = Class.forName("org.graalvm.options.OptionDescriptors", false, loader);
     }
 
@@ -271,8 +279,8 @@ public final class GraalJsNumberNarrowing {
       int index = nashornCompatibility ? 1 : 0;
       Object engine = polyglotEngines[index] == null ? null : polyglotEngines[index].get();
       if (engine == null) {
-        Object builder = allowExperimentalEngineOptions.invoke(newEngineBuilder.invoke(null), true);
-        engine = buildEngine.invoke(builder);
+        Object builder = invoke(allowExperimentalEngineOptions, invoke(newEngineBuilder), true);
+        engine = invoke(buildEngine, builder);
         polyglotEngines[index] = new WeakReference<>(engine);
       }
       return engine;
@@ -300,13 +308,22 @@ public final class GraalJsNumberNarrowing {
 
     synchronized boolean knowsCharsetOption(Object polyglotEngine) throws ReflectiveOperationException {
       if (knowsCharsetOption == null) {
-        Map<?, ?> languages = (Map<?, ?>) getLanguages.invoke(polyglotEngine);
+        Map<?, ?> languages = (Map<?, ?>) invoke(getLanguages, polyglotEngine);
         Object javaScript = languages.get("js");
         Object options = javaScript == null ? null : javaScript.getClass().getMethod("getOptions").invoke(javaScript);
         knowsCharsetOption = options != null
             && optionDescriptorsClass.getMethod("get", String.class).invoke(options, CHARSET_OPTION[0]) != null;
       }
       return knowsCharsetOption;
+    }
+  }
+
+  /** Calls the method handle; what it throws comes as the cause of an InvocationTargetException, as with Method. */
+  private static Object invoke(MethodHandle method, Object... arguments) throws InvocationTargetException {
+    try {
+      return method.invokeWithArguments(arguments);
+    } catch (Throwable e) {
+      throw new InvocationTargetException(e);
     }
   }
 
