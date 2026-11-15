@@ -292,7 +292,8 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
    * ({@link JsonMapper#builderWithJackson2Defaults()}: dates as timestamps, no alphabetical property order,
    * enums by name, null for primitives accepted, unknown properties rejected, "/" not escaped, ...) and the
    * nesting depth limit of Jackson 2 ({@link #MAX_NESTING_DEPTH}) for reading and writing. JSON written by
-   * CIB seven 2.x on Jackson 2 is read and written unchanged.
+   * CIB seven 2.x on Jackson 2 is read and written unchanged. As in Jackson 2, a class whose {@code @JsonUnwrapped}
+   * property Jackson unwraps ignores unknown properties ({@link Jackson2UnwrappedDeserializerModifier}).
    *
    * @return a new default object mapper
    */
@@ -544,7 +545,11 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
    * and so do classes whose {@code @JsonUnwrapped} has no effect: Jackson unwraps a property only if its deserializer
    * can (a bean), not a String, a number, a Map, a collection, an interface or a type with a deserializer of its own.
    * A modifier that a module added later runs before this one: if it wraps the bean deserializer in a
-   * {@link DelegatingDeserializer}, the deserializer inside is changed. One difference from Jackson 2 stays: with
+   * {@link DelegatingDeserializer}, the deserializer inside is changed. Differences from Jackson 2 that stay, all
+   * rare: the class keeps rejecting unknown properties when a module wraps its bean deserializer in something else
+   * or replaces it with a subclass of its own, and when it is a non-static inner class that Jackson first meets
+   * through another class while it is still resolving the outer class; the holder of {@code @JsonUnwrapped} on an
+   * interface whose type id is an external property ignores unknown properties; with
    * {@code FAIL_ON_IGNORED_PROPERTIES} (off by default), a property that the unwrapped class ignores
    * ({@code @JsonIgnoreProperties}, {@code @JsonIncludeProperties}) is skipped instead of failing.
    */

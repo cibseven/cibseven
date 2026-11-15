@@ -386,6 +386,8 @@ public class JacksonJsonDataFormatTest {
       assertThat(SlowDeserializer.entered.await(10, TimeUnit.SECONDS)).isTrue();
       // when thread 2 reads RaceHolder meanwhile
       assertThat(read(format, "{\"id\":\"h\",\"race\":{}}", RaceHolder.class).id).isEqualTo("h");
+      // thread 1 is still held: thread 2 read while Jackson was resolving Race
+      assertThat(first).isNotDone();
       SlowDeserializer.release.countDown();
       assertThat(first.get(10, TimeUnit.SECONDS).name).isEqualTo("r");
     } finally {

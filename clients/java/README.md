@@ -43,7 +43,8 @@ Since CIB seven 3.0 the client uses Jackson 3 (`tools.jackson`) for object varia
 the requests to the engine. The JSON is the same as with the Jackson 2 based client of CIB seven 2.x: same property
 order, dates as timestamps, enums by name, the same `objectTypeName`s. Unknown properties are still rejected when an
 object variable is read, except in a class whose `@JsonUnwrapped` property Jackson unwraps (a bean), which ignores
-them as in 2.x; nesting depth up to 1000 is accepted.
+them as in 2.x (rare cases stay strict, see the Javadoc of `Jackson2UnwrappedDeserializerModifier`); nesting depth
+up to 1000 is accepted.
 
 A `DataFormatConfigurator` for `JacksonJsonDataFormat` gets a Jackson 3 mapper. Jackson 3 mappers are immutable, so
 replace the mapper instead of changing it:
