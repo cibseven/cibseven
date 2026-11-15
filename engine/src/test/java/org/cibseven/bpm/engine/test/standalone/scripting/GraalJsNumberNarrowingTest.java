@@ -280,6 +280,31 @@ public class GraalJsNumberNarrowingTest {
     assertThat(globalBean).isEqualTo(7);
   }
 
+  static Stream<Arguments> optionsOfTheFactory() {
+    return Stream.of(
+        // js.print
+        Arguments.of("typeof print", "function"),
+        // js.load
+        Arguments.of("typeof load", "function"),
+        // js.global-arguments
+        Arguments.of("typeof arguments", "object"),
+        // js.syntax-extensions: an expression closure of Nashorn
+        Arguments.of("(function() 42)()", 42));
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("optionsOfTheFactory")
+  public void shouldGiveTheNarrowedScriptEngineTheOptionsOfTheFactory(String script, Object expected)
+      throws ScriptException {
+    // when: the script engine of the factory (mode none) and the one created in its place (mode long)
+    Object fromTheFactory = evaluate(sharedResolver(), configuration(NONE), true, script);
+    Object narrowed = evaluate(sharedResolver(), configuration(LONG), true, script);
+
+    // then: the options that GraalJSScriptEngine sets when it creates the context itself
+    assertThat(fromTheFactory).isEqualTo(expected);
+    assertThat(narrowed).isEqualTo(fromTheFactory);
+  }
+
   @ParameterizedTest(name = "{0}")
   @MethodSource("numbers")
   public void shouldNarrowOnlyJavaLongsInIntRange(String number, Object inModeLong, Object inModeNone)
