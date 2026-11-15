@@ -43,6 +43,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * CIB7-2665: the script engines of {@code javaScriptNumberNarrowing} with the script engine resolvers of the
@@ -180,6 +181,50 @@ public class GraalJsNumberNarrowingTest {
     assertThat(parsed).isEqualTo(42);
     assertThat(javaImporter).isEqualTo("function");
     assertThat(loaded).isEqualTo(42);
+  }
+
+  @ParameterizedTest(name = "Nashorn compatibility first: {0}")
+  @ValueSource(booleans = {true, false})
+  public void shouldNarrowWithAndWithoutNashornCompatibilityFromOneResolver(boolean nashornFirst)
+      throws ScriptException {
+    // given: a process application on two process engines in mode long, one of them in the Nashorn compatibility mode
+    DefaultScriptEngineResolver resolver = sharedResolver();
+    ProcessEngineConfigurationImpl nashorn = nashornCompatibility(LONG, false);
+    ProcessEngineConfigurationImpl plain = configuration(LONG);
+    String script = "sink.set(java.lang.Long.valueOf(5))";
+    String parse = "sink.set(java.lang.Integer.parseInt(42))";
+
+    // when
+    Object fromFirst = evaluate(resolver, nashornFirst ? nashorn : plain, true, script);
+    Object fromSecond = evaluate(resolver, nashornFirst ? plain : nashorn, true, script);
+    Object parsedWithNashorn = evaluate(resolver, nashorn, true, parse);
+
+    // then: both narrowed, each host access on a polyglot engine of its own (GraalJS rejects a second host access on
+    // one), and the conversions of Nashorn only in that mode
+    assertThat(fromFirst).isEqualTo(5);
+    assertThat(fromSecond).isEqualTo(5);
+    assertThat(parsedWithNashorn).isEqualTo(42);
+    assertThatThrownBy(() -> evaluate(resolver, plain, true, parse)).isInstanceOf(ScriptException.class);
+  }
+
+  @ParameterizedTest(name = "useCibSevenNamespaceInScripting={0}")
+  @MethodSource("paths")
+  public void shouldKeepTheTypesOfGraalJsInModeNoneWithNashornCompatibility(boolean useCibSevenNamespace)
+      throws ScriptException {
+    // given
+    DefaultScriptEngineResolver resolver = sharedResolver();
+    ProcessEngineConfigurationImpl configuration = nashornCompatibility(NONE, useCibSevenNamespace);
+
+    // when
+    Object longValueOf = evaluate(resolver, configuration, true, "sink.set(java.lang.Long.valueOf(5))");
+    Object parsed = evaluate(resolver, configuration, true, "sink.set(java.lang.Integer.parseInt(42))");
+    Object javaImporter = evaluate(resolver, configuration, true, "typeof JavaImporter");
+
+    // then: the script engine of GraalJS in the Nashorn compatibility mode, as without the narrowing
+    assertThat(GraalJsNumberNarrowing.hasOwnHostAccess(resolve(resolver, configuration))).isFalse();
+    assertThat(longValueOf).isEqualTo(5L);
+    assertThat(parsed).isEqualTo(42);
+    assertThat(javaImporter).isEqualTo("function");
   }
 
   @Test
