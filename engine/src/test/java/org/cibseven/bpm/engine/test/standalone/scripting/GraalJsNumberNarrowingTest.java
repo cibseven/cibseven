@@ -94,6 +94,17 @@ public class GraalJsNumberNarrowingTest {
     }
   }
 
+  /** @return the script engine that the resolver gives for JavaScript with the configuration */
+  protected static ScriptEngine resolve(DefaultScriptEngineResolver resolver,
+      ProcessEngineConfigurationImpl configuration) {
+    Context.setProcessEngineConfiguration(configuration);
+    try {
+      return resolver.getScriptEngine("javascript", true);
+    } finally {
+      Context.removeProcessEngineConfiguration();
+    }
+  }
+
   static Stream<Arguments> paths() {
     return Stream.of(Arguments.of(false), Arguments.of(true));
   }
@@ -247,6 +258,38 @@ public class GraalJsNumberNarrowingTest {
 
     // then: the mapping is for parameters of type Object
     assertThat(number).isEqualTo(5L);
+  }
+
+  @ParameterizedTest(name = "useCibSevenNamespaceInScripting={0}")
+  @MethodSource("paths")
+  public void shouldNotNarrowWithoutHostAccess(boolean useCibSevenNamespace) {
+    // given: mode long, but no host access for the scripts
+    DefaultScriptEngineResolver resolver = sharedResolver();
+    ProcessEngineConfigurationImpl configuration = configuration(LONG).setConfigureScriptEngineHostAccess(false);
+    configuration.setUseCibSevenNamespaceInScripting(useCibSevenNamespace);
+
+    // when
+    ScriptEngine scriptEngine = resolve(resolver, configuration);
+
+    // then: the script engine of GraalJS as without the narrowing, whose scripts cannot reach a Java object
+    assertThat(GraalJsNumberNarrowing.hasOwnHostAccess(scriptEngine)).isFalse();
+    assertThatThrownBy(() -> evaluate(resolver, configuration, true, "sink.set(5)"))
+        .isInstanceOf(ScriptException.class)
+        .hasMessageNotContaining("ENGINE-21004");
+  }
+
+  @ParameterizedTest(name = "useCibSevenNamespaceInScripting={0}")
+  @MethodSource("paths")
+  public void shouldNarrowTheScriptEngineNamedForJavaScript(boolean useCibSevenNamespace) throws ScriptException {
+    // given: the script engine for JavaScript named in the configuration
+    ProcessEngineConfigurationImpl configuration = configuration(LONG).setScriptEngineNameJavaScript("Graal.js");
+    configuration.setUseCibSevenNamespaceInScripting(useCibSevenNamespace);
+
+    // when
+    Object longValueOf = evaluate(sharedResolver(), configuration, true, "sink.set(java.lang.Long.valueOf(5))");
+
+    // then
+    assertThat(longValueOf).isEqualTo(5);
   }
 
   @Test
