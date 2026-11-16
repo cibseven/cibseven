@@ -347,6 +347,7 @@ import org.cibseven.bpm.engine.impl.scripting.ScriptFactory;
 import org.cibseven.bpm.engine.impl.scripting.engine.BeansResolverFactory;
 import org.cibseven.bpm.engine.impl.scripting.engine.CamundaScriptEngineManager;
 import org.cibseven.bpm.engine.impl.scripting.engine.DefaultScriptEngineResolver;
+import org.cibseven.bpm.engine.impl.scripting.engine.GraalJsNumberNarrowing;
 import org.cibseven.bpm.engine.impl.scripting.engine.ResolverFactory;
 import org.cibseven.bpm.engine.impl.scripting.engine.ScriptBindingsFactory;
 import org.cibseven.bpm.engine.impl.scripting.engine.ScriptEngineResolver;
@@ -614,6 +615,12 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected boolean enableScriptEngineLoadExternalResources = false;
   protected boolean enableScriptEngineNashornCompatibility = false;
   protected boolean configureScriptEngineHostAccess = true;
+  /**
+   * Whether a Java long in int range that a JavaScript script on GraalJS hands to Java becomes an Integer, as in
+   * CIB seven 2.2: {@code long} (it does) or {@code none} (the Long that GraalJS 24 and later give). Applies when
+   * {@link #configureScriptEngineHostAccess} is true. See {@link GraalJsNumberNarrowing}.
+   */
+  protected String javaScriptNumberNarrowing = GraalJsNumberNarrowing.LONG;
   protected boolean skipIsolationLevelCheck = false;
 
   /**
@@ -4664,6 +4671,19 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public ProcessEngineConfigurationImpl setConfigureScriptEngineHostAccess(boolean configureScriptEngineHostAccess) {
     this.configureScriptEngineHostAccess = configureScriptEngineHostAccess;
+    return this;
+  }
+
+  public String getJavaScriptNumberNarrowing() {
+    return javaScriptNumberNarrowing;
+  }
+
+  /**
+   * @param javaScriptNumberNarrowing {@code long} (default) or {@code none}, see
+   *   {@link GraalJsNumberNarrowing}
+   */
+  public ProcessEngineConfigurationImpl setJavaScriptNumberNarrowing(String javaScriptNumberNarrowing) {
+    this.javaScriptNumberNarrowing = GraalJsNumberNarrowing.checkMode(javaScriptNumberNarrowing);
     return this;
   }
 

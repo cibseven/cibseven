@@ -195,12 +195,17 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
       builder = optionMethod.invoke(builder, JS_GLOBAL_ARGUMENTS_OPTION, "true");
       builder = optionMethod.invoke(builder, JS_SCRIPT_ENGINE_GLOBAL_SCOPE_IMPORT_OPTION, "true");
 
+      boolean narrowNumbers = config.isConfigureScriptEngineHostAccess()
+          && GraalJsNumberNarrowing.isNarrowing(config.getJavaScriptNumberNarrowing());
       if (config.isConfigureScriptEngineHostAccess()) {
-        // make sure Graal JS can provide access to the host and can lookup classes
-        var allField = hostAccessClass.getField("ALL");
-        var hostAccessAll = allField.get(null);
+        // make sure Graal JS can provide access to the host and can lookup classes,
+        // with the number types of javaScriptNumberNarrowing
+        var hostAccess = narrowNumbers
+            ? GraalJsNumberNarrowing.getHostAccess(this, graalJSEngineClass,
+                config.isEnableScriptEngineNashornCompatibility())
+            : hostAccessClass.getField("ALL").get(null);
         var allowHostAccess = builderClass.getMethod("allowHostAccess", hostAccessClass);
-        builder = allowHostAccess.invoke(builder, hostAccessAll);
+        builder = allowHostAccess.invoke(builder, hostAccess);
         var allowHostClassLookup = builderClass.getMethod("allowHostClassLookup", Predicate.class);
         builder = allowHostClassLookup.invoke(builder, (Predicate<String>) className -> true);
       }
@@ -222,11 +227,26 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
         builder = optionMethod.invoke(builder, JS_ECMASCRIPT_VERSION_OPTION, GRAAL_JS_NASHORN_COMPAT_ECMASCRIPT_VERSION);
         var allowAllAccess = builderClass.getMethod("allowAllAccess", boolean.class);
         builder = allowAllAccess.invoke(builder, true);
+        if (narrowNumbers) {
+          // what the attribute polyglot.js.nashorn-compat sets too, which DefaultScriptEngineResolver does not set on
+          // a script engine with its own host access
+          try {
+            var useSystemExit = builderClass.getMethod("useSystemExit", boolean.class);
+            builder = useSystemExit.invoke(builder, true);
+          } catch (NoSuchMethodException e) {
+            // GraalJS 21.3 does not have it, and its Nashorn compatibility mode does not set it either
+          }
+        }
       }
 
       // GraalJSScriptEngine.create(null, builder)
       var createMethod = graalJSEngineClass.getMethod("create", engineClass, builderClass);
-      return (ScriptEngine) createMethod.invoke(null, null, builder);
+      ScriptEngine scriptEngine = (ScriptEngine) createMethod.invoke(null, null, builder);
+      if (narrowNumbers) {
+        // DefaultScriptEngineResolver must not replace this host access with HostAccess.ALL
+        GraalJsNumberNarrowing.markOwnHostAccess(scriptEngine);
+      }
+      return scriptEngine;
 
     } catch (Exception e) {
       System.err.println("Failed to create GraalJS script engine with CibSevenClassLoader: " + e.getMessage());
