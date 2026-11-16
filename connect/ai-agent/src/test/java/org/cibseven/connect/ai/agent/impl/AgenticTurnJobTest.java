@@ -1403,6 +1403,8 @@ public class AgenticTurnJobTest {
       }
     }
     assertThat(internal).contains(AdHocAgentState.STATE_MARKER);
+    assertThat(internal).as("the tool's result entry")
+        .anyMatch(name -> name.startsWith(AdHocResults.ENTRY_PREFIX));
 
     runWaitingTurn();
 
