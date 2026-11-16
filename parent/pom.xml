@@ -73,8 +73,8 @@
     <version.wildfly>42.0.0.Final</version.wildfly>
     <version.wildfly.core>34.0.0.Final</version.wildfly.core>
 
-    <version.tomcat10>10.1.59</version.tomcat10>
-    <version.tomcat>11.0.25</version.tomcat>
+    <version.tomcat10>10.1.61</version.tomcat10>
+    <version.tomcat>11.0.27</version.tomcat>
 
     <version.arquillian>1.10.0.Final</version.arquillian>
     <version.shrinkwrap.resolvers>2.2.7</version.shrinkwrap.resolvers>
