@@ -47,7 +47,9 @@ public class CamundaBpmPluginConfiguration {
      deprecated Jackson 2 variant of Spin (`cibseven-spin-dataformat-json-jackson2`). Jackson 3, used by
      `cibseven-spin-dataformat-json-jackson` and `cibseven-spin-dataformat-all`, supports java.time
      and Optional out of the box; parameter names are built in too, but Spin's Jackson 2 defaults turn
-     them off, so the starter turns them on again (as the ParameterNames module did with Jackson 2). `cibseven-spin-dataformat-all-jackson2` comes with a
+     them off, so the starter turns them on again (as the ParameterNames module did with Jackson 2), and keeps
+     Jackson 2's choice of constructor for classes that also have one without parameters.
+     `cibseven-spin-dataformat-all-jackson2` comes with a
      shaded Jackson ObjectMapper (prefixed with `spinjar`), which breaks auto-configuration for the
      Jackson Java 8 modules.
   */

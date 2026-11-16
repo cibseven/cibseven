@@ -44,7 +44,7 @@
       </dependency>
       <dependency>
         <groupId>io.jsonwebtoken</groupId>
-        <artifactId>jjwt-jackson</artifactId>
+        <artifactId>jjwt-gson</artifactId>
         <scope>provided</scope>
       </dependency>
     </dependencies>
@@ -63,24 +63,15 @@
           <groupId>org.jetbrains.kotlin</groupId>
           <artifactId>kotlin-stdlib-common</artifactId>
         </exclusion>
-        <!-- swagger-parser-v3 pulls the javax variants of swagger-core, swagger-models and
-             swagger-annotations. In userlib-ai/ they shadow swagger-core-jakarta of springdoc
-             (same packages io.swagger.v3.*) and /v3/api-docs of the webclient fails with
-             NoClassDefFoundError javax/xml/bind/annotation/XmlElement. The jakarta variants
-             of springdoc (2.2.52) are on the Run classpath and serve swagger-parser as well. -->
-        <exclusion>
-          <groupId>io.swagger.core.v3</groupId>
-          <artifactId>swagger-core</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.swagger.core.v3</groupId>
-          <artifactId>swagger-models</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.swagger.core.v3</groupId>
-          <artifactId>swagger-annotations</artifactId>
-        </exclusion>
       </exclusions>
+    </dependency>
+
+    <!-- openapi.json of the REST API of this version, read from the classpath by default
+         (cibseven.openapi.url: openapi.json in configuration/default.yml) -->
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine-rest-openapi</artifactId>
+      <version>${project.version}</version>
     </dependency>
 
     <!-- Supplied at runtime by the cibseven-bpm-run-core uberjar or by other modules, hence not copied here.
@@ -117,7 +108,7 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- already part of the cibseven-bpm-run-core uberjar -->
+    <!-- already part of the cibseven-bpm-run-core uberjar (Jackson 2: only jackson-annotations, see below) -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot</artifactId>
@@ -133,6 +124,10 @@
       <artifactId>spring-webmvc</artifactId>
       <scope>provided</scope>
     </dependency>
+    <!-- Jackson 2 (for swagger-parser): jackson-core and jackson-databind come with the ai-agent module
+         (langchain4j) in the same folder configuration/userlib-ai/, which is on the loader path only
+         together with this module; jackson-annotations is in the cibseven-bpm-run-core uberjar.
+         jackson-datatype-jsr310 and jackson-dataformat-yaml are shipped by this module. -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
@@ -149,8 +144,18 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jsr310</artifactId>
+      <groupId>tools.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>tools.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>

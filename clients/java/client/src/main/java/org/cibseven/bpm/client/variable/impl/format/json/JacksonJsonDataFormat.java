@@ -26,9 +26,15 @@ import java.time.Month;
 import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.IllformedLocaleException;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.cibseven.bpm.client.impl.ExternalTaskClientLogger;
 import org.cibseven.bpm.client.spi.DataFormat;
@@ -36,11 +42,14 @@ import org.cibseven.bpm.client.variable.impl.format.TypeDetector;
 
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
 import tools.jackson.core.StreamReadConstraints;
 import tools.jackson.core.StreamWriteConstraints;
 import tools.jackson.core.json.JsonFactory;
 import tools.jackson.databind.AnnotationIntrospector;
 import tools.jackson.databind.BeanDescription;
+import tools.jackson.databind.BeanProperty;
+import tools.jackson.databind.DeserializationConfig;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.KeyDeserializer;
@@ -53,26 +62,42 @@ import tools.jackson.databind.ValueSerializer;
 import tools.jackson.databind.annotation.JsonPOJOBuilder;
 import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.cfg.MapperConfig;
+import tools.jackson.databind.deser.Deserializers;
+import tools.jackson.databind.deser.SettableBeanProperty;
+import tools.jackson.databind.deser.ValueDeserializerModifier;
+import tools.jackson.databind.deser.bean.BeanDeserializerBase;
+import tools.jackson.databind.deser.jdk.CollectionDeserializer;
 import tools.jackson.databind.deser.jdk.JDKFromStringDeserializer;
+import tools.jackson.databind.deser.jdk.JDKValueInstantiators;
+import tools.jackson.databind.deser.jdk.MapDeserializer;
+import tools.jackson.databind.deser.std.DelegatingDeserializer;
 import tools.jackson.databind.ext.javatime.ser.YearSerializer;
 import tools.jackson.databind.ext.sql.JavaSqlDateSerializer;
 import tools.jackson.databind.introspect.AccessorNamingStrategy;
 import tools.jackson.databind.introspect.AnnotatedClass;
+import tools.jackson.databind.introspect.AnnotatedMember;
 import tools.jackson.databind.introspect.DefaultAccessorNamingStrategy;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.jsontype.TypeDeserializer;
 import tools.jackson.databind.module.SimpleModule;
 import tools.jackson.databind.ser.Serializers;
 import tools.jackson.databind.ser.jdk.EnumSerializer;
 import tools.jackson.databind.ser.std.ToStringSerializer;
+import tools.jackson.databind.type.CollectionType;
+import tools.jackson.databind.type.MapType;
+import tools.jackson.databind.util.ClassUtil;
 import tools.jackson.databind.util.StdDateFormat;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 
 /**
  * The {@code application/json} data format of object variables, based on Jackson 3.
  * <p>
  * The default {@link ObjectMapper} keeps the JSON of the Jackson 2 based client: same property order, dates as
  * timestamps, enums by name, unknown properties rejected, nesting depth up to 1000 (see
- * {@link #createDefaultObjectMapper()}).
+ * {@link #createDefaultObjectMapper()}). As in Jackson 2, a class whose {@code @JsonUnwrapped} property Jackson
+ * unwraps ignores unknown properties ({@link Jackson2UnwrappedDeserializerModifier}).
  * <p>
  * Jackson 3 mappers are immutable. To change the configuration, register a
  * {@link org.cibseven.bpm.client.spi.DataFormatConfigurator} and replace the mapper:
@@ -331,7 +356,8 @@ public class JacksonJsonDataFormat implements DataFormat {
 
   /**
    * The Jackson 2 compatible serializers and deserializers of this mapper. Registered after Jackson 3's own java.time
-   * support, so they take precedence.
+   * support, so they take precedence. {@link Map} with an enum key and {@link Set} of an enum are read like Jackson 2
+   * ({@link Jackson2EnumContainerDeserializers}).
    */
   public static class Jackson2CompatibilityModule extends SimpleModule {
 
@@ -350,6 +376,214 @@ public class JacksonJsonDataFormat implements DataFormat {
     public void setupModule(SetupContext context) {
       super.setupModule(context);
       context.addSerializers(new Jackson2EnumLikeSerializers());
+      context.addDeserializers(new Jackson2EnumContainerDeserializers());
+      context.addDeserializerModifier(new Jackson2UnwrappedDeserializerModifier());
+    }
+  }
+
+  /**
+   * Properties declared as {@link Map} with an enum key or as {@link Set} of an enum, read as {@link LinkedHashMap} and
+   * {@link HashSet} like Jackson 2; Jackson 3 alone reads them as {@link java.util.EnumMap} and
+   * {@link java.util.EnumSet} (databind#1853), which changes the key order of a variable that is read and stored again
+   * and rejects {@code null} in such a set. Only the deserializer of these two declarations is chosen here, so type ids
+   * of polymorphic values, {@code @JsonDeserialize(as = ...)} and all other declarations stay as they are: an abstract
+   * type mapping {@code Map -> LinkedHashMap} would also become the default implementation of polymorphic values and
+   * accept missing or unknown type ids. The value instantiator is the JDK default of {@link LinkedHashMap} or
+   * {@link HashSet} and class annotations are read from the declared {@link Map} or {@link Set}: value instantiators or
+   * mix-ins an application registers for {@link LinkedHashMap} or {@link HashSet} themselves are not applied here.
+   */
+  public static class Jackson2EnumContainerDeserializers extends Deserializers.Base {
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public ValueDeserializer<?> findMapDeserializer(MapType type, DeserializationConfig config,
+        BeanDescription.Supplier beanDescRef, KeyDeserializer keyDeserializer,
+        TypeDeserializer elementTypeDeserializer, ValueDeserializer<?> elementDeserializer) {
+      if (!type.hasRawClass(Map.class) || !type.getKeyType().isEnumType()) {
+        return null;
+      }
+      // what Jackson builds for an abstract Map with any other key type
+      MapType mapType = (MapType) config.getTypeFactory().constructSpecializedType(type, LinkedHashMap.class, true);
+      MapDeserializer deserializer = new MapDeserializer(mapType,
+          JDKValueInstantiators.findStdValueInstantiator(config, LinkedHashMap.class), keyDeserializer,
+          (ValueDeserializer<Object>) elementDeserializer, elementTypeDeserializer);
+      JsonIgnoreProperties.Value ignorals = config.getDefaultPropertyIgnorals(Map.class, beanDescRef.getClassInfo());
+      deserializer.setIgnorableProperties(ignorals == null ? null : ignorals.findIgnoredForDeserialization());
+      JsonIncludeProperties.Value inclusions = config.getDefaultPropertyInclusions(Map.class,
+          beanDescRef.getClassInfo());
+      deserializer.setIncludableProperties(inclusions == null ? null : inclusions.getIncluded());
+      return deserializer;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public ValueDeserializer<?> findCollectionDeserializer(CollectionType type, DeserializationConfig config,
+        BeanDescription.Supplier beanDescRef, TypeDeserializer elementTypeDeserializer,
+        ValueDeserializer<?> elementDeserializer) {
+      // Jackson 3 uses EnumSet only without an annotated element deserializer
+      if (!type.hasRawClass(Set.class) || !type.getContentType().isEnumType() || elementDeserializer != null) {
+        return null;
+      }
+      CollectionType setType = (CollectionType) config.getTypeFactory()
+          .constructSpecializedType(type, HashSet.class, true);
+      return new CollectionDeserializer(setType, (ValueDeserializer<Object>) elementDeserializer,
+          elementTypeDeserializer, JDKValueInstantiators.findStdValueInstantiator(config, HashSet.class),
+          beanDescRef.getClassInfo());
+    }
+
+    @Override
+    public boolean hasDeserializerFor(DeserializationConfig config, Class<?> valueType) {
+      return false;
+    }
+  }
+
+  /**
+   * A class whose {@code @JsonUnwrapped} property Jackson really unwraps ignores unknown properties, like Jackson 2.
+   * Jackson 3.1 rejects them (databind#650), so JSON that Jackson writes itself could no longer be read back: a
+   * computed property of the unwrapped class ({@code getLabel()} without a field or setter) or a property that an
+   * earlier version of the class still had. Classes without {@code @JsonUnwrapped} keep rejecting unknown properties,
+   * and so do classes whose {@code @JsonUnwrapped} has no effect: Jackson unwraps a property only if its deserializer
+   * can (a bean), not a String, a number, a Map, a collection, an interface or a type with a deserializer of its own.
+   * A modifier that a module added later runs before this one: if it wraps the bean deserializer in a
+   * {@link DelegatingDeserializer}, the deserializer inside is changed. Differences from Jackson 2 that stay, all
+   * rare: the class keeps rejecting unknown properties when a module wraps its bean deserializer in something else
+   * or replaces it with a subclass of its own, and when it is a non-static inner class that Jackson first meets
+   * through another class while it is still resolving the outer class; the holder of {@code @JsonUnwrapped} on an
+   * interface whose type id is an external property ignores unknown properties; with
+   * {@code FAIL_ON_IGNORED_PROPERTIES} (off by default), a property that the unwrapped class ignores
+   * ({@code @JsonIgnoreProperties}, {@code @JsonIncludeProperties}) is skipped instead of failing.
+   */
+  public static class Jackson2UnwrappedDeserializerModifier extends ValueDeserializerModifier {
+
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public ValueDeserializer<?> modifyDeserializer(DeserializationConfig config, BeanDescription.Supplier beanDescRef,
+        ValueDeserializer<?> deserializer) {
+      if (deserializer instanceof BeanDeserializerBase) {
+        return holdUntilResolved(config, (BeanDeserializerBase) deserializer);
+      }
+      if (deserializer instanceof DelegatingDeserializer && !(deserializer instanceof Jackson2UnwrappedDeserializer)) {
+        ValueDeserializer<?> delegatee = deserializer.getDelegatee();
+        ValueDeserializer<?> modified = modifyDeserializer(config, beanDescRef, delegatee);
+        return modified == delegatee ? deserializer : deserializer.replaceDelegatee(modified);
+      }
+      return deserializer;
+    }
+
+    private static ValueDeserializer<?> holdUntilResolved(DeserializationConfig config,
+        BeanDeserializerBase deserializer) {
+      AnnotationIntrospector introspector = config.getAnnotationIntrospector();
+      Set<String> annotated = new HashSet<>();
+      for (Iterator<SettableBeanProperty> properties = deserializer.properties(); properties.hasNext(); ) {
+        SettableBeanProperty property = properties.next();
+        AnnotatedMember member = property.getMember();
+        if (member != null && introspector.findUnwrappingNameTransformer(config, member) != null) {
+          annotated.add(property.getName());
+        }
+      }
+      return annotated.isEmpty() ? deserializer
+          : new Jackson2UnwrappedDeserializer(deserializer, deserializer.getValueType(), annotated,
+              new AtomicReference<>());
+    }
+  }
+
+  /**
+   * Holds the deserializer of a class with {@code @JsonUnwrapped} properties until Jackson has resolved it. Jackson
+   * takes every property that it really unwraps out of {@link BeanDeserializerBase#properties()}; only if one of the
+   * annotated properties is gone does the class ignore unknown properties. This is decided once for the class, when
+   * Jackson has resolved it; until then the class reads as Jackson alone would.
+   */
+  static final class Jackson2UnwrappedDeserializer extends DelegatingDeserializer {
+
+    private final JavaType type;
+    private final Set<String> annotated;
+    /** Whether Jackson unwraps one of the annotated properties: null until it has resolved the class. */
+    private final AtomicReference<Boolean> unwraps;
+    private volatile ValueDeserializer<Object> forReading;
+
+    Jackson2UnwrappedDeserializer(ValueDeserializer<?> delegatee, JavaType type, Set<String> annotated,
+        AtomicReference<Boolean> unwraps) {
+      super(delegatee);
+      this.type = type;
+      this.annotated = annotated;
+      this.unwraps = unwraps;
+    }
+
+    @Override
+    protected ValueDeserializer<?> newDelegatingInstance(ValueDeserializer<?> delegatee) {
+      return new Jackson2UnwrappedDeserializer(delegatee, type, annotated, unwraps);
+    }
+
+    @Override
+    public void resolve(DeserializationContext ctxt) {
+      super.resolve(ctxt);
+      unwraps.compareAndSet(null, _delegatee instanceof BeanDeserializerBase
+          && unwraps((BeanDeserializerBase) _delegatee));
+    }
+
+    @Override
+    public ValueDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) {
+      ValueDeserializer<?> contextual = ctxt.handleSecondaryContextualization(_delegatee, property, type);
+      Boolean decided = unwraps.get();
+      if (decided != null) {
+        return jackson2(contextual, decided);
+      }
+      // a property that refers back to a class Jackson is still resolving: decide on the first read after that. Left
+      // as they are: a copy Jackson made of the unresolved deserializer, which does not unwrap (in Jackson 2 neither),
+      // and a non-static inner class, which its outer class can create only from a bean deserializer
+      if (contextual != _delegatee || ClassUtil.isNonStaticInnerClass(type.getRawClass())) {
+        return contextual;
+      }
+      return this;
+    }
+
+    @Override
+    public Object deserialize(JsonParser p, DeserializationContext ctxt) {
+      return forReading().deserialize(p, ctxt);
+    }
+
+    @Override
+    public Object deserialize(JsonParser p, DeserializationContext ctxt, Object intoValue) {
+      return forReading().deserialize(p, ctxt, intoValue);
+    }
+
+    @Override
+    public Object deserializeWithType(JsonParser p, DeserializationContext ctxt, TypeDeserializer typeDeserializer) {
+      return forReading().deserializeWithType(p, ctxt, typeDeserializer);
+    }
+
+    @SuppressWarnings("unchecked")
+    private ValueDeserializer<Object> forReading() {
+      ValueDeserializer<Object> deserializer = forReading;
+      if (deserializer == null) {
+        Boolean decided = unwraps.get();
+        if (decided == null) {
+          // another thread still resolves the class: read as Jackson alone would, and keep nothing
+          return (ValueDeserializer<Object>) _delegatee;
+        }
+        deserializer = (ValueDeserializer<Object>) jackson2(_delegatee, decided);
+        forReading = deserializer;
+      }
+      return deserializer;
+    }
+
+    private static ValueDeserializer<?> jackson2(ValueDeserializer<?> deserializer, boolean unwraps) {
+      if (unwraps && deserializer instanceof BeanDeserializerBase) {
+        BeanDeserializerBase lenient = ((BeanDeserializerBase) deserializer).withIgnoreAllUnknown(true);
+        if (lenient.getClass() == deserializer.getClass()) {
+          return lenient;
+        }
+      }
+      return deserializer;
+    }
+
+    private boolean unwraps(BeanDeserializerBase deserializer) {
+      Set<String> unwrapped = new HashSet<>(annotated);
+      for (Iterator<SettableBeanProperty> properties = deserializer.properties(); properties.hasNext(); ) {
+        unwrapped.remove(properties.next().getName());
+      }
+      return !unwrapped.isEmpty();
     }
   }
 

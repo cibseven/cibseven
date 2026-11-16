@@ -74,6 +74,17 @@ spring:
       # /META-INF/resources in the classpath. To prevent users from accidentally sharing files, this is disabled here by setting static locations to NULL.
       # https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-spring-mvc-static-content
       static-locations: NULL
+  # MCP server of the MCP REST API, see cibseven.mcp below
+  ai:
+    mcp:
+      server:
+        enabled: ${MCP_ENABLED:false}
+        protocol: STATELESS
+        type: SYNC
+        streamable-http:
+          mcp-endpoint: /mcp
+        annotation-scanner:
+          enabled: false
 
 logging:
   level:
@@ -103,6 +114,19 @@ cibseven:
   #
   #   JVM arg:  -Dcibseven.connect.ai-agent.chatMemoryVariable.enabled=false
   #   Env var:  CIBSEVEN_CONNECT_AI_AGENT_CHAT_MEMORY_VARIABLE_ENABLED=false
+
+  # MCP REST API: exposes the REST API of this engine as MCP tools under /mcp
+  # (https://docs.cibseven.org/manual/latest/user-guide/mcp-restapi/).
+  # Switched on with the environment variable MCP_ENABLED=true, which also puts
+  # configuration/userlib-ai/ on the classpath. The tools call
+  # cibseven.webclient.engineRest.url below.
+  mcp:
+    restapi-mcp: ${MCP_ENABLED:false}
+  openapi:
+    # openapi.json of the REST API of this version (cibseven-engine-rest-openapi in
+    # configuration/userlib-ai/). A file path or URL selects another document, e.g. a
+    # smaller one for LLMs that accept only a limited number of tools.
+    url: openapi.json
 
   webclient:
     modeler:
