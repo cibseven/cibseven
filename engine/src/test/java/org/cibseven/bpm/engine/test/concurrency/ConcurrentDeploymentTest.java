@@ -149,22 +149,6 @@ public class ConcurrentDeploymentTest extends ConcurrencyTestCase {
     assertThat(((EventSubscriptionEntity) subscription).getConfiguration()).isEqualTo(newLatestVersion.getId());
   }
 
-  protected void finishQuietly(ThreadControl threadControl) {
-    if (threadControl == null || !threadControl.executingThread.isAlive()) {
-      return;
-    }
-    synchronized (threadControl) {
-      threadControl.ignoreSync = true;
-      threadControl.notifyAll();
-    }
-    try {
-      threadControl.executingThread.join(30000);
-    } catch (InterruptedException e) {
-      // ignore, the original failure is reported
-    } finally {
-      Thread.interrupted();
-    }
-  }
 
   protected static class ControllableDeleteProcessDefinitionCommand extends ControllableCommand<Void> {
 

@@ -62,14 +62,14 @@ public class DeleteDeploymentCmd implements Command<Void>, Serializable {
   public Void execute(final CommandContext commandContext) {
     ensureNotNull("deploymentId", deploymentId);
 
+    // CIB7-2714: lock first, before the command checkers load the deployment, to serialize
+    // with other deletions and deployments (an unauthorized caller holds it until rollback).
+    // On H2 only deletions are serialized with each other, since DeployCmd does not lock there.
+    commandContext.getPropertyManager().acquireExclusiveLockIfDeploymentLockUsed();
+
     for(CommandChecker checker : commandContext.getProcessEngineConfiguration().getCommandCheckers()) {
       checker.checkDeleteDeployment(deploymentId);
     }
-
-    // CIB7-2714: after the authorization check (unauthorized callers never hold the lock),
-    // serialize with other deletions and deployments before reading the deployment,
-    // its definitions or instances
-    commandContext.getPropertyManager().acquireExclusiveLockIfDeploymentLockUsed();
 
     UserOperationLogManager logManager = commandContext.getOperationLogManager();
     List<PropertyChange> propertyChanges = Arrays.asList(new PropertyChange("cascade", null, cascade));

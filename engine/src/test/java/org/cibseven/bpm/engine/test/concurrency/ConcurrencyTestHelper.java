@@ -26,8 +26,13 @@ import org.cibseven.bpm.engine.impl.util.ExceptionUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class ConcurrencyTestHelper {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ConcurrencyTestHelper.class);
+  protected static final long FINISH_TIMEOUT_MILLIS = 30000;
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
   protected List<ControllableCommand<?>> controllableCommands;
@@ -49,6 +54,36 @@ public abstract class ConcurrencyTestHelper {
 
     // clear the test thread's interruption state
     Thread.interrupted();
+  }
+
+  /**
+   * Lets a controlled thread run to its end: ignores its remaining sync points,
+   * releases it and joins it with a timeout. Meant for finally blocks, so that a
+   * failed test does not leave a thread holding database locks. A thread that is
+   * still alive after the timeout is interrupted and reported in the log (no
+   * exception, to not hide the original test failure).
+   */
+  protected void finishQuietly(ThreadControl threadControl) {
+    if (threadControl == null || threadControl.executingThread == null || !threadControl.executingThread.isAlive()) {
+      return;
+    }
+    synchronized (threadControl) {
+      threadControl.ignoreSync = true;
+      threadControl.notifyAll();
+    }
+    try {
+      threadControl.executingThread.join(FINISH_TIMEOUT_MILLIS);
+    } catch (InterruptedException e) {
+      // ignore, the original failure is reported
+    } finally {
+      // the controlled thread may have interrupted us when its command failed
+      Thread.interrupted();
+    }
+    if (threadControl.executingThread.isAlive()) {
+      threadControl.executingThread.interrupt();
+      LOG.error("Controlled thread {} did not finish within {} ms after release and was interrupted; "
+          + "it may still hold database locks", threadControl.executingThread.getName(), FINISH_TIMEOUT_MILLIS);
+    }
   }
 
   protected ThreadControl executeControllableCommand(final ControllableCommand<?> command) {

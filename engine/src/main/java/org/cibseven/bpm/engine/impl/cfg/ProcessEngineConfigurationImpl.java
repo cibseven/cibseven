@@ -4342,7 +4342,8 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   }
 
   /**
-   * @return true if the process engine acquires an exclusive lock when creating a deployment.
+   * @return true if the process engine acquires an exclusive lock when creating a deployment
+   * and when deleting deployments or process definitions.
    */
   public boolean isDeploymentLockUsed() {
     return isDeploymentLockUsed;
@@ -4351,6 +4352,11 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   /**
    * If set to true, the process engine will acquire an exclusive lock when creating a deployment.
    * This ensures that {@link DeploymentBuilder#enableDuplicateFiltering()} works correctly in a clustered environment.
+   * <p>
+   * The same lock also serializes the deletion of deployments and process definitions with each
+   * other and with deployments (CIB7-2714; on H2 only deletions among each other). If it is
+   * disabled and deletions run in parallel, start event subscriptions and start timers may be
+   * left on deleted versions.
    */
   public void setDeploymentLockUsed(boolean isDeploymentLockUsed) {
     this.isDeploymentLockUsed = isDeploymentLockUsed;

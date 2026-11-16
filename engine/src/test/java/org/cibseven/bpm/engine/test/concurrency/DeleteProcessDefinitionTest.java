@@ -224,43 +224,132 @@ public class DeleteProcessDefinitionTest extends ConcurrencyTestCase {
     assertSingleSubscriptionOn(firstVersionId);
   }
 
+  // Orphan cleanup in BpmnDeployer: without the deployment lock, interleaved deletions
+  // still leave orphans (unchanged behavior), which the next deployment cleans up.
+
   @Test
-  public void testDeleteWithoutDeploymentLock() throws InterruptedException {
+  public void testDeploymentOfProcessDefinitionWithOrphanMessageEvent() {
     // given
-    processEngineConfiguration.setDeploymentLockUsed(false);
     List<ProcessDefinition> processDefinitions = deployVersions(MESSAGE_START_RESOURCE, 2);
+    deleteProcessDefinitionsInterleavedWithoutLock(processDefinitions.get(0).getId(), processDefinitions.get(1).getId());
 
-    // when both deletions run interleaved without waiting for each other
-    command1 = new ControllableDeleteProcessDefinitionCommand(processDefinitions.get(0).getId());
-    command2 = new ControllableDeleteProcessDefinitionCommand(processDefinitions.get(1).getId());
-
-    thread1 = executeControllableCommand(command1);
-    thread1.reportInterrupts();
-    thread1.waitForSync();
-
-    thread2 = executeControllableCommand(command2);
-    thread2.reportInterrupts();
-    thread2.waitForSync();
-
-    thread1.makeContinue();
-    thread1.waitForSync();
-
-    // thread 2 is not blocked since no lock is acquired
-    thread2.makeContinue();
-    thread2.waitForSync();
-
-    thread1.waitUntilDone();
-    thread2.waitUntilDone();
-
-    // then the behavior is unchanged: an orphan subscription is left ...
     assertNoException();
-    assertThat(repositoryService.createProcessDefinitionQuery().count()).isZero();
+    assertThat(repositoryService.createProcessDefinitionQuery().list()).isEmpty();
     assertThat(runtimeService.createEventSubscriptionQuery().count()).isEqualTo(1);
 
-    // ... which is cleaned up by the next deployment
+    // when
     repositoryService.createDeployment().addClasspathResource(MESSAGE_START_RESOURCE).deploy();
+
+    // then
     ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().singleResult();
     assertSingleSubscriptionOn(processDefinition.getId());
+  }
+
+  @Test
+  public void testDeploymentOfProcessDefinitionWithOrphanJob() {
+    // given
+    List<ProcessDefinition> processDefinitions = deployVersions(TIMER_START_RESOURCE, 2);
+    deleteProcessDefinitionsInterleavedWithoutLock(processDefinitions.get(0).getId(), processDefinitions.get(1).getId());
+
+    assertNoException();
+    assertThat(repositoryService.createProcessDefinitionQuery().list()).isEmpty();
+    assertThat(managementService.createJobQuery().count()).isEqualTo(1);
+
+    // when
+    repositoryService.createDeployment().addClasspathResource(TIMER_START_RESOURCE).deploy();
+
+    // then
+    assertThat(repositoryService.createProcessDefinitionQuery().count()).isEqualTo(1);
+    assertThat(managementService.createJobQuery().count()).isEqualTo(1);
+  }
+
+  @Test
+  public void testDeploymentOfProcessDefinitionWithOrphanSignalEvent() {
+    // given
+    List<ProcessDefinition> processDefinitions = deployVersions(SIGNAL_START_RESOURCE, 2);
+    deleteProcessDefinitionsInterleavedWithoutLock(processDefinitions.get(0).getId(), processDefinitions.get(1).getId());
+
+    assertNoException();
+    assertThat(repositoryService.createProcessDefinitionQuery().list()).isEmpty();
+    assertThat(runtimeService.createEventSubscriptionQuery().count()).isEqualTo(1);
+
+    // when
+    repositoryService.createDeployment().addClasspathResource(SIGNAL_START_RESOURCE).deploy();
+
+    // then
+    assertThat(repositoryService.createProcessDefinitionQuery().count()).isEqualTo(1);
+    assertThat(runtimeService.createEventSubscriptionQuery().count()).isEqualTo(1);
+  }
+
+  @Test
+  public void testDeploymentOfProcessDefinitionWithOrphanEventAndPreviousVersion() {
+    // given
+    List<ProcessDefinition> processDefinitions = deployVersions(MESSAGE_START_RESOURCE, 3);
+    deleteProcessDefinitionsInterleavedWithoutLock(processDefinitions.get(1).getId(), processDefinitions.get(2).getId());
+
+    assertNoException();
+    assertThat(repositoryService.createProcessDefinitionQuery().count()).isEqualTo(1);
+    assertThat(runtimeService.createEventSubscriptionQuery().count()).isEqualTo(1);
+
+    // when
+    repositoryService.createDeployment().addClasspathResource(MESSAGE_START_RESOURCE).deploy();
+
+    // then
+    assertThat(repositoryService.createProcessDefinitionQuery().count()).isEqualTo(2);
+    assertThat(runtimeService.createEventSubscriptionQuery().count()).isEqualTo(1);
+  }
+
+  @Test
+  public void testDeploymentOfProcessDefinitionWithOrphanConditionalEvent() {
+    // given
+    List<ProcessDefinition> processDefinitions = deployVersions(CONDITIONAL_START_RESOURCE, 2);
+    deleteProcessDefinitionsInterleavedWithoutLock(processDefinitions.get(0).getId(), processDefinitions.get(1).getId());
+
+    assertNoException();
+    assertThat(repositoryService.createProcessDefinitionQuery().list()).isEmpty();
+    assertThat(runtimeService.createEventSubscriptionQuery().count()).isEqualTo(1);
+
+    // when
+    repositoryService.createDeployment().addClasspathResource(CONDITIONAL_START_RESOURCE).deploy();
+
+    // then
+    ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().singleResult();
+    assertSingleSubscriptionOn(processDefinition.getId());
+  }
+
+  /**
+   * Original interleaved choreography with the deployment lock disabled: both
+   * deletions run before either commits, so neither waits for the other.
+   */
+  protected void deleteProcessDefinitionsInterleavedWithoutLock(String id1, String id2) {
+    processEngineConfiguration.setDeploymentLockUsed(false);
+    command1 = new ControllableDeleteProcessDefinitionCommand(id1);
+    command2 = new ControllableDeleteProcessDefinitionCommand(id2);
+
+    try {
+      thread1 = executeControllableCommand(command1);
+      thread1.reportInterrupts();
+      thread1.waitForSync();
+
+      thread2 = executeControllableCommand(command2);
+      thread2.reportInterrupts();
+      thread2.waitForSync();
+
+      // delete the first definition without committing
+      thread1.makeContinue();
+      thread1.waitForSync();
+
+      // delete the second definition without committing (not blocked, no lock)
+      thread2.makeContinue();
+      thread2.waitForSync();
+
+      // commit both deletions
+      thread1.waitUntilDone();
+      thread2.waitUntilDone();
+    } finally {
+      finishQuietly(thread1);
+      finishQuietly(thread2);
+    }
   }
 
   protected void assertNoException() {
@@ -354,7 +443,6 @@ public class DeleteProcessDefinitionTest extends ConcurrencyTestCase {
     this.command1 = command1;
     this.command2 = command2;
 
-    boolean completed = false;
     try {
       // STEP 1: bring both threads to a point where they have started a new transaction
       thread1 = executeControllableCommand(command1);
@@ -382,30 +470,10 @@ public class DeleteProcessDefinitionTest extends ConcurrencyTestCase {
       // STEP 5: thread 2 deletes on the committed state and commits
       thread2.waitForSync();
       thread2.waitUntilDone();
-      completed = true;
     } finally {
-      if (!completed) {
-        // let both threads run to the end so that no lock is left for tearDown
-        finishQuietly(thread1);
-        finishQuietly(thread2);
-      }
-    }
-  }
-
-  protected void finishQuietly(ThreadControl threadControl) {
-    if (threadControl == null) {
-      return;
-    }
-    synchronized (threadControl) {
-      threadControl.ignoreSync = true;
-      threadControl.notifyAll();
-    }
-    try {
-      threadControl.executingThread.join(30000);
-    } catch (InterruptedException e) {
-      // ignore, the original failure is reported
-    } finally {
-      Thread.interrupted();
+      // on failure, let both threads run to the end so that no lock is left for tearDown
+      finishQuietly(thread1);
+      finishQuietly(thread2);
     }
   }
 
