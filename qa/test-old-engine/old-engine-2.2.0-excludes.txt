@@ -29,3 +29,14 @@
 # JDK 25 only (passes on JDK 17 and 21): the XML parser keeps the attribute limit relaxed by a
 # preceding test. The 3.0 BpmnParseTest sets the limit itself; the 2.2.0 one does not.
 **/BpmnParseTest.java#testFeatureSecureProcessingRejectsDefinitionDueToAttributeLimit
+
+# The entries below are not about the engine version: they are tests that do not survive every
+# database. The 3.0 engine excludes them in its own sources, which cannot reach the 2.2.0 test jar.
+
+# Starts 30 process instances in parallel and fails on the databases that lock harder than H2:
+# excluded on MariaDB and MySQL in the 3.0 sources (CAM-13291), seen failing on SQL Server here.
+**/RemovalTimeStrategyEndTest.java#shouldResolveHistoricActivityInstanceInConcurrentEnvironment
+
+# Leaves rows in ACT_RU_METER_LOG and then fails its own clean-database check. Excluded from the
+# db-unit stage through OPTIONAL_PGTEST_EXCLUDE, which the old-engine stage does not use.
+**/JobRetryCmdWithDefaultPropertyTest.java#testDefaultNumberOfRetryProperty

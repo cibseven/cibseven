@@ -210,6 +210,16 @@
                   <artifactId>cibseven-test-utils-testcontainers</artifactId>
                   <version>${project.version}</version>
                 </dependency>
+                <dependency>
+                  <!--
+                    Testcontainers copies a file into the MySQL/MariaDB containers, for which
+                    commons-compress needs commons-lang3 3.18 or newer (ArrayFill). Declared here
+                    because the plugin itself drags in commons-lang3 3.4, which would win.
+                  -->
+                  <groupId>org.apache.commons</groupId>
+                  <artifactId>commons-lang3</artifactId>
+                  <version>${version.commons-lang3}</version>
+                </dependency>
               </dependencies>
             </plugin>
             <!--
@@ -254,6 +264,16 @@
                   <groupId>com.oracle.database.jdbc</groupId>
                   <artifactId>ojdbc11</artifactId>
                   <version>${version.oracle}</version>
+                </dependency>
+                <dependency>
+                  <!--
+                    Testcontainers copies a file into the MySQL/MariaDB containers, for which
+                    commons-compress needs commons-lang3 3.18 or newer (ArrayFill). Declared here
+                    because the plugin itself drags in commons-lang3 3.4, which would win.
+                  -->
+                  <groupId>org.apache.commons</groupId>
+                  <artifactId>commons-lang3</artifactId>
+                  <version>${version.commons-lang3}</version>
                 </dependency>
               </dependencies>
             </plugin>
