@@ -37,6 +37,12 @@
 # excluded on MariaDB and MySQL in the 3.0 sources (CAM-13291), seen failing on SQL Server here.
 **/RemovalTimeStrategyEndTest.java#shouldResolveHistoricActivityInstanceInConcurrentEnvironment
 
-# Leaves rows in ACT_RU_METER_LOG and then fails its own clean-database check. Excluded from the
-# db-unit stage through OPTIONAL_PGTEST_EXCLUDE, which the old-engine stage does not use.
-**/JobRetryCmdWithDefaultPropertyTest.java#testDefaultNumberOfRetryProperty
+# Leaves rows in ACT_RU_METER_LOG and then fails its own clean-database check - whichever of its
+# two tests runs last, testDefaultNumberOfRetryProperty on SQL Server, testOverwritingProperty-
+# WithBpmnExtension on DB2. The whole class, as in the db-unit stage via OPTIONAL_PGTEST_EXCLUDE.
+**/JobRetryCmdWithDefaultPropertyTest.java
+
+# Blocks a row and expects the JDBC statement timeout to fire, which it does not on Oracle - the
+# update succeeds and the test then also fails its clean-database check. Excluded from the db-unit
+# stage through OPTIONAL_PGTEST_EXCLUDE as well.
+**/JdbcStatementTimeoutTest.java
