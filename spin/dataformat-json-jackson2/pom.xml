@@ -40,6 +40,23 @@
       <artifactId>jackson-databind</artifactId>
     </dependency>
 
+    <!-- The Java 8 modules of Jackson 2 (java.time, Optional, parameter names). The Spring Boot starter
+         registers them with this data format when they are on the class path. They used to come with
+         spring-boot-jackson2, which the starters no longer bring, and with engine-rest, which is on
+         Jackson 3 now (CIB7-2681). -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jdk8</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.module</groupId>
+      <artifactId>jackson-module-parameter-names</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>com.jayway.jsonpath</groupId>
       <artifactId>json-path</artifactId>

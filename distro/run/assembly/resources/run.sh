@@ -15,7 +15,8 @@ OPTIONS_HELP="Options:
   --rest       - Enables the REST API
   --example    - Enables the example application
   --production - Applies the production.yaml configuration file
-  --ai         - Enables the AI Agent connector and agentic ad hoc sub processes
+  --ai         - Enables the AI Agent connector, agentic ad hoc sub processes
+                 and the REST API MCP plugin libraries
                  (on by default; off under --production unless set)
   --detached   - Starts CIB seven Run as a detached process
 "
@@ -128,11 +129,14 @@ if [ "$1" = "start" ] ; then
     classPath=$WEBAPPS_PATH,$REST_PATH,$classPath
   fi
 
-  # AI Agent connector: shipped separately in configuration/userlib-ai/ and only
-  # added to the classpath when enabled. Enabled by default in default/dev mode,
-  # disabled under --production unless re-enabled with --ai / --agent. The
-  # AI_AGENT_ENABLED environment variable (true/false) overrides the above and is
-  # the control surface used by the docker image. The same switch covers agentic ad
+  # AI Agent connector and REST API MCP plugin: shipped separately in
+  # configuration/userlib-ai/ and only added to the classpath when enabled.
+  # Enabled by default in default/dev mode, disabled under --production unless
+  # re-enabled with --ai / --agent. The
+  # AI_AGENT_ENABLED / MCP_ENABLED environment variables (true/false) override the
+  # above and are the control surface used by the docker image. If either is set,
+  # the libraries are enabled when at least one of them is true and disabled
+  # otherwise. The same switch covers agentic ad
   # hoc sub processes: their engine plugin ships in the same jar (CIB7-2145).
   aiAgentEnabled=true
   if [ "$productionChosen" = "true" ]; then
@@ -141,14 +145,18 @@ if [ "$1" = "start" ] ; then
   if [ "$aiAgentChosen" = "true" ]; then
     aiAgentEnabled=true
   fi
-  if [ "x$AI_AGENT_ENABLED" != "x" ]; then
-    aiAgentEnabled=$AI_AGENT_ENABLED
+  if [ "x$AI_AGENT_ENABLED" != "x" ] || [ "x$MCP_ENABLED" != "x" ]; then
+    if [ "$AI_AGENT_ENABLED" = "true" ] || [ "$MCP_ENABLED" = "true" ]; then
+      aiAgentEnabled=true
+    else
+      aiAgentEnabled=false
+    fi
   fi
   if [ "$aiAgentEnabled" = "true" ]; then
     classPath=$PARENTDIR/configuration/userlib-ai/,$classPath
-    echo AI Agent connector enabled
+    echo AI Agent connector and MCP libraries enabled
   else
-    echo AI Agent connector disabled
+    echo AI Agent connector and MCP libraries disabled
   fi
 
   echo classpath: $classPath

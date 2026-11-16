@@ -158,19 +158,22 @@ IF [%optionalComponentChosen%]==[false] (
 )
 setlocal disabledelayedexpansion
 
-REM AI Agent connector: shipped separately in configuration\userlib-ai and only
-REM added to the classpath when enabled (default mode on; --production off unless
-REM --ai / --agent or the AI_AGENT_ENABLED env var is set). The same switch covers
+REM AI Agent connector and REST API MCP plugin: shipped separately in configuration\userlib-ai
+REM and only added to the classpath when enabled (default mode on; --production off unless
+REM --ai / --agent). The AI_AGENT_ENABLED / MCP_ENABLED env vars override this: if either is set,
+REM the libraries are enabled when at least one of them is true. The same switch covers
 REM agentic ad hoc sub processes: their engine plugin ships in the same jar (CIB7-2145).
 SET aiAgentEnabled=true
 IF [%productionChosen%]==[true] SET aiAgentEnabled=false
 IF [%aiAgentChosen%]==[true] SET aiAgentEnabled=true
-IF NOT "x%AI_AGENT_ENABLED%"=="x" SET aiAgentEnabled=%AI_AGENT_ENABLED%
+IF NOT "x%AI_AGENT_ENABLED%%MCP_ENABLED%"=="x" SET aiAgentEnabled=false
+IF "%AI_AGENT_ENABLED%"=="true" SET aiAgentEnabled=true
+IF "%MCP_ENABLED%"=="true" SET aiAgentEnabled=true
 IF [%aiAgentEnabled%]==[true] (
   SET classPath=%PARENTDIR%configuration\userlib-ai,%classPath%
-  ECHO AI Agent connector enabled
+  ECHO AI Agent connector and MCP libraries enabled
 ) ELSE (
-  ECHO AI Agent connector disabled
+  ECHO AI Agent connector and MCP libraries disabled
 )
 
 ECHO classpath: %classPath%
@@ -205,7 +208,8 @@ ECHO   --oauth2     - Enables the CIB seven Spring Security OAuth2 integration
 ECHO   --rest       - Enables the REST API
 ECHO   --example    - Enables the example application
 ECHO   --production - Applies the production.yaml configuration file
-ECHO   --ai         - Enables the AI Agent connector and agentic ad hoc sub processes
+ECHO   --ai         - Enables the AI Agent connector, agentic ad hoc sub processes
+ECHO                  and the REST API MCP plugin libraries
 ECHO                  (on by default; off under --production unless set)
 ECHO   --detached   - Starts CIB seven Run as a detached process
 

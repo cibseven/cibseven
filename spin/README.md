@@ -77,7 +77,11 @@ Jackson 3 mappers are immutable: a `DataFormatConfigurator` replaces the mapper 
 for example `format.setObjectMapper(format.getObjectMapper().rebuild().addModule(module).build())`.
 The default mapper (`JacksonJsonDataFormat.createDefaultObjectMapper()`) uses the Jackson 2 defaults of
 Jackson 3 (`JsonMapper.builderWithJackson2Defaults()`) and Jackson 2's nesting depth limit of 1000
-(Jackson 3: 500), so JSON written by CIB seven 2.x is read and written unchanged.
+(Jackson 3: 500), so JSON written by CIB seven 2.x is read and written unchanged. As in 2.x, a class whose
+`@JsonUnwrapped` property Jackson unwraps (a bean) ignores unknown properties when it is read (Jackson 3.1 alone
+rejects them); other classes reject them. Rare cases stay strict, as with Jackson 3 alone: a non-static inner class
+that Jackson first meets through another class, and a class whose deserializer a module wraps or replaces (the
+Javadoc of `Jackson2UnwrappedDeserializerModifier` lists them).
 
 
 # FAQ
