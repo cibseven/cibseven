@@ -19,12 +19,22 @@ package org.cibseven.bpm.springboot.project.qa.spin;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.Optional;
+
 import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.RuntimeService;
+import org.cibseven.bpm.engine.TaskService;
+import org.cibseven.bpm.engine.task.Task;
+import org.cibseven.bpm.engine.variable.Variables;
+import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.spring.boot.starter.spin.CamundaJacksonFormatConfiguratorJSR310;
 import org.cibseven.bpm.spring.boot.starter.spin.CamundaJacksonFormatConfiguratorJdk8;
 import org.cibseven.bpm.spring.boot.starter.spin.CamundaJacksonFormatConfiguratorParameterNames;
 import org.cibseven.spin.DataFormats;
+import org.cibseven.spin.Spin;
 import org.cibseven.spin.impl.json.jackson.format.JacksonJsonDataFormat;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,7 +65,18 @@ public class SpinApplicationTestIT {
   HistoryService historyService;
 
   @Autowired
+  TaskService taskService;
+
+  @Autowired
   ApplicationContext applicationContext;
+
+  /** An object variable with Java 8 types, as in CIB7-2681. */
+  public static class Java8Values {
+    public LocalDate day;
+    public Instant at;
+    public Duration took;
+    public Optional<String> note;
+  }
 
   @Test
   public void shouldDeserializeSuccessfully() {
@@ -82,5 +103,48 @@ public class SpinApplicationTestIT {
     ObjectMapper objectMapper = ((JacksonJsonDataFormat) DataFormats.json()).getObjectMapper();
     assertThat(objectMapper.getRegisteredModuleIds()).contains(
         new JavaTimeModule().getTypeId(), new Jdk8Module().getTypeId(), new ParameterNamesModule().getTypeId());
+  }
+
+  @Test
+  public void shouldWriteAndReadJava8TypesInObjectVariable() {
+    // given
+    Java8Values written = new Java8Values();
+    written.day = LocalDate.of(2026, 11, 10);
+    // milliseconds on purpose: the engine reads the stored JSON as a tree, where the decimal timestamp
+    // Jackson 2 writes for an Instant is a double and loses the last digits of the nanoseconds
+    written.at = Instant.parse("2026-11-10T12:51:15.123Z");
+    written.took = Duration.ofMillis(1500);
+    written.note = Optional.of("java.time");
+
+    Task task = taskService.newTask();
+    taskService.saveTask(task);
+    try {
+      // when the variable is written by one command and read from the database by another one
+      taskService.setVariable(task.getId(), "values", Variables.objectValue(written)
+          .serializationDataFormat(DataFormats.JSON_DATAFORMAT_NAME)
+          .create());
+      ObjectValue typedValue = taskService.getVariableTyped(task.getId(), "values");
+
+      // then
+      assertThat(typedValue.getSerializationDataFormat()).isEqualTo(DataFormats.JSON_DATAFORMAT_NAME);
+      Java8Values read = typedValue.getValue(Java8Values.class);
+      assertThat(read).isNotSameAs(written);
+      assertThat(read.day).isEqualTo(written.day);
+      assertThat(read.at).isEqualTo(written.at);
+      assertThat(read.took).isEqualTo(written.took);
+      assertThat(read.note).isEqualTo(written.note);
+    } finally {
+      // with its history, so that the other tests of this class see their own variables only
+      taskService.deleteTask(task.getId(), true);
+    }
+  }
+
+  @Test
+  public void shouldUseConstructorParameterNames() {
+    // the Jackson 2 ParameterNames module binds the JSON properties to the constructor parameters
+    SpinConstructorDto dto = Spin.JSON("{\"name\":\"order\",\"amount\":3}").mapTo(SpinConstructorDto.class);
+
+    assertThat(dto.getName()).isEqualTo("order");
+    assertThat(dto.getAmount()).isEqualTo(3);
   }
 }
