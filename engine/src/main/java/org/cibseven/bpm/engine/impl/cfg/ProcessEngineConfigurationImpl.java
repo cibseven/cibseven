@@ -4354,9 +4354,11 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
    * This ensures that {@link DeploymentBuilder#enableDuplicateFiltering()} works correctly in a clustered environment.
    * <p>
    * The same lock also serializes the deletion of deployments and process definitions with each
-   * other and with deployments (CIB7-2714; on H2 only deletions among each other). If it is
-   * disabled and deletions run in parallel, start event subscriptions and start timers may be
-   * left on deleted versions.
+   * other and with deployments: a deletion waits until a concurrent deletion or deployment has
+   * committed. On H2 deployments do not lock, so only deletions wait for each other there; with
+   * long cascading deletions the H2 {@code LOCK_TIMEOUT} (default 2 s) may need to be raised in
+   * the JDBC URL. If the lock is disabled and deletions run in parallel, start event
+   * subscriptions and start timers may be left on deleted versions.
    */
   public void setDeploymentLockUsed(boolean isDeploymentLockUsed) {
     this.isDeploymentLockUsed = isDeploymentLockUsed;

@@ -109,7 +109,7 @@ public class ConcurrentDeploymentTest extends ConcurrencyTestCase {
     ProcessDefinition latestVersion = repositoryService.createProcessDefinitionQuery().latestVersion().singleResult();
 
     try {
-      thread1 = executeControllableCommand(new ControllableDeleteProcessDefinitionCommand(latestVersion.getId()));
+      thread1 = executeControllableCommand(new ControllableDeleteLatestVersionCommand(latestVersion.getId()));
       thread1.reportInterrupts();
       thread1.waitForSync();
 
@@ -143,18 +143,22 @@ public class ConcurrentDeploymentTest extends ConcurrencyTestCase {
     assertThat(thread2.getException()).isNull();
     ProcessDefinition newLatestVersion = repositoryService.createProcessDefinitionQuery().latestVersion().singleResult();
     assertThat(newLatestVersion.getDeploymentId()).isNotEqualTo(latestVersion.getDeploymentId());
-    assertThat(repositoryService.createProcessDefinitionQuery().count()).isEqualTo(2);
+    // the deployment ran on the committed state: v2 was deleted, so the new version is 2 again
+    assertThat(newLatestVersion.getVersion()).isEqualTo(2);
+    assertThat(repositoryService.createProcessDefinitionQuery().processDefinitionKey(latestVersion.getKey()).list())
+        .extracting(ProcessDefinition::getVersion)
+        .containsExactlyInAnyOrder(1, 2);
     EventSubscription subscription = runtimeService.createEventSubscriptionQuery().singleResult();
     assertThat(subscription).isNotNull();
     assertThat(((EventSubscriptionEntity) subscription).getConfiguration()).isEqualTo(newLatestVersion.getId());
   }
 
 
-  protected static class ControllableDeleteProcessDefinitionCommand extends ControllableCommand<Void> {
+  protected static class ControllableDeleteLatestVersionCommand extends ControllableCommand<Void> {
 
     protected final String processDefinitionId;
 
-    public ControllableDeleteProcessDefinitionCommand(String processDefinitionId) {
+    public ControllableDeleteLatestVersionCommand(String processDefinitionId) {
       this.processDefinitionId = processDefinitionId;
     }
 

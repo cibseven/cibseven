@@ -18,8 +18,10 @@ package org.cibseven.bpm.engine.test.concurrency;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Collections;
 import java.util.List;
 
+import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.exception.NotFoundException;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.EventSubscriptionEntity;
@@ -42,6 +44,7 @@ public class DeleteProcessDefinitionTest extends ConcurrencyTestCase {
   protected static final String MESSAGE_START_RESOURCE = "org/cibseven/bpm/engine/test/api/repository/processWithNewInvoiceMessage.bpmn20.xml";
   protected static final String TIMER_START_RESOURCE = "org/cibseven/bpm/engine/test/bpmn/event/timer/StartTimerEventTest.testTimeCycle.bpmn20.xml";
   protected static final String SIGNAL_START_RESOURCE = "org/cibseven/bpm/engine/test/api/repository/processWithStartSignalEvent.bpmn20.xml";
+  protected static final String TENANT_ONE = "tenant1";
   protected static final String CONDITIONAL_START_RESOURCE = "org/cibseven/bpm/engine/test/api/repository/processWithConditionalStartEvent.bpmn20.xml";
 
   protected ThreadControl thread1;
@@ -201,6 +204,29 @@ public class DeleteProcessDefinitionTest extends ConcurrencyTestCase {
   }
 
   @Test
+  public void testDeleteSameTenantDeploymentTwice() throws InterruptedException {
+    // given a deployment of a tenant, deleted twice with an active tenant check
+    String deploymentId = repositoryService.createDeployment()
+        .tenantId(TENANT_ONE)
+        .addClasspathResource(MESSAGE_START_RESOURCE)
+        .deploy()
+        .getId();
+    assertThat(runtimeService.createEventSubscriptionQuery().count()).isEqualTo(1);
+
+    // when (runSerialized asserts that thread 2 waits for the lock)
+    runSerialized(
+        new ControllableDeleteTenantDeploymentCommand(deploymentId, TENANT_ONE),
+        new ControllableDeleteTenantDeploymentCommand(deploymentId, TENANT_ONE));
+
+    // then thread 1 deletes the deployment; thread 2 finds nothing left to delete,
+    // which DeleteDeploymentCmd treats as a no-op (no exception)
+    assertNoException();
+    assertThat(repositoryService.createDeploymentQuery().count()).isZero();
+    assertThat(repositoryService.createProcessDefinitionQuery().count()).isZero();
+    assertThat(runtimeService.createEventSubscriptionQuery().count()).isZero();
+  }
+
+  @Test
   public void testDeleteDeploymentsCascadeWithRunningInstances() throws InterruptedException {
     // given three versions in their own deployments, each with a running instance waiting in a user task
     List<ProcessDefinition> processDefinitions = deployVersions(MESSAGE_START_RESOURCE, 3);
@@ -228,7 +254,7 @@ public class DeleteProcessDefinitionTest extends ConcurrencyTestCase {
   // still leave orphans (unchanged behavior), which the next deployment cleans up.
 
   @Test
-  public void testDeploymentOfProcessDefinitionWithOrphanMessageEvent() {
+  public void testDeploymentOfProcessDefinitionWithOrphanMessageEvent() throws InterruptedException {
     // given
     List<ProcessDefinition> processDefinitions = deployVersions(MESSAGE_START_RESOURCE, 2);
     deleteProcessDefinitionsInterleavedWithoutLock(processDefinitions.get(0).getId(), processDefinitions.get(1).getId());
@@ -246,7 +272,7 @@ public class DeleteProcessDefinitionTest extends ConcurrencyTestCase {
   }
 
   @Test
-  public void testDeploymentOfProcessDefinitionWithOrphanJob() {
+  public void testDeploymentOfProcessDefinitionWithOrphanJob() throws InterruptedException {
     // given
     List<ProcessDefinition> processDefinitions = deployVersions(TIMER_START_RESOURCE, 2);
     deleteProcessDefinitionsInterleavedWithoutLock(processDefinitions.get(0).getId(), processDefinitions.get(1).getId());
@@ -264,7 +290,7 @@ public class DeleteProcessDefinitionTest extends ConcurrencyTestCase {
   }
 
   @Test
-  public void testDeploymentOfProcessDefinitionWithOrphanSignalEvent() {
+  public void testDeploymentOfProcessDefinitionWithOrphanSignalEvent() throws InterruptedException {
     // given
     List<ProcessDefinition> processDefinitions = deployVersions(SIGNAL_START_RESOURCE, 2);
     deleteProcessDefinitionsInterleavedWithoutLock(processDefinitions.get(0).getId(), processDefinitions.get(1).getId());
@@ -282,7 +308,7 @@ public class DeleteProcessDefinitionTest extends ConcurrencyTestCase {
   }
 
   @Test
-  public void testDeploymentOfProcessDefinitionWithOrphanEventAndPreviousVersion() {
+  public void testDeploymentOfProcessDefinitionWithOrphanEventAndPreviousVersion() throws InterruptedException {
     // given
     List<ProcessDefinition> processDefinitions = deployVersions(MESSAGE_START_RESOURCE, 3);
     deleteProcessDefinitionsInterleavedWithoutLock(processDefinitions.get(1).getId(), processDefinitions.get(2).getId());
@@ -300,7 +326,7 @@ public class DeleteProcessDefinitionTest extends ConcurrencyTestCase {
   }
 
   @Test
-  public void testDeploymentOfProcessDefinitionWithOrphanConditionalEvent() {
+  public void testDeploymentOfProcessDefinitionWithOrphanConditionalEvent() throws InterruptedException {
     // given
     List<ProcessDefinition> processDefinitions = deployVersions(CONDITIONAL_START_RESOURCE, 2);
     deleteProcessDefinitionsInterleavedWithoutLock(processDefinitions.get(0).getId(), processDefinitions.get(1).getId());
@@ -321,7 +347,7 @@ public class DeleteProcessDefinitionTest extends ConcurrencyTestCase {
    * Original interleaved choreography with the deployment lock disabled: both
    * deletions run before either commits, so neither waits for the other.
    */
-  protected void deleteProcessDefinitionsInterleavedWithoutLock(String id1, String id2) {
+  protected void deleteProcessDefinitionsInterleavedWithoutLock(String id1, String id2) throws InterruptedException {
     processEngineConfiguration.setDeploymentLockUsed(false);
     command1 = new ControllableDeleteProcessDefinitionCommand(id1);
     command2 = new ControllableDeleteProcessDefinitionCommand(id2);
@@ -339,8 +365,17 @@ public class DeleteProcessDefinitionTest extends ConcurrencyTestCase {
       thread1.makeContinue();
       thread1.waitForSync();
 
-      // delete the second definition without committing (not blocked, no lock)
+      // delete the second definition without committing (not blocked, no lock);
+      // bounded wait, so that a regression that always locks fails instead of hanging
+      // on databases without a lock timeout (waitForSync resets syncAvailable, so poll it)
       thread2.makeContinue();
+      long deadline = System.currentTimeMillis() + 10000;
+      while (!thread2.syncAvailable && thread2.getException() == null && System.currentTimeMillis() < deadline) {
+        Thread.sleep(50);
+      }
+      assertThat(thread2.syncAvailable)
+          .as("without the deployment lock thread 2 must not block")
+          .isTrue();
       thread2.waitForSync();
 
       // commit both deletions
@@ -413,6 +448,32 @@ public class DeleteProcessDefinitionTest extends ConcurrencyTestCase {
     @Override
     protected void delete(CommandContext commandContext) {
       commandContext.getProcessEngineConfiguration().getRepositoryService().deleteDeployment(deploymentId, true);
+    }
+  }
+
+  /**
+   * Deletes a deployment with an authenticated tenant, so that the tenant check of
+   * {@code DeleteDeploymentCmd} is active. The authentication is thread-local and is
+   * therefore set and cleared in the worker thread.
+   */
+  protected static class ControllableDeleteTenantDeploymentCommand extends ControllableDeleteDeploymentCommand {
+
+    protected String tenantId;
+
+    public ControllableDeleteTenantDeploymentCommand(String deploymentId, String tenantId) {
+      super(deploymentId);
+      this.tenantId = tenantId;
+    }
+
+    @Override
+    protected void delete(CommandContext commandContext) {
+      IdentityService identityService = commandContext.getProcessEngineConfiguration().getIdentityService();
+      identityService.setAuthentication("user", null, Collections.singletonList(tenantId));
+      try {
+        super.delete(commandContext);
+      } finally {
+        identityService.clearAuthentication();
+      }
     }
   }
 
