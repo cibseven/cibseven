@@ -160,13 +160,15 @@ setlocal disabledelayedexpansion
 
 REM AI Agent connector and REST API MCP plugin: shipped separately in configuration\userlib-ai
 REM and only added to the classpath when enabled (default mode on; --production off unless
-REM --ai / --agent or the AI_AGENT_ENABLED / MCP_ENABLED env var is set). The same switch covers
+REM --ai / --agent). The AI_AGENT_ENABLED / MCP_ENABLED env vars override this: if either is set,
+REM the libraries are enabled when at least one of them is true. The same switch covers
 REM agentic ad hoc sub processes: their engine plugin ships in the same jar (CIB7-2145).
 SET aiAgentEnabled=true
 IF [%productionChosen%]==[true] SET aiAgentEnabled=false
 IF [%aiAgentChosen%]==[true] SET aiAgentEnabled=true
-IF NOT "x%AI_AGENT_ENABLED%"=="x" SET aiAgentEnabled=%AI_AGENT_ENABLED%
-IF NOT "x%MCP_ENABLED%"=="x" SET aiAgentEnabled=%MCP_ENABLED%
+IF NOT "x%AI_AGENT_ENABLED%%MCP_ENABLED%"=="x" SET aiAgentEnabled=false
+IF "%AI_AGENT_ENABLED%"=="true" SET aiAgentEnabled=true
+IF "%MCP_ENABLED%"=="true" SET aiAgentEnabled=true
 IF [%aiAgentEnabled%]==[true] (
   SET classPath=%PARENTDIR%configuration\userlib-ai,%classPath%
   ECHO AI Agent connector and MCP libraries enabled
