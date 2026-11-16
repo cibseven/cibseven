@@ -418,6 +418,38 @@ public class GraalJsNumberNarrowingTest {
     }
   }
 
+  /** GraalJS whose polyglot classes cannot be linked, as with a module of an application server that lacks them. */
+  protected static class GraalJsWithoutPolyglot extends URLClassLoader {
+
+    protected GraalJsWithoutPolyglot(URL[] graalJs) {
+      super(graalJs, ClassLoader.getPlatformClassLoader());
+    }
+
+    @Override
+    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+      if (name.startsWith("org.graalvm.polyglot.")) {
+        throw new NoClassDefFoundError(name.replace('.', '/'));
+      }
+      return super.loadClass(name, resolve);
+    }
+  }
+
+  @Test
+  public void shouldFailWithAnExceptionIfTheHostAccessCannotBeLinked() throws Exception {
+    // given: GraalJS whose polyglot classes give a LinkageError
+    try (URLClassLoader loader = new GraalJsWithoutPolyglot(new URL[] {jarOf(GraalJSScriptEngine.class)})) {
+      Class<?> graalJsScriptEngine = loader.loadClass(GraalJSScriptEngine.class.getName());
+
+      // when/then: ENGINE-21004, an exception that CamundaScriptEngineManager (useCibSevenNamespaceInScripting)
+      // catches to try the default path, not the LinkageError itself
+      assertThatThrownBy(() -> GraalJsNumberNarrowing.getHostAccess(new Object(), graalJsScriptEngine, false))
+          .isInstanceOf(ProcessEngineException.class)
+          .hasMessageContaining("ENGINE-21004")
+          .hasMessageContaining("NoClassDefFoundError")
+          .hasCauseInstanceOf(NoClassDefFoundError.class);
+    }
+  }
+
   @Test
   public void shouldFailIfTheNarrowedScriptEngineCannotBeCreated() {
     // given: a script engine that cannot be created again with the host access of the narrowing

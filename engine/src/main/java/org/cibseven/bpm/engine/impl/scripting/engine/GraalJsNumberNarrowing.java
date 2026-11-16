@@ -180,10 +180,16 @@ public final class GraalJsNumberNarrowing {
    * @param nashornCompatibility whether the process engine enables the Nashorn compatibility mode
    * @return {@code HostAccess.ALL}, or the host access of GraalJS in the Nashorn compatibility mode, with the
    *   number mapping: the same object for the same owner and mode
+   * @throws ProcessEngineException if GraalJS cannot be linked: an exception, so that the owner can handle it as
+   *   the other failures of this method
    */
   public static Object getHostAccess(Object owner, Class<?> graalJsScriptEngineClass, boolean nashornCompatibility)
       throws ReflectiveOperationException {
-    return graal(owner, graalJsScriptEngineClass).hostAccess(nashornCompatibility);
+    try {
+      return graal(owner, graalJsScriptEngineClass).hostAccess(nashornCompatibility);
+    } catch (LinkageError e) {
+      throw LOG.graalJsNumberNarrowingFailed(LONG, e);
+    }
   }
 
   private static synchronized Graal graal(Object owner, Class<?> graalJsScriptEngineClass)
