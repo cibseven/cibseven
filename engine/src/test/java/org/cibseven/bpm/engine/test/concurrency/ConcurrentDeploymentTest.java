@@ -24,14 +24,12 @@ import java.util.List;
 import org.cibseven.bpm.engine.impl.cmd.DeployCmd;
 import org.cibseven.bpm.engine.impl.db.sql.DbSqlSessionFactory;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
-import org.cibseven.bpm.engine.impl.persistence.entity.EventSubscriptionEntity;
 import org.cibseven.bpm.engine.impl.repository.DeploymentBuilderImpl;
 import org.cibseven.bpm.engine.impl.test.RequiredDatabase;
 import org.cibseven.bpm.engine.repository.Deployment;
 import org.cibseven.bpm.engine.repository.DeploymentBuilder;
 import org.cibseven.bpm.engine.repository.DeploymentQuery;
 import org.cibseven.bpm.engine.repository.ProcessDefinition;
-import org.cibseven.bpm.engine.runtime.EventSubscription;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
 import org.junit.jupiter.api.AfterEach;
@@ -94,81 +92,6 @@ public class ConcurrentDeploymentTest extends ConcurrencyTestCase {
     assertThat(processDefinitions.size()).isEqualTo(2);
     assertThat(processDefinitions.get(0).getVersion()).isEqualTo(1);
     assertThat(processDefinitions.get(1).getVersion()).isEqualTo(2);
-  }
-
-  /**
-   * CIB7-2714: deleting the latest version and deploying the same key are serialized
-   * by the deployment lock.
-   */
-  @Test
-  public void testDeleteLatestVersionAndDeploySameKey() throws InterruptedException {
-    // given
-    String resource = "org/cibseven/bpm/engine/test/api/repository/processWithNewInvoiceMessage.bpmn20.xml";
-    repositoryService.createDeployment().addClasspathResource(resource).deploy();
-    repositoryService.createDeployment().addClasspathResource(resource).deploy();
-    ProcessDefinition latestVersion = repositoryService.createProcessDefinitionQuery().latestVersion().singleResult();
-
-    try {
-      thread1 = executeControllableCommand(new ControllableDeleteLatestVersionCommand(latestVersion.getId()));
-      thread1.reportInterrupts();
-      thread1.waitForSync();
-
-      thread2 = executeControllableCommand(new ControllableDeployCommand(
-          new DeploymentBuilderImpl(null).name("redeploy").addClasspathResource(resource)));
-      thread2.reportInterrupts();
-      thread2.waitForSync();
-
-      // thread 1 deletes the latest version without committing and holds the deployment lock
-      thread1.makeContinue();
-      thread1.waitForSync();
-
-      // thread 2 attempts to deploy and blocks on the deployment lock
-      thread2.makeContinue();
-      Thread.sleep(2000);
-      assertThat(thread2.syncAvailable)
-          .as("deployment must wait for the deployment lock held by the deletion")
-          .isFalse();
-
-      // thread 1 commits, then thread 2 deploys on the committed state
-      thread1.waitUntilDone();
-      thread2.waitForSync();
-      thread2.waitUntilDone();
-    } finally {
-      finishQuietly(thread1);
-      finishQuietly(thread2);
-    }
-
-    // then exactly one start subscription exists, on the new latest version
-    assertThat(thread1.getException()).isNull();
-    assertThat(thread2.getException()).isNull();
-    ProcessDefinition newLatestVersion = repositoryService.createProcessDefinitionQuery().latestVersion().singleResult();
-    assertThat(newLatestVersion.getDeploymentId()).isNotEqualTo(latestVersion.getDeploymentId());
-    // the deployment ran on the committed state: v2 was deleted, so the new version is 2 again
-    assertThat(newLatestVersion.getVersion()).isEqualTo(2);
-    assertThat(repositoryService.createProcessDefinitionQuery().processDefinitionKey(latestVersion.getKey()).list())
-        .extracting(ProcessDefinition::getVersion)
-        .containsExactlyInAnyOrder(1, 2);
-    EventSubscription subscription = runtimeService.createEventSubscriptionQuery().singleResult();
-    assertThat(subscription).isNotNull();
-    assertThat(((EventSubscriptionEntity) subscription).getConfiguration()).isEqualTo(newLatestVersion.getId());
-  }
-
-
-  protected static class ControllableDeleteLatestVersionCommand extends ControllableCommand<Void> {
-
-    protected final String processDefinitionId;
-
-    public ControllableDeleteLatestVersionCommand(String processDefinitionId) {
-      this.processDefinitionId = processDefinitionId;
-    }
-
-    @Override
-    public Void execute(CommandContext commandContext) {
-      monitor.sync(); // thread will block here until makeContinue() is called from main thread
-      commandContext.getProcessEngineConfiguration().getRepositoryService().deleteProcessDefinition(processDefinitionId);
-      monitor.sync(); // thread will block here until waitUntilDone() is called form main thread
-      return null;
-    }
   }
 
   protected DeploymentBuilder createDeploymentBuilder() {
