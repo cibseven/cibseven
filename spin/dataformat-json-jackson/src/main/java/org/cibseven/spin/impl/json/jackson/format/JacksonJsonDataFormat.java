@@ -543,7 +543,9 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
    * and rejects {@code null} in such a set. Only the deserializer of these two declarations is chosen here, so type ids
    * of polymorphic values, {@code @JsonDeserialize(as = ...)} and all other declarations stay as they are: an abstract
    * type mapping {@code Map -> LinkedHashMap} would also become the default implementation of polymorphic values and
-   * accept missing or unknown type ids.
+   * accept missing or unknown type ids. The value instantiator is the JDK default of {@link LinkedHashMap} or
+   * {@link HashSet} and class annotations are read from the declared {@link Map} or {@link Set}: value instantiators or
+   * mix-ins an application registers for {@link LinkedHashMap} or {@link HashSet} themselves are not applied here.
    */
   public static class Jackson2EnumContainerDeserializers extends Deserializers.Base {
 

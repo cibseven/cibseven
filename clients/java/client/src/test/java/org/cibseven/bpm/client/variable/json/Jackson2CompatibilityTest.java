@@ -45,6 +45,7 @@ import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonMerge;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -192,6 +193,18 @@ public class Jackson2CompatibilityTest {
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "kind")
     @JsonSubTypes(@JsonSubTypes.Type(value = HashMap.class, name = "hash"))
     public Map<String, Map<String, Integer>> stringKeys;
+  }
+
+  /** A set of enums inside a map, and an enum-keyed map that is merged into instead of replaced. */
+  public static class NestedAndMergedEnumContainers {
+    public Map<String, Set<Priority>> setsByName;
+
+    @JsonMerge
+    public Map<Priority, Integer> merged = new LinkedHashMap<>();
+
+    public NestedAndMergedEnumContainers() {
+      merged.put(Priority.MEDIUM, 2);
+    }
   }
 
   /** What Jackson 2 writes for an {@link EnumContainers} with a LinkedHashMap HIGH=3, LOW=1. */
@@ -379,6 +392,25 @@ public class Jackson2CompatibilityTest {
         .hasStackTraceContaining("bogus");
     assertThatThrownBy(() -> format.readValue("{\"stringKeys\":{\"a\":{\"b\":2}}}", PolymorphicMapValues.class))
         .hasStackTraceContaining("missing type id");
+  }
+
+  @Test
+  public void shouldReadSetOfEnumsInsideAMapLikeJackson2() {
+    // Jackson 3 alone reads the inner Set<ENUM> as EnumSet too, which fails on null
+    NestedAndMergedEnumContainers value = format.readValue("{\"setsByName\":{\"a\":[\"HIGH\",null]}}",
+        NestedAndMergedEnumContainers.class);
+
+    assertThat(value.setsByName.get("a")).isExactlyInstanceOf(HashSet.class)
+        .containsExactlyInAnyOrder(Priority.HIGH, null);
+  }
+
+  @Test
+  public void shouldMergeIntoEnumKeyedMapLikeJackson2() {
+    // @JsonMerge keeps the initial LinkedHashMap; Jackson 3 alone fails to merge it into an EnumMap
+    NestedAndMergedEnumContainers value = format.readValue("{\"merged\":{\"HIGH\":3}}", NestedAndMergedEnumContainers.class);
+
+    assertThat(value.merged).isExactlyInstanceOf(LinkedHashMap.class)
+        .containsExactly(entry(Priority.MEDIUM, 2), entry(Priority.HIGH, 3));
   }
 
   @Test

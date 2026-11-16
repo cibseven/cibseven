@@ -18,17 +18,22 @@ package org.cibseven.bpm.client.variable.json;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.entry;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.cibseven.bpm.client.exception.DataFormatException;
 import org.cibseven.bpm.client.impl.ExternalTaskClientBuilderImpl;
@@ -36,17 +41,24 @@ import org.cibseven.bpm.client.spi.DataFormat;
 import org.cibseven.bpm.client.spi.DataFormatConfigurator;
 import org.cibseven.bpm.client.variable.impl.format.json.JacksonJsonDataFormat;
 import org.cibseven.bpm.client.variable.impl.format.json.JacksonJsonDataFormatProvider;
+import org.cibseven.bpm.client.variable.json.Jackson2CompatibilityTest.EnumContainers;
+import org.cibseven.bpm.client.variable.json.Jackson2CompatibilityTest.Priority;
 import org.cibseven.bpm.client.variable.json.fixture.FixtureItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.cfg.EnumFeature;
 import tools.jackson.databind.introspect.DefaultAccessorNamingStrategy;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
@@ -222,5 +234,52 @@ public class JacksonJsonDataFormatJackson3Test {
     } finally {
       java.util.TimeZone.setDefault(previous);
     }
+  }
+
+  /** Map and Set of enums with annotations of jackson-databind 3, which the shared golden test cannot use. */
+  public static class AnnotatedEnumContainers {
+    @JsonDeserialize(contentUsing = LowerCasePriority.class)
+    public Set<Priority> lowerCase;
+
+    @JsonDeserialize(as = EnumMap.class)
+    public Map<Priority, Integer> enumMap;
+
+    @JsonDeserialize(as = EnumSet.class)
+    public Set<Priority> enumSet;
+  }
+
+  public static class LowerCasePriority extends ValueDeserializer<Priority> {
+    @Override
+    public Priority deserialize(JsonParser parser, DeserializationContext context) {
+      return Priority.valueOf(parser.getString().toUpperCase(Locale.ROOT));
+    }
+  }
+
+  @Test
+  public void shouldReadAnnotatedMapsAndSetsOfEnums() {
+    // an element deserializer of its own keeps Jackson's HashSet; as = EnumMap / EnumSet chooses Jackson 3's classes
+    AnnotatedEnumContainers value = dataFormat.readValue(
+        "{\"lowerCase\":[\"high\",\"low\"],\"enumMap\":{\"HIGH\":3,\"LOW\":1},\"enumSet\":[\"HIGH\",\"LOW\"]}",
+        AnnotatedEnumContainers.class);
+
+    assertThat(value.lowerCase).isExactlyInstanceOf(HashSet.class).containsExactlyInAnyOrder(Priority.HIGH, Priority.LOW);
+    assertThat(value.enumMap).isExactlyInstanceOf(EnumMap.class)
+        .containsExactly(entry(Priority.LOW, 1), entry(Priority.HIGH, 3));
+    assertThat(value.enumSet).isInstanceOf(EnumSet.class).containsExactly(Priority.LOW, Priority.HIGH);
+  }
+
+  @Test
+  public void shouldDropUnknownEnumKeysOfAMapWhenReadAsNull() {
+    // given: unknown enum values read as null, as a configurator may set
+    dataFormat.setObjectMapper(dataFormat.getObjectMapper().rebuild().enable(EnumFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL).build());
+
+    // when
+    EnumContainers value = dataFormat.readValue(
+        "{\"perPriority\":{\"FUTURE\":2,\"HIGH\":3},\"enabled\":[\"FUTURE\",\"HIGH\"]}", EnumContainers.class);
+
+    // then: the map entry is dropped, as with Jackson 3's EnumMap (Jackson 2 keeps a null key, which it cannot write);
+    // the set keeps null, as in Jackson 2
+    assertThat(value.perPriority).isExactlyInstanceOf(LinkedHashMap.class).containsExactly(entry(Priority.HIGH, 3));
+    assertThat(value.enabled).isExactlyInstanceOf(HashSet.class).containsExactlyInAnyOrder(null, Priority.HIGH);
   }
 }
