@@ -80,6 +80,10 @@ public class DeleteProcessDefinitionsByIdsCmd implements Command<Void>, Serializ
   public Void execute(CommandContext commandContext) {
     ensureNotNull("processDefinitionIds", processDefinitionIds);
 
+    // CIB7-2714: serialize with other deletions and deployments before reading any
+    // definition, so that the new latest version is determined on committed state
+    commandContext.getPropertyManager().acquireExclusiveLockIfDeploymentLockUsed();
+
     List<ProcessDefinition> processDefinitions;
     if (processDefinitionIds.size() == 1) {
       ProcessDefinition processDefinition = getSingleProcessDefinition(commandContext);

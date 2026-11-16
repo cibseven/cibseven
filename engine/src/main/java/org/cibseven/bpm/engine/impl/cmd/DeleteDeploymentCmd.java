@@ -66,6 +66,11 @@ public class DeleteDeploymentCmd implements Command<Void>, Serializable {
       checker.checkDeleteDeployment(deploymentId);
     }
 
+    // CIB7-2714: after the authorization check (unauthorized callers never hold the lock),
+    // serialize with other deletions and deployments before reading the deployment,
+    // its definitions or instances
+    commandContext.getPropertyManager().acquireExclusiveLockIfDeploymentLockUsed();
+
     UserOperationLogManager logManager = commandContext.getOperationLogManager();
     List<PropertyChange> propertyChanges = Arrays.asList(new PropertyChange("cascade", null, cascade));
     DeploymentEntity deployment = commandContext.getDeploymentManager().findDeploymentById(deploymentId);

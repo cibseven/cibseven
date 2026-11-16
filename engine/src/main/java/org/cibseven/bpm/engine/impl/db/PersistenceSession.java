@@ -64,6 +64,15 @@ public interface PersistenceSession extends Session {
 
   void lock(String statement, Object parameter);
 
+  /**
+   * Like {@link #lock(String, Object)}, but also acquires the pessimistic lock on
+   * databases where {@link #lock(String, Object)} skips it (H2). Defaults to
+   * {@link #lock(String, Object)}.
+   */
+  default void lockIncludingH2(String statement, Object parameter) {
+    lock(statement, parameter);
+  }
+
   int executeNonEmptyUpdateStmt(String updateStmt, Object parameter);
 
   void commit();

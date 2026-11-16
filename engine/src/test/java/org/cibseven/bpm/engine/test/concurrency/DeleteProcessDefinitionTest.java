@@ -16,169 +16,407 @@
  */
 package org.cibseven.bpm.engine.test.concurrency;
 
-import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
-import org.cibseven.bpm.engine.impl.persistence.entity.EventSubscriptionEntity;
-import org.cibseven.bpm.engine.repository.ProcessDefinition;
-import org.cibseven.bpm.engine.runtime.EventSubscription;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.cibseven.bpm.engine.exception.NotFoundException;
+import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
+import org.cibseven.bpm.engine.impl.persistence.entity.EventSubscriptionEntity;
+import org.cibseven.bpm.engine.repository.Deployment;
+import org.cibseven.bpm.engine.repository.ProcessDefinition;
+import org.cibseven.bpm.engine.runtime.EventSubscription;
+import org.cibseven.bpm.engine.runtime.Job;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+/**
+ * Concurrent deletion of process definitions and deployments is serialized by the
+ * deployment lock (CIB7-2714): the second transaction waits for the first one to
+ * commit and then works on the committed state. The deletion lock is also acquired
+ * on H2 (see {@code DbSqlSession#lockIncludingH2}).
+ */
 public class DeleteProcessDefinitionTest extends ConcurrencyTestCase {
+
+  protected static final String MESSAGE_START_RESOURCE = "org/cibseven/bpm/engine/test/api/repository/processWithNewInvoiceMessage.bpmn20.xml";
+  protected static final String TIMER_START_RESOURCE = "org/cibseven/bpm/engine/test/bpmn/event/timer/StartTimerEventTest.testTimeCycle.bpmn20.xml";
+  protected static final String SIGNAL_START_RESOURCE = "org/cibseven/bpm/engine/test/api/repository/processWithStartSignalEvent.bpmn20.xml";
+  protected static final String CONDITIONAL_START_RESOURCE = "org/cibseven/bpm/engine/test/api/repository/processWithConditionalStartEvent.bpmn20.xml";
+
+  protected ThreadControl thread1;
+  protected ThreadControl thread2;
+  protected ControllableDeleteCommand command1;
+  protected ControllableDeleteCommand command2;
+  protected boolean deploymentLockUsed;
+
+  @BeforeEach
+  public void rememberDeploymentLockUsed() {
+    deploymentLockUsed = processEngineConfiguration.isDeploymentLockUsed();
+  }
 
   @AfterEach
   public void tearDown() {
+    processEngineConfiguration.setDeploymentLockUsed(deploymentLockUsed);
     repositoryService.createDeploymentQuery().list().forEach(deployment -> repositoryService.deleteDeployment(deployment.getId(), true));
     processEngineConfiguration.getDeploymentCache().purgeCache();
   }
 
   @Test
-  public void testDeploymentOfProcessDefinitionWithOrphanMessageEvent() {
+  public void testDeleteAllVersionsOfMessageStartProcess() throws InterruptedException {
     // given
-    String resource = "org/cibseven/bpm/engine/test/api/repository/processWithNewInvoiceMessage.bpmn20.xml";
-    List<ProcessDefinition> processDefinitions = deployProcessDefinitionTwice(resource);
-    assertThat(processDefinitions.size()).isEqualTo(2);
-    deleteProcessDefinitionsSimultaneously(processDefinitions.get(0).getId(), processDefinitions.get(1).getId());
-
-    assertThat(repositoryService.createProcessDefinitionQuery().list()).isEmpty();
-    assertThat(runtimeService.createEventSubscriptionQuery().count()).isEqualTo(1);
+    List<ProcessDefinition> processDefinitions = deployVersions(MESSAGE_START_RESOURCE, 2);
 
     // when
-    repositoryService.createDeployment().addClasspathResource(resource).deploy();
+    deleteProcessDefinitionsSerialized(processDefinitions.get(0).getId(), processDefinitions.get(1).getId());
 
-    // then
+    // then no orphan subscription is left
+    assertNoException();
+    assertThat(repositoryService.createProcessDefinitionQuery().count()).isZero();
+    assertThat(runtimeService.createEventSubscriptionQuery().count()).isZero();
+
+    // and a new deployment gets exactly one subscription
+    repositoryService.createDeployment().addClasspathResource(MESSAGE_START_RESOURCE).deploy();
     assertThat(repositoryService.createProcessDefinitionQuery().count()).isEqualTo(1);
     assertThat(runtimeService.createEventSubscriptionQuery().count()).isEqualTo(1);
   }
 
   @Test
-  public void testDeploymentOfProcessDefinitionWithOrphanJob() {
+  public void testDeleteAllVersionsOfTimerStartProcess() throws InterruptedException {
     // given
-    String resource = "org/cibseven/bpm/engine/test/bpmn/event/timer/StartTimerEventTest.testTimeCycle.bpmn20.xml";
-    List<ProcessDefinition> processDefinitions = deployProcessDefinitionTwice(resource);
-    assertThat(processDefinitions.size()).isEqualTo(2);
-    deleteProcessDefinitionsSimultaneously(processDefinitions.get(0).getId(), processDefinitions.get(1).getId());
+    List<ProcessDefinition> processDefinitions = deployVersions(TIMER_START_RESOURCE, 2);
 
-    assertThat(repositoryService.createProcessDefinitionQuery().list()).isEmpty();
+    // when
+    deleteProcessDefinitionsSerialized(processDefinitions.get(0).getId(), processDefinitions.get(1).getId());
+
+    // then no orphan timer job is left
+    assertNoException();
+    assertThat(repositoryService.createProcessDefinitionQuery().count()).isZero();
+    assertThat(managementService.createJobQuery().count()).isZero();
+
+    // and a new deployment gets exactly one timer job
+    repositoryService.createDeployment().addClasspathResource(TIMER_START_RESOURCE).deploy();
+    assertThat(repositoryService.createProcessDefinitionQuery().count()).isEqualTo(1);
     assertThat(managementService.createJobQuery().count()).isEqualTo(1);
-
-    // when
-    repositoryService.createDeployment().addClasspathResource(resource).deploy();
-
-    // then
-    assertThat(repositoryService.createProcessDefinitionQuery().count()).isEqualTo(1);
-    assertThat(managementService.createJobQuery().count()).isEqualTo(1);
   }
 
   @Test
-  public void testDeploymentOfProcessDefinitionWithOrphanSignalEvent() {
+  public void testDeleteAllVersionsOfSignalStartProcess() throws InterruptedException {
     // given
-    String resource = "org/cibseven/bpm/engine/test/api/repository/processWithStartSignalEvent.bpmn20.xml";
-    List<ProcessDefinition> processDefinitions = deployProcessDefinitionTwice(resource);
-    assertThat(processDefinitions.size()).isEqualTo(2);
-    deleteProcessDefinitionsSimultaneously(processDefinitions.get(0).getId(), processDefinitions.get(1).getId());
-
-    assertThat(repositoryService.createProcessDefinitionQuery().list()).isEmpty();
-    assertThat(runtimeService.createEventSubscriptionQuery().count()).isEqualTo(1);
+    List<ProcessDefinition> processDefinitions = deployVersions(SIGNAL_START_RESOURCE, 2);
 
     // when
-    repositoryService.createDeployment().addClasspathResource(resource).deploy();
+    deleteProcessDefinitionsSerialized(processDefinitions.get(0).getId(), processDefinitions.get(1).getId());
 
     // then
-    assertThat(repositoryService.createProcessDefinitionQuery().count()).isEqualTo(1);
-    assertThat(runtimeService.createEventSubscriptionQuery().count()).isEqualTo(1);
+    assertNoException();
+    assertThat(repositoryService.createProcessDefinitionQuery().count()).isZero();
+    assertThat(runtimeService.createEventSubscriptionQuery().count()).isZero();
   }
 
   @Test
-  public void testDeploymentOfProcessDefinitionWithOrphanEventAndPreviousVersion() {
+  public void testDeleteAllVersionsOfConditionalStartProcess() throws InterruptedException {
     // given
-    String resource = "org/cibseven/bpm/engine/test/api/repository/processWithNewInvoiceMessage.bpmn20.xml";
-    repositoryService.createDeployment().addClasspathResource(resource).deploy();
-    repositoryService.createDeployment().addClasspathResource(resource).deploy();
-    repositoryService.createDeployment().addClasspathResource(resource).deploy();
-    List<ProcessDefinition> processDefinitions = repositoryService.createProcessDefinitionQuery().processDefinitionKey("otherMessageProcess").list();
-    assertThat(processDefinitions.size()).isEqualTo(3);
-
-    deleteProcessDefinitionsSimultaneously(processDefinitions.get(1).getId(), processDefinitions.get(2).getId());
-
-    assertThat(repositoryService.createProcessDefinitionQuery().count()).isEqualTo(1);
-    assertThat(runtimeService.createEventSubscriptionQuery().count()).isEqualTo(1);
+    List<ProcessDefinition> processDefinitions = deployVersions(CONDITIONAL_START_RESOURCE, 2);
 
     // when
-    repositoryService.createDeployment().addClasspathResource(resource).deploy();
+    deleteProcessDefinitionsSerialized(processDefinitions.get(0).getId(), processDefinitions.get(1).getId());
 
     // then
+    assertNoException();
+    assertThat(repositoryService.createProcessDefinitionQuery().count()).isZero();
+    assertThat(runtimeService.createEventSubscriptionQuery().count()).isZero();
+  }
+
+  @Test
+  public void testDeleteTwoLatestVersionsOfMessageStartProcess() throws InterruptedException {
+    // given
+    List<ProcessDefinition> processDefinitions = deployVersions(MESSAGE_START_RESOURCE, 3);
+    String firstVersionId = processDefinitions.get(0).getId();
+
+    // when
+    deleteProcessDefinitionsSerialized(processDefinitions.get(1).getId(), processDefinitions.get(2).getId());
+
+    // then version 1 is left with exactly one subscription pointing to version 1
+    assertNoException();
+    assertThat(repositoryService.createProcessDefinitionQuery().singleResult().getId()).isEqualTo(firstVersionId);
+    assertSingleSubscriptionOn(firstVersionId);
+
+    // and a new deployment moves the subscription to the new version
+    repositoryService.createDeployment().addClasspathResource(MESSAGE_START_RESOURCE).deploy();
     assertThat(repositoryService.createProcessDefinitionQuery().count()).isEqualTo(2);
     assertThat(runtimeService.createEventSubscriptionQuery().count()).isEqualTo(1);
   }
 
   @Test
-  public void testDeploymentOfProcessDefinitionWithOrphanConditionalEvent() {
+  public void testDeleteTwoLatestVersionsOfTimerStartProcess() throws InterruptedException {
     // given
-    String resource = "org/cibseven/bpm/engine/test/api/repository/processWithConditionalStartEvent.bpmn20.xml";
-    List<ProcessDefinition> definitions = deployProcessDefinitionTwice(resource);
-    deleteProcessDefinitionsSimultaneously(definitions.get(0).getId(), definitions.get(1).getId());
-    // at this point we have one orphan subscription in the database
+    List<ProcessDefinition> processDefinitions = deployVersions(TIMER_START_RESOURCE, 3);
+    String firstVersionId = processDefinitions.get(0).getId();
 
     // when
-    repositoryService.createDeployment().addClasspathResource(resource).deploy();
+    deleteProcessDefinitionsSerialized(processDefinitions.get(1).getId(), processDefinitions.get(2).getId());
 
-    // then
-    ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().singleResult();
-    EventSubscription subscription = runtimeService.createEventSubscriptionQuery().singleResult();
-    assertThat(((EventSubscriptionEntity) subscription).getConfiguration()).isEqualTo(processDefinition.getId());
+    // then version 1 is left with exactly one timer job of version 1
+    assertNoException();
+    assertThat(repositoryService.createProcessDefinitionQuery().singleResult().getId()).isEqualTo(firstVersionId);
+    Job job = managementService.createJobQuery().singleResult();
+    assertThat(job).isNotNull();
+    assertThat(job.getProcessDefinitionId()).isEqualTo(firstVersionId);
   }
 
-  protected static class ControllableDeleteProcessDefinitionCommand extends ControllableCommand<Void> {
+  @Test
+  public void testDeleteSameProcessDefinitionTwice() throws InterruptedException {
+    // given
+    List<ProcessDefinition> processDefinitions = deployVersions(MESSAGE_START_RESOURCE, 2);
+    String firstVersionId = processDefinitions.get(0).getId();
+    String secondVersionId = processDefinitions.get(1).getId();
+
+    // when
+    deleteProcessDefinitionsSerialized(secondVersionId, secondVersionId);
+
+    // then the first transaction wins and the second one does not find the definition anymore
+    assertThat(thread1.getException()).isNull();
+    assertThat(thread2.getException()).isNull();
+    assertThat(command1.failure).isNull();
+    assertThat(command2.failure).isInstanceOf(NotFoundException.class);
+    assertThat(repositoryService.createProcessDefinitionQuery().singleResult().getId()).isEqualTo(firstVersionId);
+    assertSingleSubscriptionOn(firstVersionId);
+  }
+
+  @Test
+  public void testDeleteLatestVersionByIdAndAllVersionsByKey() throws InterruptedException {
+    // given
+    List<ProcessDefinition> processDefinitions = deployVersions(MESSAGE_START_RESOURCE, 3);
+
+    // when thread 1 deletes the latest version by id and thread 2 deletes all versions by key
+    runSerialized(
+        new ControllableDeleteProcessDefinitionCommand(processDefinitions.get(2).getId()),
+        new ControllableDeleteProcessDefinitionsByKeyCommand(processDefinitions.get(0).getKey()));
+
+    // then thread 2 only sees the remaining versions and no subscription is left
+    assertNoException();
+    assertThat(repositoryService.createProcessDefinitionQuery().count()).isZero();
+    assertThat(runtimeService.createEventSubscriptionQuery().count()).isZero();
+  }
+
+  @Test
+  public void testDeleteDeploymentsCascadeWithRunningInstances() throws InterruptedException {
+    // given three versions in their own deployments, each with a running instance waiting in a user task
+    List<ProcessDefinition> processDefinitions = deployVersions(MESSAGE_START_RESOURCE, 3);
+    for (ProcessDefinition processDefinition : processDefinitions) {
+      runtimeService.startProcessInstanceById(processDefinition.getId());
+    }
+    assertThat(taskService.createTaskQuery().count()).isEqualTo(3);
+    String firstVersionId = processDefinitions.get(0).getId();
+
+    // when
+    deleteDeploymentsSerialized(processDefinitions.get(1).getDeploymentId(), processDefinitions.get(2).getDeploymentId());
+
+    // then neither transaction fails and version 1 is left with its instance and one subscription
+    assertNoException();
+    assertThat(repositoryService.createDeploymentQuery().list())
+        .extracting(Deployment::getId)
+        .containsExactly(processDefinitions.get(0).getDeploymentId());
+    assertThat(repositoryService.createProcessDefinitionQuery().singleResult().getId()).isEqualTo(firstVersionId);
+    assertThat(runtimeService.createProcessInstanceQuery().singleResult().getProcessDefinitionId()).isEqualTo(firstVersionId);
+    assertThat(taskService.createTaskQuery().singleResult().getProcessDefinitionId()).isEqualTo(firstVersionId);
+    assertSingleSubscriptionOn(firstVersionId);
+  }
+
+  @Test
+  public void testDeleteWithoutDeploymentLock() throws InterruptedException {
+    // given
+    processEngineConfiguration.setDeploymentLockUsed(false);
+    List<ProcessDefinition> processDefinitions = deployVersions(MESSAGE_START_RESOURCE, 2);
+
+    // when both deletions run interleaved without waiting for each other
+    command1 = new ControllableDeleteProcessDefinitionCommand(processDefinitions.get(0).getId());
+    command2 = new ControllableDeleteProcessDefinitionCommand(processDefinitions.get(1).getId());
+
+    thread1 = executeControllableCommand(command1);
+    thread1.reportInterrupts();
+    thread1.waitForSync();
+
+    thread2 = executeControllableCommand(command2);
+    thread2.reportInterrupts();
+    thread2.waitForSync();
+
+    thread1.makeContinue();
+    thread1.waitForSync();
+
+    // thread 2 is not blocked since no lock is acquired
+    thread2.makeContinue();
+    thread2.waitForSync();
+
+    thread1.waitUntilDone();
+    thread2.waitUntilDone();
+
+    // then the behavior is unchanged: an orphan subscription is left ...
+    assertNoException();
+    assertThat(repositoryService.createProcessDefinitionQuery().count()).isZero();
+    assertThat(runtimeService.createEventSubscriptionQuery().count()).isEqualTo(1);
+
+    // ... which is cleaned up by the next deployment
+    repositoryService.createDeployment().addClasspathResource(MESSAGE_START_RESOURCE).deploy();
+    ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().singleResult();
+    assertSingleSubscriptionOn(processDefinition.getId());
+  }
+
+  protected void assertNoException() {
+    assertThat(thread1.getException()).isNull();
+    assertThat(thread2.getException()).isNull();
+    assertThat(command1.failure).isNull();
+    assertThat(command2.failure).isNull();
+  }
+
+  protected void assertSingleSubscriptionOn(String processDefinitionId) {
+    EventSubscription subscription = runtimeService.createEventSubscriptionQuery().singleResult();
+    assertThat(subscription).isNotNull();
+    assertThat(((EventSubscriptionEntity) subscription).getConfiguration()).isEqualTo(processDefinitionId);
+  }
+
+  /**
+   * Catches the failure of the deletion instead of propagating it, so that the
+   * thread always reaches its second sync point and the choreography stays the same.
+   */
+  protected abstract static class ControllableDeleteCommand extends ControllableCommand<Void> {
+
+    protected volatile RuntimeException failure;
+
+    @Override
+    public Void execute(CommandContext commandContext) {
+      monitor.sync(); // thread will block here until makeContinue() is called from main thread
+      try {
+        delete(commandContext);
+      } catch (RuntimeException e) {
+        failure = e;
+      }
+      monitor.sync(); // thread will block here until waitUntilDone() is called form main thread
+      return null;
+    }
+
+    protected abstract void delete(CommandContext commandContext);
+  }
+
+  protected static class ControllableDeleteProcessDefinitionCommand extends ControllableDeleteCommand {
 
     protected String processDefinitionId;
-    protected Exception exception;
 
     public ControllableDeleteProcessDefinitionCommand(String processDefinitionId) {
       this.processDefinitionId = processDefinitionId;
     }
 
     @Override
-    public Void execute(CommandContext commandContext) {
-      monitor.sync(); // thread will block here until makeContinue() is called from main thread
+    protected void delete(CommandContext commandContext) {
       commandContext.getProcessEngineConfiguration().getRepositoryService().deleteProcessDefinition(processDefinitionId);
-      monitor.sync(); // thread will block here until waitUntilDone() is called form main thread
-      return null;
     }
   }
 
-  protected void deleteProcessDefinitionsSimultaneously(String id1, String id2) {
-    ThreadControl thread1 = executeControllableCommand(new ControllableDeleteProcessDefinitionCommand(id1));
-    thread1.reportInterrupts();
-    thread1.waitForSync();
+  protected static class ControllableDeleteDeploymentCommand extends ControllableDeleteCommand {
 
-    ThreadControl thread2 = executeControllableCommand(new ControllableDeleteProcessDefinitionCommand(id2));
-    thread2.reportInterrupts();
-    thread2.waitForSync();
+    protected String deploymentId;
 
-    // delete process definition version 1 without committing
-    thread1.makeContinue();
-    thread1.waitForSync();
+    public ControllableDeleteDeploymentCommand(String deploymentId) {
+      this.deploymentId = deploymentId;
+    }
 
-    // delete process definition version 2 without committing
-    thread2.makeContinue();
-    thread2.waitForSync();
-
-    // commit deletion on version 1
-    thread1.makeContinue();
-    thread1.waitUntilDone();
-
-    // commit deletion on version 2
-    thread2.makeContinue();
-    thread2.waitUntilDone();
+    @Override
+    protected void delete(CommandContext commandContext) {
+      commandContext.getProcessEngineConfiguration().getRepositoryService().deleteDeployment(deploymentId, true);
+    }
   }
 
-  protected List<ProcessDefinition> deployProcessDefinitionTwice(String resource) {
-    repositoryService.createDeployment().addClasspathResource(resource).deploy();
-    repositoryService.createDeployment().addClasspathResource(resource).deploy();
-    return repositoryService.createProcessDefinitionQuery().list();
+  protected static class ControllableDeleteProcessDefinitionsByKeyCommand extends ControllableDeleteCommand {
+
+    protected String processDefinitionKey;
+
+    public ControllableDeleteProcessDefinitionsByKeyCommand(String processDefinitionKey) {
+      this.processDefinitionKey = processDefinitionKey;
+    }
+
+    @Override
+    protected void delete(CommandContext commandContext) {
+      commandContext.getProcessEngineConfiguration().getRepositoryService()
+          .deleteProcessDefinitions().byKey(processDefinitionKey).delete();
+    }
+  }
+
+  protected void deleteProcessDefinitionsSerialized(String id1, String id2) throws InterruptedException {
+    runSerialized(new ControllableDeleteProcessDefinitionCommand(id1), new ControllableDeleteProcessDefinitionCommand(id2));
+  }
+
+  protected void deleteDeploymentsSerialized(String id1, String id2) throws InterruptedException {
+    runSerialized(new ControllableDeleteDeploymentCommand(id1), new ControllableDeleteDeploymentCommand(id2));
+  }
+
+  protected void runSerialized(ControllableDeleteCommand command1, ControllableDeleteCommand command2) throws InterruptedException {
+    this.command1 = command1;
+    this.command2 = command2;
+
+    boolean completed = false;
+    try {
+      // STEP 1: bring both threads to a point where they have started a new transaction
+      thread1 = executeControllableCommand(command1);
+      thread1.reportInterrupts();
+      thread1.waitForSync();
+
+      thread2 = executeControllableCommand(command2);
+      thread2.reportInterrupts();
+      thread2.waitForSync();
+
+      // STEP 2: thread 1 deletes without committing and keeps holding the deployment lock
+      thread1.makeContinue();
+      thread1.waitForSync();
+
+      // STEP 3: thread 2 attempts to acquire the deployment lock and blocks
+      thread2.makeContinue();
+      Thread.sleep(2000);
+      assertThat(thread2.syncAvailable)
+          .as("thread 2 must wait for the deployment lock held by thread 1")
+          .isFalse();
+
+      // STEP 4: thread 1 commits and releases the lock
+      thread1.waitUntilDone();
+
+      // STEP 5: thread 2 deletes on the committed state and commits
+      thread2.waitForSync();
+      thread2.waitUntilDone();
+      completed = true;
+    } finally {
+      if (!completed) {
+        // let both threads run to the end so that no lock is left for tearDown
+        finishQuietly(thread1);
+        finishQuietly(thread2);
+      }
+    }
+  }
+
+  protected void finishQuietly(ThreadControl threadControl) {
+    if (threadControl == null) {
+      return;
+    }
+    synchronized (threadControl) {
+      threadControl.ignoreSync = true;
+      threadControl.notifyAll();
+    }
+    try {
+      threadControl.executingThread.join(30000);
+    } catch (InterruptedException e) {
+      // ignore, the original failure is reported
+    } finally {
+      Thread.interrupted();
+    }
+  }
+
+  protected List<ProcessDefinition> deployVersions(String resource, int count) {
+    for (int i = 0; i < count; i++) {
+      repositoryService.createDeployment().addClasspathResource(resource).deploy();
+    }
+    List<ProcessDefinition> processDefinitions = repositoryService.createProcessDefinitionQuery()
+        .orderByProcessDefinitionVersion().asc()
+        .list();
+    assertThat(processDefinitions).hasSize(count);
+    return processDefinitions;
   }
 }

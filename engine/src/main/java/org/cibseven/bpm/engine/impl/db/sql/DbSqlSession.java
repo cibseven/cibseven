@@ -145,6 +145,19 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
     }
   }
 
+  /**
+   * Acquires the pessimistic lock on every database, including H2. The comment in
+   * {@link #lock(String, Object)} about table level locks refers to H2 1.x; H2 2.x
+   * (MVStore) locks on row level, so {@code FOR UPDATE} on the lock row does not
+   * block other rows of the table. Used for the deployment lock of deletions
+   * (CIB7-2714); all other callers keep using {@link #lock(String, Object)}.
+   */
+  @Override
+  public void lockIncludingH2(String statement, Object parameter) {
+    String mappedStatement = dbSqlSessionFactory.mapStatement(statement);
+    executeSelectForUpdate(mappedStatement, parameter);
+  }
+
   protected abstract void executeSelectForUpdate(String statement, Object parameter);
 
   protected void entityUpdatePerformed(DbEntityOperation operation,
