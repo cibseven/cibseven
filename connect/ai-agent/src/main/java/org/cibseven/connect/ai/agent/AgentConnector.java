@@ -47,8 +47,8 @@ import org.cibseven.connect.spi.Connector;
  *
  *       <!-- LLM endpoint. No apiKey: the connector reads OPENAI_API_KEY from the server's
  *            environment. A key in a process variable is stored in the database and, with
- *            history on, in the history; a key or token written here, in customHeaders or in
- *            mcpServers, is stored in the deployed model. -->
+ *            history enabled, in the history tables; a key or token written here, in
+ *            customHeaders or in mcpServers, is stored in the BPMN XML of the deployment. -->
  *       <camunda:inputParameter name="baseUrl">http://localhost:11434/v1</camunda:inputParameter>
  *       <camunda:inputParameter name="customHeaders">{"X-Tenant": "acme"}</camunda:inputParameter>
  *

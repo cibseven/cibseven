@@ -269,11 +269,12 @@ public class AdHocElementTemplateTest {
       Pattern.CASE_INSENSITIVE);
 
   /**
-   * A key read from a process variable is stored in the runtime tables and, with history on, in
-   * the history, where Cockpit and the REST API show it after the process has ended; a key
-   * written into a field is stored in the deployed model. So no text of this module's templates
-   * may suggest either (see {@link #CREDENTIAL}). The connector takes the server's key when the
-   * field is empty. Every template in the folder is read, so a new one is checked as well.
+   * A key read from a process variable is stored in the runtime tables and, with history enabled,
+   * in the history tables, where Cockpit and the REST API show it after the process has ended; a
+   * key written into a field is stored in the BPMN XML of the deployment. So no text of this
+   * module's templates may suggest either (see {@link #CREDENTIAL}). The connector takes the
+   * server's key when the field is empty. Every template in the folder is read, so a new one is
+   * checked as well.
    */
   @Test
   public void noTemplateSuggestsAKeyInAProcessVariableOrInTheModel() throws IOException {
@@ -308,8 +309,8 @@ public class AdHocElementTemplateTest {
 
   /**
    * The guidance itself is kept, not only the absence of bad examples: every API key field names
-   * the server's {@code OPENAI_API_KEY}, warns against a process variable and against the model,
-   * and has no placeholder to copy; every field for headers warns against the model.
+   * the server's {@code OPENAI_API_KEY}, warns against a process variable and against the BPMN
+   * XML, and has no placeholder to copy; every field for headers warns against the BPMN XML.
    */
   @Test
   public void everyCredentialFieldSaysWhereTheKeyGoesAndWhereNot() throws IOException {
@@ -329,7 +330,7 @@ public class AdHocElementTemplateTest {
         if (AgentConnector.PARAM_NAME_API_KEY.equals(name)) {
           apiKeyFields++;
           for (String needed : new String[] { "OPENAI_API_KEY", "process variable",
-              "history", "deployed model" }) {
+              "history", "BPMN XML" }) {
             if (!description.contains(needed)) {
               missing.add(where + ": no '" + needed + "'");
             }
@@ -339,8 +340,8 @@ public class AdHocElementTemplateTest {
           }
         } else if (AgentConnector.PARAM_NAME_CUSTOM_HEADERS.equals(name)
             || AgentConnector.PARAM_NAME_MCP_SERVERS.equals(name)) {
-          if (!description.contains("deployed model")) {
-            missing.add(where + ": no 'deployed model'");
+          if (!description.contains("BPMN XML")) {
+            missing.add(where + ": no 'BPMN XML'");
           }
         }
       }

@@ -37,9 +37,9 @@ import org.cibseven.connect.spi.Connector;
  * }</pre>
  *
  * <p>The example leaves out {@code pgPassword} and {@code apiKey}: a credential in a process
- * variable is stored in the database and, with history on, in the history, and one written into
- * the model is stored in the deployment. Without {@code apiKey} the connector reads the
- * environment variable {@code OPENAI_API_KEY} of the server.
+ * variable is stored in the database and, with history enabled, in the history tables, and one
+ * written into the BPMN XML is stored in the deployment. Without {@code apiKey} the connector
+ * reads the environment variable {@code OPENAI_API_KEY} of the server.
  *
  * <p>After ingestion, use {@link AgentConnector} with the same pgvector parameters to
  * query the knowledge base via RAG.
