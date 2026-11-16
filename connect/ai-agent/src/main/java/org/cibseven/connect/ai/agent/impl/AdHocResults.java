@@ -41,7 +41,6 @@ import org.cibseven.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.cibseven.bpm.engine.impl.pvm.process.ActivityStartBehavior;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
-import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.type.ValueType;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
 
@@ -327,7 +326,7 @@ public final class AdHocResults {
         PvmExecutionImpl state = AdHocAgentState.findOrCreate(scope);
         // A variable of its own, written once: the entries before it are neither read nor written.
         state.setVariableLocal(entryName(nextPosition(state)),
-                Variables.objectValue(stored(entry)).create());
+                AdHocAgentState.javaSerialized(stored(entry)));
     }
 
     /** The variable name of the entry at {@code position} in the list. */
@@ -400,7 +399,7 @@ public final class AdHocResults {
         List<Map<String, Object>> interrupted = interruptions(handle);
         removeOf(interrupted, attachedTo);
         interrupted.add(endedBy);
-        handle.setVariableLocal(INTERRUPTED, Variables.objectValue(interrupted).create());
+        handle.setVariableLocal(INTERRUPTED, AdHocAgentState.javaSerialized(interrupted));
     }
 
     /**
@@ -423,7 +422,7 @@ public final class AdHocResults {
         if (interrupted.isEmpty()) {
             handle.removeVariableLocal(INTERRUPTED);
         } else {
-            handle.setVariableLocal(INTERRUPTED, Variables.objectValue(interrupted).create());
+            handle.setVariableLocal(INTERRUPTED, AdHocAgentState.javaSerialized(interrupted));
         }
     }
 
@@ -862,7 +861,7 @@ public final class AdHocResults {
             }
         }
         if (any) {
-            handle.setVariableLocal(CARRIED, Variables.objectValue(kept).create());
+            handle.setVariableLocal(CARRIED, AdHocAgentState.javaSerialized(kept));
         }
     }
 

@@ -35,6 +35,7 @@ import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;
 import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
 import org.cibseven.bpm.engine.variable.Variables;
+import org.cibseven.bpm.engine.variable.value.ObjectValue;
 
 /**
  * Holds state belonging to a client that drives an ad hoc sub process — an agent's
@@ -57,7 +58,8 @@ import org.cibseven.bpm.engine.variable.Variables;
  *
  * <p>What only a step writes is one map, held by the marker variable itself, so a step
  * writes one variable rather than one per counter (CIB7-2200). It is a {@link TreeMap} of
- * JDK types, serialized as Java: every engine can read it, Cockpit shows it as a map, and
+ * JDK types, serialized as Java whatever the engine's default format (see
+ * {@link #javaSerialized}): every engine can read it, Cockpit shows it as a map, and
  * its bytes depend only on what it holds. That matters because the engine serializes an
  * object it read again when the command ends and writes it back if the bytes differ; a
  * hash map can come back with another table size, which would turn a read into a write.
@@ -199,7 +201,20 @@ public final class AdHocAgentState {
     }
 
     private static void store(PvmExecutionImpl state, String marker, Map<String, Object> map) {
-        state.setVariableLocal(marker, Variables.objectValue(map).create());
+        state.setVariableLocal(marker, javaSerialized(map));
+    }
+
+    /**
+     * The value an internal variable of the agent holds: Java-serialized, whatever the engine's
+     * default serialization format (CIB7-2800). Under JSON, where Spin's map type detector is
+     * registered, as a host may register it, Spin names the type of a map after its first value, so a map
+     * of mixed values cannot be read back; and a whole number comes back as an Integer. Java
+     * serialization keeps the types, and every engine can write it, Spin or not, as it writes
+     * {@code toolCall} (CIB7-2136).
+     */
+    public static ObjectValue javaSerialized(Object value) {
+        return Variables.objectValue(value)
+                .serializationDataFormat(Variables.SerializationDataFormats.JAVA).create();
     }
 
     /**
@@ -298,7 +313,7 @@ public final class AdHocAgentState {
         state.setEventScope(true);
         Map<String, Object> empty = new TreeMap<String, Object>();
         empty.put(LAYOUT_KEY, Integer.valueOf(LAYOUT));
-        state.setVariableLocal(STATE_MARKER, Variables.objectValue(empty).create());
+        state.setVariableLocal(STATE_MARKER, javaSerialized(empty));
         return state;
     }
 

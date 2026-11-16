@@ -78,6 +78,11 @@ import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.cibseven.connect.ai.agent.agentic.AdHocAgentState;
 import org.cibseven.connect.ai.agent.agentic.AgenticTurnJobHandler;
 import org.cibseven.connect.plugin.impl.ConnectProcessEnginePlugin;
+import org.cibseven.spin.DataFormats;
+import org.cibseven.spin.impl.json.jackson.format.JacksonJsonDataFormat;
+import org.cibseven.spin.impl.json.jackson.format.MapJacksonJsonTypeDetector;
+import org.cibseven.spin.plugin.impl.SpinProcessEnginePlugin;
+import org.cibseven.spin.spi.DataFormatConfigurator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -107,6 +112,8 @@ public class AgenticTurnJobTest {
   private boolean ensureJobDueDateNotNull;
   /** The default serialization format the next {@code start} configures; the engine's own if null. */
   private String defaultSerializationFormat;
+  /** Whether the next {@code start}'s engine uses Spin JSON with the map type detector. */
+  private boolean spinJsonWithMapTypeDetector;
   private final ConcurrentLinkedQueue<String> script = new ConcurrentLinkedQueue<>();
   private ProcessEngine engine;
 
@@ -128,6 +135,10 @@ public class AgenticTurnJobTest {
     if (stub != null) {
       stub.stop(0);
       stub = null;
+    }
+    if (spinJsonWithMapTypeDetector) {
+      // Spin's data formats are global: drop the detector for whatever runs next.
+      DataFormats.loadDataFormats(SpinProcessEnginePlugin.class.getClassLoader());
     }
   }
 
@@ -1361,6 +1372,42 @@ public class AgenticTurnJobTest {
       assertThat(((ObjectValue) toolCall.getTypedValue()).getSerializationDataFormat())
           .isEqualTo(Variables.SerializationDataFormats.JAVA.getName());
     }
+  }
+
+  /**
+   * The agent reads its own variables back on an engine whose default format is JSON and whose
+   * Spin also has its map type detector registered (CIB7-2800). Spin names the type of a map
+   * after its first value, so the agent's state, a map of mixed values, could not be read once a
+   * tool had been started: "Cannot deserialize object in variable 'adHocAgentState'".
+   */
+  @Test
+  public void theAgentReadsItsVariablesBackUnderSpinJsonWithTheMapTypeDetector() {
+    spinJsonWithMapTypeDetector = true;
+    script.add(toolCall("worker", "{}"));
+    script.add(answer("Done."));
+    ProcessInstance pi = start();
+    runWaitingTurn();
+
+    complete("Worker");
+    complete("Second");
+
+    List<String> internal = new ArrayList<String>();
+    for (VariableInstance variable : engine.getRuntimeService().createVariableInstanceQuery()
+        .processInstanceIdIn(pi.getId()).disableCustomObjectDeserialization().list()) {
+      if (variable.getName().startsWith("adHocAgent")
+          && variable.getTypedValue() instanceof ObjectValue) {
+        internal.add(variable.getName());
+        assertThat(((ObjectValue) variable.getTypedValue()).getSerializationDataFormat())
+            .as("the format of %s", variable.getName())
+            .isEqualTo(Variables.SerializationDataFormats.JAVA.getName());
+      }
+    }
+    assertThat(internal).contains(AdHocAgentState.STATE_MARKER);
+
+    runWaitingTurn();
+
+    assertThat(engine.getRuntimeService().createIncidentQuery().list()).isEmpty();
+    assertThat(alive(pi)).as("the second turn read the state and ended the scope").isFalse();
   }
 
   /**
@@ -4829,6 +4876,31 @@ public class AgenticTurnJobTest {
     }
   }
 
+  /**
+   * Spin with its map type detector added, as a host can add it through a DataFormatConfigurator:
+   * its JSON format then also names the type of a map after the map's first value.
+   */
+  protected static class SpinWithMapTypeDetector extends SpinProcessEnginePlugin {
+
+    @Override
+    public void preInit(ProcessEngineConfigurationImpl processEngineConfiguration) {
+      DataFormats.loadDataFormats(SpinProcessEnginePlugin.class.getClassLoader(),
+          Collections.<DataFormatConfigurator>singletonList(
+              new DataFormatConfigurator<JacksonJsonDataFormat>() {
+
+                @Override
+                public Class<JacksonJsonDataFormat> getDataFormatClass() {
+                  return JacksonJsonDataFormat.class;
+                }
+
+                @Override
+                public void configure(JacksonJsonDataFormat dataFormat) {
+                  dataFormat.addTypeDetector(MapJacksonJsonTypeDetector.INSTANCE);
+                }
+              }));
+    }
+  }
+
   protected ProcessInstance start(String bpmn, java.util.Map<String, Object> variables) {
     return start(bpmn, variables, null);
   }
@@ -4858,8 +4930,13 @@ public class AgenticTurnJobTest {
       configuration.setCustomPreVariableSerializers(
           Collections.<TypedValueSerializer>singletonList(new JsonMapSerializer()));
     }
-    configuration.setProcessEnginePlugins(
-        Collections.<ProcessEnginePlugin>singletonList(new ConnectProcessEnginePlugin()));
+    List<ProcessEnginePlugin> plugins = new ArrayList<ProcessEnginePlugin>();
+    plugins.add(new ConnectProcessEnginePlugin());
+    if (spinJsonWithMapTypeDetector) {
+      configuration.setDefaultSerializationFormat(Variables.SerializationDataFormats.JSON.getName());
+      plugins.add(new SpinWithMapTypeDetector());
+    }
+    configuration.setProcessEnginePlugins(plugins);
     engine = configuration.buildProcessEngine();
 
     DeploymentBuilder deployment = (application == null)
