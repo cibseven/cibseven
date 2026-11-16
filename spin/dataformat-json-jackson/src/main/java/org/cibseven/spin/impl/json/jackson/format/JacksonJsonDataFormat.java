@@ -301,7 +301,8 @@ public class JacksonJsonDataFormat implements DataFormat<SpinJsonNode> {
    * ({@link JsonMapper#builderWithJackson2Defaults()}: dates as timestamps, no alphabetical property order,
    * enums by name, null for primitives accepted, unknown properties rejected, "/" not escaped, ...) and the
    * nesting depth limit of Jackson 2 ({@link #MAX_NESTING_DEPTH}) for reading and writing. JSON written by
-   * CIB seven 2.x on Jackson 2 is read and written unchanged. As in Jackson 2, a class whose {@code @JsonUnwrapped}
+   * CIB seven 2.x on Jackson 2 is read and written unchanged, except for the cases that the update guide 2.2 to 3.0
+   * lists in its section "Jackson 3". As in Jackson 2, a class whose {@code @JsonUnwrapped}
    * property Jackson unwraps ignores unknown properties ({@link Jackson2UnwrappedDeserializerModifier}).
    *
    * @return a new default object mapper
