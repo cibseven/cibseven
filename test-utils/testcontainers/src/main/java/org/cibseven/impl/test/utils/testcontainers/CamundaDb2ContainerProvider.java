@@ -16,6 +16,8 @@ public class CamundaDb2ContainerProvider extends Db2ContainerProvider {
   // Additional log files on demand: DB2 11.5 defaults to 3 primary + 10 secondary logs (~52 MB), 
   // so large transactions can fail with SQL0964C (SQLCODE=-1476) on the qa/large-data test.
   private static final int LOG_SECONDARY_FILES = 254;
+  // 4 KB pages: 8192 pages are 32 MB per log file, instead of the 1024 pages (4 MB) of the image
+  private static final int LOG_FILE_SIZE_PAGES = 8192;
 
   @Override
   public boolean supports(String databaseType) {
@@ -42,11 +44,23 @@ public class CamundaDb2ContainerProvider extends Db2ContainerProvider {
   protected void increaseTransactionLog(Db2Container container) {
     String database = container.getDatabaseName();
     try {
-      // LOGSECOND can be changed online, but only with a connection to the database
-      ExecResult result = container.execInContainer("su", "-", "db2inst1", "-c",
-          "db2 connect to " + database + " && db2 update db cfg for " + database
-          + " using LOGSECOND " + LOG_SECONDARY_FILES + " immediate");
-      if (result.getExitCode() != 0) {
+      // LOGSECOND can be changed online, LOGFILSIZ cannot: the database has to be deactivated, which
+      // needs the connection of the Testcontainers wait strategy to be gone - hence force applications.
+      // The steps are separated by ; and not by &&: deactivating a database that is not active answers
+      // with the warning SQL1496W and a non-zero exit code, which must not stop the rest.
+      // The settings are read back afterwards, so that the log of the build says what the database
+      // really ended up with instead of what was asked for.
+      String commands = "db2 force applications all"
+          + "; db2 deactivate db " + database
+          + "; db2 update db cfg for " + database
+          + " using LOGFILSIZ " + LOG_FILE_SIZE_PAGES + " LOGSECOND " + LOG_SECONDARY_FILES
+          + "; db2 activate db " + database
+          + "; db2 get db cfg for " + database + " | grep -E 'LOGFILSIZ|LOGPRIMARY|LOGSECOND'";
+      ExecResult result = container.execInContainer("su", "-", "db2inst1", "-c", commands);
+      String settings = result.getStdout() == null ? "" : result.getStdout().trim();
+      if (settings.contains("LOGFILSIZ")) {
+        System.out.println("DB2 transaction log of " + database + ":\n" + settings);
+      } else {
         System.err.println("Could not increase the DB2 transaction log: " + result.getStdout() + result.getStderr());
       }
     } catch (InterruptedException e) {
