@@ -518,9 +518,11 @@ public class DeleteProcessDefinitionTest extends ConcurrencyTestCase {
       thread1.makeContinue();
       thread1.waitForSync();
 
-      // STEP 3: thread 2 attempts to acquire the deployment lock and blocks
+      // STEP 3: thread 2 attempts to acquire the deployment lock and blocks; the wait
+      // stays well below the H2 default LOCK_TIMEOUT (2 s), which applies e.g. in the
+      // db-table-prefix profile, so that thread 2 does not time out while blocked
       thread2.makeContinue();
-      Thread.sleep(2000);
+      Thread.sleep(500);
       assertThat(thread2.syncAvailable)
           .as("thread 2 must wait for the deployment lock held by thread 1")
           .isFalse();
