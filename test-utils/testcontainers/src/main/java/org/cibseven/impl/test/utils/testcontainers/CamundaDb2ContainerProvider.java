@@ -13,14 +13,8 @@ public class CamundaDb2ContainerProvider extends Db2ContainerProvider {
 
   private static final String NAME = "camdb2";
 
-  // Additional log files (4 MB each) on demand: DB2 11.5 creates the database with only 3 primary + 10 secondary
-  // log files, about 52 MB, and a transaction that exceeds the log fails with SQL0964C - reported as
-  // SQLCODE=-1476 SQLERRMC=-964 on the batch that happens to fill it.
-  // 254 is the maximum DB2 allows, so with the default LOGFILSIZ this is about 1 GB. 100 was enough for db-unit
-  // but not for large-data-tests, which generates 20.000 process instances.
-  // If even this is not enough, the next levers are a larger LOGFILSIZ - not changeable online, the database has
-  // to be deactivated and activated again - or archive logging (LOGARCHMETH1) plus LOGSECOND -1 for an infinite
-  // active log.
+  // Additional log files on demand: DB2 11.5 defaults to 3 primary + 10 secondary logs (~52 MB), 
+  // so large transactions can fail with SQL0964C (SQLCODE=-1476) on the qa/large-data test.
   private static final int LOG_SECONDARY_FILES = 254;
 
   @Override

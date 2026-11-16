@@ -212,9 +212,11 @@
                 </dependency>
                 <dependency>
                   <!--
-                    Testcontainers copies a file into the MySQL/MariaDB containers, for which
-                    commons-compress needs commons-lang3 3.18 or newer (ArrayFill). Declared here
-                    because the plugin itself drags in commons-lang3 3.4, which would win.
+                    Testcontainers copies its default my.cnf into /etc/mysql/conf.d of every
+                    MySQL and MariaDB container, which tars the file, for which commons-compress
+                    needs commons-lang3 3.18 or newer (ArrayFill). Declared here because the
+                    plugin itself drags in commons-lang3 3.4, which would win. The other
+                    databases copy nothing and never needed it.
                   -->
                   <groupId>org.apache.commons</groupId>
                   <artifactId>commons-lang3</artifactId>
@@ -267,9 +269,11 @@
                 </dependency>
                 <dependency>
                   <!--
-                    Testcontainers copies a file into the MySQL/MariaDB containers, for which
-                    commons-compress needs commons-lang3 3.18 or newer (ArrayFill). Declared here
-                    because the plugin itself drags in commons-lang3 3.4, which would win.
+                    Testcontainers copies its default my.cnf into /etc/mysql/conf.d of every
+                    MySQL and MariaDB container, which tars the file, for which commons-compress
+                    needs commons-lang3 3.18 or newer (ArrayFill). Declared here because the
+                    plugin itself drags in commons-lang3 3.4, which would win. The other
+                    databases copy nothing and never needed it.
                   -->
                   <groupId>org.apache.commons</groupId>
                   <artifactId>commons-lang3</artifactId>
