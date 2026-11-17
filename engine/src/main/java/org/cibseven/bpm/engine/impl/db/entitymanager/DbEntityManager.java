@@ -276,13 +276,6 @@ public class DbEntityManager implements Session, EntityLoadListener {
     persistenceSession.lock(statement, parameter);
   }
 
-  /**
-   * @see PersistenceSession#lockIncludingH2(String, Object)
-   */
-  public void lockIncludingH2(String statement) {
-    persistenceSession.lockIncludingH2(statement, null);
-  }
-
   public boolean isDirty(DbEntity dbEntity) {
     CachedDbEntity cachedEntity = dbEntityCache.getCachedEntity(dbEntity);
     if(cachedEntity == null) {

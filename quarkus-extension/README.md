@@ -44,7 +44,7 @@ quarkus.cibseven.job-executor.generic-config.backoff-time-in-millis=5
 quarkus.datasource.my-datasource.db-kind=h2
 quarkus.datasource.my-datasource.username=camunda
 quarkus.datasource.my-datasource.password=camunda
-quarkus.datasource.my-datasource.jdbc.url=jdbc:h2:mem:camunda;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
+quarkus.datasource.my-datasource.jdbc.url=jdbc:h2:mem:camunda;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE;LOCK_TIMEOUT=10000
 quarkus.cibseven.datasource=my-datasource
 ```
 

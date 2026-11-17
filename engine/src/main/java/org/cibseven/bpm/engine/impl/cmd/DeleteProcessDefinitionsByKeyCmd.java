@@ -52,7 +52,6 @@ public class DeleteProcessDefinitionsByKeyCmd extends AbstractDeleteProcessDefin
     ensureNotNull("processDefinitionKey", processDefinitionKey);
 
     // CIB7-2714: serialize with other deletions and deployments before reading any definition.
-    // On H2 only deletions are serialized with each other, since DeployCmd does not lock there.
     commandContext.getPropertyManager().acquireExclusiveLockIfDeploymentLockUsed();
 
     List<ProcessDefinition> processDefinitions = commandContext.getProcessDefinitionManager()

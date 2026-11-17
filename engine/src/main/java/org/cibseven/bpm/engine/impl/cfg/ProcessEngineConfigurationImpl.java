@@ -4355,10 +4355,16 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
    * <p>
    * The same lock also serializes the deletion of deployments and process definitions with each
    * other and with deployments: a deletion waits until a concurrent deletion or deployment has
-   * committed. On H2 deployments do not lock, so only deletions wait for each other there; with
-   * long cascading deletions the H2 {@code LOCK_TIMEOUT} (default 2 s) may need to be raised in
-   * the JDBC URL. If the lock is disabled and deletions run in parallel, start event
+   * committed. If the lock is disabled and deletions run in parallel, start event
    * subscriptions and start timers may be left on deleted versions.
+   * <p>
+   * The lock is acquired on H2 2.x as well (not on H2 1.x). There the waiting time is limited by
+   * the H2 {@code LOCK_TIMEOUT} (default 2 s), which may need to be raised in the JDBC URL for
+   * long deployments or cascading deletions (e.g. {@code LOCK_TIMEOUT=10000}).
+   * <p>
+   * With {@link #isDeploymentSynchronized()} a deployment waits for this lock while holding the
+   * JVM wide deployment monitor, so while a long deletion holds the lock, the other deployments of
+   * the JVM (of all process engines) queue up behind it.
    */
   public void setDeploymentLockUsed(boolean isDeploymentLockUsed) {
     this.isDeploymentLockUsed = isDeploymentLockUsed;
@@ -4372,7 +4378,10 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   }
 
   /**
-   * Sets if deployment processing must be synchronized.
+   * Sets if deployment processing must be synchronized. The synchronized deployment also waits
+   * for the deployment lock (see {@link #setDeploymentLockUsed(boolean)}) inside the JVM wide
+   * monitor, e.g. while a concurrent deletion holds the lock. The monitor is shared by all process
+   * engines of the JVM, so deployments of other engines, even on other databases, wait as well.
    * @param deploymentSynchronized {@code true} when deployment must be synchronized,
    * {@code false} when several depoloyments may be processed in parallel
    */

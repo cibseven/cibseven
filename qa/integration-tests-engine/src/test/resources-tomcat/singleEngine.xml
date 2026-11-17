@@ -9,7 +9,7 @@
       <property name="history">full</property>
       <property name="databaseType">h2</property>
       <property name="databaseSchemaUpdate">create-drop</property>
-      <property name="jdbcUrl">jdbc:h2:mem:engine1</property>
+      <property name="jdbcUrl">jdbc:h2:mem:engine1;LOCK_TIMEOUT=10000</property>
     </properties>
   </process-engine>
 

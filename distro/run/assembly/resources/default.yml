@@ -49,8 +49,9 @@ spring:
       - optional:classpath:cibseven-webclient.properties
       - optional:classpath:cibseven-webclient.yaml
   # datasource configuration is required
+  # LOCK_TIMEOUT: H2 waits up to 10 s for row locks (default 2 s), e.g. for the deployment lock
   datasource:
-    url: jdbc:h2:./camunda-h2-default/process-engine;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:./camunda-h2-default/process-engine;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE;LOCK_TIMEOUT=10000
     driver-class-name: org.h2.Driver
     username: sa
     password: sa

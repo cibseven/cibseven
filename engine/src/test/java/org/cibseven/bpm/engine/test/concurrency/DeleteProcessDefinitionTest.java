@@ -36,8 +36,8 @@ import org.junit.jupiter.api.Test;
 /**
  * Concurrent deletion of process definitions and deployments is serialized by the
  * deployment lock (CIB7-2714): the second transaction waits for the first one to
- * commit and then works on the committed state. The deletion lock is also acquired
- * on H2 (see {@code DbSqlSession#lockIncludingH2}).
+ * commit and then works on the committed state. The lock is also acquired on H2
+ * (see {@code DbSqlSession#lock}).
  */
 public class DeleteProcessDefinitionTest extends ConcurrencyTestCase {
 
@@ -518,14 +518,9 @@ public class DeleteProcessDefinitionTest extends ConcurrencyTestCase {
       thread1.makeContinue();
       thread1.waitForSync();
 
-      // STEP 3: thread 2 attempts to acquire the deployment lock and blocks; the wait
-      // stays well below the H2 default LOCK_TIMEOUT (2 s), which applies e.g. in the
-      // db-table-prefix profile, so that thread 2 does not time out while blocked
+      // STEP 3: thread 2 attempts to acquire the deployment lock and blocks
       thread2.makeContinue();
-      Thread.sleep(500);
-      assertThat(thread2.syncAvailable)
-          .as("thread 2 must wait for the deployment lock held by thread 1")
-          .isFalse();
+      assertWaitsForLock(thread2);
 
       // STEP 4: thread 1 commits and releases the lock
       thread1.waitUntilDone();

@@ -24,6 +24,6 @@ public class StandaloneInMemProcessEngineConfiguration extends StandaloneProcess
 
   public StandaloneInMemProcessEngineConfiguration() {
     this.databaseSchemaUpdate = DB_SCHEMA_UPDATE_CREATE_DROP;
-    this.jdbcUrl = "jdbc:h2:mem:camunda";
+    this.jdbcUrl = "jdbc:h2:mem:camunda;LOCK_TIMEOUT=10000";
   }
 }

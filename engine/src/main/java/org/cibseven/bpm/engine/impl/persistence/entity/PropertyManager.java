@@ -37,18 +37,14 @@ public class PropertyManager extends AbstractManager {
   }
 
   /**
-   * Acquires the deployment lock (same row as {@link #acquireExclusiveLock()}) unless
-   * the deployment lock is disabled via
+   * Acquires the deployment lock ({@link #acquireExclusiveLock()}) unless it is disabled via
    * {@link org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl#isDeploymentLockUsed()}.
-   * Unlike {@link #acquireExclusiveLock()}, the lock is also acquired on H2.
    * Used to serialize the deletion of deployments and process definitions with each
-   * other and with deployments. On H2 deployments do not lock, so only deletions wait
-   * for each other there; with long cascading deletions the H2 {@code LOCK_TIMEOUT}
-   * (default 2 s) may need to be raised in the JDBC URL.
+   * other and with deployments.
    */
   public void acquireExclusiveLockIfDeploymentLockUsed() {
     if (Context.getProcessEngineConfiguration().isDeploymentLockUsed()) {
-      getDbEntityManager().lockIncludingH2("lockDeploymentLockProperty");
+      acquireExclusiveLock();
     }
   }
 

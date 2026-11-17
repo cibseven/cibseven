@@ -132,30 +132,63 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
 
   // lock ////////////////////////////////////////////
 
+  /**
+   * Acquires the pessimistic lock on every database, including H2 2.x.
+   * <p>
+   * H2 used to be skipped because H2 1.x with the PageStore locks the whole table on
+   * {@code FOR UPDATE}. That blocked the DbIdGenerator (own transaction, other row of
+   * ACT_GE_PROPERTY) and caused deadlocks during deployments. H2 2.x only has the
+   * MVStore, which locks on row level, so the lock row does not block other rows of the
+   * table (CIB7-2714). H2 1.x is still skipped, as it may run with the PageStore.
+   * <p>
+   * On H2 the waiting time for the lock is limited by the H2 {@code LOCK_TIMEOUT}
+   * (default 2 s), set e.g. with {@code ;LOCK_TIMEOUT=10000} in the JDBC URL. A timeout
+   * surfaces as a {@link org.cibseven.bpm.engine.ProcessEngineException} caused by the
+   * H2 lock timeout (error code 50200); it is not classified as a deadlock.
+   */
   @Override
   public void lock(String statement, Object parameter) {
-    // do not perform locking if H2 database is used. H2 uses table level locks
-    // by default which may cause deadlocks if the deploy command needs to get a new
-    // Id using the DbIdGenerator while performing a deployment.
-    if (!DatabaseUtil.checkDatabaseType(DbSqlSessionFactory.H2)) {
-      String mappedStatement = dbSqlSessionFactory.mapStatement(statement);
-      executeSelectForUpdate(mappedStatement, parameter);
-    } else {
+    if (isH2WithTableLocks()) {
       LOG.debugDisabledPessimisticLocks();
+      return;
+    }
+    String mappedStatement = dbSqlSessionFactory.mapStatement(statement);
+    executeSelectForUpdate(mappedStatement, parameter);
+  }
+
+  /**
+   * @return true for H2 1.x, which may lock whole tables (PageStore). The H2 version is
+   * read once from the connection metadata of this engine's database and cached in the
+   * {@link DbSqlSessionFactory}, so it is also known when the database type was
+   * configured explicitly.
+   */
+  protected boolean isH2WithTableLocks() {
+    if (!DbSqlSessionFactory.H2.equals(dbSqlSessionFactory.getDatabaseType())) {
+      return false;
+    }
+    Boolean h2WithTableLocks = dbSqlSessionFactory.getH2WithTableLocks();
+    if (h2WithTableLocks == null) {
+      h2WithTableLocks = isH2VersionWithTableLocks(readDatabaseProductVersion());
+      dbSqlSessionFactory.setH2WithTableLocks(h2WithTableLocks);
+    }
+    return h2WithTableLocks;
+  }
+
+  protected String readDatabaseProductVersion() {
+    try {
+      return sqlSession.getConnection().getMetaData().getDatabaseProductVersion();
+    } catch (SQLException e) {
+      // unknown version: the shipped H2 is 2.x, so the lock is acquired
+      return null;
     }
   }
 
   /**
-   * Acquires the pessimistic lock on every database, including H2. The comment in
-   * {@link #lock(String, Object)} about table level locks refers to H2 1.x; H2 2.x
-   * (MVStore) locks on row level, so {@code FOR UPDATE} on the lock row does not
-   * block other rows of the table. Used for the deployment lock of deletions
-   * (CIB7-2714); all other callers keep using {@link #lock(String, Object)}.
+   * @param databaseProductVersion the H2 product version, e.g. {@code "2.3.232 (2024-08-11)"}
+   * @return true for H2 1.x; false for H2 2.x and for an unknown version
    */
-  @Override
-  public void lockIncludingH2(String statement, Object parameter) {
-    String mappedStatement = dbSqlSessionFactory.mapStatement(statement);
-    executeSelectForUpdate(mappedStatement, parameter);
+  public static boolean isH2VersionWithTableLocks(String databaseProductVersion) {
+    return databaseProductVersion != null && databaseProductVersion.trim().startsWith("1.");
   }
 
   protected abstract void executeSelectForUpdate(String statement, Object parameter);

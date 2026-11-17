@@ -82,7 +82,6 @@ public class DeleteProcessDefinitionsByIdsCmd implements Command<Void>, Serializ
 
     // CIB7-2714: serialize with other deletions and deployments before reading any
     // definition, so that the new latest version is determined on committed state.
-    // On H2 only deletions are serialized with each other, since DeployCmd does not lock there.
     commandContext.getPropertyManager().acquireExclusiveLockIfDeploymentLockUsed();
 
     List<ProcessDefinition> processDefinitions;

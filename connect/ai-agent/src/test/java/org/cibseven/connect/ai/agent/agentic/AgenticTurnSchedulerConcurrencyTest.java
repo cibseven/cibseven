@@ -69,7 +69,7 @@ import org.junit.jupiter.api.Test;
 public class AgenticTurnSchedulerConcurrencyTest {
 
   /** Shared by both threads: an in-memory database two engines-worth of commands can hit. */
-  private static final String JDBC_URL = "jdbc:h2:mem:agentic-concurrency;DB_CLOSE_DELAY=-1";
+  private static final String JDBC_URL = "jdbc:h2:mem:agentic-concurrency;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
 
   protected ProcessEngine engine;
   protected ProcessEngineConfigurationImpl config;
