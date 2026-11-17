@@ -18,13 +18,22 @@ package org.cibseven.connect.ai.agent.impl;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
+import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.variable.Variables;
+import org.cibseven.bpm.engine.variable.value.ObjectValue;
+import org.cibseven.bpm.engine.variable.value.TypedValue;
 import org.cibseven.connect.ai.agent.AgentConnector;
 import org.cibseven.connect.ai.agent.AgentResponse;
+import org.cibseven.connect.ai.agent.agentic.AdHocAgentState;
+import org.cibseven.connect.ai.agent.agentic.AgenticAdHocParseListener;
 import org.cibseven.connect.ai.agent.agentic.AgenticTurnRunner;
 import org.cibseven.connect.impl.AbstractConnectorResponse;
+import org.cibseven.connect.spi.CloseableConnectorResponse;
 
 /**
  * Default implementation of {@link AgentResponse}.
@@ -33,7 +42,8 @@ import org.cibseven.connect.impl.AbstractConnectorResponse;
  * both through the generic parameter map (for BPMN output variable mapping) and
  * through a typed getter method.
  */
-public class AgentResponseImpl extends AbstractConnectorResponse implements AgentResponse {
+public class AgentResponseImpl extends AbstractConnectorResponse
+    implements AgentResponse, CloseableConnectorResponse {
 
   /** Camunda stores String variables in TEXT_ VARCHAR(4000); larger values need a different type. */
   private static final int CAMUNDA_STRING_LIMIT = 4000;
@@ -95,11 +105,52 @@ public class AgentResponseImpl extends AbstractConnectorResponse implements Agen
     // BPMN ${outputAiMeta} expression resolves cleanly (to null when no model
     // response was observed). Map values flow through the engine as a plain
     // java.util.Map — accessible from EL as ${outputAiMeta.aiGenerated} etc.
-    // A LinkedHashMap rather than the unmodifiable view (CIB7-2819): an output parameter stores
-    // it in the engine's default format, and with JSON and type validation the allow list has
-    // LinkedHashMap but not Collections$UnmodifiableMap, so the variable could not be read back.
+    // A LinkedHashMap rather than the unmodifiable view (CIB7-2819): stored as JSON under type
+    // validation, Collections$UnmodifiableMap is not on the allow list. The variable that holds
+    // the marker itself ends up Java-serialized after either activity (close() here, and
+    // AgenticTurnRunner.writeAnswer).
     responseParameters.put(AgentConnector.PARAM_NAME_OUTPUT_AI_META,
         (outputAiMeta == null) ? null : new LinkedHashMap<>(outputAiMeta));
+  }
+
+  // ── CloseableConnectorResponse ─────────────────────────────────────────────
+
+  /**
+   * Once the engine has applied an AI agent service task's output parameters, stores the one that
+   * holds the AI-output marker itself Java-serialized, as the agentic ad hoc sub process does
+   * (CIB7-2819). The engine stores it in its default format. Under JSON with Spin's map type
+   * detector, the detector names the marker's type after its first value, a Boolean: the variable
+   * could not be read back, nor could any read of all of the instance's variables.
+   *
+   * <p>The connect plugin calls this right after it applied the output parameters, before the task
+   * is left. The marker is found by identity among the connector's output parameters, whatever
+   * their expression; a copy of it, or a map that holds it, stays as the engine stored it.
+   * Nothing happens where the default format is Java already, outside a service task, or where
+   * the agent's engine plugin did not parse the task.
+   */
+  @Override
+  public void close() {
+    Object marker = (responseParameters == null) ? null
+        : responseParameters.get(AgentConnector.PARAM_NAME_OUTPUT_AI_META);
+    BpmnExecutionContext context = Context.getBpmnExecutionContext();
+    ExecutionEntity execution = (context == null) ? null : context.getExecution();
+    if (marker == null || execution == null || execution.getActivity() == null
+        || Variables.SerializationDataFormats.JAVA.getName().equals(
+            Context.getProcessEngineConfiguration().getDefaultSerializationFormat())) {
+      return;
+    }
+    List<String> outputs = execution.getActivity().getProperties()
+        .get(AgenticAdHocParseListener.AGENT_TASK_OUTPUTS);
+    if (outputs == null) {
+      return;
+    }
+    for (String name : outputs) {
+      TypedValue stored = execution.getVariableTyped(name, false);
+      if (stored instanceof ObjectValue && ((ObjectValue) stored).isDeserialized()
+          && ((ObjectValue) stored).getValue() == marker) {
+        execution.setVariable(name, AdHocAgentState.javaSerialized(marker));
+      }
+    }
   }
 
   // ── AgentResponse ──────────────────────────────────────────────────────────

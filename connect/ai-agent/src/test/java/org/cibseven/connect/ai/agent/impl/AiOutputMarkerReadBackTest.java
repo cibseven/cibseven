@@ -17,7 +17,6 @@
 package org.cibseven.connect.ai.agent.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -62,11 +61,11 @@ import com.sun.net.httpserver.HttpServer;
  * Strings. A variable that cannot be read back fails more than its own reads: every read of all of
  * the instance's variables fails with it, and so do a task's form variables.
  *
- * <p>The connector hands the marker out as a LinkedHashMap, which type validation allows. The
- * agentic ad hoc sub process stores it Java-serialized, as the agent's own variables. A service
- * task stores it in the engine's default format, since the engine applies its output parameters:
- * under JSON with Spin's map type detector, which names a map's type after its first value, it is
- * known not to read back (CIB7-2807).
+ * <p>The connector hands the marker out as a LinkedHashMap, which type validation allows, and
+ * stores it Java-serialized, as the agent's own variables: in the agentic ad hoc sub process it
+ * applies the output parameters itself; after a service task, once the engine has applied them
+ * (CIB7-2819). In the engine's default format, under JSON with Spin's map type detector, which
+ * names a map's type after its first value, it would not read back.
  */
 public class AiOutputMarkerReadBackTest {
 
@@ -123,15 +122,8 @@ public class AiOutputMarkerReadBackTest {
   public void theMarkerReadsBack(Setup setup, Activity activity) throws IOException {
     ProcessInstance pi = runTheAgent(setup, activity);
 
-    if (setup == Setup.JSON_MAP_DETECTOR && activity != Activity.AD_HOC_SUB_PROCESS) {
-      // Known (CIB7-2807): the engine applies a service task's output parameters in its default
-      // format, and the detector names the marker's type after its first value, a Boolean.
-      assertThatThrownBy(() -> engine.getRuntimeService().getVariables(pi.getId()))
-          .hasMessageContaining("Cannot deserialize object in variable 'agentOutput_aiMeta'");
-      return;
-    }
     assertTheMarkerReadsBack(pi);
-    assertStoredFormat(setup, activity, pi);
+    assertStoredJavaSerialized(pi);
   }
 
   /** The agent hands the marker itself over to an output parameter however it is mapped. */
@@ -143,7 +135,19 @@ public class AiOutputMarkerReadBackTest {
     ProcessInstance pi = runTheAgent(setup, Activity.AD_HOC_SUB_PROCESS);
 
     assertTheMarkerReadsBack(pi);
-    assertStoredFormat(setup, Activity.AD_HOC_SUB_PROCESS, pi);
+    assertStoredJavaSerialized(pi);
+  }
+
+  /** So does a service task's response, once the engine has applied the output parameters. */
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(Setup.class)
+  public void theServiceTaskStoresTheMarkerMappedAsADeferredExpression(Setup setup)
+      throws IOException {
+    markerExpression = "#{outputAiMeta}";
+    ProcessInstance pi = runTheAgent(setup, Activity.SERVICE_TASK);
+
+    assertTheMarkerReadsBack(pi);
+    assertStoredJavaSerialized(pi);
   }
 
   /**
@@ -181,15 +185,12 @@ public class AiOutputMarkerReadBackTest {
         .as("the marker in the history").isEqualTo(marker);
   }
 
-  /** Java after the ad hoc sub process; the engine's default format after a service task. */
-  private void assertStoredFormat(Setup setup, Activity activity, ProcessInstance pi) {
+  /** Java-serialized after either activity, whatever the engine's default format. */
+  private void assertStoredJavaSerialized(ProcessInstance pi) {
     ObjectValue stored = (ObjectValue) engine.getRuntimeService()
         .getVariableTyped(pi.getId(), "agentOutput_aiMeta", false);
-    boolean java = activity == Activity.AD_HOC_SUB_PROCESS
-        || setup == Setup.JAVA || setup == Setup.JAVA_VALIDATION;
-    assertThat(stored.getSerializationDataFormat()).isEqualTo(java
-        ? Variables.SerializationDataFormats.JAVA.getName()
-        : Variables.SerializationDataFormats.JSON.getName());
+    assertThat(stored.getSerializationDataFormat())
+        .isEqualTo(Variables.SerializationDataFormats.JAVA.getName());
   }
 
   private void startStub() throws IOException {

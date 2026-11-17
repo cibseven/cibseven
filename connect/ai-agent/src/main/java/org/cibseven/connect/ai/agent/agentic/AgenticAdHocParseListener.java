@@ -77,6 +77,9 @@ import org.slf4j.LoggerFactory;
  * {@code toolParameter} that no agentic scope reads (CIB7-2136): the function resolves on every
  * engine, and such a call would deploy and fail when it runs.
  *
+ * <p>Of an AI agent service task it only records the names of the connector's output parameters,
+ * for the agent's response to find the AI-output marker among them (CIB7-2819).
+ *
  * <p>Each of these refuses a new deployment only. A definition parsed again from a deployment
  * made while the agent was off, after a restart, a cache eviction or on another node, is not
  * refused: that would stop every instance of it. Its refusals are logged instead, and it loads
@@ -167,6 +170,13 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
   public static final PropertyKey<InputParameter> FOLLOW_UP_INPUT =
       new PropertyKey<InputParameter>("followUpInput");
 
+  /**
+   * The names of the output parameters of an AI agent service task's connector, for its response
+   * to find the AI-output marker among them once the engine has applied them (CIB7-2819).
+   */
+  public static final PropertyKey<List<String>> AGENT_TASK_OUTPUTS =
+      new PropertyKey<List<String>>("agentTaskOutputs");
+
   /** Stateless, so one serves every tool of every scope. */
   protected static final AgenticToolResultCarrier RESULT_CARRIER = new AgenticToolResultCarrier();
 
@@ -175,6 +185,28 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
    * the event and an end listener of the activity it is attached to (CIB7-2166).
    */
   protected static final AgenticToolEndRecorder RECORDER = new AgenticToolEndRecorder();
+
+  /**
+   * An AI agent service task: records the names of its connector's output parameters
+   * ({@link #AGENT_TASK_OUTPUTS}). Nothing else of the task changes.
+   */
+  @Override
+  public void parseServiceTask(Element serviceTaskElement, ScopeImpl scope, ActivityImpl activity) {
+    Element connector = BpmnParseUtil.findCamundaExtensionElement(serviceTaskElement, "connector");
+    if (!AgenticTurnRunner.AGENT_CONNECTOR_ID.equals(connectorId(connector))) {
+      return;
+    }
+    Element inputOutput = connector.elementNS(BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS, "inputOutput");
+    if (inputOutput == null) {
+      return;
+    }
+    List<String> names = new ArrayList<String>();
+    for (Element parameter : inputOutput.elementsNS(BpmnParse.CAMUNDA_BPMN_EXTENSIONS_NS,
+        "outputParameter")) {
+      names.add(parameter.attribute("name"));
+    }
+    activity.getProperties().set(AGENT_TASK_OUTPUTS, names);
+  }
 
   @Override
   public void parseSubProcess(Element scopeElement, ScopeImpl scope, ActivityImpl activity) {
