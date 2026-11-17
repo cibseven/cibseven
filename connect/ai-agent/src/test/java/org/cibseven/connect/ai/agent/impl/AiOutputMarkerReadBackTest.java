@@ -74,7 +74,10 @@ public class AiOutputMarkerReadBackTest {
   enum Setup {
     /** The engine's default: Java serialization. */
     JAVA,
-    /** Java, and the type validation of {@code production.yml} of CIB seven Run. */
+    /**
+     * Java, and the type validation of {@code production.yml} of CIB seven Run. Java serialization
+     * does not validate types, so the marker cannot fail on it here; the setup is kept as Run's.
+     */
     JAVA_VALIDATION,
     /** JSON as the default format. */
     JSON,

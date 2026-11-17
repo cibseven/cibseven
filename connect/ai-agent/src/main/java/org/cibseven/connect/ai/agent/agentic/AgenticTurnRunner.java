@@ -227,8 +227,10 @@ public final class AgenticTurnRunner {
       AgentConnectorVariableScope outputs = new AgentConnectorVariableScope(scopeExecution);
       outputs.read(withOutcome);
       Object aiMeta = response.get(AgentConnector.PARAM_NAME_OUTPUT_AI_META);
-      // One by one, as IoMapping.executeOutputParameters would, but through storable(): EL hands
-      // ${output} over as a plain String, and a long one would not fit its variable (CIB7-2165).
+      // One by one, as IoMapping.executeOutputParameters would, but not each in the engine's
+      // default format: the marker itself Java-serialized (see above), any other value through
+      // storable(), since EL hands ${output} over as a plain String, and a long one would not fit
+      // its variable (CIB7-2165).
       for (OutputParameter parameter : io.getOutputParameters()) {
         Object value = parameter.getValueProvider().getValue(outputs);
         scopeExecution.setVariable(parameter.getName(), (value != null && value == aiMeta)

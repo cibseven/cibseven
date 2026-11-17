@@ -520,6 +520,12 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * {@code <camunda:outputParameter name="agentOutput_aiMeta">${outputAiMeta}</camunda:outputParameter>},
    * so downstream Human Tasks, gateways, and history consumers can distinguish
    * AI-generated values from human-authored ones.
+   *
+   * <p>In an agentic ad hoc sub process, an answer that the agent writes itself
+   * after a limit carries {@code aiGenerated=false} and {@code generatedAt}
+   * only. Each response hands the marker out as a map of its own, which a
+   * script among the output parameters can change in place; the change is
+   * stored with it.
    */
   String PARAM_NAME_OUTPUT_AI_META = "outputAiMeta";
 
