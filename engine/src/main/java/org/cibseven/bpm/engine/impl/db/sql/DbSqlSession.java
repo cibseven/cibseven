@@ -158,20 +158,25 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
 
   /**
    * @return true for H2 1.x, which may lock whole tables (PageStore). The H2 version is
-   * read once from the connection metadata of this engine's database and cached in the
-   * {@link DbSqlSessionFactory}, so it is also known when the database type was
-   * configured explicitly.
+   * read from the connection metadata of this engine's database on the first lock and
+   * cached in the {@link DbSqlSessionFactory} once it could be read, so it is also known
+   * when the database type was configured explicitly.
    */
   protected boolean isH2WithTableLocks() {
     if (!DbSqlSessionFactory.H2.equals(dbSqlSessionFactory.getDatabaseType())) {
       return false;
     }
     Boolean h2WithTableLocks = dbSqlSessionFactory.getH2WithTableLocks();
-    if (h2WithTableLocks == null) {
-      h2WithTableLocks = isH2VersionWithTableLocks(readDatabaseProductVersion());
-      dbSqlSessionFactory.setH2WithTableLocks(h2WithTableLocks);
+    if (h2WithTableLocks != null) {
+      return h2WithTableLocks;
     }
-    return h2WithTableLocks;
+    String databaseProductVersion = readDatabaseProductVersion();
+    boolean result = isH2VersionWithTableLocks(databaseProductVersion);
+    if (databaseProductVersion != null) {
+      // cache only a version that was read; after a failed read, the next lock reads again
+      dbSqlSessionFactory.setH2WithTableLocks(result);
+    }
+    return result;
   }
 
   protected String readDatabaseProductVersion() {
@@ -183,9 +188,10 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
   }
 
   /**
-   * An unknown version ({@code null}) counts as H2 2.x, which CIB seven ships, so the lock
-   * is acquired: skipping it would silently turn off the serialization on H2 2.x, whereas
-   * acquiring it can only deadlock on H2 1.x with the PageStore.
+   * If the version cannot be read ({@code null}), the lock is acquired as on H2 2.x. This
+   * is the safer error: on H2 1.x with the PageStore the lock would fail visibly with a
+   * lock timeout, while skipping it would silently turn off the serialization on H2 2.x,
+   * which CIB seven ships.
    *
    * @param databaseProductVersion the H2 product version, e.g. {@code "2.3.232 (2024-08-11)"},
    *          or {@code null} if it cannot be read
