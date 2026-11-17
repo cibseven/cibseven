@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_spinJson" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="spinJsonProcess" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="ReadJsonTask" />
+    <!-- The JSON() function comes from the Spin process engine plugin; it proves that the function
+         mapper of the plugin and the Spin JSON data format work inside a Quarkus application.
+         The expression calls no method on the result on purpose: Quarkus ARC does not implement
+         BeanManager.getELResolver(), which CdiResolver.invoke of engine-cdi needs, so a method
+         invocation in a JUEL expression fails on Quarkus regardless of Spin. -->
+    <bpmn:serviceTask id="ReadJsonTask" name="Read JSON with Spin" camunda:expression="${JSON(payload)}" camunda:resultVariable="document">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="ReadJsonTask" targetRef="WaitTask" />
+    <bpmn:userTask id="WaitTask" name="Wait">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="WaitTask" targetRef="EndEvent_1" />
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+</bpmn:definitions>
