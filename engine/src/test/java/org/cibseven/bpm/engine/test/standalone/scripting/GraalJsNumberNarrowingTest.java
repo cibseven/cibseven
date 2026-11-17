@@ -355,7 +355,7 @@ public class GraalJsNumberNarrowingTest {
     assertThat(GraalJsNumberNarrowing.hasOwnHostAccess(scriptEngine)).isFalse();
     assertThatThrownBy(() -> evaluate(resolver, configuration, true, "sink.set(5)"))
         .isInstanceOf(ScriptException.class)
-        .hasMessageNotContaining("ENGINE-21004");
+        .hasMessageNotContaining("ENGINE-21006");
   }
 
   @ParameterizedTest(name = "useCibSevenNamespaceInScripting={0}")
@@ -440,11 +440,11 @@ public class GraalJsNumberNarrowingTest {
     try (URLClassLoader loader = new GraalJsWithoutPolyglot(new URL[] {jarOf(GraalJSScriptEngine.class)})) {
       Class<?> graalJsScriptEngine = loader.loadClass(GraalJSScriptEngine.class.getName());
 
-      // when/then: ENGINE-21004, an exception that CamundaScriptEngineManager (useCibSevenNamespaceInScripting)
+      // when/then: ENGINE-21006, an exception that CamundaScriptEngineManager (useCibSevenNamespaceInScripting)
       // catches to try the default path, not the LinkageError itself
       assertThatThrownBy(() -> GraalJsNumberNarrowing.getHostAccess(new Object(), graalJsScriptEngine, false))
           .isInstanceOf(ProcessEngineException.class)
-          .hasMessageContaining("ENGINE-21004")
+          .hasMessageContaining("ENGINE-21006")
           .hasMessageContaining("NoClassDefFoundError")
           .hasCauseInstanceOf(NoClassDefFoundError.class);
     }
@@ -458,7 +458,7 @@ public class GraalJsNumberNarrowingTest {
     // when/then: an error that names the way out, not a script engine that gives other variable types
     assertThatThrownBy(() -> GraalJsNumberNarrowing.createScriptEngine(groovy, false))
         .isInstanceOf(ProcessEngineException.class)
-        .hasMessageContaining("ENGINE-21004")
+        .hasMessageContaining("ENGINE-21006")
         // the cause in the message, not only in the stack trace
         .hasMessageContaining("NoSuchMethodException")
         .hasMessageNotContaining("{}")

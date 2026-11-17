@@ -47,7 +47,7 @@ public class ScriptLogger extends ProcessEngineLogger {
 
   public ProcessEngineException graalJsNumberNarrowingFailed(String mode, Throwable cause) {
     return new ProcessEngineException(exceptionMessage(
-        "004", "Cannot create the GraalJS script engine with javaScriptNumberNarrowing '{}': {}. Set "
+        "006", "Cannot create the GraalJS script engine with javaScriptNumberNarrowing '{}': {}. Set "
             + "javaScriptNumberNarrowing to 'none' to run JavaScript with the number types GraalJS gives.",
         // the cause as a value: a Throwable as the last parameter would be taken for the exception and leave {}
         mode, String.valueOf(cause)), cause);
