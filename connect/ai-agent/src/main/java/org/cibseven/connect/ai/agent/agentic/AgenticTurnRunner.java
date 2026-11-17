@@ -210,6 +210,10 @@ public final class AgenticTurnRunner {
    * output parameter maps {@code ${outcome}}, and to {@code agentOutcome} when there are none.
    * It is also kept in the step's map, for a later turn that ends the scope without writing an
    * answer: over a cap, or after {@code completeScope}, once what still ran has ended.
+   *
+   * <p>An output parameter that maps the AI-output marker as it is ({@code ${outputAiMeta}})
+   * stores it as {@link org.cibseven.connect.ai.agent.impl.AiOutputMarker} says: the scope's parse
+   * has adapted it (CIB7-2819). {@link #storable(Object)} hands that value on unchanged.
    */
   protected static void writeAnswer(ExecutionEntity scopeExecution, Map<String, Object> response,
       String outcome) {

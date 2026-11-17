@@ -54,6 +54,7 @@ import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.cibseven.bpm.engine.impl.util.xml.Element;
 import org.cibseven.bpm.impl.juel.TreeBuilderException;
 import org.cibseven.connect.ai.agent.AgentConnectorConstants;
+import org.cibseven.connect.ai.agent.impl.AiOutputMarker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -294,6 +295,8 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     if (followUp != null) {
       activity.getProperties().set(FOLLOW_UP_INPUT, followUp);
     }
+    // The AI-output marker, when an output parameter maps it as it is (CIB7-2819).
+    AiOutputMarker.storeTheMarkerOf(io);
     activity.getProperties().set(AGENT_CONNECTOR_IO, io);
 
     // Parking. Without it the engine ends the scope as soon as no child is active, and a pending

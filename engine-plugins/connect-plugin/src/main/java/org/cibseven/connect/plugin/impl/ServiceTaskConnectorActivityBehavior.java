@@ -54,6 +54,19 @@ public class ServiceTaskConnectorActivityBehavior extends TaskActivityBehavior {
     this.ioMapping = ioMapping;
   }
 
+  /** The id of the connector. */
+  public String getConnectorId() {
+    return connectorId;
+  }
+
+  /**
+   * The connector's own input and output parameters, or null. A parse listener that runs after
+   * the connect plugin's may adapt them, as the AI agent connector does for its AI-output marker.
+   */
+  public IoMapping getIoMapping() {
+    return ioMapping;
+  }
+
   public void execute(final ActivityExecution execution) throws Exception {
     ensureConnectorInitialized();
 
