@@ -69,14 +69,6 @@ import tools.jackson.core.JacksonException;
  *
  * <p>Every value reads back as written, except the {@link #KNOWN_PROBLEMS}. They are today's
  * behaviour, not the wanted one: a fix that changes one fails this test, and then its entry goes.
- * The same entries were measured with CIB seven 2.1.0 and 2.2.4, Camunda 7.24.0 and Operaton
- * 2.2.1. Unlike 3.0, those could not write a {@code LocalDate} as JSON, nor a list that starts
- * with null (CIB7-2632; a mixed one still cannot be read). That comparison did not cover what
- * came later: the setup {@code JSON_MAP_DETECTOR_VALIDATION}, the value {@code HashMap 1=a} and
- * the causes of failed reads.
- *
- * <p>Each object value is stored in the default format of its setup, under the type name in
- * {@code ObjectVariableRoundTripTest-stored.txt}.
  * <ul>
  * <li>Java serialization keeps every value.</li>
  * <li>JSON without type information inside a map: whole numbers come back as Integer or Long by
@@ -91,6 +83,9 @@ import tools.jackson.core.JacksonException;
  * type detector does the same for sets. With type validation as well, no map reads back: the map
  * type detector stores the type java.util.Map, which the allow list refuses.</li>
  * </ul>
+ *
+ * <p>Each object value is stored in the default format of its setup, under the type name in
+ * {@code ObjectVariableRoundTripTest-stored.txt}.
  */
 public class ObjectVariableRoundTripTest {
 
