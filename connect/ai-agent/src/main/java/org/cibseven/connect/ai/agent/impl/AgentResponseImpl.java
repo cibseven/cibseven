@@ -95,8 +95,8 @@ public class AgentResponseImpl extends AbstractConnectorResponse implements Agen
     // BPMN ${outputAiMeta} expression resolves cleanly (to null when no model
     // response was observed). Map values flow through the engine as a plain
     // java.util.Map — accessible from EL as ${outputAiMeta.aiGenerated} etc.
-    // A LinkedHashMap rather than the unmodifiable view: an output parameter stores it in the
-    // engine's default format, and with JSON and type validation the allow list has
+    // A LinkedHashMap rather than the unmodifiable view (CIB7-2819): an output parameter stores
+    // it in the engine's default format, and with JSON and type validation the allow list has
     // LinkedHashMap but not Collections$UnmodifiableMap, so the variable could not be read back.
     responseParameters.put(AgentConnector.PARAM_NAME_OUTPUT_AI_META,
         (outputAiMeta == null) ? null : new LinkedHashMap<>(outputAiMeta));

@@ -211,9 +211,11 @@ public final class AgenticTurnRunner {
    * It is also kept in the step's map, for a later turn that ends the scope without writing an
    * answer: over a cap, or after {@code completeScope}, once what still ran has ended.
    *
-   * <p>An output parameter that maps the AI-output marker as it is ({@code ${outputAiMeta}})
-   * stores it as {@link org.cibseven.connect.ai.agent.impl.AiOutputMarker} says: the scope's parse
-   * has adapted it (CIB7-2819). {@link #storable(Object)} hands that value on unchanged.
+   * <p>An output parameter that hands over the AI-output marker itself, whatever its expression
+   * ({@code ${outputAiMeta}}, {@code #{outputAiMeta}}), stores it Java-serialized, as the agent's
+   * own variables (CIB7-2819). The marker is a map of a Boolean and Strings: under JSON with
+   * Spin's map type detector, its type would be named after the Boolean, and the variable could
+   * not be read back, nor could any read of all of the instance's variables.
    */
   protected static void writeAnswer(ExecutionEntity scopeExecution, Map<String, Object> response,
       String outcome) {
@@ -224,11 +226,14 @@ public final class AgenticTurnRunner {
     if (!io.getOutputParameters().isEmpty()) {
       AgentConnectorVariableScope outputs = new AgentConnectorVariableScope(scopeExecution);
       outputs.read(withOutcome);
+      Object aiMeta = response.get(AgentConnector.PARAM_NAME_OUTPUT_AI_META);
       // One by one, as IoMapping.executeOutputParameters would, but through storable(): EL hands
       // ${output} over as a plain String, and a long one would not fit its variable (CIB7-2165).
       for (OutputParameter parameter : io.getOutputParameters()) {
-        scopeExecution.setVariable(parameter.getName(),
-            storable(parameter.getValueProvider().getValue(outputs)));
+        Object value = parameter.getValueProvider().getValue(outputs);
+        scopeExecution.setVariable(parameter.getName(), (value != null && value == aiMeta)
+            ? AdHocAgentState.javaSerialized(value)
+            : storable(value));
       }
       return;
     }

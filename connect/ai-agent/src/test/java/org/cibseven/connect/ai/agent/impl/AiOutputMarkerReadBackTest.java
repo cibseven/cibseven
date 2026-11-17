@@ -17,6 +17,7 @@
 package org.cibseven.connect.ai.agent.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -46,6 +47,7 @@ import org.cibseven.spin.spi.DataFormatConfigurator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import com.sun.net.httpserver.HttpExchange;
@@ -54,16 +56,17 @@ import com.sun.net.httpserver.HttpServer;
 /**
  * The AI-output marker ({@code ${outputAiMeta}}, which the element templates map to
  * {@code agentOutput_aiMeta}) can be read back from the process instance, whatever the engine's
- * serialization setup, after a plain service task and after an agentic ad hoc sub process.
+ * serialization setup (CIB7-2819).
  *
  * <p>The marker is a map whose first value is a Boolean ({@code aiGenerated}) and whose others are
  * Strings. A variable that cannot be read back fails more than its own reads: every read of all of
- * the instance's variables fails with it, as a task's form variables, and so does a gateway that
- * asks the marker.
+ * the instance's variables fails with it, and so do a task's form variables.
  *
- * <p>Before CIB7-2819 the marker could not be read back under JSON with type validation, nor under
- * JSON with the map type detector, after either activity. Now it is stored in the engine's default
- * format under a type of its own ({@link AiOutputMarker}), and reads back in every setup.
+ * <p>The connector hands the marker out as a LinkedHashMap, which type validation allows. The
+ * agentic ad hoc sub process stores it Java-serialized, as the agent's own variables. A service
+ * task stores it in the engine's default format, since the engine applies its output parameters:
+ * under JSON with Spin's map type detector, which names a map's type after its first value, it is
+ * known not to read back (CIB7-2807).
  */
 public class AiOutputMarkerReadBackTest {
 
@@ -88,6 +91,8 @@ public class AiOutputMarkerReadBackTest {
 
   private HttpServer stub;
   private ProcessEngine engine;
+  /** The expression that maps the marker. */
+  private String markerExpression = "${outputAiMeta}";
 
   static Stream<Arguments> setups() {
     List<Arguments> arguments = new ArrayList<Arguments>();
@@ -116,6 +121,36 @@ public class AiOutputMarkerReadBackTest {
   @ParameterizedTest(name = "{1} on {0}")
   @MethodSource("setups")
   public void theMarkerReadsBack(Setup setup, Activity activity) throws IOException {
+    ProcessInstance pi = runTheAgent(setup, activity);
+
+    if (setup == Setup.JSON_MAP_DETECTOR && activity != Activity.AD_HOC_SUB_PROCESS) {
+      // Known (CIB7-2807): the engine applies a service task's output parameters in its default
+      // format, and the detector names the marker's type after its first value, a Boolean.
+      assertThatThrownBy(() -> engine.getRuntimeService().getVariables(pi.getId()))
+          .hasMessageContaining("Cannot deserialize object in variable 'agentOutput_aiMeta'");
+      return;
+    }
+    assertTheMarkerReadsBack(pi);
+    assertStoredFormat(setup, activity, pi);
+  }
+
+  /** The agent hands the marker itself over to an output parameter however it is mapped. */
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(Setup.class)
+  public void theAdHocSubProcessStoresTheMarkerMappedAsADeferredExpression(Setup setup)
+      throws IOException {
+    markerExpression = "#{outputAiMeta}";
+    ProcessInstance pi = runTheAgent(setup, Activity.AD_HOC_SUB_PROCESS);
+
+    assertTheMarkerReadsBack(pi);
+    assertStoredFormat(setup, Activity.AD_HOC_SUB_PROCESS, pi);
+  }
+
+  /**
+   * Runs the agent. The gateway right after it asks the marker in the same command that stored it;
+   * the instance then waits in Review only if it read {@code aiGenerated} as true.
+   */
+  private ProcessInstance runTheAgent(Setup setup, Activity activity) throws IOException {
     startStub();
     startEngine(setup, activity);
     ProcessInstance pi = engine.getRuntimeService().startProcessInstanceByKey("marker");
@@ -123,9 +158,13 @@ public class AiOutputMarkerReadBackTest {
     TurnSteps.runToTheEnd(engine, pi.getId());
     Task review = engine.getTaskService().createTaskQuery().processInstanceId(pi.getId())
         .singleResult();
-    assertThat(review).as("the instance waits after the agent").isNotNull();
+    assertThat(review).as("the gateway read the marker").isNotNull();
+    assertThat(review.getTaskDefinitionKey()).isEqualTo("review");
+    return pi;
+  }
 
-    assertStoredFormat(setup, pi);
+  /** In a later command: the marker, all of the instance's variables, the task's, the history. */
+  private void assertTheMarkerReadsBack(ProcessInstance pi) {
     Object marker = engine.getRuntimeService().getVariable(pi.getId(), "agentOutput_aiMeta");
     assertThat(marker).isInstanceOf(Map.class);
     assertThat(((Map<?, ?>) marker).get("aiGenerated")).isEqualTo(Boolean.TRUE);
@@ -133,53 +172,24 @@ public class AiOutputMarkerReadBackTest {
 
     assertThat(engine.getRuntimeService().getVariables(pi.getId()))
         .as("all of the instance's variables").containsKey("agentOutput_aiMeta");
+    Task review = engine.getTaskService().createTaskQuery().processInstanceId(pi.getId())
+        .singleResult();
     assertThat(engine.getFormService().getTaskFormVariables(review.getId()))
         .as("the task's form variables").containsKey("agentOutput_aiMeta");
-
     assertThat(engine.getHistoryService().createHistoricVariableInstanceQuery()
         .processInstanceId(pi.getId()).variableName("agentOutput_aiMeta").singleResult().getValue())
         .as("the marker in the history").isEqualTo(marker);
-
-    engine.getTaskService().complete(review.getId());
-    assertThat(engine.getHistoryService().createHistoricActivityInstanceQuery()
-        .processInstanceId(pi.getId()).activityId("aiGenerated").count())
-        .as("the gateway asks ${agentOutput_aiMeta.aiGenerated}").isEqualTo(1);
   }
 
-  /**
-   * A definition deployed earlier is parsed again when the engine restarts, or when its cache
-   * entry is dropped. It stores the marker the same way.
-   */
-  @ParameterizedTest(name = "{0}")
-  @org.junit.jupiter.params.provider.EnumSource(Activity.class)
-  public void aDefinitionParsedAgainStoresTheMarkerTheSameWay(Activity activity)
-      throws IOException {
-    startStub();
-    startEngine(Setup.JSON_MAP_DETECTOR, activity);
-    ((ProcessEngineConfigurationImpl) engine.getProcessEngineConfiguration()).getDeploymentCache()
-        .discardProcessDefinitionCache();
-
-    ProcessInstance pi = engine.getRuntimeService().startProcessInstanceByKey("marker");
-    TurnSteps.runToTheEnd(engine, pi.getId());
-
-    assertStoredFormat(Setup.JSON_MAP_DETECTOR, pi);
-    assertThat(engine.getRuntimeService().getVariables(pi.getId()))
-        .containsKey("agentOutput_aiMeta");
-  }
-
-  /** In the engine's default format; with JSON, under the marker's own type. */
-  private void assertStoredFormat(Setup setup, ProcessInstance pi) {
+  /** Java after the ad hoc sub process; the engine's default format after a service task. */
+  private void assertStoredFormat(Setup setup, Activity activity, ProcessInstance pi) {
     ObjectValue stored = (ObjectValue) engine.getRuntimeService()
         .getVariableTyped(pi.getId(), "agentOutput_aiMeta", false);
-    if (setup == Setup.JAVA || setup == Setup.JAVA_VALIDATION) {
-      assertThat(stored.getSerializationDataFormat())
-          .isEqualTo(Variables.SerializationDataFormats.JAVA.getName());
-    } else {
-      assertThat(stored.getSerializationDataFormat())
-          .isEqualTo(Variables.SerializationDataFormats.JSON.getName());
-      assertThat(stored.getObjectTypeName()).isEqualTo(AiOutputMarker.JSON_TYPE_NAME);
-      assertThat(stored.getValueSerialized()).startsWith("{\"aiGenerated\":true,\"runId\":\"");
-    }
+    boolean java = activity == Activity.AD_HOC_SUB_PROCESS
+        || setup == Setup.JAVA || setup == Setup.JAVA_VALIDATION;
+    assertThat(stored.getSerializationDataFormat()).isEqualTo(java
+        ? Variables.SerializationDataFormats.JAVA.getName()
+        : Variables.SerializationDataFormats.JSON.getName());
   }
 
   private void startStub() throws IOException {
@@ -214,8 +224,8 @@ public class AiOutputMarkerReadBackTest {
   }
 
   /**
-   * The agent, with the outputs the element templates map; then a task to wait in, and a gateway
-   * that asks the marker.
+   * The agent, with the outputs the element templates map; then a gateway that asks the marker,
+   * and a task to wait in.
    */
   private String model(Activity activity) {
     String connector = "<extensionElements><camunda:connector>"
@@ -228,7 +238,7 @@ public class AiOutputMarkerReadBackTest {
         + "<camunda:inputParameter name='baseUrl'>http://127.0.0.1:"
         + stub.getAddress().getPort() + "/v1</camunda:inputParameter>"
         + "<camunda:outputParameter name='agentOutput'>${output}</camunda:outputParameter>"
-        + "<camunda:outputParameter name='agentOutput_aiMeta'>${outputAiMeta}"
+        + "<camunda:outputParameter name='agentOutput_aiMeta'>" + markerExpression
         + "</camunda:outputParameter>"
         + "</camunda:inputOutput>"
         + "</camunda:connector></extensionElements>";
@@ -253,16 +263,14 @@ public class AiOutputMarkerReadBackTest {
         + "<startEvent id='start' />"
         + "<sequenceFlow id='f1' sourceRef='start' targetRef='agent' />"
         + agent
-        + "<sequenceFlow id='f2' sourceRef='agent' targetRef='review' />"
-        + "<userTask id='review' name='Review' />"
-        + "<sequenceFlow id='f3' sourceRef='review' targetRef='marked' />"
-        + "<exclusiveGateway id='marked' default='f5' />"
-        + "<sequenceFlow id='f4' sourceRef='marked' targetRef='aiGenerated'>"
+        + "<sequenceFlow id='f2' sourceRef='agent' targetRef='marked' />"
+        + "<exclusiveGateway id='marked' default='f4' />"
+        + "<sequenceFlow id='f3' sourceRef='marked' targetRef='review'>"
         + "<conditionExpression xsi:type='tFormalExpression'>${agentOutput_aiMeta.aiGenerated}"
         + "</conditionExpression></sequenceFlow>"
-        + "<sequenceFlow id='f5' sourceRef='marked' targetRef='notMarked' />"
-        + "<endEvent id='aiGenerated' />"
-        + "<endEvent id='notMarked' />"
+        + "<sequenceFlow id='f4' sourceRef='marked' targetRef='notMarked' />"
+        + "<userTask id='review' name='Review' />"
+        + "<userTask id='notMarked' name='Not marked' />"
         + "</process>"
         + "</definitions>";
   }

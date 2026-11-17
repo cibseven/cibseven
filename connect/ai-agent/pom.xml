@@ -171,18 +171,15 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- CIB7-1944: the BPMN files under src/test/resources/ad-hoc-agent wire the agent through
-         camunda:connector, and the engine refuses to parse that element unless the connect
-         plugin is registered. A distribution has it; a bare
-         StandaloneInMemProcessEngineConfiguration does not.
-         CIB7-2819: provided, not test. AiOutputMarkerParseListener reads the connector's output
-         parameters from ServiceTaskConnectorActivityBehavior. Every engine that runs this
-         connector has the connect plugin, which also loads this connector's engine plugin. -->
+    <!-- CIB7-1944, test only. The BPMN files under src/test/resources/ad-hoc-agent wire
+         the agent through camunda:connector, and the engine refuses to parse that element
+         unless the connect plugin is registered. A distribution has it; a bare
+         StandaloneInMemProcessEngineConfiguration does not. -->
     <dependency>
       <groupId>org.cibseven.bpm</groupId>
       <artifactId>cibseven-engine-plugin-connect</artifactId>
       <version>${project.version}</version>
-      <scope>provided</scope>
+      <scope>test</scope>
     </dependency>
 
     <!-- CIB7-2800, test only. Spin JSON as the engine's default format, with Spin's map type

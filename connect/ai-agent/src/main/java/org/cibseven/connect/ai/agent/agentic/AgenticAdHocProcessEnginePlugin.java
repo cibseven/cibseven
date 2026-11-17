@@ -26,7 +26,6 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.jobexecutor.FailedJobCommandFactory;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobHandler;
 import org.cibseven.bpm.engine.impl.migration.validation.instance.MigratingActivityInstanceValidator;
-import org.cibseven.connect.ai.agent.impl.AiOutputMarkerParseListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -144,9 +143,6 @@ public class AgenticAdHocProcessEnginePlugin extends AbstractProcessEnginePlugin
       processEngineConfiguration.setCustomPostBPMNParseListeners(postParseListeners);
     }
     postParseListeners.add(new AgenticAdHocParseListener());
-    // A post-parse listener, so it runs after the connect plugin's, which sets the connector's
-    // behaviour (CIB7-2819).
-    postParseListeners.add(new AiOutputMarkerParseListener());
   }
 
   protected void addTurnJobHandler(ProcessEngineConfigurationImpl processEngineConfiguration) {
