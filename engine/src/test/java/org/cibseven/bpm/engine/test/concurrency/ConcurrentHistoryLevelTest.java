@@ -16,11 +16,8 @@
  */
 package org.cibseven.bpm.engine.test.concurrency;
 
-import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-
-import java.sql.Connection;
 
 import org.cibseven.bpm.engine.impl.HistoryLevelSetupCommand;
 import org.cibseven.bpm.engine.impl.db.sql.DbSqlSessionFactory;
@@ -28,15 +25,13 @@ import org.cibseven.bpm.engine.impl.history.HistoryLevel;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.test.RequiredDatabase;
 import org.cibseven.bpm.engine.impl.test.TestHelper;
-import org.cibseven.bpm.engine.test.util.DatabaseHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * <p>Tests cluster scenario with two nodes trying to write the history level property in parallel.</p>
  *
- * <p><b>Note:</b> the test is not executed on H2 because it doesn't support the
- * exclusive lock on table.</p>
+ * <p>Also runs on H2 2.x, which acquires the exclusive lock (CIB7-2714).</p>
  *
  */
 public class ConcurrentHistoryLevelTest extends ConcurrencyTestCase {
@@ -47,10 +42,8 @@ public class ConcurrentHistoryLevelTest extends ConcurrencyTestCase {
   }
 
   @Test
-  @RequiredDatabase(excludes = { DbSqlSessionFactory.H2, DbSqlSessionFactory.MARIADB })
+  @RequiredDatabase(excludes = DbSqlSessionFactory.MARIADB)
   public void test() throws InterruptedException {
-    Integer transactionIsolationLevel = DatabaseHelper.getTransactionIsolationLevel(processEngineConfiguration);
-    assumeThat((transactionIsolationLevel != null && !transactionIsolationLevel.equals(Connection.TRANSACTION_READ_COMMITTED)));
     ThreadControl thread1 = executeControllableCommand(new ControllableUpdateHistoryLevelCommand());
     thread1.reportInterrupts();
     thread1.waitForSync();
@@ -63,8 +56,7 @@ public class ConcurrentHistoryLevelTest extends ConcurrencyTestCase {
     thread1.waitForSync();
 
     thread2.makeContinue();
-
-    Thread.sleep(2000);
+    assertWaitsForLock(thread2);
 
     thread1.waitUntilDone();
 

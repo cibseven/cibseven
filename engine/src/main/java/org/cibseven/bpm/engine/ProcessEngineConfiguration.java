@@ -50,12 +50,14 @@ import org.cibseven.bpm.engine.variable.type.ValueTypeResolver;
  *   .buildProcessEngine();
  * </pre>
  * This creates a new process engine with all the defaults to connect to
- * a remote h2 database (jdbc:h2:tcp://localhost/activiti) in standalone
+ * a remote h2 database (jdbc:h2:tcp://localhost/activiti;LOCK_TIMEOUT=10000) in standalone
  * mode.  Standalone mode means that Activiti will manage the transactions
  * on the JDBC connections that it creates.  One transaction per
  * service method.
  * For a description of how to write the configuration files, see the
  * userguide.
+ * When setting an own H2 JDBC URL, add <code>;LOCK_TIMEOUT=10000</code> (H2 default: 2 s),
+ * as concurrent deployments and deletions wait for the deployment lock on H2 2.x.
  * </p>
  *
  * <p>The second option is great for testing: {@link #createStandaloneInMemProcessEngineConfiguration()}
@@ -64,7 +66,7 @@ import org.cibseven.bpm.engine.variable.type.ValueTypeResolver;
  *   .buildProcessEngine();
  * </pre>
  * This creates a new process engine with all the defaults to connect to
- * an memory h2 database (jdbc:h2:tcp://localhost/activiti) in standalone
+ * an memory h2 database (jdbc:h2:mem:camunda;LOCK_TIMEOUT=10000) in standalone
  * mode.  The DB schema strategy default is in this case <code>create-drop</code>.
  * Standalone mode means that Activiti will manage the transactions
  * on the JDBC connections that it creates.  One transaction per
@@ -233,7 +235,7 @@ public abstract class ProcessEngineConfiguration {
   protected String databaseVersion;
   protected String databaseSchemaUpdate = DB_SCHEMA_UPDATE_FALSE;
   protected String jdbcDriver = "org.h2.Driver";
-  protected String jdbcUrl = "jdbc:h2:tcp://localhost/activiti";
+  protected String jdbcUrl = "jdbc:h2:tcp://localhost/activiti;LOCK_TIMEOUT=10000";
   protected String jdbcUsername = "sa";
   protected String jdbcPassword = "";
   protected String dataSourceJndiName = null;

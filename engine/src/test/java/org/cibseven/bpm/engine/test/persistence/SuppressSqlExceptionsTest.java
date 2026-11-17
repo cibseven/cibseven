@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.cibseven.bpm.engine.authorization.Authorization.AUTH_TYPE_GRANT;
 import static org.cibseven.bpm.engine.impl.util.ExceptionUtil.PERSISTENCE_EXCEPTION_MESSAGE;
 
+import ch.qos.logback.classic.Level;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -43,6 +44,7 @@ import org.cibseven.bpm.engine.authorization.TaskPermissions;
 import org.cibseven.bpm.engine.filter.Filter;
 import org.cibseven.bpm.engine.identity.User;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import org.cibseven.bpm.engine.impl.db.sql.DbSqlSession;
 import org.cibseven.bpm.engine.impl.db.sql.DbSqlSessionFactory;
 import org.cibseven.bpm.engine.impl.history.event.HistoricDetailEventEntity;
 import org.cibseven.bpm.engine.impl.history.event.HistoricVariableUpdateEventEntity;
@@ -56,6 +58,7 @@ import org.cibseven.bpm.engine.test.util.ProvidedProcessEngineRule;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
+import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
@@ -69,6 +72,12 @@ public class SuppressSqlExceptionsTest {
   @Order(4) protected ProcessEngineRule engineRule = new ProvidedProcessEngineRule();
   @RegisterExtension
   @Order(9) protected ProcessEngineTestRule engineTestRule = new ProcessEngineTestRule(engineRule);
+  @RegisterExtension
+  @Order(10) public ProcessEngineLoggingRule loggingRule = new ProcessEngineLoggingRule()
+      .watch(PERSISTENCE_LOGGER)
+      .level(Level.DEBUG);
+
+  protected static final String PERSISTENCE_LOGGER = "org.cibseven.bpm.engine.persistence";
 
 
   protected RuntimeService runtimeService;
@@ -418,12 +427,10 @@ public class SuppressSqlExceptionsTest {
 
   /**
    * This test expects an exception when performing a pessimistic lock
-   * in this scenario. Since pessimistic locks are disabled on H2,
-   * this test will fail, and it needs to be excluded from the test suite
-   * for this database.
+   * in this scenario. The lock is acquired on all databases including
+   * H2 2.x (CIB7-2714).
    */
   @Test
-  @RequiredDatabase(excludes = DbSqlSessionFactory.H2)
   public void shouldThrowExceptionOnLock() {
     // given
     failForSqlStatement("lockDeploymentLockProperty");
@@ -448,6 +455,79 @@ public class SuppressSqlExceptionsTest {
 
     assertThat(exceptionsByHierarchy.next())
         .isInstanceOf(PersistenceException.class);
+  }
+
+  /**
+   * H2 1.x may lock whole tables (PageStore), so no pessimistic lock is acquired there.
+   * H2 1.x is simulated via the cached detection result, the failing lock statement
+   * proves that the lock is skipped, and ENGINE-03106 is logged.
+   */
+  @Test
+  @RequiredDatabase(includes = DbSqlSessionFactory.H2)
+  public void shouldNotLockOnH2Version1() {
+    // given
+    DbSqlSessionFactory dbSqlSessionFactory = engineConfig.getDbSqlSessionFactory();
+    Boolean h2WithTableLocks = dbSqlSessionFactory.getH2WithTableLocks();
+    dbSqlSessionFactory.setH2WithTableLocks(true);
+    failForSqlStatement("lockDeploymentLockProperty");
+
+    try {
+      // when
+      String deploymentId = repositoryService.createDeployment()
+          .addModelInstance("process.bpmn", createProcess())
+          .deploy()
+          .getId();
+
+      // then
+      assertThat(repositoryService.createDeploymentQuery().deploymentId(deploymentId).count()).isEqualTo(1L);
+      assertThat(loggingRule.getFilteredLog(PERSISTENCE_LOGGER, "ENGINE-03106")).isNotEmpty();
+      repositoryService.deleteDeployment(deploymentId, true);
+    } finally {
+      dbSqlSessionFactory.setH2WithTableLocks(h2WithTableLocks);
+    }
+  }
+
+  /**
+   * The H2 version is read from the connection when it is not known yet, e.g. when the
+   * database type was configured explicitly: on H2 2.x the lock is acquired.
+   */
+  @Test
+  @RequiredDatabase(includes = DbSqlSessionFactory.H2)
+  public void shouldDetectH2VersionAndLock() {
+    // given
+    DbSqlSessionFactory dbSqlSessionFactory = engineConfig.getDbSqlSessionFactory();
+    Boolean h2WithTableLocks = dbSqlSessionFactory.getH2WithTableLocks();
+    dbSqlSessionFactory.setH2WithTableLocks(null);
+    failForSqlStatement("lockDeploymentLockProperty");
+
+    try {
+      // when
+      Iterator<Throwable> exceptionsByHierarchy = catchExceptionHierarchy(() ->
+          repositoryService.createDeployment()
+              .addModelInstance("process.bpmn", createProcess())
+              .deploy());
+
+      // then
+      assertThat(exceptionsByHierarchy.next()).isInstanceOf(ProcessEngineException.class);
+      assertThat(dbSqlSessionFactory.getH2WithTableLocks()).isFalse();
+    } finally {
+      dbSqlSessionFactory.setH2WithTableLocks(h2WithTableLocks);
+    }
+  }
+
+  @Test
+  public void shouldRecognizeH2VersionsWithTableLocks() {
+    assertThat(DbSqlSession.isH2VersionWithTableLocks("1.4.200 (2019-10-14)")).isTrue();
+    assertThat(DbSqlSession.isH2VersionWithTableLocks("2.3.232 (2024-08-11)")).isFalse();
+    assertThat(DbSqlSession.isH2VersionWithTableLocks(null)).isFalse();
+  }
+
+  protected BpmnModelInstance createProcess() {
+    return Bpmn.createExecutableProcess("process")
+        .startEvent()
+        .userTask()
+        .endEvent()
+        .done();
   }
 
   // helper ////////////////////////////////////////////////////////////////////////////////////////

@@ -778,8 +778,8 @@ public class EnginePersistenceLogger extends ProcessEngineLogger {
 
   public void debugDisabledPessimisticLocks() {
     logDebug(
-      "106", "No exclusive lock is acquired on H2, " +
-            "as pessimistic locks are disabled on this database.");
+      "106", "No exclusive lock is acquired on H2 1.x, " +
+            "as it may lock whole tables. H2 2.x acquires the lock.");
   }
 
   public void logTaskWithoutExecution(String taskId) {

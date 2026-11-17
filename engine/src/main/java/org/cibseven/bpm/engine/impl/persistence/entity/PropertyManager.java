@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.impl.persistence.entity;
 
+import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.persistence.AbstractManager;
 
 
@@ -33,6 +34,18 @@ public class PropertyManager extends AbstractManager {
     // We lock a special deployment lock property
     getDbEntityManager().lock("lockDeploymentLockProperty");
 
+  }
+
+  /**
+   * Acquires the deployment lock ({@link #acquireExclusiveLock()}) unless it is disabled via
+   * {@link org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl#isDeploymentLockUsed()}.
+   * Used to serialize the deletion of deployments and process definitions with each
+   * other and with deployments.
+   */
+  public void acquireExclusiveLockIfDeploymentLockUsed() {
+    if (Context.getProcessEngineConfiguration().isDeploymentLockUsed()) {
+      acquireExclusiveLock();
+    }
   }
 
   public void acquireExclusiveLockForHistoryCleanupJob() {

@@ -848,7 +848,7 @@
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <reuseForks>true</reuseForks>
               <systemPropertyVariables>
-                <jdbcUrl>jdbc:h2:mem:camunda_${surefire.forkNumber};DB_CLOSE_DELAY=1000</jdbcUrl>
+                <jdbcUrl>jdbc:h2:mem:camunda_${surefire.forkNumber};DB_CLOSE_DELAY=1000;LOCK_TIMEOUT=10000</jdbcUrl>
               </systemPropertyVariables>
             </configuration>
           </plugin>

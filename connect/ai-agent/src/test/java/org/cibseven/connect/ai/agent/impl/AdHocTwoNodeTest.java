@@ -62,7 +62,7 @@ import dev.langchain4j.data.message.UserMessage;
  */
 public class AdHocTwoNodeTest {
 
-  private static final String JDBC_URL = "jdbc:h2:mem:adhoc-two-node;DB_CLOSE_DELAY=-1";
+  private static final String JDBC_URL = "jdbc:h2:mem:adhoc-two-node;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
   private static final String MEMORY_ID = "cluster-mem";
 
   private ProcessEngine nodeA;
