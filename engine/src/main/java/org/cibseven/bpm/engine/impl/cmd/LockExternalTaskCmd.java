@@ -34,10 +34,27 @@ public class LockExternalTaskCmd extends HandleExternalTaskCmd {
 
   @Override
   protected void execute(ExternalTaskEntity externalTask) {
+    boolean relockByOwner = isLockedByThisWorker(externalTask);
+
     externalTask.lock(workerId, lockDuration);
-    // safe to fire right away: a concurrent modification is not ignored here,
+
+    // a worker that locks its own task again only extends the lock: no new 'fetched' entry.
+    // Safe to fire right away: a concurrent modification is not ignored here,
     // it rolls back the whole transaction including the history event
-    externalTask.produceHistoricExternalTaskFetchedEvent();
+    if (!relockByOwner) {
+      externalTask.produceHistoricExternalTaskFetchedEvent();
+    }
+  }
+
+  /**
+   * @return <code>true</code> if the task is currently locked by this worker
+   *   and the lock has not expired yet
+   */
+  protected boolean isLockedByThisWorker(ExternalTaskEntity externalTask) {
+    Date existingLockExpirationTime = externalTask.getLockExpirationTime();
+    return workerId.equals(externalTask.getWorkerId())
+        && existingLockExpirationTime != null
+        && !ClockUtil.getCurrentTime().after(existingLockExpirationTime);
   }
 
   @Override
