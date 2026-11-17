@@ -268,7 +268,7 @@ pipeline {
                                 script { withMaven {
                                     // need to cleanup JUEL when running: https://github.com/camunda/camunda-bpm-platform/issues/3419#issuecomment-1720916174
                                     sh "mvn -f juel/pom.xml clean"
-                                    sh "mvn -f quarkus-extension/pom.xml clean install -Pquarkus-tests"
+                                    sh "mvn -nsu -f quarkus-extension/pom.xml clean install -Pquarkus-tests"
                                     sh "mvn -f juel/pom.xml install"
                                     }
                                 }
@@ -803,7 +803,7 @@ def engineRestTest(String profile) {
     String reports = "${module}/target/surefire-reports/TEST-*-${profile}.xml"
     sh "if [ -d ${module}/target ]; then find ${module}/target -mindepth 1 -maxdepth 1 ! -name '*-reports' -exec rm -rf {} +; fi"
     try {
-        withMaven { sh "mvn -f ${module}/pom.xml test -P${profile} -Dsurefire.reportNameSuffix=${profile} -Dmaven.test.failure.ignore=true" }
+        withMaven { sh "mvn -nsu -f ${module}/pom.xml test -P${profile} -Dsurefire.reportNameSuffix=${profile} -Dmaven.test.failure.ignore=true" }
     } finally {
         junit allowEmptyResults: true, testResults: reports
         sh "rm -f ${reports}"
