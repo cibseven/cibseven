@@ -42,7 +42,7 @@
     <!-- Version for cibseven-webclient-web -->
     <cibseven-webapp.version>${project.version}</cibseven-webapp.version>
     <!-- Version for cibseven-mcp-restapi -->
-    <cibseven-mcp-restapi.version>0.0.6-SNAPSHOT</cibseven-mcp-restapi.version>
+    <cibseven-mcp-restapi.version>0.0.6</cibseven-mcp-restapi.version>
     <!-- swagger-core-jakarta (and -models, -annotations) of springdoc in cibseven-webclient (springdoc 3.1.0).
          Run ships it in internal/webapps/ (webclient) and in configuration/userlib-ai/ (MCP REST API, and the
          annotations for Spring AI); both folders must have the same version, because userlib-ai/ comes first
