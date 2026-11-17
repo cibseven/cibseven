@@ -31,7 +31,10 @@ import static org.cibseven.bpm.engine.impl.db.entitymanager.operation.DbOperatio
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.cibseven.bpm.engine.OptimisticLockingException;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.DeploymentQueryImpl;
@@ -58,6 +61,7 @@ import org.cibseven.bpm.engine.impl.db.DbEntity;
 import org.cibseven.bpm.engine.impl.db.DbEntityLifecycleAware;
 import org.cibseven.bpm.engine.impl.db.EnginePersistenceLogger;
 import org.cibseven.bpm.engine.impl.db.EntityLoadListener;
+import org.cibseven.bpm.engine.impl.db.HasDbReferences;
 import org.cibseven.bpm.engine.impl.db.FlushResult;
 import org.cibseven.bpm.engine.impl.db.HistoricEntity;
 import org.cibseven.bpm.engine.impl.db.ListQueryParameterObject;
@@ -306,6 +310,12 @@ public class DbEntityManager implements Session, EntityLoadListener {
    * early. Later changes to them would be lost, because history events have a constant
    * persistent state and are therefore never dirty after a flush.
    *
+   * New entities ({@link DbEntityState#TRANSIENT}) that the given entities reference via
+   * {@link HasDbReferences#getReferencedEntitiesIdAndClass()} are inserted together with
+   * them (e.g. the error details of an external task that failed earlier in the same
+   * command). Otherwise the UPDATE would violate the foreign key, which is handled like a
+   * concurrent modification, and the changes of the entity would be lost.
+   *
    * The flushed entities get a new copy in the cache, so the regular flush only updates
    * them again if they change afterwards. Failed operations are handled by the registered
    * {@link OptimisticLockingListener}s as in a regular flush.
@@ -317,17 +327,38 @@ public class DbEntityManager implements Session, EntityLoadListener {
     dbOperationManager = new DbOperationManager();
     isIgnoreForeignKeysForNextFlush = false;
     try {
+      Set<CachedDbEntity> flushed = new HashSet<>();
       for (DbEntity entity : entities) {
         CachedDbEntity cachedEntity = dbEntityCache.getCachedEntity(entity);
         if (cachedEntity != null) {
-          flushCachedEntity(cachedEntity);
+          flushCachedEntityWithNewReferences(cachedEntity, flushed);
         }
       }
+      // the operation manager orders the INSERTs before the UPDATEs
       flushDbOperationManager();
     } finally {
       dbOperationManager = queuedOperations;
       isIgnoreForeignKeysForNextFlush = ignoreForeignKeys;
     }
+  }
+
+  protected void flushCachedEntityWithNewReferences(CachedDbEntity cachedEntity, Set<CachedDbEntity> flushed) {
+    if (!flushed.add(cachedEntity)) {
+      return;
+    }
+
+    DbEntity entity = cachedEntity.getEntity();
+    if (entity instanceof HasDbReferences) {
+      Map<String, Class> references = ((HasDbReferences) entity).getReferencedEntitiesIdAndClass();
+      for (Map.Entry<String, Class> reference : references.entrySet()) {
+        CachedDbEntity referencedEntity = dbEntityCache.getCachedEntity(reference.getValue(), reference.getKey());
+        if (referencedEntity != null && referencedEntity.getEntityState() == TRANSIENT) {
+          flushCachedEntityWithNewReferences(referencedEntity, flushed);
+        }
+      }
+    }
+
+    flushCachedEntity(cachedEntity);
   }
 
   public void setIgnoreForeignKeysForNextFlush(boolean ignoreForeignKeysForNextFlush) {
