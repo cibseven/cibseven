@@ -131,8 +131,9 @@ public class AgentResponseImpl extends AbstractConnectorResponse
    * on. The marker is found by identity among the connector's output parameters, whatever their
    * expression; a copy of it, or a map that holds it, stays as the engine stored it, and so does an
    * activity's own output parameter, which the engine applies after this. Nothing happens unless
-   * JSON is the default format, outside a service task, where the agent's engine plugin did not
-   * parse the task, or where the engine cannot store the marker Java-serialized.
+   * the engine stored the marker as JSON (the default format, or the first one that can store a
+   * map where the default format cannot), outside a service task, where the agent's engine plugin
+   * did not parse the task, or where the engine cannot store the marker Java-serialized.
    *
    * <p>The variable is written twice in one command: one more variable update for listeners and
    * conditional events, and at history level full one more history row. That first row keeps the
@@ -150,10 +151,7 @@ public class AgentResponseImpl extends AbstractConnectorResponse
     while (execution != null && execution.getReplacedBy() != null) {
       execution = execution.getReplacedBy();
     }
-    if (marker == null || execution == null || execution.getActivity() == null
-        || !Variables.SerializationDataFormats.JSON.getName().equals(
-            Context.getProcessEngineConfiguration().getDefaultSerializationFormat())
-        || !javaSerializable(marker)) {
+    if (marker == null || execution == null || execution.getActivity() == null) {
       return;
     }
     List<String> outputs = execution.getActivity().getProperties()
@@ -162,12 +160,22 @@ public class AgentResponseImpl extends AbstractConnectorResponse
       return;
     }
     for (String name : outputs) {
-      TypedValue stored = execution.getVariableTyped(name, false);
-      if (stored instanceof ObjectValue && ((ObjectValue) stored).isDeserialized()
-          && ((ObjectValue) stored).getValue() == marker) {
+      if (storedAsJson(execution.getVariableTyped(name, false), marker)
+          && javaSerializable(marker)) {
         execution.setVariable(name, AdHocAgentState.javaSerialized(marker));
       }
     }
+  }
+
+  /** Whether the engine stored this value, the marker itself, as JSON. */
+  private static boolean storedAsJson(TypedValue stored, Object marker) {
+    if (!(stored instanceof ObjectValue)) {
+      return false;
+    }
+    ObjectValue value = (ObjectValue) stored;
+    return value.isDeserialized() && value.getValue() == marker
+        && Variables.SerializationDataFormats.JSON.getName()
+            .equals(value.getSerializationDataFormat());
   }
 
   /**

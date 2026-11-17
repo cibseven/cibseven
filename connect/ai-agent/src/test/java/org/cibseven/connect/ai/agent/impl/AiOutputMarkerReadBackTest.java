@@ -38,6 +38,7 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.variable.serializer.JavaObjectSerializer;
 import org.cibseven.bpm.engine.impl.variable.serializer.VariableSerializers;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
@@ -217,7 +218,8 @@ public class AiOutputMarkerReadBackTest {
   @EnumSource(value = Setup.class, names = {"JSON", "JSON_MAP_DETECTOR"})
   public void theMarkerReadsBackWhenAnOutputReplacesTheAgentsExecution(Setup setup)
       throws IOException {
-    beans.put("sideEvent", new SideEvent());
+    SideEvent sideEvent = new SideEvent();
+    beans.put("sideEvent", sideEvent);
     // In a job, so that the side event's subscription is in the database when the message comes.
     agentAttributes = " camunda:asyncBefore='true'";
     moreOutputs = "<camunda:outputParameter name='sideStarted'>${sideEvent.start()}"
@@ -231,6 +233,21 @@ public class AiOutputMarkerReadBackTest {
 
     assertThat(engine.getTaskService().createTaskQuery().processInstanceId(pi.getId())
         .taskDefinitionKey("sideTask").count()).as("the side event ran").isEqualTo(1);
+    assertThat(sideEvent.replacedTheAgentsExecution)
+        .as("the side event replaced the agent's execution").isTrue();
+    assertTheMarkerReadsBack(pi);
+    assertStoredJavaSerialized(pi);
+  }
+
+  /**
+   * A default format that names no serializer of a map makes the engine store the marker with the
+   * first serializer that can, Spin's JSON: the marker is rewritten as on a JSON engine.
+   */
+  @Test
+  public void theMarkerReadsBackWhenTheDefaultFormatIsMisspelled() throws IOException {
+    morePlugins.add(new MisspelledDefaultFormat());
+    ProcessInstance pi = runTheAgent(Setup.JSON_MAP_DETECTOR, Activity.SERVICE_TASK);
+
     assertTheMarkerReadsBack(pi);
     assertStoredJavaSerialized(pi);
   }
@@ -404,9 +421,22 @@ public class AiOutputMarkerReadBackTest {
 
   /** Starts the side event of the same instance, from an expression of the agent's outputs. */
   public static class SideEvent {
+    /** Whether starting the side event replaced the execution the agent's output runs in. */
+    boolean replacedTheAgentsExecution;
+
     public String start() {
+      ExecutionEntity agent = Context.getBpmnExecutionContext().getExecution();
       Context.getProcessEngineConfiguration().getRuntimeService().correlateMessage("sideMessage");
+      replacedTheAgentsExecution = agent.getReplacedBy() != null;
       return "started";
+    }
+  }
+
+  /** A host whose default format names no serializer of a map: a misspelled one. */
+  protected static class MisspelledDefaultFormat extends AbstractProcessEnginePlugin {
+    @Override
+    public void preInit(ProcessEngineConfigurationImpl processEngineConfiguration) {
+      processEngineConfiguration.setDefaultSerializationFormat("json");
     }
   }
 
