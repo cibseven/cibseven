@@ -21,7 +21,7 @@
     <version.quarkus>3.33.3</version.quarkus>
     <version.spring.framework>5.3.39</version.spring.framework>
     <version.spring.framework7>7.0.9</version.spring.framework7>
-    <version.spring-boot>4.1.1</version.spring-boot>
+    <version.spring-boot>4.1.2</version.spring-boot>
     <!-- JAX-RS runtimes, both Jakarta REST 4.0 (Jakarta EE 11, see version.jakarta-ee-spec):
          Jersey as managed by Spring Boot (version.spring-boot) and used by the REST API webapp,
          RESTEasy as shipped by WildFly (version.wildfly) and bundled by the Tomcat distro webapp. -->
