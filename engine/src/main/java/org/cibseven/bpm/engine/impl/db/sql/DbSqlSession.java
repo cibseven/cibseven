@@ -178,13 +178,17 @@ public abstract class DbSqlSession extends AbstractPersistenceSession {
     try {
       return sqlSession.getConnection().getMetaData().getDatabaseProductVersion();
     } catch (SQLException e) {
-      // unknown version: the shipped H2 is 2.x, so the lock is acquired
       return null;
     }
   }
 
   /**
-   * @param databaseProductVersion the H2 product version, e.g. {@code "2.3.232 (2024-08-11)"}
+   * An unknown version ({@code null}) counts as H2 2.x, which CIB seven ships, so the lock
+   * is acquired: skipping it would silently turn off the serialization on H2 2.x, whereas
+   * acquiring it can only deadlock on H2 1.x with the PageStore.
+   *
+   * @param databaseProductVersion the H2 product version, e.g. {@code "2.3.232 (2024-08-11)"},
+   *          or {@code null} if it cannot be read
    * @return true for H2 1.x; false for H2 2.x and for an unknown version
    */
   public static boolean isH2VersionWithTableLocks(String databaseProductVersion) {
