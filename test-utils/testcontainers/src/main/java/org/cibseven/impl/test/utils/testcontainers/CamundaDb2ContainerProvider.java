@@ -11,7 +11,7 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 
 public class CamundaDb2ContainerProvider extends Db2ContainerProvider {
 
-  private static final String NAME = "camdb2";
+  private static final String NAME = "cibdb2";
 
   // Additional log files on demand: DB2 11.5 defaults to 3 primary + 10 secondary logs (~52 MB), 
   // so large transactions can fail with SQL0964C (SQLCODE=-1476) on the qa/large-data test.
@@ -28,7 +28,7 @@ public class CamundaDb2ContainerProvider extends Db2ContainerProvider {
   public JdbcDatabaseContainer newInstance(String tag) {
   
   DockerImageName dockerImageName = TestcontainersHelper
-      .resolveDockerImageName("db2", tag, "ibmcom/db2");
+      .resolveDockerImageName("db2", tag, "icr.io/db2_community/db2");
 
     Db2Container db2Container = new Db2Container(dockerImageName) {
       @Override

@@ -156,7 +156,7 @@
         <database.name>engine</database.name>
         <database.port>50000</database.port>
 
-        <database.tc.url>camdb2:11.5.0.0</database.tc.url>
+        <database.tc.url>cibdb2:11.5.9.0</database.tc.url>
         <database.tc.params>/${database.name}?TC_DAEMON=true${database.tc.reuse}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
         <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
@@ -312,7 +312,7 @@
         <database.type>mariadb</database.type>
         <database.driver>org.mariadb.jdbc.Driver</database.driver>
         <database.datasource.class>org.mariadb.jdbc.MySQLDataSource</database.datasource.class>
-        <database.tc.url>cammariadb:11.4</database.tc.url>
+        <database.tc.url>cibmariadb:11.4</database.tc.url>
         <!--
           The parameters are separated by ? instead of &: Testcontainers accepts both and the URL
           then needs no XML escaping. With &amp;amp; the Maven plugins above read the escaped value,
@@ -365,7 +365,7 @@
         <database.type>mysql</database.type>
         <database.driver>com.mysql.cj.jdbc.Driver</database.driver>
         <database.datasource.class>com.mysql.cj.jdbc.MysqlDataSource</database.datasource.class>
-        <database.tc.url>cammysql:8.0</database.tc.url>
+        <database.tc.url>cibmysql:8.0</database.tc.url>
         <!-- ? instead of & and TC_TMPFS, see the mariadb profile above -->
         <database.tc.params>/${database.name}?user=${database.username}?password=${database.password}?sendFractionalSeconds=false?TC_TMPFS=/var/lib/mysql:rw${database.tc.reuse}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
@@ -410,7 +410,7 @@
         <database.type>oracle</database.type>
         <database.driver>oracle.jdbc.OracleDriver</database.driver>
         <database.datasource.class>oracle.jdbc.pool.OracleDataSource</database.datasource.class>
-        <database.tc.url>camoracle:21-slim-faststart</database.tc.url>
+        <database.tc.url>ciboracle:21-slim-faststart</database.tc.url>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
         <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
       </properties>
@@ -456,7 +456,7 @@
         <database.datasource.class>org.postgresql.ds.PGSimpleDataSource</database.datasource.class>
         <jboss.datasource.filename>postgresql-ds.xml</jboss.datasource.filename>
         <hibernate.dialect>org.hibernate.dialect.PostgreSQLDialect</hibernate.dialect>
-        <database.tc.url>campostgresql:13.2</database.tc.url>
+        <database.tc.url>cibpostgresql:13.2</database.tc.url>
         <database.tc.params>TC_DAEMON=true${database.tc.reuse}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}:///${database.name}/${database.tc.params}</database.url>
         <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
@@ -508,7 +508,7 @@
         <database.type>mssql</database.type>
         <database.driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</database.driver>
         <database.datasource.class>com.microsoft.sqlserver.jdbc.SQLServerDataSource</database.datasource.class>
-        <database.tc.url>camsqlserver:2019-latest</database.tc.url>
+        <database.tc.url>cibsqlserver:2019-latest</database.tc.url>
         <database.tc.params>;databaseName=${database.name};user=${database.username};password=${database.password}${database.tc.reuse}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
         <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
@@ -542,7 +542,7 @@
     <profile>
       <id>sqlserver-2017</id>
       <properties>
-        <database.tc.url>camsqlserver:2017</database.tc.url>
+        <database.tc.url>cibsqlserver:2017-latest</database.tc.url>
       </properties>
     </profile>
 
@@ -621,6 +621,129 @@
         <database.url>jdbc:sqlserver://${database.host}:${database.port};databaseName=${database.name};encrypt=true;trustServerCertificate=false;loginTimeout=90</database.url>
         <!-- not a Testcontainers URL: undo the Testcontainers driver of the sqlserver profile -->
         <database.plugin.driver>${database.driver}</database.plugin.driver>
+      </properties>
+    </profile>
+
+    <!--
+      One profile per tested database version, from Oleg's feat/tc-qa-tests. They only point the
+      Testcontainers alias at another image tag; everything else comes from the database profile
+      above. The plain database profiles keep the versions that the daily build has always used.
+    -->
+    <profile>
+      <id>postgresql-15</id>
+      <properties>
+        <database.tc.url>cibpostgresql:15</database.tc.url>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>postgresql-16</id>
+      <properties>
+        <database.tc.url>cibpostgresql:16</database.tc.url>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>postgresql-17</id>
+      <properties>
+        <database.tc.url>cibpostgresql:17</database.tc.url>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>postgresql-18</id>
+      <properties>
+        <database.tc.url>cibpostgresql:18</database.tc.url>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>mariadb-1011</id>
+      <properties>
+        <database.tc.url>cibmariadb:10.11</database.tc.url>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>mariadb-114</id>
+      <properties>
+        <database.tc.url>cibmariadb:11.4</database.tc.url>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>mariadb-118</id>
+      <properties>
+        <database.tc.url>cibmariadb:11.8</database.tc.url>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>mariadb-123</id>
+      <properties>
+        <database.tc.url>cibmariadb:12.3</database.tc.url>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>mysql-84</id>
+      <properties>
+        <database.tc.url>cibmysql:8.4</database.tc.url>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>mysql-97</id>
+      <properties>
+        <database.tc.url>cibmysql:9.7</database.tc.url>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>sqlserver-2019</id>
+      <properties>
+        <database.tc.url>cibsqlserver:2019-latest</database.tc.url>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>sqlserver-2022</id>
+      <properties>
+        <database.tc.url>cibsqlserver:2022-latest</database.tc.url>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>sqlserver-2025</id>
+      <properties>
+        <database.tc.url>cibsqlserver:2025-latest</database.tc.url>
+      </properties>
+    </profile>
+
+    <profile>
+      <!-- IBM publishes DB2 12.x only to icr.io, which is why the image of the db2 profile moved there -->
+      <id>db2-121</id>
+      <properties>
+        <database.tc.url>cibdb2:12.1.5.0</database.tc.url>
+      </properties>
+    </profile>
+
+    <profile>
+      <!-- Oracle Database Free 26ai, the successor of Oracle XE - a different image and provider -->
+      <id>oracle-26</id>
+      <properties>
+        <database.tc.url>ciboraclefree:23.26.3-slim-faststart</database.tc.url>
+      </properties>
+    </profile>
+
+    <profile>
+      <!--
+        Oracle 19c Enterprise Edition. Needs a login to container-registry.oracle.com, creates its
+        database on the first container start (15-30 minutes) and wants about 3 GB per container.
+      -->
+      <id>oracle-19</id>
+      <properties>
+        <database.tc.url>ciboracle19:19.3.0.0</database.tc.url>
       </properties>
     </profile>
 
