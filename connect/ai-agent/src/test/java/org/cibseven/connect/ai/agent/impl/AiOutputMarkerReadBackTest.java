@@ -24,15 +24,22 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
+import org.cibseven.bpm.engine.history.HistoricDetail;
+import org.cibseven.bpm.engine.history.HistoricVariableUpdate;
+import org.cibseven.bpm.engine.impl.cfg.AbstractProcessEnginePlugin;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
+import org.cibseven.bpm.engine.impl.context.Context;
+import org.cibseven.bpm.engine.impl.variable.serializer.JavaObjectSerializer;
+import org.cibseven.bpm.engine.impl.variable.serializer.VariableSerializers;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.variable.Variables;
@@ -44,6 +51,7 @@ import org.cibseven.spin.impl.json.jackson.format.MapJacksonJsonTypeDetector;
 import org.cibseven.spin.plugin.impl.SpinProcessEnginePlugin;
 import org.cibseven.spin.spi.DataFormatConfigurator;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -85,19 +93,43 @@ public class AiOutputMarkerReadBackTest {
 
   /** Where the agent runs. */
   enum Activity {
-    SERVICE_TASK, MULTI_INSTANCE_SERVICE_TASK, AD_HOC_SUB_PROCESS
+    SERVICE_TASK, MULTI_INSTANCE_SERVICE_TASK, PARALLEL_MULTI_INSTANCE_SERVICE_TASK,
+    AD_HOC_SUB_PROCESS
   }
 
   private HttpServer stub;
   private ProcessEngine engine;
   /** The expression that maps the marker. */
   private String markerExpression = "${outputAiMeta}";
+  /** Output parameters of the agent's connector after the marker's. */
+  private String moreOutputs = "";
+  /** Elements of the process besides the agent, the gateway and the tasks. */
+  private String moreProcess = "";
+  /** Attributes of the agent's service task. */
+  private String agentAttributes = "";
+  /** Beans the model's expressions may call. */
+  private final Map<Object, Object> beans = new HashMap<Object, Object>();
+  /** Plugins besides connect and Spin. */
+  private final List<ProcessEnginePlugin> morePlugins = new ArrayList<ProcessEnginePlugin>();
 
   static Stream<Arguments> setups() {
     List<Arguments> arguments = new ArrayList<Arguments>();
     for (Setup setup : Setup.values()) {
       for (Activity activity : Activity.values()) {
         arguments.add(Arguments.of(setup, activity));
+      }
+    }
+    return arguments.stream();
+  }
+
+  /** Every setup, with the agent as a service task, alone or multi-instance. */
+  static Stream<Arguments> agentTaskSetups() {
+    List<Arguments> arguments = new ArrayList<Arguments>();
+    for (Setup setup : Setup.values()) {
+      for (Activity activity : Activity.values()) {
+        if (activity != Activity.AD_HOC_SUB_PROCESS) {
+          arguments.add(Arguments.of(setup, activity));
+        }
       }
     }
     return arguments.stream();
@@ -139,15 +171,84 @@ public class AiOutputMarkerReadBackTest {
   }
 
   /** So does a service task's response, once the engine has applied the output parameters. */
-  @ParameterizedTest(name = "{0}")
-  @EnumSource(Setup.class)
-  public void theServiceTaskStoresTheMarkerMappedAsADeferredExpression(Setup setup)
-      throws IOException {
+  @ParameterizedTest(name = "{1} on {0}")
+  @MethodSource("agentTaskSetups")
+  public void theServiceTaskStoresTheMarkerMappedAsADeferredExpression(Setup setup,
+      Activity activity) throws IOException {
     markerExpression = "#{outputAiMeta}";
-    ProcessInstance pi = runTheAgent(setup, Activity.SERVICE_TASK);
+    ProcessInstance pi = runTheAgent(setup, activity);
 
     assertTheMarkerReadsBack(pi);
     assertStoredJavaSerialized(pi);
+  }
+
+  /**
+   * The history of a service task's marker: one row where the default format is Java; under JSON
+   * the engine's own write first, then the Java one, which reads back. Under JSON with the map
+   * type detector the first row cannot be read back; the variable's history can.
+   */
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(Setup.class)
+  public void theHistoryHasTheEnginesWriteThenTheJavaOne(Setup setup) throws IOException {
+    ProcessInstance pi = runTheAgent(setup, Activity.SERVICE_TASK);
+
+    List<HistoricVariableUpdate> rows = new ArrayList<HistoricVariableUpdate>();
+    for (HistoricDetail detail : engine.getHistoryService().createHistoricDetailQuery()
+        .processInstanceId(pi.getId()).variableUpdates().orderPartiallyByOccurrence().asc()
+        .list()) {
+      HistoricVariableUpdate update = (HistoricVariableUpdate) detail;
+      if ("agentOutput_aiMeta".equals(update.getVariableName())) {
+        rows.add(update);
+      }
+    }
+    boolean java = setup == Setup.JAVA || setup == Setup.JAVA_VALIDATION;
+    assertThat(rows).hasSize(java ? 1 : 2);
+    HistoricVariableUpdate last = rows.get(rows.size() - 1);
+    assertThat(last.getErrorMessage()).isNull();
+    assertThat(((Map<?, ?>) last.getValue()).get("aiGenerated")).isEqualTo(Boolean.TRUE);
+  }
+
+  /**
+   * An output parameter after the marker's starts a non-interrupting event sub process of the
+   * same instance, so the engine replaces the agent's execution while it applies the outputs. The
+   * marker is still stored Java-serialized.
+   */
+  @ParameterizedTest(name = "{0}")
+  @EnumSource(value = Setup.class, names = {"JSON", "JSON_MAP_DETECTOR"})
+  public void theMarkerReadsBackWhenAnOutputReplacesTheAgentsExecution(Setup setup)
+      throws IOException {
+    beans.put("sideEvent", new SideEvent());
+    // In a job, so that the side event's subscription is in the database when the message comes.
+    agentAttributes = " camunda:asyncBefore='true'";
+    moreOutputs = "<camunda:outputParameter name='sideStarted'>${sideEvent.start()}"
+        + "</camunda:outputParameter>";
+    moreProcess = "<subProcess id='side' triggeredByEvent='true'>"
+        + "<startEvent id='sideStart' isInterrupting='false'>"
+        + "<messageEventDefinition messageRef='sideMessage' /></startEvent>"
+        + "<sequenceFlow id='s1' sourceRef='sideStart' targetRef='sideTask' />"
+        + "<userTask id='sideTask' name='Side' /></subProcess>";
+    ProcessInstance pi = runTheAgent(setup, Activity.SERVICE_TASK);
+
+    assertThat(engine.getTaskService().createTaskQuery().processInstanceId(pi.getId())
+        .taskDefinitionKey("sideTask").count()).as("the side event ran").isEqualTo(1);
+    assertTheMarkerReadsBack(pi);
+    assertStoredJavaSerialized(pi);
+  }
+
+  /**
+   * Where the engine has no Java serializer, the marker is left as the engine stored it, not
+   * cleared by a write that fails.
+   */
+  @Test
+  public void withoutAJavaSerializerTheMarkerStaysAsTheEngineStoredIt() throws IOException {
+    morePlugins.add(new WithoutJavaSerializer());
+    ProcessInstance pi = runTheAgent(Setup.JSON, Activity.SERVICE_TASK);
+
+    assertTheMarkerReadsBack(pi);
+    ObjectValue stored = (ObjectValue) engine.getRuntimeService()
+        .getVariableTyped(pi.getId(), "agentOutput_aiMeta", false);
+    assertThat(stored.getSerializationDataFormat())
+        .isEqualTo(Variables.SerializationDataFormats.JSON.getName());
   }
 
   /**
@@ -160,10 +261,11 @@ public class AiOutputMarkerReadBackTest {
     ProcessInstance pi = engine.getRuntimeService().startProcessInstanceByKey("marker");
     // The ad hoc sub process runs its turn as jobs; the service task has run already.
     TurnSteps.runToTheEnd(engine, pi.getId());
+    assertThat(engine.getTaskService().createTaskQuery().processInstanceId(pi.getId())
+        .taskDefinitionKey("notMarked").count()).as("the gateway read the marker").isZero();
     Task review = engine.getTaskService().createTaskQuery().processInstanceId(pi.getId())
-        .singleResult();
+        .taskDefinitionKey("review").singleResult();
     assertThat(review).as("the gateway read the marker").isNotNull();
-    assertThat(review.getTaskDefinitionKey()).isEqualTo("review");
     return pi;
   }
 
@@ -177,7 +279,7 @@ public class AiOutputMarkerReadBackTest {
     assertThat(engine.getRuntimeService().getVariables(pi.getId()))
         .as("all of the instance's variables").containsKey("agentOutput_aiMeta");
     Task review = engine.getTaskService().createTaskQuery().processInstanceId(pi.getId())
-        .singleResult();
+        .taskDefinitionKey("review").singleResult();
     assertThat(engine.getFormService().getTaskFormVariables(review.getId()))
         .as("the task's form variables").containsKey("agentOutput_aiMeta");
     assertThat(engine.getHistoryService().createHistoricVariableInstanceQuery()
@@ -218,7 +320,11 @@ public class AiOutputMarkerReadBackTest {
     plugins.add(setup == Setup.JSON_MAP_DETECTOR
         ? new SpinWithMapTypeDetector()
         : new SpinProcessEnginePlugin());
+    plugins.addAll(morePlugins);
     configuration.setProcessEnginePlugins(plugins);
+    if (!beans.isEmpty()) {
+      configuration.setBeans(beans);
+    }
     engine = configuration.buildProcessEngine();
     engine.getRepositoryService().createDeployment()
         .addString("marker.bpmn20.xml", model(activity)).deploy();
@@ -241,14 +347,18 @@ public class AiOutputMarkerReadBackTest {
         + "<camunda:outputParameter name='agentOutput'>${output}</camunda:outputParameter>"
         + "<camunda:outputParameter name='agentOutput_aiMeta'>" + markerExpression
         + "</camunda:outputParameter>"
+        + moreOutputs
         + "</camunda:inputOutput>"
         + "</camunda:connector></extensionElements>";
     String agent;
     if (activity == Activity.SERVICE_TASK) {
-      agent = "<serviceTask id='agent' name='Agent'>" + connector + "</serviceTask>";
-    } else if (activity == Activity.MULTI_INSTANCE_SERVICE_TASK) {
+      agent = "<serviceTask id='agent' name='Agent'" + agentAttributes + ">" + connector
+          + "</serviceTask>";
+    } else if (activity == Activity.MULTI_INSTANCE_SERVICE_TASK
+        || activity == Activity.PARALLEL_MULTI_INSTANCE_SERVICE_TASK) {
       agent = "<serviceTask id='agent' name='Agent'>" + connector
-          + "<multiInstanceLoopCharacteristics isSequential='true'>"
+          + "<multiInstanceLoopCharacteristics isSequential='"
+          + (activity == Activity.MULTI_INSTANCE_SERVICE_TASK) + "'>"
           + "<loopCardinality>2</loopCardinality></multiInstanceLoopCharacteristics>"
           + "</serviceTask>";
     } else {
@@ -260,6 +370,7 @@ public class AiOutputMarkerReadBackTest {
         + " xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'"
         + " xmlns:camunda='http://camunda.org/schema/1.0/bpmn'"
         + " targetNamespace='http://cibseven.org/ai-output-marker'>"
+        + "<message id='sideMessage' name='sideMessage' />"
         + "<process id='marker' isExecutable='true'>"
         + "<startEvent id='start' />"
         + "<sequenceFlow id='f1' sourceRef='start' targetRef='agent' />"
@@ -272,6 +383,7 @@ public class AiOutputMarkerReadBackTest {
         + "<sequenceFlow id='f4' sourceRef='marked' targetRef='notMarked' />"
         + "<userTask id='review' name='Review' />"
         + "<userTask id='notMarked' name='Not marked' />"
+        + moreProcess
         + "</process>"
         + "</definitions>";
   }
@@ -287,6 +399,23 @@ public class AiOutputMarkerReadBackTest {
     exchange.sendResponseHeaders(200, payload.length);
     try (OutputStream out = exchange.getResponseBody()) {
       out.write(payload);
+    }
+  }
+
+  /** Starts the side event of the same instance, from an expression of the agent's outputs. */
+  public static class SideEvent {
+    public String start() {
+      Context.getProcessEngineConfiguration().getRuntimeService().correlateMessage("sideMessage");
+      return "started";
+    }
+  }
+
+  /** A host that took the Java serializer out of the engine. */
+  protected static class WithoutJavaSerializer extends AbstractProcessEnginePlugin {
+    @Override
+    public void postInit(ProcessEngineConfigurationImpl processEngineConfiguration) {
+      VariableSerializers serializers = processEngineConfiguration.getVariableSerializers();
+      serializers.removeSerializer(serializers.getSerializerByName(JavaObjectSerializer.NAME));
     }
   }
 

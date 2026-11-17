@@ -16,6 +16,9 @@
  */
 package org.cibseven.connect.ai.agent.impl;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,6 +27,7 @@ import java.util.Map;
 import org.cibseven.bpm.engine.impl.context.BpmnExecutionContext;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.cibseven.bpm.engine.impl.variable.serializer.JavaObjectSerializer;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.engine.variable.value.ObjectValue;
 import org.cibseven.bpm.engine.variable.value.TypedValue;
@@ -118,15 +122,22 @@ public class AgentResponseImpl extends AbstractConnectorResponse
   /**
    * Once the engine has applied an AI agent service task's output parameters, stores the one that
    * holds the AI-output marker itself Java-serialized, as the agentic ad hoc sub process does
-   * (CIB7-2819). The engine stores it in its default format. Under JSON with Spin's map type
-   * detector, the detector names the marker's type after its first value, a Boolean: the variable
-   * could not be read back, nor could any read of all of the instance's variables.
+   * (CIB7-2819). Where JSON is the default format, the engine stores it as JSON, and Spin's map
+   * type detector names the marker's type after its first value, a Boolean: the variable could not
+   * be read back, nor could any read of all of the instance's variables.
    *
    * <p>The connect plugin calls this right after it applied the output parameters, before the task
-   * is left. The marker is found by identity among the connector's output parameters, whatever
-   * their expression; a copy of it, or a map that holds it, stays as the engine stored it.
-   * Nothing happens where the default format is Java already, outside a service task, or where
-   * the agent's engine plugin did not parse the task.
+   * is left, also after an output parameter failed; it logs an exception of this method and goes
+   * on. The marker is found by identity among the connector's output parameters, whatever their
+   * expression; a copy of it, or a map that holds it, stays as the engine stored it, and so does an
+   * activity's own output parameter, which the engine applies after this. Nothing happens unless
+   * JSON is the default format, outside a service task, where the agent's engine plugin did not
+   * parse the task, or where the engine cannot store the marker Java-serialized.
+   *
+   * <p>The variable is written twice in one command: one more variable update for listeners and
+   * conditional events, and at history level full one more history row. That first row keeps the
+   * engine's JSON; under the map type detector it does not read back, while the variable's
+   * history does.
    */
   @Override
   public void close() {
@@ -134,9 +145,15 @@ public class AgentResponseImpl extends AbstractConnectorResponse
         : responseParameters.get(AgentConnector.PARAM_NAME_OUTPUT_AI_META);
     BpmnExecutionContext context = Context.getBpmnExecutionContext();
     ExecutionEntity execution = (context == null) ? null : context.getExecution();
+    // An output parameter that starts a non-interrupting event sub process of the instance makes
+    // the engine replace the task's execution; the task goes on in the replacing one.
+    while (execution != null && execution.getReplacedBy() != null) {
+      execution = execution.getReplacedBy();
+    }
     if (marker == null || execution == null || execution.getActivity() == null
-        || Variables.SerializationDataFormats.JAVA.getName().equals(
-            Context.getProcessEngineConfiguration().getDefaultSerializationFormat())) {
+        || !Variables.SerializationDataFormats.JSON.getName().equals(
+            Context.getProcessEngineConfiguration().getDefaultSerializationFormat())
+        || !javaSerializable(marker)) {
       return;
     }
     List<String> outputs = execution.getActivity().getProperties()
@@ -150,6 +167,24 @@ public class AgentResponseImpl extends AbstractConnectorResponse
           && ((ObjectValue) stored).getValue() == marker) {
         execution.setVariable(name, AdHocAgentState.javaSerialized(marker));
       }
+    }
+  }
+
+  /**
+   * Whether the engine can store the marker Java-serialized. A write that failed would leave the
+   * variable without its value: the engine clears the old value before it looks for the
+   * serializer, and the connect plugin only logs the exception.
+   */
+  private static boolean javaSerializable(Object marker) {
+    if (Context.getProcessEngineConfiguration().getVariableSerializers()
+        .getSerializerByName(JavaObjectSerializer.NAME) == null) {
+      return false;
+    }
+    try (ObjectOutputStream out = new ObjectOutputStream(new ByteArrayOutputStream())) {
+      out.writeObject(marker);
+      return true;
+    } catch (IOException | RuntimeException e) {
+      return false;
     }
   }
 
