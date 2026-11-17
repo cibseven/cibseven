@@ -25,8 +25,11 @@ import static org.cibseven.bpm.engine.test.api.runtime.migration.models.builder.
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.builder.DefaultExternalTaskModelBuilder.createDefaultExternalTaskModel;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.cibseven.bpm.engine.ExternalTaskService;
 import org.cibseven.bpm.engine.HistoryService;
@@ -545,6 +548,49 @@ public class HistoricExternalTaskLogTest {
     assertNotNull(fetchingTask.getEndTime());
   }
 
+  /**
+   * A failure with error details reported in the same command before the fetch: the error
+   * details are a new byte array that the task references. Writing the lock early must
+   * insert it first, otherwise the UPDATE of the task violates the foreign key, which is
+   * handled like a lost lock, and the failure is lost.
+   */
+  @Test
+  public void testFailureAndFetchInSameCommandKeepsFailure() {
+
+    // given a fetched task whose lock expired
+    ExternalTask task = startExternalTaskProcess();
+    fetchExternalTasks();
+    ClockUtil.setCurrentTime(new Date(ClockUtil.getCurrentTime().getTime() + LOCK_DURATION + 1000L));
+
+    // when the worker reports a failure and fetches the task again in one command
+    List<LockedExternalTask> fetched = engineRule.getProcessEngineConfiguration()
+        .getCommandExecutorTxRequired()
+        .execute(commandContext -> {
+          externalTaskService.handleFailure(task.getId(), WORKER_ID, ERROR_MESSAGE, ERROR_DETAILS, 1, 0L);
+          return externalTaskService.fetchAndLock(1, WORKER_ID)
+              .topic(DEFAULT_TOPIC, LOCK_DURATION)
+              .execute();
+        });
+
+    // then the task is fetched
+    assertEquals(1, fetched.size());
+    assertEquals(task.getId(), fetched.get(0).getId());
+
+    // and the failure is kept
+    ExternalTask failedTask = externalTaskService.createExternalTaskQuery().externalTaskId(task.getId()).singleResult();
+    assertEquals(ERROR_MESSAGE, failedTask.getErrorMessage());
+    assertEquals(Integer.valueOf(1), failedTask.getRetries());
+    assertEquals(WORKER_ID, failedTask.getWorkerId());
+    assertEquals(ERROR_DETAILS, externalTaskService.getExternalTaskErrorDetails(task.getId()));
+
+    // and both fetches and the failure are logged
+    assertEquals(2, historyService.createHistoricExternalTaskLogQuery().fetchedLog().count());
+    HistoricExternalTaskLog failureLog = historyService.createHistoricExternalTaskLogQuery()
+        .failureLog()
+        .singleResult();
+    assertEquals(ERROR_DETAILS, historyService.getHistoricExternalTaskLogErrorDetails(failureLog.getId()));
+  }
+
   public static class FetchAndLockDelegate implements JavaDelegate {
     @Override
     public void execute(DelegateExecution execution) {
@@ -611,13 +657,16 @@ public class HistoricExternalTaskLogTest {
     externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
 
     // then both locks are logged
+    // (compared as a set: the sort order of worker ids depends on the database collation)
     List<HistoricExternalTaskLog> logs = historyService.createHistoricExternalTaskLogQuery()
         .fetchedLog()
-        .orderByWorkerId().asc()
         .list();
     assertEquals(2, logs.size());
-    assertEquals(WORKER_ID, logs.get(0).getWorkerId());
-    assertEquals("anotherWorkerId", logs.get(1).getWorkerId());
+    Set<String> workerIds = new HashSet<>();
+    for (HistoricExternalTaskLog log : logs) {
+      workerIds.add(log.getWorkerId());
+    }
+    assertEquals(new HashSet<>(Arrays.asList(WORKER_ID, "anotherWorkerId")), workerIds);
   }
 
   @Test
