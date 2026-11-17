@@ -182,6 +182,21 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- CIB7-2800, test only. Spin JSON as the engine's default format, with Spin's map type
+         detector registered, to show that the agent reads its own variables back there. -->
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine-plugin-spin</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.cibseven.spin</groupId>
+      <artifactId>cibseven-spin-dataformat-json-jackson</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
     <!-- CIB7-1944, test only. ProcessEngineExtension, the JUnit 5 replacement for the
          ProcessEngineRule these tests used before the migration in #461. -->
     <dependency>

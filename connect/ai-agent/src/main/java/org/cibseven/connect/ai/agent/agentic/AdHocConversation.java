@@ -25,7 +25,6 @@ import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.pvm.PvmActivity;
 import org.cibseven.bpm.engine.impl.pvm.runtime.PvmExecutionImpl;
-import org.cibseven.bpm.engine.variable.Variables;
 
 /**
  * Where an agent's conversation lives, and how long it lives (CIB7-2137).
@@ -206,7 +205,7 @@ public final class AdHocConversation {
     map.put(LAYOUT_KEY, Integer.valueOf(LAYOUT));
     map.put(ACTIVITY_ID, scopeExecution.getActivityId());
     map.put(ENTRIES, Integer.valueOf(entries));
-    holder.setVariableLocal(HOLDER_MARKER, Variables.objectValue(map).create());
+    holder.setVariableLocal(HOLDER_MARKER, AdHocAgentState.javaSerialized(map));
     return holder;
   }
 
@@ -415,7 +414,7 @@ public final class AdHocConversation {
   private static void migrateLegacy(PvmExecutionImpl holder) {
     if (holder.getVariableLocal(HOLDER_MARKER) instanceof String) {
       // Initialise the mutable object before command-close listeners run, as agent state does.
-      holder.setVariableLocal(HOLDER_MARKER, Variables.objectValue(holderMap(holder)).create());
+      holder.setVariableLocal(HOLDER_MARKER, AdHocAgentState.javaSerialized(holderMap(holder)));
       for (String key : new String[] { ENTRIES, TURNS_TOTAL, TURNS_TOTAL_MARKER }) {
         holder.removeVariableLocal(key);
       }
