@@ -220,6 +220,10 @@ springdoc:
     path: /webapp/v3/api-docs
   swagger-ui:
     path: /webapp/swagger-ui
+    # springdoc serves the swagger-ui webjar under the version it was built with and answers 404
+    # for another one. The webclient pins a newer webjar (version.swagger-ui in cibseven-webclient,
+    # DOMPurify advisories), so the shipped version is named here. Keep both in sync.
+    version: 5.34.1
     operationsSorter: alpha
     tagsSorter: alpha
     doc-expansion: none
