@@ -36,6 +36,10 @@ import tools.jackson.databind.ObjectMapper;
 @JsonTypeName(ProcessInstanceModificationInstructionDto.START_TRANSITION_INSTRUCTION_TYPE)
 public class StartTransitionInstructionDto extends ProcessInstanceModificationInstructionDto {
 
+  public StartTransitionInstructionDto() {
+    super(START_TRANSITION_INSTRUCTION_TYPE);
+  }
+
   @Override
   public void applyTo(ProcessInstanceModificationBuilder builder, ProcessEngine engine, ObjectMapper mapper) {
     checkValidity();

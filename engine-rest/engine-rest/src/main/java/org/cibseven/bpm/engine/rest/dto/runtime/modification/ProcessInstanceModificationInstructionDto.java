@@ -32,7 +32,8 @@ import tools.jackson.databind.ObjectMapper;
  * @author Thorben Lindhauer
  *
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type", visible = true)
+// EXISTING_PROPERTY: "type" is also a bean property; Jackson 3.2 rejects As.PROPERTY for that (CIB7-2841)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type", visible = true)
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(value = CancellationInstructionDto.class),
     @JsonSubTypes.Type(value = StartBeforeInstructionDto.class),
@@ -55,6 +56,11 @@ public abstract class ProcessInstanceModificationInstructionDto {
   protected String transitionInstanceId;
   protected String ancestorActivityInstanceId;
   protected boolean cancelCurrentActiveActivityInstances;
+
+  /** The type is written from the bean property, so each instruction starts with its own type id. */
+  protected ProcessInstanceModificationInstructionDto(String type) {
+    this.type = type;
+  }
 
   public Map<String, TriggerVariableValueDto> getVariables() {
     return variables;

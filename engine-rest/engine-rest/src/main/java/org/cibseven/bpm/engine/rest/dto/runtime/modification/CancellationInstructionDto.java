@@ -35,6 +35,10 @@ import tools.jackson.databind.ObjectMapper;
 @JsonTypeName(ProcessInstanceModificationInstructionDto.CANCEL_INSTRUCTION_TYPE)
 public class CancellationInstructionDto extends ProcessInstanceModificationInstructionDto {
 
+  public CancellationInstructionDto() {
+    super(CANCEL_INSTRUCTION_TYPE);
+  }
+
   @Override
   public void applyTo(ProcessInstanceModificationBuilder builder, ProcessEngine engine, ObjectMapper mapper) {
 

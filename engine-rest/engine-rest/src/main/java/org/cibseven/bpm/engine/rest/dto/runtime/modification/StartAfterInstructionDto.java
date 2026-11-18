@@ -36,6 +36,10 @@ import tools.jackson.databind.ObjectMapper;
 @JsonTypeName(ProcessInstanceModificationInstructionDto.START_AFTER_INSTRUCTION_TYPE)
 public class StartAfterInstructionDto extends ProcessInstanceModificationInstructionDto {
 
+  public StartAfterInstructionDto() {
+    super(START_AFTER_INSTRUCTION_TYPE);
+  }
+
   @Override
   public void applyTo(ProcessInstanceModificationBuilder builder, ProcessEngine engine, ObjectMapper mapper) {
     checkValidity();
