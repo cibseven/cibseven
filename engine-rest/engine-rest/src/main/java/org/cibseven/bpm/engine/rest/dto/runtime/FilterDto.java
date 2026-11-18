@@ -80,7 +80,7 @@ public class FilterDto {
   }
 
   @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY,
-      property = "resourceType", defaultImpl=TaskQueryDto.class)
+      property = "resourceType", defaultImpl=TaskQueryDto.class, visible = true)
     @JsonSubTypes(value = {
     @JsonSubTypes.Type(value = TaskQueryDto.class, name = EntityTypes.TASK)})
   public void setQuery(AbstractQueryDto<?> query) {
