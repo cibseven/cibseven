@@ -16,6 +16,7 @@
  */
 package org.cibseven.connect.impl;
 
+import org.cibseven.connect.ConnectorEndpointNotAllowedException;
 import org.cibseven.connect.ConnectorException;
 import org.cibseven.connect.spi.CloseableConnectorResponse;
 import org.cibseven.connect.spi.Connector;
@@ -52,6 +53,31 @@ public class ConnectCoreLogger extends ConnectLogger {
       logInfo("006", "Discovered configurator for connector class '{}': '{}'",
         configurator.getConnectorClass().getName(), configurator.getClass().getName());
     }
+  }
+
+  public ConnectorEndpointNotAllowedException endpointNotAllowed(String connectorId, String endpoint,
+      String source, String systemProperty, String environmentVariable) {
+    return new ConnectorEndpointNotAllowedException(exceptionMessage("007",
+        "Connector '{}' must not connect to '{}': the endpoint is not allowed by '{}'. The connector's own "
+        + "list is set with the system property '{}' or the environment variable '{}'",
+        connectorId, endpoint, source, systemProperty, environmentVariable));
+  }
+
+  public void endpointRestrictionLifted(String connectorId, String source) {
+    logInfo("011", "Connector '{}' is not restricted: '{}' is '*'", connectorId, source);
+  }
+
+  public void endpointRestrictionActive(String connectorId, int count, String source) {
+    logInfo("008", "Connector '{}' may only connect to the {} endpoint(s) allowed by '{}'", connectorId, count, source);
+  }
+
+  public void invalidAllowedEndpoint(String connectorId, int position, String source) {
+    logWarn("009", "Ignoring entry {} of '{}' for connector '{}': expected 'scheme://host[:port]', "
+        + "optionally with '*.' in front of a host name of at least two labels", position, source, connectorId);
+  }
+
+  public void noAllowedEndpoint(String connectorId, String source) {
+    logWarn("010", "'{}' contains no valid endpoint, connector '{}' refuses every endpoint", source, connectorId);
   }
 
 }

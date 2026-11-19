@@ -34,11 +34,12 @@ import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.config.RequestConfig.Builder;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
+import org.cibseven.connect.ConnectorEndpointNotAllowedException;
 import org.cibseven.connect.httpclient.HttpBaseRequest;
 import org.cibseven.connect.httpclient.HttpResponse;
 import org.cibseven.connect.httpclient.impl.util.ParseUtil;
@@ -57,8 +58,12 @@ public abstract class AbstractHttpConnector<Q extends HttpBaseRequest<Q, R>, R e
     charset = StandardCharsets.UTF_8;
   }
 
+  /** Like {@code HttpClients.createSystem()}, plus redirect checks against the endpoint policy. */
   protected CloseableHttpClient createClient() {
-    return HttpClients.createSystem();
+    return HttpClientBuilder.create()
+        .useSystemProperties()
+        .setRedirectStrategy(new EndpointPolicyRedirectStrategy(connectorId))
+        .build();
   }
 
   public CloseableHttpClient getHttpClient() {
@@ -73,9 +78,11 @@ public abstract class AbstractHttpConnector<Q extends HttpBaseRequest<Q, R>, R e
   public R execute(Q request) {
     R invocationResult;
     BasicClassicHttpRequest httpRequest = createHttpRequest(request);
-    HttpRequestInvocation invocation = new HttpRequestInvocation(httpRequest, request, requestInterceptors, httpClient);
+    HttpRequestInvocation invocation = new HttpRequestInvocation(httpRequest, request, requestInterceptors, httpClient, connectorId);
     try {
       invocationResult = createResponse((ClassicHttpResponse) invocation.proceed());
+    } catch (ConnectorEndpointNotAllowedException e) {
+      throw e;
     } catch (Exception e) {
       throw LOG.unableToExecuteRequest(e);
     }

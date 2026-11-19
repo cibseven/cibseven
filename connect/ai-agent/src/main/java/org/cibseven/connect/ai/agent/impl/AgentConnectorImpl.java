@@ -110,6 +110,7 @@ import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.cibseven.connect.ai.agent.AgentRequest;
 import org.cibseven.connect.ai.agent.AgentResponse;
 import org.cibseven.connect.impl.AbstractConnector;
+import org.cibseven.connect.impl.ConnectorEndpointPolicy;
 
 /**
  * Core implementation of the LangChain4j agent connector.
@@ -233,6 +234,8 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
 
   @Override
   public AgentResponse execute(AgentRequest request) {
+    checkEndpoints(request);
+
     List<Object> tools = resolveToolInstances(request);
     String baseUrl = resolveBaseUrl(request);
     String apiKey = resolveApiKey(request, baseUrl);
@@ -1432,6 +1435,45 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
+  /** Checks all targets against the {@link ConnectorEndpointPolicy} before any connection. */
+  private void checkEndpoints(AgentRequest request) {
+    ConnectorEndpointPolicy policy = ConnectorEndpointPolicy.forConnector(getId());
+    if (!policy.isRestricted()) {
+      return;
+    }
+    policy.checkUrl(resolveBaseUrl(request));
+    for (McpServerSpec spec : parseMcpServers(request.getMcpServers())) {
+      policy.checkUrl(spec.url);
+    }
+    // embeddings are only used for RAG
+    String pgHost = request.getPgHost();
+    if (pgHost != null && !pgHost.isEmpty()) {
+      checkPgEndpoint(policy, pgHost, request.getPgPort());
+      checkEmbeddingEndpoint(policy, request.getEmbeddingModelName());
+    }
+  }
+
+  /** Checks {@code postgresql://<pgHost>:<pgPort>} with the unmodified connection values. */
+  static void checkPgEndpoint(ConnectorEndpointPolicy policy, String pgHost, String pgPort) {
+    if (pgHost == null || pgHost.isEmpty()) {
+      return;
+    }
+    int port = 0; // refused, as by the connection
+    try {
+      port = Math.max(Integer.parseInt(pgPort), 0);
+    } catch (NumberFormatException e) {
+      // stays 0
+    }
+    policy.checkEndpoint("postgresql", pgHost, port);
+  }
+
+  /** The OpenAI embedding model always uses {@link AgentConnectorConstants#DEFAULT_BASE_URL}. */
+  static void checkEmbeddingEndpoint(ConnectorEndpointPolicy policy, String embeddingModelName) {
+    if (embeddingModelName != null && !embeddingModelName.isEmpty()) {
+      policy.checkUrl(AgentConnectorConstants.DEFAULT_BASE_URL);
+    }
+  }
+
   private String resolveBaseUrl(AgentRequest request) {
     String url = request.getBaseUrl();
     if (url != null && !url.isBlank()) {
@@ -2430,8 +2472,9 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     String modelName = request.getEmbeddingModelName();
     if (modelName != null && !modelName.isEmpty()) {
       return OpenAiEmbeddingModel.builder()
-          .apiKey(resolveAgentEmbeddingApiKey(request))
+          // same URL as checkEmbeddingEndpoint
           .baseUrl(AgentConnectorConstants.DEFAULT_BASE_URL)
+          .apiKey(resolveAgentEmbeddingApiKey(request))
           .modelName(modelName)
           .build();
     }

@@ -21,6 +21,7 @@ import java.util.List;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.cibseven.connect.impl.AbstractRequestInvocation;
+import org.cibseven.connect.impl.ConnectorEndpointPolicy;
 import org.cibseven.connect.spi.ConnectorRequest;
 import org.cibseven.connect.spi.ConnectorRequestInterceptor;
 
@@ -28,12 +29,24 @@ public class HttpRequestInvocation extends AbstractRequestInvocation<BasicClassi
 
   protected HttpClient client;
 
+  /** {@code null}: no endpoint check. */
+  protected String connectorId;
+
   public HttpRequestInvocation(BasicClassicHttpRequest target, ConnectorRequest<?> request, List<ConnectorRequestInterceptor> interceptorChain, HttpClient client) {
+    this(target, request, interceptorChain, client, null);
+  }
+
+  public HttpRequestInvocation(BasicClassicHttpRequest target, ConnectorRequest<?> request, List<ConnectorRequestInterceptor> interceptorChain, HttpClient client, String connectorId) {
     super(target, request, interceptorChain);
     this.client = client;
+    this.connectorId = connectorId;
   }
 
   public Object invokeTarget() throws Exception {
+    // after the interceptors, which may change the target
+    if (connectorId != null) {
+      ConnectorEndpointPolicy.forConnector(connectorId).checkUri(target.getUri());
+    }
     // execute the request
     return client.execute(target);
   }

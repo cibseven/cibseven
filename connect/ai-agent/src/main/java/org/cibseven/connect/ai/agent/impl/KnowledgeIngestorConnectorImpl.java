@@ -38,6 +38,7 @@ import org.cibseven.connect.ai.agent.KnowledgeIngestorConnector;
 import org.cibseven.connect.ai.agent.KnowledgeIngestorRequest;
 import org.cibseven.connect.ai.agent.KnowledgeIngestorResponse;
 import org.cibseven.connect.impl.AbstractConnector;
+import org.cibseven.connect.impl.ConnectorEndpointPolicy;
 
 /**
  * Core implementation of the knowledge ingestor connector.
@@ -69,6 +70,10 @@ public class KnowledgeIngestorConnectorImpl
 
   @Override
   public KnowledgeIngestorResponse execute(KnowledgeIngestorRequest request) {
+    ConnectorEndpointPolicy policy = ConnectorEndpointPolicy.forConnector(getId());
+    AgentConnectorImpl.checkPgEndpoint(policy, request.getPgHost(), request.getPgPort());
+    AgentConnectorImpl.checkEmbeddingEndpoint(policy, request.getEmbeddingModelName());
+
     Document document = buildDocument(request);
     LOG.debug("Ingesting document: contentLength={} chars, source={}, chunkSize={}, chunkOverlap={}, dimension={}",
         document.text().length(), request.getSource(),
@@ -124,8 +129,9 @@ public class KnowledgeIngestorConnectorImpl
     String modelName = request.getEmbeddingModelName();
     if (modelName != null && !modelName.isEmpty()) {
       return OpenAiEmbeddingModel.builder()
-          .apiKey(AgentConnectorImpl.resolveEmbeddingApiKey(request.getApiKey()))
+          // same URL as checkEmbeddingEndpoint
           .baseUrl(AgentConnectorConstants.DEFAULT_BASE_URL)
+          .apiKey(AgentConnectorImpl.resolveEmbeddingApiKey(request.getApiKey()))
           .modelName(modelName)
           .build();
     }
