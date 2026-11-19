@@ -255,8 +255,8 @@ public class AdHocSubProcessTool {
             }
             if (!blockedBySame.isEmpty()) {
                 reasons.add((blockedByOthers.isEmpty() ? "These" : blockedBySame.toString())
-                        + " have an earlier instance still running, or share running work with"
-                        + " another tool's flow.");
+                        + " have an earlier instance or its flow still running, or share running"
+                        + " work with another tool's flow.");
             }
             reasons.add("Starting them will be refused; you will get another turn when that"
                     + " finishes.");
@@ -369,16 +369,14 @@ public class AdHocSubProcessTool {
         if (!othersRunning.isEmpty() && entry != null && entry.isBlockedWhileOthersRun()) {
             if (onlyItselfRuns(scope, activityId)) {
                 // Its own earlier instance is all that runs (GH-610): said so, not that it waits
-                // for someone else's decision.
-                // Its own earlier instance includes the path a boundary event on it took: what its
-                // result says still runs when the event interrupted it.
+                // for someone else's decision. "Or its flow" covers what follows it, the path a
+                // boundary event on it took included, without claiming there was one.
                 throw new AdHocToolRefusedException("Cannot start '" + activityId + "': an earlier"
-                        + " instance of '" + activityId + "', or the path a boundary event on it"
-                        + " took, is still running, and this activity is marked to start only"
-                        + " while nothing else in the ad hoc sub process runs, its own earlier"
-                        + " instance included. Do not call it again now."
-                        + " Start something else, or end your turn: you will get another turn"
-                        + " when the running instance finishes.");
+                        + " instance of '" + activityId + "' or its flow is still running, and this"
+                        + " activity is marked to start only while nothing else in the ad hoc sub"
+                        + " process runs, its own earlier instance included. Do not call it again"
+                        + " now. Start something else, or end your turn: you will get another turn"
+                        + " when that work finishes.");
             }
             // Named as the note names running work, by its tool (GH-610).
             List<String> busy = allRunningToolIds(scope);
@@ -393,8 +391,9 @@ public class AdHocSubProcessTool {
         if (entry != null && entry.isBlockedWhileSameRuns()
                 && sameRunning(scope, activityId)) {
             throw new AdHocToolRefusedException("Cannot start '" + activityId + "': an earlier"
-                    + " instance of '" + activityId + "' is still running, or work its flow shares"
-                    + " with another tool, and this activity is marked to run once at a time."
+                    + " instance of '" + activityId + "' or its flow is still running, or work its"
+                    + " flow shares with another tool, and this activity is marked to run once at a"
+                    + " time."
                     + " Do not call it again now. Start something else, or end your turn: you will"
                     + " get another turn when that work finishes.");
         }
@@ -452,7 +451,8 @@ public class AdHocSubProcessTool {
             result.put("status", "waiting");
             // A boundary event may have interrupted the tool already, within this call, and its
             // path is what still runs: said now, not only when that path ends (CIB7-2166).
-            String interrupted = interruptedWhileRunning(scope, trackingId, activityId, result);
+            AdHocResults.Interruption interrupted =
+                    interruptedWhileRunning(scope, trackingId, activityId, result);
             result.put("results", Collections.emptyMap());
             // Said with every waiting result (GH-610): the next step of the turn follows at once,
             // and a model that takes "waiting" for "not done" calls the tool again. Not for a tool
@@ -465,8 +465,8 @@ public class AdHocSubProcessTool {
             // not to start again like any other.
             boolean whileOthersRun = entry != null && entry.isBlockedWhileOthersRun();
             boolean whileSameRuns = entry != null && entry.isBlockedWhileSameRuns();
-            boolean didNotComplete = interrupted != null
-                    && AdHocResults.interruptedOnTheTool(result.get("interruptedBy"), activityId);
+            // As the interruption's own note decides it, not worked out again.
+            boolean didNotComplete = interrupted != null && interrupted.onTheTool;
             String again;
             if (didNotComplete) {
                 again = whileOthersRun
@@ -487,7 +487,7 @@ public class AdHocSubProcessTool {
                                         : "that would start a second instance of it.");
             }
             result.put("resultsNote", interrupted != null
-                    ? interrupted + " Its path still runs. You will get another turn when it"
+                    ? interrupted.note + " Its path still runs. You will get another turn when it"
                             + " finishes. " + again
                     : "Still running. You will get another turn when it finishes. " + again);
         } else {
@@ -687,11 +687,12 @@ public class AdHocSubProcessTool {
 
     /**
      * For a performance still running after its call: if a boundary event interrupted it within
-     * the call, puts {@code interruptedBy} into {@code result} and returns what to tell the model,
-     * else null (CIB7-2166). Its status stays waiting, since the event's path still runs; the
+     * the call, puts {@code interruptedBy} into {@code result} and returns what to tell the model
+     * and whether the tool itself did not complete, else null (CIB7-2166, GH-610). Its status stays waiting, since the event's path still runs; the
      * entry gathered when that path ends carries the same {@code interruptedBy}.
      */
-    private static String interruptedWhileRunning(ExecutionEntity scope, String trackingId,
+    private static AdHocResults.Interruption interruptedWhileRunning(ExecutionEntity scope,
+                                                  String trackingId,
                                                   String activityId, Map<String, Object> result) {
         for (PvmExecutionImpl child : ((PvmExecutionImpl) scope).getNonEventScopeExecutions()) {
             if (child.getId().equals(trackingId)) {

@@ -21,13 +21,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
 /**
  * Whether an interruption sat on the tool itself, which decides what a waiting result says about a
- * start again (GH-610): the same rule as the result's own "did not complete".
+ * start again (GH-610): the decision of the note itself, so the two never disagree.
  */
 class AdHocResultsInterruptionTest {
 
@@ -41,37 +43,61 @@ class AdHocResultsInterruptionTest {
     return one;
   }
 
-  @Test
-  void onTheToolItself() {
-    assertThat(AdHocResults.interruptedOnTheTool(Arrays.asList(at("buchen")), "buchen")).isTrue();
+  private static AdHocResults.Interruption describe(String toolId, List<?> interrupted) {
+    return AdHocResults.describeInterruptions(toolId, interrupted,
+        new LinkedHashMap<String, Object>());
   }
 
   @Test
-  void furtherAlongItsFlow() {
-    assertThat(AdHocResults.interruptedOnTheTool(Arrays.asList(at("buchen")), "anfang")).isFalse();
+  void onTheToolItselfItDidNotComplete() {
+    AdHocResults.Interruption interruption = describe("buchen", Arrays.asList(at("buchen")));
+
+    assertThat(interruption.onTheTool).isTrue();
+    assertThat(interruption.note).startsWith("'buchen' did not complete");
   }
 
   @Test
-  void anEntryThatSaysNothingOfWhereCountsAsOnTheTool() {
-    assertThat(AdHocResults.interruptedOnTheTool(Arrays.asList(at(null)), "anfang")).isTrue();
+  void furtherAlongItsFlowItRan() {
+    AdHocResults.Interruption interruption = describe("anfang", Arrays.asList(at("buchen")));
+
+    assertThat(interruption.onTheTool).isFalse();
+    assertThat(interruption.note).startsWith("'anfang' ran;");
   }
 
   @Test
   void oneOfSeveralOnTheToolIsEnough() {
-    assertThat(AdHocResults.interruptedOnTheTool(
-        Arrays.asList(at("buchen"), at("anfang")), "anfang")).isTrue();
+    AdHocResults.Interruption interruption =
+        describe("anfang", Arrays.asList(at("buchen"), at("anfang")));
+
+    assertThat(interruption.onTheTool).isTrue();
+    assertThat(interruption.note).startsWith("'anfang' did not complete");
+  }
+
+  /** An entry that says nothing of where it sat counts as on the tool, in the note as in the flag. */
+  @Test
+  void anEntryWithoutAnyKnownFieldAgreesWithItsNote() {
+    Map<String, Object> unknown = new HashMap<>();
+    unknown.put("somethingElse", "x");
+
+    AdHocResults.Interruption interruption = describe("anfang", Arrays.asList(unknown));
+
+    assertThat(interruption.onTheTool).isTrue();
+    assertThat(interruption.note).startsWith("'anfang' did not complete");
   }
 
   @Test
-  void emptyEntriesAndNothingAreSkipped() {
-    assertThat(AdHocResults.interruptedOnTheTool(
-        Arrays.asList(Collections.emptyMap(), at("buchen")), "anfang")).isFalse();
-    assertThat(AdHocResults.interruptedOnTheTool(null, "anfang")).isFalse();
-    assertThat(AdHocResults.interruptedOnTheTool(Collections.emptyList(), "anfang")).isFalse();
+  void noInterruptionsDescribeNothing() {
+    assertThat(describe("anfang", Collections.emptyList())).isNull();
+    assertThat(describe("anfang", Arrays.asList(Collections.emptyMap()))).isNull();
   }
 
   @Test
-  void aSingleEntryNotInAListIsReadToo() {
-    assertThat(AdHocResults.interruptedOnTheTool(at("anfang"), "anfang")).isTrue();
+  void theInterruptionsAreShownToTheModel() {
+    Map<String, Object> into = new LinkedHashMap<>();
+
+    AdHocResults.describeInterruptions("anfang", Arrays.asList(at("buchen")), into);
+
+    assertThat(into).containsKey("interruptedBy");
+    assertThat(into.get("interruptedBy").toString()).contains("attachedTo=buchen");
   }
 }

@@ -3359,10 +3359,10 @@ public class AgenticTurnJobTest {
             + " sub process runs.")
         .doesNotContain("until its path has finished")
         .doesNotContain("your call");
-    // The refusal names the path as the result does, not only an earlier instance.
+    // The refusal covers the path as part of the tool's flow, not only an earlier instance.
     assertThat(toolResults(requestBodies.get(2)))
-        .contains("Cannot start 'buchen': an earlier instance of 'buchen', or the path a boundary"
-            + " event on it took, is still running");
+        .contains("Cannot start 'buchen': an earlier instance of 'buchen' or its flow is still"
+            + " running");
     assertThat(engine.getTaskService().createTaskQuery().processInstanceId(pi.getId())
         .taskDefinitionKey("fehlerMerken").count()).as("one error path, no second booking")
         .isOne();

@@ -3072,8 +3072,11 @@ public class AdHocSubProcessToolTest {
     // Told that its own earlier instance holds it back, not that it waits for someone else's
     // decision (GH-610).
     assertThat(Agent.FAILURES.get(0).getMessage())
-        .contains("Cannot start 'gatedWaits': an earlier instance of 'gatedWaits', or the path a"
-            + " boundary event on it took, is still running")
+        .contains("Cannot start 'gatedWaits': an earlier instance of 'gatedWaits' or its flow is"
+            + " still running")
+        // No boundary event here: the refusal claims none.
+        .doesNotContain("boundary event")
+        .contains("when that work finishes")
         .contains("its own earlier instance included")
         .contains("end your turn")
         .doesNotContain("a decision someone else has to make first");
@@ -3108,7 +3111,7 @@ public class AdHocSubProcessToolTest {
     assertThat(list(result(0).get("blockedNow"))).containsOnlyOnce("gatedOnce");
     assertThat(String.valueOf(result(0).get("blockedBecause")))
         .contains("gatedOnce] depend on work still in flight")
-        .contains("[gatedOnce] have an earlier instance still running");
+        .contains("[gatedOnce] have an earlier instance or its flow still running");
   }
 
   /** And the report gives that reason for it, while what waits for it gives its own. */
@@ -3122,7 +3125,7 @@ public class AdHocSubProcessToolTest {
     assertThat(list(result(0).get("blockedNow"))).contains("gated", "gatedWaits");
     assertThat(String.valueOf(result(0).get("blockedBecause")))
         .contains("[gated] depend on work still in flight: [gatedWaits].")
-        .contains("[gatedWaits] have an earlier instance still running");
+        .contains("[gatedWaits] have an earlier instance or its flow still running");
   }
 
   // --- one instance at a time (GH-610) --------------------------------------
@@ -3327,7 +3330,7 @@ public class AdHocSubProcessToolTest {
     // about a tool.
     assertThat(String.valueOf(result(0).get("blockedBecause")))
         .contains("[gated, gatedWaits] depend on work still in flight: [waits].")
-        .contains("[waits] have an earlier instance still running");
+        .contains("[waits] have an earlier instance or its flow still running");
   }
 
   /**
@@ -3365,7 +3368,7 @@ public class AdHocSubProcessToolTest {
     assertThat(Agent.FAILURES).isEmpty();
     assertThat(list(result(0).get("blockedNow"))).containsExactly("waits");
     assertThat(String.valueOf(result(0).get("blockedBecause")))
-        .startsWith("These have an earlier instance still running")
+        .startsWith("These have an earlier instance or its flow still running")
         .doesNotContain("depend on work still in flight");
     // Neutral: whether that work came from outside or from a branch the agent's tool forked
     // into cannot be told.
@@ -3424,7 +3427,7 @@ public class AdHocSubProcessToolTest {
     assertThat(Agent.FAILURES).isEmpty();
     assertThat(list(result(0).get("blockedNow"))).contains("chainStart");
     assertThat(String.valueOf(result(0).get("blockedBecause")))
-        .contains("earlier instance still running");
+        .contains("earlier instance or its flow still running");
   }
 
   /** Set before the turn runs, so it can activate the sub process as an outside caller would. */
