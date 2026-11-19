@@ -39,6 +39,8 @@ public class GetTaskAttachmentCmd implements Command<Attachment>, Serializable {
   }
 
   public Attachment execute(CommandContext commandContext) {
+    AttachmentAuthChecks.checkReadTask(taskId, commandContext);
+
     return commandContext
       .getAttachmentManager()
       .findAttachmentByTaskIdAndAttachmentId(taskId, attachmentId);

@@ -16,6 +16,8 @@
  */
 package org.cibseven.bpm.engine.impl.cmd;
 
+import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
+
 import java.io.Serializable;
 
 import org.cibseven.bpm.engine.impl.interceptor.Command;
@@ -41,11 +43,14 @@ public class SaveAttachmentCmd implements Command<Object>, Serializable {
     AttachmentEntity updateAttachment = commandContext
       .getDbEntityManager()
       .selectById(AttachmentEntity.class, attachment.getId());
+    ensureNotNull("No attachment exists with attachmentId '" + attachment.getId() + "'.", "attachment", updateAttachment);
+
+    AttachmentAuthChecks.checkUpdateAttachment(updateAttachment, commandContext);
 
     updateAttachment.setName(attachment.getName());
     updateAttachment.setDescription(attachment.getDescription());
 
-    String taskId = attachment.getTaskId();
+    String taskId = updateAttachment.getTaskId();
     if (taskId != null) {
       TaskEntity task = commandContext.getTaskManager().findTaskById(taskId);
 

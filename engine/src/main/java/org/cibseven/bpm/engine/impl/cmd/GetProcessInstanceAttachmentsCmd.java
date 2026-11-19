@@ -32,13 +32,17 @@ public class GetProcessInstanceAttachmentsCmd implements Command<List<Attachment
   private static final long serialVersionUID = 1L;
   protected String processInstanceId;
   
-  public GetProcessInstanceAttachmentsCmd(String taskId) {
-    this.processInstanceId = taskId;
+  public GetProcessInstanceAttachmentsCmd(String processInstanceId) {
+    this.processInstanceId = processInstanceId;
   }
 
   public List<Attachment> execute(CommandContext commandContext) {
-    return commandContext
+    AttachmentAuthChecks.checkReadProcessInstance(processInstanceId, commandContext);
+
+    List<Attachment> attachments = commandContext
       .getAttachmentManager()
       .findAttachmentsByProcessInstanceId(processInstanceId);
+
+    return AttachmentAuthChecks.filterReadableTaskAttachments(attachments, commandContext);
   }
 }

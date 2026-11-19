@@ -60,6 +60,7 @@ import org.cibseven.bpm.engine.impl.TaskServiceImpl;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
+import org.cibseven.bpm.engine.impl.persistence.entity.AttachmentEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.HistoricDetailVariableInstanceUpdateEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.VariableInstanceEntity;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
@@ -2705,6 +2706,57 @@ public class TaskServiceTest {
     assertThatThrownBy(() -> taskService.deleteTaskAttachment(null, "attachmentDoesNotExist")).isInstanceOf(
             NullValueException.class)
         .hasMessageContaining("No attachment exists with attachmentId 'attachmentDoesNotExist'");
+  }
+
+  @Test
+  public void testGetAttachmentContentThatDoesNotExist() {
+    assertNull(taskService.getAttachmentContent("attachmentDoesNotExist"));
+  }
+
+  @Test
+  public void testSaveAttachmentThatDoesNotExist() {
+    AttachmentEntity attachment = new AttachmentEntity();
+    attachment.setId("attachmentDoesNotExist");
+
+    assertThatThrownBy(() -> taskService.saveAttachment(attachment)).isInstanceOf(NullValueException.class)
+        .hasMessageContaining("No attachment exists with attachmentId 'attachmentDoesNotExist'");
+  }
+
+  @RequiredHistoryLevel(ProcessEngineConfiguration.HISTORY_AUDIT)
+  @Test
+  public void testSaveAttachmentTriggersUpdateOnStoredTask() {
+    // given
+    Task owner = taskService.newTask();
+    taskService.saveTask(owner);
+    Task other = taskService.newTask();
+    taskService.saveTask(other);
+    Attachment attachment = taskService.createAttachment("web page", owner.getId(), null, "weatherforcast",
+        "temperatures and more", "http://weather.com");
+
+    Date saveTime = new Date(ClockUtil.getCurrentTime().getTime() + 60_000);
+    ClockUtil.setCurrentTime(saveTime);
+
+    // when - the caller names another task than the one the attachment is stored for
+    AttachmentEntity update = (AttachmentEntity) taskService.getAttachment(attachment.getId());
+    update.setTaskId(other.getId());
+    update.setName("updatedName");
+    taskService.saveAttachment(update);
+
+    // then
+    assertThat(taskService.createTaskQuery().taskId(owner.getId()).singleResult().getLastUpdated())
+        .isEqualTo(saveTime);
+    assertThat(taskService.createTaskQuery().taskId(other.getId()).singleResult().getLastUpdated())
+        .isNotEqualTo(saveTime);
+
+    taskService.deleteTask(owner.getId(), true);
+    taskService.deleteTask(other.getId(), true);
+  }
+
+  @Test
+  public void testCreateAttachmentForProcessInstanceThatDoesNotExist() {
+    assertThatThrownBy(() -> taskService.createAttachment("web page", null, "processInstanceDoesNotExist",
+        "weatherforcast", "temperatures and more", "http://weather.com")).isInstanceOf(NullValueException.class)
+        .hasMessageContaining("No process instance exists with processInstanceId 'processInstanceDoesNotExist'");
   }
 
   @Test

@@ -793,6 +793,71 @@ public class AuthorizationManager extends AbstractManager {
     }
   }
 
+  // historic instance entity checks /////////////////////////////////
+  //
+  // Entity counterparts of the two queries above: the same disjunction, but resolved for one
+  // concrete id instead of a SQL column. They live next to the query configuration so that both
+  // stay in sync whenever the historic permission model changes.
+
+  public void checkReadHistoricProcessInstance(HistoricProcessInstanceEntity processInstance) {
+    if (processInstance == null) {
+      return;
+    }
+
+    // same disjunction as configureHistoricProcessInstanceQuery
+    boolean hasProcessDefinition = processInstance.getProcessDefinitionKey() != null;
+    boolean historicInstancePermissionsEnabled = isHistoricInstancePermissionsEnabled();
+    if (!hasProcessDefinition && !historicInstancePermissionsEnabled) {
+      return;
+    }
+
+    PermissionCheckBuilder builder = new PermissionCheckBuilder().disjunctive();
+
+    if (hasProcessDefinition) {
+      builder.atomicCheckForResourceId(PROCESS_DEFINITION,
+          processInstance.getProcessDefinitionKey(), READ_HISTORY);
+    }
+    if (historicInstancePermissionsEnabled) {
+      builder.atomicCheckForResourceId(HISTORIC_PROCESS_INSTANCE, processInstance.getId(),
+          HistoricProcessInstancePermissions.READ);
+    }
+
+    checkAuthorization(builder.build());
+  }
+
+  public void checkReadHistoricTaskInstance(HistoricTaskInstanceEntity task) {
+    if (task == null) {
+      return;
+    }
+
+    // same disjunction as configureHistoricTaskInstanceQuery: a historic read is granted by either
+    // the coarse READ_HISTORY on the process definition or one of the fine grained per-instance
+    // permissions. The latter only count while enableHistoricInstancePermissions is set, so with
+    // that flag off only READ_HISTORY is checked, and for a standalone task neither branch can ever
+    // match and nothing is checked, matching what the historic queries return for such tasks.
+    boolean hasProcessDefinition = task.getProcessDefinitionKey() != null;
+    boolean historicInstancePermissionsEnabled = isHistoricInstancePermissionsEnabled();
+    if (!hasProcessDefinition && !historicInstancePermissionsEnabled) {
+      return;
+    }
+
+    PermissionCheckBuilder builder = new PermissionCheckBuilder().disjunctive();
+
+    if (hasProcessDefinition) {
+      builder.atomicCheckForResourceId(PROCESS_DEFINITION, task.getProcessDefinitionKey(),
+          READ_HISTORY);
+    }
+    if (historicInstancePermissionsEnabled) {
+      if (task.getProcessInstanceId() != null) {
+        builder.atomicCheckForResourceId(HISTORIC_PROCESS_INSTANCE, task.getProcessInstanceId(),
+            HistoricProcessInstancePermissions.READ);
+      }
+      builder.atomicCheckForResourceId(HISTORIC_TASK, task.getId(), HistoricTaskPermissions.READ);
+    }
+
+    checkAuthorization(builder.build());
+  }
+
   // historic variable instance query ////////////////////////////////
 
   public void configureHistoricVariableInstanceQuery(HistoricVariableInstanceQueryImpl query) {

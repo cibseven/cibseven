@@ -1817,6 +1817,100 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
   }
 
   @Test
+  public void shouldResolveAttachment_CreateAttachmentByCompletedProcessInstance() {
+    // the removal time was propagated when the root ended, so a later attachment has to take it over
+    // given
+    testRule.deploy(CALLING_PROCESS);
+
+    testRule.deploy(CALLED_PROCESS);
+
+    ClockUtil.setCurrentTime(START_DATE);
+
+    String rootProcessInstanceId = runtimeService.startProcessInstanceByKey(CALLING_PROCESS_KEY).getId();
+
+    String calledProcessInstanceId = runtimeService.createProcessInstanceQuery()
+      .activityIdIn("userTask")
+      .singleResult()
+      .getId();
+
+    ClockUtil.setCurrentTime(END_DATE);
+
+    taskService.complete(taskService.createTaskQuery().singleResult().getId());
+
+    // when
+    AttachmentEntity attachment = (AttachmentEntity) taskService.createAttachment(null, null, calledProcessInstanceId, null, null, new ByteArrayInputStream("hello world".getBytes()));
+
+    // then
+    Date removalTime = addDays(END_DATE, 5);
+
+    assertThat(attachment.getRootProcessInstanceId()).isEqualTo(rootProcessInstanceId);
+    assertThat(attachment.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(findByteArrayById(attachment.getContentId()).getRemovalTime()).isEqualTo(removalTime);
+  }
+
+  @Test
+  public void shouldResolveAttachment_CreateAttachmentByCompletedTask() {
+    // given
+    testRule.deploy(CALLING_PROCESS);
+
+    testRule.deploy(CALLED_PROCESS);
+
+    ClockUtil.setCurrentTime(START_DATE);
+
+    String rootProcessInstanceId = runtimeService.startProcessInstanceByKey(CALLING_PROCESS_KEY).getId();
+
+    ClockUtil.setCurrentTime(END_DATE);
+
+    String taskId = taskService.createTaskQuery().singleResult().getId();
+    taskService.complete(taskId);
+
+    // when
+    AttachmentEntity attachment = (AttachmentEntity) taskService.createAttachment(null, taskId, null, null, null, new ByteArrayInputStream("hello world".getBytes()));
+
+    // then
+    Date removalTime = addDays(END_DATE, 5);
+
+    assertThat(attachment.getRootProcessInstanceId()).isEqualTo(rootProcessInstanceId);
+    assertThat(attachment.getRemovalTime()).isEqualTo(removalTime);
+    assertThat(findByteArrayById(attachment.getContentId()).getRemovalTime()).isEqualTo(removalTime);
+  }
+
+  @Test
+  public void shouldResolveAttachment_CreateAttachmentByCompletedTaskOfRunningRoot() {
+    // the root is still running and carries no removal time yet; it propagates one when it ends
+    // given
+    testRule.deploy(Bpmn.createExecutableProcess("process")
+      .camundaHistoryTimeToLive(5)
+      .startEvent()
+      .userTask("firstTask")
+      .userTask("secondTask")
+      .endEvent()
+      .done());
+
+    ClockUtil.setCurrentTime(START_DATE);
+
+    String processInstanceId = runtimeService.startProcessInstanceByKey("process").getId();
+
+    String firstTaskId = taskService.createTaskQuery().singleResult().getId();
+    taskService.complete(firstTaskId);
+
+    AttachmentEntity attachment = (AttachmentEntity) taskService.createAttachment(null, firstTaskId, null, null, null, "http://cibseven.org");
+
+    // assume
+    assertThat(attachment.getRootProcessInstanceId()).isEqualTo(processInstanceId);
+    assertThat(attachment.getRemovalTime()).isNull();
+
+    ClockUtil.setCurrentTime(END_DATE);
+
+    // when
+    taskService.complete(taskService.createTaskQuery().singleResult().getId());
+
+    // then
+    assertThat(((AttachmentEntity) taskService.getAttachment(attachment.getId())).getRemovalTime())
+      .isEqualTo(addDays(END_DATE, 5));
+  }
+
+  @Test
   public void shouldResolveByteArray_SetVariable() {
     // given
     testRule.deploy(CALLING_PROCESS);

@@ -18,7 +18,6 @@ package org.cibseven.bpm.engine.impl.cmd;
 
 import java.io.InputStream;
 import java.util.Date;
-import java.util.List;
 
 import org.cibseven.bpm.engine.history.UserOperationLogEntry;
 import org.cibseven.bpm.engine.impl.context.Context;
@@ -29,6 +28,8 @@ import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
 import org.cibseven.bpm.engine.impl.persistence.entity.AttachmentEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.ByteArrayEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
+import org.cibseven.bpm.engine.impl.persistence.entity.HistoricProcessInstanceEntity;
+import org.cibseven.bpm.engine.impl.persistence.entity.HistoricTaskInstanceEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.PropertyChange;
 import org.cibseven.bpm.engine.impl.persistence.entity.TaskEntity;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
@@ -68,14 +69,32 @@ public class CreateAttachmentCmd implements Command<Attachment> {
 
   @Override
   public Attachment execute(CommandContext commandContext) {
-    if (taskId != null) {
+    HistoricTaskInstanceEntity historicTask = null;
+    HistoricProcessInstanceEntity historicProcessInstance = null;
+    if (taskId != null && !taskId.isBlank()) {
       task = commandContext
           .getTaskManager()
           .findTaskById(taskId);
+      AttachmentAuthChecks.checkModifyTask(taskId, commandContext);
+      AttachmentAuthChecks.checkTaskBelongsToProcessInstance(taskId, processInstanceId, commandContext);
+      if (task == null) {
+        // a completed task only remains in the history
+        historicTask = AttachmentAuthChecks.findHistoricTask(taskId, commandContext);
+      }
+    } else if (processInstanceId != null) {
+      // a blank task id names no task, so the process instance is the owner to check
+      AttachmentAuthChecks.checkModifyProcessInstance(processInstanceId, commandContext);
+      processInstance = AttachmentAuthChecks.findProcessInstance(processInstanceId, commandContext);
+      if (processInstance == null) {
+        // a completed process instance only remains in the history
+        historicProcessInstance = AttachmentAuthChecks.findHistoricProcessInstance(processInstanceId, commandContext);
+        ensureNotNull("No process instance exists with processInstanceId '" + processInstanceId + "'.",
+            "processInstance", historicProcessInstance);
+      }
     } else {
-      ensureNotNull("taskId or processInstanceId has to be provided", this.processInstanceId);
-      List<ExecutionEntity> executionsByProcessInstanceId = commandContext.getExecutionManager().findExecutionsByProcessInstanceId(processInstanceId);
-      processInstance = executionsByProcessInstanceId.get(0);
+      ensureNotNull("taskId or processInstanceId has to be provided", this.taskId);
+      // only a blank task id gets here, which leaves the attachment without any owner
+      AttachmentAuthChecks.checkModifyWithoutOwner(commandContext);
     }
 
     AttachmentEntity attachment = new AttachmentEntity();
@@ -92,11 +111,18 @@ public class CreateAttachmentCmd implements Command<Attachment> {
       if (execution != null) {
         attachment.setRootProcessInstanceId(execution.getRootProcessInstanceId());
       }
+    } else if (historicTask != null) {
+      attachment.setRootProcessInstanceId(historicTask.getRootProcessInstanceId());
     } else if (processInstance != null) {
       attachment.setRootProcessInstanceId(processInstance.getRootProcessInstanceId());
+    } else if (historicProcessInstance != null) {
+      attachment.setRootProcessInstanceId(historicProcessInstance.getRootProcessInstanceId());
     }
 
-    if (isHistoryRemovalTimeStrategyStart()) {
+    // Under the end strategy the removal time is propagated when the root process instance ends.
+    // An owner that has already completed may belong to a root that has ended as well, so take
+    // whatever removal time the root carries now; it stays empty while the root is still running.
+    if (isHistoryRemovalTimeStrategyStart() || historicTask != null || historicProcessInstance != null) {
       provideRemovalTime(attachment);
     }
 
