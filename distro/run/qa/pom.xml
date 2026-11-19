@@ -24,6 +24,10 @@
     <version.rest-assured.groovy>4.0.32</version.rest-assured.groovy>
     <!-- QA modules are test code and are not published -->
     <cibseven.enforcer.allowTestLibraries>true</cibseven.enforcer.allowTestLibraries>
+    <!-- Not deployed to Nexus or Maven Central. CycloneDX leaves modules that are not deployed out
+         of aggregate SBOMs, so this also keeps them and their dependencies out of the license book. -->
+    <skip.cibseven.release>true</skip.cibseven.release>
+    <skip.central.release>true</skip.central.release>
   </properties>
 
   <dependencyManagement>
