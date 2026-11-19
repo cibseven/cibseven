@@ -1114,6 +1114,7 @@ license url: https://opensource.org/licenses/Apache-2.0
 com.googlecode.javaewah:JavaEWAH:1.2.3
 name: JavaEWAH
 description: The bit array data structure is implemented in Java as the BitSet class. Unfortunately, this fails to scale without compression. JavaEWAH is a word-aligned compressed variant of the Java bitset class. It uses a 64-bit run-length encoding (RLE) compression scheme. The goal of word-aligned compression is not to achieve the best compression, but rather to improve query processing time. Hence, we try to save CPU cycles, maybe at the expense of storage. However, the EWAH scheme we implemented is always more efficient storage-wise than an uncompressed bitmap (implemented in Java as the BitSet class). Unlike some alternatives, javaewah does not rely on a patented scheme.
+url: https://github.com/lemire/javaewah
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -1134,7 +1135,6 @@ license url: https://raw.githubusercontent.com/unicode-org/icu/main/icu4c/LICENS
 com.jayway.jsonpath:json-path:3.0.0
 name: json-path
 description: A library to query and verify JSON
-url: https://github.com/jayway/JsonPath
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -1419,7 +1419,6 @@ license url: https://opensource.org/licenses/Apache-2.0
 io.micrometer:micrometer-observation:1.17.2
 name: micrometer-observation
 description: Module containing Observation related code
-url: https://github.com/micrometer-metrics/micrometer
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -1575,7 +1574,6 @@ license url: https://opensource.org/licenses/EPL-2.0
 jakarta.authorization:jakarta.authorization-api:3.0.0
 name: jakarta.authorization-api
 description: Jakarta Authorization defines a low-level SPI for authorization modules, which are repositories of permissions facilitating subject based security by determining whether a given subject has a given permission, and algorithms to transform security constraints for specific containers (such as Jakarta Servlet or Jakarta Enterprise Beans) into these permissions.
-url: https://github.com/jakartaee/authorization
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -1693,7 +1691,6 @@ license url: https://opensource.org/licenses/EPL-2.0
 jakarta.security.enterprise:jakarta.security.enterprise-api:4.0.0
 name: jakarta.security.enterprise-api
 description: Jakarta Security defines a standard for creating secure Jakarta EE applications in modern application paradigms. It defines an overarching (end-user targeted) Security API for Jakarta EE Applications.
-url: https://github.com/eclipse-ee4j/security-api
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -1801,7 +1798,6 @@ license url: https://opensource.org/licenses/Apache-2.0
 org.antlr:ST4:4.3.4
 name: ST4
 description: StringTemplate is a java template engine for generating source code, web pages, emails, or any other formatted text output. StringTemplate is particularly good at multi-targeted code generators, multiple site skins, and internationalization/localization. It evolved over years of effort developing jGuru.com. StringTemplate also powers the ANTLR 3 and 4 code generator. Its distinguishing characteristic is that unlike other engines, it strictly enforces model-view separation. Strict separation makes websites and code generators more flexible and maintainable; it also provides an excellent defense against malicious template authors.
-url: https://github.com/antlr/stringtemplate4/tree/master
 license: BSD-4-Clause
 license url: https://opensource.org/licenses/BSD-3-Clause
 ========================================================================
@@ -2414,7 +2410,6 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.infinispan.protostream:protostream:6.0.9
 name: protostream
 description: ProtoStream is a serialization library based on Protocol buffers format for serializing structured data.
-url: https://github.com/infinispan/protostream
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
@@ -2446,6 +2441,7 @@ license url: https://www-archive.mozilla.org/mpl/mpl-1.1
 org.jboss.classfilewriter:jboss-classfilewriter:1.3.1.Final
 name: jboss-classfilewriter
 description: A bytecode writer that creates .class files at runtime
+url: https://github.com/jbossas/jboss-classfilewriter
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -2610,7 +2606,6 @@ license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 org.jboss.threads:jboss-threads:3.9.2
 name: jboss-threads
 description: Thread pool implementations and threading utilities
-url: https://github.com/jbossas/jboss-threads
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
@@ -2623,14 +2618,12 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.jboss:jboss-dmr:1.7.0.Final
 name: jboss-dmr
 description: Parent POM for JBoss projects. Provides default project build configuration.
-url: https://github.com/jbossas/jboss-dmr
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
 org.jboss:jboss-ejb-client:5.0.10.Final
 name: jboss-ejb-client
 description: Client library for EJB applications working against Wildfly - Jakarta EE Variant
-url: https://github.com/wildfly/jboss-ejb-client
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
@@ -2656,7 +2649,6 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.jboss:staxmapper:1.5.0.Final
 name: staxmapper
 description: Provides, via submodules, a base configuration for JBoss project builds, as well as a derived configuration supporting multi-release JARs
-url: https://github.com/jbossas/staxmapper
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
@@ -2726,7 +2718,6 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.jspecify:jspecify:1.0.0
 name: jspecify
 description: An artifact of well-named and well-specified annotations to power static analysis checks
-url: https://github.com/jspecify/jspecify/
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -2817,7 +2808,7 @@ license url: https://opensource.org/license/mit/
 org.snakeyaml:snakeyaml-engine:3.0.1
 name: snakeyaml-engine
 description: Core YAML 1.2 parser and emitter for Java
-url: https://bitbucket.org/snakeyaml/snakeyaml-engine
+url: https://bitbucket.org/snakeyaml/snakeyaml-engine/src
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -2898,7 +2889,6 @@ license url: https://opensource.org/licenses/Apache-2.0
 org.springframework.ai:spring-ai-starter-mcp-server-webmvc:2.0.1
 name: spring-ai-starter-mcp-server-webmvc
 description: Spring AI MCP Server WebMvc Spring Boot Starter
-url: https://github.com/spring-projects/spring-ai
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -2926,7 +2916,6 @@ license url: https://opensource.org/licenses/Apache-2.0
 org.springframework.boot:spring-boot-autoconfigure:4.1.2
 name: spring-boot-autoconfigure
 description: Spring Boot AutoConfigure
-url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -3227,6 +3216,7 @@ license url: https://opensource.org/licenses/Apache-2.0
 org.springframework.data:spring-data-commons:4.1.2
 name: spring-data-commons
 description: Core Spring concepts underpinning every Spring Data module.
+url: https://github.com/spring-projects/spring-data-commons
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -3378,13 +3368,13 @@ license url: https://opensource.org/licenses/Apache-2.0
 org.webjars:swagger-ui:5.34.1
 name: swagger-ui
 description: WebJar for Swagger UI
-url: https://github.com/swagger-api/swagger-ui
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
 org.webjars:webjars-locator-lite:1.1.5
 name: webjars-locator-lite
 description: WebJars Locator Lite
+url: https://github.com/webjars/webjars-locator-lite
 license: MIT
 license url: https://opensource.org/license/mit/
 ========================================================================
