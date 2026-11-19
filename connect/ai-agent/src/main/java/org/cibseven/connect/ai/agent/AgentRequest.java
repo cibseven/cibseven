@@ -52,6 +52,10 @@ public interface AgentRequest extends ConnectorRequest<AgentResponse> {
    */
   AgentRequest toolClasses(String toolClasses);
 
+  /**
+   * Optional. When omitted, {@code OPENAI_API_KEY} is used, but only for the
+   * {@code OPENAI_BASE_URL} endpoint (default: the OpenAI API).
+   */
   AgentRequest apiKey(String apiKey);
 
   /**

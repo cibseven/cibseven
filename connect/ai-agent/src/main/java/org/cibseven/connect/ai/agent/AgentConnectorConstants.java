@@ -82,6 +82,9 @@ public final class AgentConnectorConstants {
    */
   public static final String ENV_BASE_URL = "OPENAI_BASE_URL";
 
+  /** Environment variable with the fallback API key; sent only to the {@link #ENV_BASE_URL} endpoint. */
+  public static final String ENV_API_KEY = "OPENAI_API_KEY";
+
   // ── RAG / pgvector defaults ────────────────────────────────────────────────
 
   /** Default PostgreSQL port when {@code pgPort} input parameter is not provided. */

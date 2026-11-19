@@ -64,8 +64,7 @@
 
           <!-- LLM configuration -->
           <camunda:formField id="apiKey" label="OpenAI API Key (optional, uses env var)" type="string" />
-          <camunda:formField id="baseUrl" label="OpenAI Base URL (optional)" type="string"
-                             defaultValue="https://api.openai.com/v1" />
+          <camunda:formField id="baseUrl" label="OpenAI Base URL (optional, empty = OPENAI_BASE_URL)" type="string" />
           <camunda:formField id="model" label="Model" type="string" defaultValue="gpt-5.4-nano" />
           <camunda:formField id="embeddingModelName" label="Embedding Model Name (empty = local AllMiniLmL6V2)" type="string"
                              defaultValue="text-embedding-3-small" />
@@ -110,7 +109,8 @@
             <camunda:inputParameter name="source">${documentSource}</camunda:inputParameter>
 
             <!-- ── Embedding model ─────────────────────────────────── -->
-            <!-- Leave apiKey empty to use OPENAI_API_KEY env var -->
+            <!-- Remote embeddings always call api.openai.com. Leave apiKey empty to use OPENAI_API_KEY,
+                 which is only sent if OPENAI_BASE_URL is unset or points to OpenAI -->
             <camunda:inputParameter name="apiKey">${apiKey}</camunda:inputParameter>
             <!-- Empty value falls back to local AllMiniLmL6V2EmbeddingModel -->
             <camunda:inputParameter name="embeddingModelName">${embeddingModelName}</camunda:inputParameter>
@@ -157,12 +157,13 @@
             <camunda:inputParameter name="message">${question}</camunda:inputParameter>
 
             <!-- ── LLM endpoint ────────────────────────────────────── -->
-            <!-- Leave apiKey empty to use OPENAI_API_KEY env var -->
+            <!-- Leave apiKey empty to use OPENAI_API_KEY env var (sent only to the OPENAI_BASE_URL endpoint) -->
             <camunda:inputParameter name="apiKey">${apiKey}</camunda:inputParameter>
             <camunda:inputParameter name="baseUrl">${baseUrl}</camunda:inputParameter>
 
             <!-- ── Embedding model for RAG retrieval ──────────────── -->
-            <!-- Must match the model used during ingestion -->
+            <!-- Must match the model used during ingestion. Remote embeddings always call api.openai.com:
+                 they get apiKey only if baseUrl is OpenAI too, else OPENAI_API_KEY if configured for OpenAI -->
             <camunda:inputParameter name="embeddingModelName">${embeddingModelName}</camunda:inputParameter>
 
             <!-- ── RAG: pgvector retrieval ─────────────────────────── -->

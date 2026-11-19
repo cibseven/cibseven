@@ -147,6 +147,308 @@ public class AgentConnectorImplCoverageTest {
     }
   }
 
+  // ── resolveApiKey — OPENAI_API_KEY only for the configured endpoint ─────
+
+  private static final String GLOBAL_KEY = "global-env-key";
+
+  private void simulateEnv(String apiKey, String baseUrl) {
+    ConnectorSettings.ENV_READER = name ->
+        AgentConnectorConstants.ENV_API_KEY.equals(name) ? apiKey
+            : AgentConnectorConstants.ENV_BASE_URL.equals(name) ? baseUrl
+            : null;
+  }
+
+  @BeforeEach
+  public void clearWarnedEndpoints() {
+    resetEnvAndKeyWarnings();
+  }
+
+  @AfterEach
+  public void restoreEnvAndWarnings() {
+    resetEnvAndKeyWarnings();
+  }
+
+  /** Restores the real environment and forgets every once-only key warning. */
+  static void resetEnvAndKeyWarnings() {
+    ConnectorSettings.ENV_READER = System::getenv;
+    AgentConnectorImpl.WITHHELD_KEY_ORIGINS.clear();
+    AgentConnectorImpl.UNPARSEABLE_CONFIGURED_URLS.clear();
+    AgentConnectorImpl.EMBEDDING_REQUEST_KEY_WITHHELD_WARNED.set(false);
+    AgentConnectorImpl.EMBEDDING_KEY_WITHHELD_WARNED.set(false);
+    AgentConnectorImpl.EMBEDDING_NO_KEY_WARNED.set(false);
+  }
+
+  @Test
+  public void resolveApiKeyShouldUseRequestKeyForAnyEndpoint() throws Exception {
+    simulateEnv(GLOBAL_KEY, null);
+    AgentRequest request = connector.createRequest()
+        .apiKey("request-key").baseUrl("https://attacker.test/v1");
+    assertThat(invokeResolveApiKey(request)).isEqualTo("request-key");
+  }
+
+  @Test
+  public void resolveApiKeyShouldSendGlobalKeyToDefaultEndpoint() throws Exception {
+    simulateEnv(GLOBAL_KEY, null);
+    assertThat(invokeResolveApiKey(connector.createRequest())).isEqualTo(GLOBAL_KEY);
+    assertThat(invokeResolveApiKey(connector.createRequest()
+        .baseUrl("https://API.openai.com:443/v1/"))).isEqualTo(GLOBAL_KEY);
+  }
+
+  @Test
+  public void resolveApiKeyShouldSendGlobalKeyToConfiguredEndpoint() throws Exception {
+    simulateEnv(GLOBAL_KEY, "https://openrouter.ai/api/v1");
+    assertThat(invokeResolveApiKey(connector.createRequest())).isEqualTo(GLOBAL_KEY);
+    assertThat(invokeResolveApiKey(connector.createRequest()
+        .baseUrl("https://openrouter.ai/api/v1/"))).isEqualTo(GLOBAL_KEY);
+    // The configured endpoint replaces the default, it does not add to it.
+    assertThat(invokeResolveApiKey(connector.createRequest()
+        .baseUrl(AgentConnectorConstants.DEFAULT_BASE_URL))).isNull();
+  }
+
+  @Test
+  public void resolveApiKeyShouldWithholdGlobalKeyFromOtherEndpoints() throws Exception {
+    simulateEnv(GLOBAL_KEY, null);
+    for (String url : List.of(
+        "http://192.0.2.10:18081/v1",              // attacker-controlled server
+        "http://localhost:11434/v1",
+        "http://api.openai.com/v1",                // scheme downgrade
+        "https://api.openai.com:8443/v1",          // other port
+        "https://api.openai.com.attacker.test/v1", // host suffix
+        "https://api.openai.com@attacker.test/v1", // userinfo prefix
+        "http://api_openai:443/v1",                // registry-based authority
+        "not a url")) {
+      assertThat(invokeResolveApiKey(connector.createRequest().baseUrl(url)))
+          .as(url).isNull();
+    }
+  }
+
+  @Test
+  public void originOfShouldNeverContainUserInfo() {
+    assertThat(AgentConnectorImpl.originOf("http://u:pw@llm-proxy:8080/v1"))
+        .isEqualTo("http://llm-proxy:8080");
+    assertThat(AgentConnectorImpl.originOf("http://u:pw@llm_proxy:8080/v1")).isNull();
+  }
+
+  @Test
+  public void resolveApiKeyShouldBoundTheWarnedEndpoints() throws Exception {
+    simulateEnv(GLOBAL_KEY, null);
+    for (int port = 1; port <= AgentConnectorImpl.MAX_WITHHELD_KEY_ORIGINS + 10; port++) {
+      invokeResolveApiKey(connector.createRequest().baseUrl("http://attacker.test:" + port + "/v1"));
+    }
+    assertThat(AgentConnectorImpl.WITHHELD_KEY_ORIGINS)
+        .hasSize(AgentConnectorImpl.MAX_WITHHELD_KEY_ORIGINS);
+  }
+
+  @Test
+  public void resolveApiKeyShouldSendGlobalKeyOnlyToExactUnparseableConfiguredUrl() throws Exception {
+    simulateEnv(GLOBAL_KEY, "llm-proxy/v1");
+    assertThat(invokeResolveApiKey(connector.createRequest())).isEqualTo(GLOBAL_KEY);
+    assertThat(invokeResolveApiKey(connector.createRequest()
+        .baseUrl("http://llm-proxy/v1"))).isNull();
+    assertThat(AgentConnectorImpl.UNPARSEABLE_CONFIGURED_URLS).containsExactly("llm-proxy/v1");
+  }
+
+  @Test
+  public void resolveBaseUrlShouldTrimAndTreatBlankAsOmitted() throws Exception {
+    simulateEnv(GLOBAL_KEY, null);
+    assertThat(invokeResolveBaseUrl(connector.createRequest().baseUrl("   ")))
+        .isEqualTo(AgentConnectorConstants.DEFAULT_BASE_URL);
+    assertThat(invokeResolveBaseUrl(connector.createRequest().baseUrl(" https://example.test/v1 ")))
+        .isEqualTo("https://example.test/v1");
+    assertThat(invokeResolveApiKey(connector.createRequest().baseUrl("   ")))
+        .isEqualTo(GLOBAL_KEY);
+  }
+
+  @Test
+  public void resolveApiKeyShouldWarnOncePerWithheldEndpoint() throws Exception {
+    simulateEnv(GLOBAL_KEY, null);
+    invokeResolveApiKey(connector.createRequest().baseUrl("http://localhost:11434/v1"));
+    invokeResolveApiKey(connector.createRequest().baseUrl("http://LOCALHOST:11434/other"));
+    invokeResolveApiKey(connector.createRequest().baseUrl("http://192.0.2.10:18081/v1"));
+    assertThat(AgentConnectorImpl.WITHHELD_KEY_ORIGINS)
+        .containsExactlyInAnyOrder("http://localhost:11434", "http://192.0.2.10:18081");
+  }
+
+  @Test
+  public void resolveApiKeyShouldReturnNullWithoutAnyKey() throws Exception {
+    simulateEnv(null, null);
+    assertThat(invokeResolveApiKey(connector.createRequest())).isNull();
+  }
+
+  // ── remote embeddings — always OpenAI, so OPENAI_API_KEY only if configured there ──
+
+  @Test
+  public void resolveEmbeddingApiKeyShouldSendGlobalKeyOnlyWhenOpenAiIsConfigured() {
+    simulateEnv(GLOBAL_KEY, null);
+    assertThat(AgentConnectorImpl.resolveEmbeddingApiKey(null)).isEqualTo(GLOBAL_KEY);
+    simulateEnv(GLOBAL_KEY, "https://API.openai.com:443/v1/");
+    assertThat(AgentConnectorImpl.resolveEmbeddingApiKey("")).isEqualTo(GLOBAL_KEY);
+    // Another provider's key in OPENAI_API_KEY must not reach OpenAI.
+    for (String configured : List.of("https://openrouter.ai/api/v1",
+        "https://my-gateway.openai.azure.com/openai/v1", "http://localhost:11434/v1")) {
+      simulateEnv(GLOBAL_KEY, configured);
+      assertThat(AgentConnectorImpl.resolveEmbeddingApiKey(null)).as(configured).isNull();
+    }
+    assertThat(AgentConnectorImpl.EMBEDDING_KEY_WITHHELD_WARNED).isTrue();
+    // The embedding warning has its own flag: it neither uses nor fills the chat's slots.
+    assertThat(AgentConnectorImpl.WITHHELD_KEY_ORIGINS).isEmpty();
+  }
+
+  @Test
+  public void embeddingAndChatKeyWarningsShouldNotSuppressEachOther() throws Exception {
+    simulateEnv(GLOBAL_KEY, "https://openrouter.ai/api/v1");
+    // The chat withholds the key from api.openai.com first ...
+    assertThat(invokeResolveApiKey(connector.createRequest()
+        .baseUrl(AgentConnectorConstants.DEFAULT_BASE_URL))).isNull();
+    assertThat(AgentConnectorImpl.WITHHELD_KEY_ORIGINS).containsExactly("https://api.openai.com:443");
+    // ... and the embeddings still get their own warning.
+    assertThat(AgentConnectorImpl.EMBEDDING_KEY_WITHHELD_WARNED).isFalse();
+    assertThat(AgentConnectorImpl.resolveEmbeddingApiKey(null)).isNull();
+    assertThat(AgentConnectorImpl.EMBEDDING_KEY_WITHHELD_WARNED).isTrue();
+  }
+
+  @Test
+  public void resolveEmbeddingApiKeyShouldWarnOnceWithoutAnyKey() {
+    simulateEnv(null, null);
+    assertThat(AgentConnectorImpl.resolveEmbeddingApiKey(null)).isNull();
+    assertThat(AgentConnectorImpl.EMBEDDING_NO_KEY_WARNED).isTrue();
+    assertThat(AgentConnectorImpl.EMBEDDING_KEY_WITHHELD_WARNED).isFalse();
+  }
+
+  @Test
+  public void resolveEmbeddingApiKeyShouldUseRequestKeyWhateverIsConfigured() {
+    simulateEnv(GLOBAL_KEY, "https://openrouter.ai/api/v1");
+    assertThat(AgentConnectorImpl.resolveEmbeddingApiKey("request-key")).isEqualTo("request-key");
+  }
+
+  @Test
+  public void createEmbeddingModelShouldCallOpenAiWithoutAnotherProvidersKey() throws Exception {
+    simulateEnv(GLOBAL_KEY, "https://openrouter.ai/api/v1");
+    EmbeddingModel model = connector.createEmbeddingModel(connector.createRequest()
+        .embeddingModelName("text-embedding-3-small").baseUrl("https://openrouter.ai/api/v1"));
+    assertThat(embeddingClientField(model, "baseUrl")).isEqualTo(AgentConnectorConstants.DEFAULT_BASE_URL);
+    assertThat(embeddingAuthorization(model)).isNull();
+
+    simulateEnv(GLOBAL_KEY, null);
+    model = connector.createEmbeddingModel(connector.createRequest()
+        .embeddingModelName("text-embedding-3-small"));
+    assertThat(embeddingAuthorization(model)).isEqualTo("Bearer " + GLOBAL_KEY);
+  }
+
+  @Test
+  public void agentEmbeddingsShouldGetRequestKeyOnlyIfTheChatEndpointIsOpenAi() {
+    simulateEnv(null, null);
+    // No baseUrl, or an explicit OpenAI one: the key is an OpenAI key.
+    assertThat(connector.resolveAgentEmbeddingApiKey(connector.createRequest()
+        .apiKey("request-key"))).isEqualTo("request-key");
+    assertThat(connector.resolveAgentEmbeddingApiKey(connector.createRequest()
+        .apiKey("request-key").baseUrl("https://API.openai.com:443/v1/"))).isEqualTo("request-key");
+    // The key belongs to another chat provider: it must not go to OpenAI.
+    for (String chat : List.of("https://openrouter.ai/api/v1", "http://localhost:11434/v1",
+        "https://api.openai.com.attacker.test/v1", "not a url")) {
+      assertThat(connector.resolveAgentEmbeddingApiKey(connector.createRequest()
+          .apiKey("openrouter-key").baseUrl(chat))).as(chat).isNull();
+    }
+    assertThat(AgentConnectorImpl.EMBEDDING_REQUEST_KEY_WITHHELD_WARNED).isTrue();
+  }
+
+  @Test
+  public void agentEmbeddingsShouldFallBackToBoundGlobalKeyWhenRequestKeyIsForAnotherProvider() {
+    AgentRequest request = connector.createRequest()
+        .apiKey("openrouter-key").baseUrl("https://openrouter.ai/api/v1");
+    // Server key for OpenAI: chat via OpenRouter, embeddings with the OpenAI key.
+    simulateEnv(GLOBAL_KEY, null);
+    assertThat(connector.resolveAgentEmbeddingApiKey(request)).isEqualTo(GLOBAL_KEY);
+    // Server key for OpenRouter: nothing goes to OpenAI.
+    simulateEnv(GLOBAL_KEY, "https://openrouter.ai/api/v1");
+    assertThat(connector.resolveAgentEmbeddingApiKey(request)).isNull();
+  }
+
+  @Test
+  public void agentEmbeddingsShouldWithholdRequestKeyWhenTheChatUsesTheConfiguredProvider() {
+    // No baseUrl in the model: the chat goes to OPENAI_BASE_URL, so the key is OpenRouter's.
+    simulateEnv(null, "https://openrouter.ai/api/v1");
+    for (String baseUrl : Arrays.asList(null, "", "   ")) {
+      assertThat(connector.resolveAgentEmbeddingApiKey(connector.createRequest()
+          .apiKey("openrouter-key").baseUrl(baseUrl))).as("baseUrl '%s'", baseUrl).isNull();
+    }
+    // A deceptive chat URL is not OpenAI either.
+    simulateEnv(null, null);
+    assertThat(connector.resolveAgentEmbeddingApiKey(connector.createRequest()
+        .apiKey("request-key").baseUrl("https://api.openai.com@attacker.test/v1"))).isNull();
+  }
+
+  @Test
+  public void agentEmbeddingsShouldNotAdviseTheWithheldRequestKeyAgain() {
+    simulateEnv(null, null);
+    assertThat(connector.resolveAgentEmbeddingApiKey(connector.createRequest()
+        .apiKey("openrouter-key").baseUrl("https://openrouter.ai/api/v1"))).isNull();
+    assertThat(AgentConnectorImpl.EMBEDDING_REQUEST_KEY_WITHHELD_WARNED).isTrue();
+    // "No API key: supply 'apiKey'" would contradict the warning just logged.
+    assertThat(AgentConnectorImpl.EMBEDDING_NO_KEY_WARNED).isFalse();
+
+    simulateEnv(GLOBAL_KEY, "https://openrouter.ai/api/v1");
+    assertThat(connector.resolveAgentEmbeddingApiKey(connector.createRequest()
+        .apiKey("openrouter-key").baseUrl("https://openrouter.ai/api/v1"))).isNull();
+    assertThat(AgentConnectorImpl.EMBEDDING_KEY_WITHHELD_WARNED).isFalse();
+  }
+
+  @Test
+  public void createEmbeddingModelShouldNotSendTheChatProvidersRequestKeyToOpenAi() throws Exception {
+    simulateEnv(null, null);
+    EmbeddingModel model = connector.createEmbeddingModel(connector.createRequest()
+        .embeddingModelName("text-embedding-3-small")
+        .apiKey("openrouter-key").baseUrl("https://openrouter.ai/api/v1"));
+    assertThat(embeddingAuthorization(model)).isNull();
+    model = connector.createEmbeddingModel(connector.createRequest()
+        .embeddingModelName("text-embedding-3-small").apiKey("openai-key"));
+    assertThat(embeddingAuthorization(model)).isEqualTo("Bearer openai-key");
+  }
+
+  /** Reads a field of the {@code OpenAiEmbeddingModel}'s HTTP client (LangChain4j internals). */
+  static Object embeddingClientField(EmbeddingModel model, String name) throws Exception {
+    java.lang.reflect.Field clientField = model.getClass().getDeclaredField("client");
+    clientField.setAccessible(true);
+    Object client = clientField.get(model);
+    java.lang.reflect.Field field = client.getClass().getDeclaredField(name);
+    field.setAccessible(true);
+    return field.get(client);
+  }
+
+  @SuppressWarnings("unchecked")
+  static String embeddingAuthorization(EmbeddingModel model) throws Exception {
+    return ((Map<String, String>) embeddingClientField(model, "defaultHeaders")).get("Authorization");
+  }
+
+  @Test
+  public void executeShouldNotPassGlobalKeyToProcessSuppliedEndpoint() {
+    simulateEnv(GLOBAL_KEY, null);
+    List<String> capturedKeys = new ArrayList<>();
+    AgentConnectorImpl capturing = new AgentConnectorImpl() {
+      @Override
+      protected ChatModel createChatModel(AgentRequest request, String apiKey, String baseUrl,
+          Map<String, String> customHeaders) {
+        capturedKeys.add(apiKey);
+        return new dev.langchain4j.model.chat.ChatModel() {
+          @Override
+          public dev.langchain4j.model.chat.response.ChatResponse doChat(
+              dev.langchain4j.model.chat.request.ChatRequest req) {
+            return dev.langchain4j.model.chat.response.ChatResponse.builder()
+                .aiMessage(dev.langchain4j.data.message.AiMessage.from("ok"))
+                .build();
+          }
+        };
+      }
+    };
+
+    capturing.execute(capturing.createRequest()
+        .agentName("agent").message("hi").baseUrl("http://192.0.2.10:18081/v1"));
+    capturing.execute(capturing.createRequest()
+        .agentName("agent").message("hi"));
+
+    assertThat(capturedKeys).containsExactly(null, GLOBAL_KEY);
+  }
+
   // ── resolveToolInstances (private helper, via reflection) ───────────────
 
   /** Valid tool class — instantiated via the public no-arg constructor. */
@@ -314,6 +616,13 @@ public class AgentConnectorImplCoverageTest {
     Method m = AgentConnectorImpl.class.getDeclaredMethod("resolveBaseUrl", AgentRequest.class);
     m.setAccessible(true);
     return (String) m.invoke(connector, request);
+  }
+
+  private String invokeResolveApiKey(AgentRequest request) throws Exception {
+    Method m = AgentConnectorImpl.class.getDeclaredMethod("resolveApiKey", AgentRequest.class,
+        String.class);
+    m.setAccessible(true);
+    return (String) m.invoke(connector, request, invokeResolveBaseUrl(request));
   }
 
   @SuppressWarnings("unchecked")

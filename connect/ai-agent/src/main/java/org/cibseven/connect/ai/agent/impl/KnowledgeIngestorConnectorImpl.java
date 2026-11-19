@@ -33,6 +33,7 @@ import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.pgvector.PgVectorEmbeddingStore;
 
+import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.cibseven.connect.ai.agent.KnowledgeIngestorConnector;
 import org.cibseven.connect.ai.agent.KnowledgeIngestorRequest;
 import org.cibseven.connect.ai.agent.KnowledgeIngestorResponse;
@@ -114,18 +115,17 @@ public class KnowledgeIngestorConnectorImpl
 
   /**
    * Factory method — override in tests to inject a stubbed embedding model.
-   * Uses {@code OpenAiEmbeddingModel} when {@code embeddingModelName} is set,
-   * otherwise falls back to the local {@code AllMiniLmL6V2EmbeddingModel}.
+   * Uses {@code OpenAiEmbeddingModel} at {@link AgentConnectorConstants#DEFAULT_BASE_URL} when
+   * {@code embeddingModelName} is set, otherwise falls back to the local
+   * {@code AllMiniLmL6V2EmbeddingModel}. {@code OPENAI_API_KEY} is only used if
+   * {@code OPENAI_BASE_URL} is that endpoint too.
    */
   protected EmbeddingModel createEmbeddingModel(KnowledgeIngestorRequest request) {
     String modelName = request.getEmbeddingModelName();
     if (modelName != null && !modelName.isEmpty()) {
-      String apiKey = request.getApiKey();
-      if (apiKey == null || apiKey.isEmpty()) {
-        apiKey = System.getenv("OPENAI_API_KEY");
-      }
       return OpenAiEmbeddingModel.builder()
-          .apiKey(apiKey)
+          .apiKey(AgentConnectorImpl.resolveEmbeddingApiKey(request.getApiKey()))
+          .baseUrl(AgentConnectorConstants.DEFAULT_BASE_URL)
           .modelName(modelName)
           .build();
     }

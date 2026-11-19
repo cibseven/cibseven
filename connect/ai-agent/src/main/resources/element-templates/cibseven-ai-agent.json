@@ -148,7 +148,7 @@
           "label": "Base URL",
           "type": "String",
           "group": "agent",
-          "description": "API base URL. Examples: https://api.openai.com/v1 (OpenAI, default), https://openrouter.ai/api/v1 (OpenRouter), http://localhost:11434/v1 (Ollama), etc.",
+          "description": "API base URL. Examples: https://api.openai.com/v1 (OpenAI, default), https://openrouter.ai/api/v1 (OpenRouter), http://localhost:11434/v1 (Ollama), etc. Other endpoints than OPENAI_BASE_URL need the API key field.",
           "placeholder": "https://api.openai.com/v1",
           "binding": {
             "type": "camunda:inputParameter",
@@ -170,7 +170,7 @@
           "label": "API key",
           "type": "String",
           "group": "agent",
-          "description": "Leave empty to use the server's key (environment variable OPENAI_API_KEY). Do not pass a key in a process variable: it is stored in the database and, at history level audit or full, in the history tables. Do not write it here either: the text is stored in the BPMN XML of the deployment.",
+          "description": "Leave empty to use the server's key (environment variable OPENAI_API_KEY). Do not pass a key in a process variable: it is stored in the database and, at history level audit or full, in the history tables. Do not write it here either: the text is stored in the BPMN XML of the deployment. The server's key is only sent to the endpoint configured in OPENAI_BASE_URL.",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "apiKey"
@@ -400,7 +400,7 @@
           "label": "Embedding model name",
           "type": "String",
           "group": "rag",
-          "description": "Name of the embedding model used to encode documents and queries. Default: AllMiniLmL6V2 (local, 384-dim). Use text-embedding-ada-002 for OpenAI.",
+          "description": "Name of the embedding model used to encode documents and queries. Default: AllMiniLmL6V2 (local, 384-dim). Use text-embedding-ada-002 for OpenAI: remote embeddings always call api.openai.com, not the Base URL, and get the API key only if the chat endpoint (Base URL, else OPENAI_BASE_URL) is OpenAI too, else OPENAI_API_KEY only if OPENAI_BASE_URL is OpenAI.",
           "placeholder": "AllMiniLmL6V2",
           "binding": {
             "type": "camunda:inputParameter",

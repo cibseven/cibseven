@@ -22,8 +22,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import org.cibseven.connect.ai.agent.AgentConnectorConstants;
 import org.cibseven.connect.ai.agent.KnowledgeIngestorRequest;
 import org.cibseven.connect.ai.agent.KnowledgeIngestorResponse;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -60,6 +62,40 @@ public class KnowledgeIngestorConnectorImplCoverageTest {
   @BeforeEach
   public void setUp() {
     connector = new KnowledgeIngestorConnectorImpl();
+    AgentConnectorImplCoverageTest.resetEnvAndKeyWarnings();
+  }
+
+  @AfterEach
+  public void restoreEnvAndWarnings() {
+    AgentConnectorImplCoverageTest.resetEnvAndKeyWarnings();
+  }
+
+  @Test
+  public void createEmbeddingModelShouldNotSendAnotherProvidersKeyToOpenAi() throws Exception {
+    ConnectorSettings.ENV_READER = name ->
+        AgentConnectorConstants.ENV_API_KEY.equals(name) ? "openrouter-key"
+            : AgentConnectorConstants.ENV_BASE_URL.equals(name) ? "https://openrouter.ai/api/v1"
+            : null;
+    EmbeddingModel model = connector.createEmbeddingModel(connector.createRequest()
+        .embeddingModelName("text-embedding-3-small"));
+    assertThat(AgentConnectorImplCoverageTest.embeddingClientField(model, "baseUrl"))
+        .isEqualTo(AgentConnectorConstants.DEFAULT_BASE_URL);
+    assertThat(AgentConnectorImplCoverageTest.embeddingAuthorization(model)).isNull();
+
+    model = connector.createEmbeddingModel(connector.createRequest()
+        .embeddingModelName("text-embedding-3-small").apiKey("openai-key"));
+    assertThat(AgentConnectorImplCoverageTest.embeddingAuthorization(model))
+        .isEqualTo("Bearer openai-key");
+  }
+
+  @Test
+  public void createEmbeddingModelShouldSendGlobalKeyWhenOpenAiIsConfigured() throws Exception {
+    ConnectorSettings.ENV_READER = name ->
+        AgentConnectorConstants.ENV_API_KEY.equals(name) ? "openai-env-key" : null;
+    EmbeddingModel model = connector.createEmbeddingModel(connector.createRequest()
+        .embeddingModelName("text-embedding-3-small"));
+    assertThat(AgentConnectorImplCoverageTest.embeddingAuthorization(model))
+        .isEqualTo("Bearer openai-env-key");
   }
 
   // ── createEmbeddingModel — both branches ────────────────────────────────

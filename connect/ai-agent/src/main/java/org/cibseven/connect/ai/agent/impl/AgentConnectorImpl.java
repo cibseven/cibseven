@@ -19,6 +19,8 @@ package org.cibseven.connect.ai.agent.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -26,9 +28,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,10 +117,10 @@ import org.cibseven.connect.impl.AbstractConnector;
  * <h3>Execution flow per invocation:</h3>
  * <ol>
  *   <li>Instantiate any tool objects listed in {@code toolClasses} (fail fast before network I/O).</li>
- *   <li>Resolve the OpenAI-compatible API key from the request parameter or
- *       the {@code OPENAI_API_KEY} environment variable.</li>
  *   <li>Resolve the base URL from the request parameter, the {@code OPENAI_BASE_URL}
  *       environment variable, or {@link AgentConnectorConstants#DEFAULT_BASE_URL}.</li>
+ *   <li>Resolve the API key from the request parameter or, for the configured
+ *       endpoint only, the {@code OPENAI_API_KEY} environment variable.</li>
  *   <li>Build an {@link OpenAiChatModel} from the request parameters.</li>
  *   <li>Create a stateless {@link AiServices} proxy and invoke it with the user message.</li>
  *   <li>Return an {@link AgentResponse} containing the output text and a correlation UUID.</li>
@@ -136,6 +142,25 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
     implements AgentConnector {
 
   private static final Logger LOG = LoggerFactory.getLogger(AgentConnectorImpl.class);
+
+  /** Endpoints already warned about by {@link #resolveApiKey}, so each warns only once. */
+  static final Set<String> WITHHELD_KEY_ORIGINS = ConcurrentHashMap.newKeySet();
+
+  static final int MAX_WITHHELD_KEY_ORIGINS = 256;
+
+  private static final String INVALID_URL = "(invalid URL)";
+
+  /** {@code OPENAI_BASE_URL} values already reported as unparseable. */
+  static final Set<String> UNPARSEABLE_CONFIGURED_URLS = ConcurrentHashMap.newKeySet();
+
+  /** Set once {@link #resolveEmbeddingApiKey} warned that the global key was withheld. */
+  static final AtomicBoolean EMBEDDING_KEY_WITHHELD_WARNED = new AtomicBoolean();
+
+  /** Set once {@link #resolveEmbeddingApiKey} warned that no key is available at all. */
+  static final AtomicBoolean EMBEDDING_NO_KEY_WARNED = new AtomicBoolean();
+
+  /** Set once {@link #resolveAgentEmbeddingApiKey} warned that the request key was withheld. */
+  static final AtomicBoolean EMBEDDING_REQUEST_KEY_WITHHELD_WARNED = new AtomicBoolean();
 
   /**
    * Internal AI service interface used for stateless invocations.
@@ -209,8 +234,8 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
   @Override
   public AgentResponse execute(AgentRequest request) {
     List<Object> tools = resolveToolInstances(request);
-    String apiKey = resolveApiKey(request);
     String baseUrl = resolveBaseUrl(request);
+    String apiKey = resolveApiKey(request, baseUrl);
     Map<String, String> customHeaders = parseCustomHeaders(request.getCustomHeaders());
 
     // Forward the engine reference and the caller's engine authentication to
@@ -1409,12 +1434,17 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
 
   private String resolveBaseUrl(AgentRequest request) {
     String url = request.getBaseUrl();
-    if (url != null && !url.isEmpty()) {
-      return url;
+    if (url != null && !url.isBlank()) {
+      return url.trim();
     }
-    url = System.getenv(AgentConnectorConstants.ENV_BASE_URL);
-    if (url != null && !url.isEmpty()) {
-      return url;
+    return resolveConfiguredBaseUrl();
+  }
+
+  /** {@code OPENAI_BASE_URL} or the default; the only endpoint that gets {@code OPENAI_API_KEY}. */
+  private static String resolveConfiguredBaseUrl() {
+    String url = ConnectorSettings.ENV_READER.apply(AgentConnectorConstants.ENV_BASE_URL);
+    if (url != null && !url.isBlank()) {
+      return url.trim();
     }
     return AgentConnectorConstants.DEFAULT_BASE_URL;
   }
@@ -1574,18 +1604,163 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
         .build();
   }
 
-  private String resolveApiKey(AgentRequest request) {
+  /**
+   * The request's {@code apiKey}, else {@code OPENAI_API_KEY} if {@code baseUrl} has the
+   * configured endpoint's origin, else {@code null}. {@code baseUrl} may come from a
+   * process variable and must not receive the deployment's key.
+   */
+  private String resolveApiKey(AgentRequest request, String baseUrl) {
     String apiKey = request.getApiKey();
     if (apiKey != null && !apiKey.isEmpty()) {
       return apiKey;
     }
-    apiKey = System.getenv("OPENAI_API_KEY");
-    if (apiKey != null && !apiKey.isEmpty()) {
+    apiKey = ConnectorSettings.ENV_READER.apply(AgentConnectorConstants.ENV_API_KEY);
+    if (apiKey == null || apiKey.isEmpty()) {
+      LOG.warn("No API key provided: set the OPENAI_API_KEY environment variable "
+          + "or supply the 'apiKey' request parameter (ignore if the target endpoint does not require one)");
+      return null;
+    }
+    if (isConfiguredEndpoint(baseUrl)) {
       return apiKey;
     }
-    LOG.warn("No API key provided: set the OPENAI_API_KEY environment variable "
-        + "or supply the 'apiKey' request parameter (ignore if the target endpoint does not require one)");
+    String shown = originOrInvalid(baseUrl);
+    // Bounded: the origin comes from process data.
+    if (WITHHELD_KEY_ORIGINS.size() < MAX_WITHHELD_KEY_ORIGINS && WITHHELD_KEY_ORIGINS.add(shown)) {
+      LOG.warn("Not sending the OPENAI_API_KEY environment variable to '{}': it is only sent to "
+          + "the configured endpoint '{}' (OPENAI_BASE_URL). Supply the 'apiKey' request "
+          + "parameter for this endpoint or configure it as OPENAI_BASE_URL "
+          + "(ignore if the target endpoint does not require a key). Logged once per endpoint.",
+          shown, originOrInvalid(resolveConfiguredBaseUrl()));
+    } else {
+      LOG.debug("Not sending the OPENAI_API_KEY environment variable to '{}'", shown);
+    }
     return null;
+  }
+
+  /**
+   * Key for a remote embedding model, which always calls
+   * {@link AgentConnectorConstants#DEFAULT_BASE_URL}: the request's {@code apiKey}, else
+   * {@code OPENAI_API_KEY} only if {@code OPENAI_BASE_URL} is that endpoint too, else
+   * {@code null}. With another provider in {@code OPENAI_BASE_URL}, that provider's key must
+   * not go to OpenAI. Warns once per JVM for each case, independently of the chat warnings.
+   */
+  static String resolveEmbeddingApiKey(String requestApiKey) {
+    if (requestApiKey != null && !requestApiKey.isEmpty()) {
+      return requestApiKey;
+    }
+    return globalEmbeddingApiKey(false);
+  }
+
+  /**
+   * {@code OPENAI_API_KEY} for remote embeddings if {@code OPENAI_BASE_URL} is OpenAI, else
+   * {@code null}. After a withheld request key, whose warning already says what to do, the
+   * advice to supply one would mislead, so the warnings here are then debug only.
+   */
+  private static String globalEmbeddingApiKey(boolean requestKeyWithheld) {
+    String apiKey = ConnectorSettings.ENV_READER.apply(AgentConnectorConstants.ENV_API_KEY);
+    if (apiKey == null || apiKey.isEmpty()) {
+      if (requestKeyWithheld) {
+        LOG.debug("No OPENAI_API_KEY environment variable for remote embeddings");
+      } else if (EMBEDDING_NO_KEY_WARNED.compareAndSet(false, true)) {
+        LOG.warn("Remote embeddings call '{}' without an API key: set the OPENAI_API_KEY environment "
+            + "variable or supply an OpenAI key as the 'apiKey' request parameter. Logged once.",
+            originOf(AgentConnectorConstants.DEFAULT_BASE_URL));
+      }
+      return null;
+    }
+    if (isConfiguredEndpoint(AgentConnectorConstants.DEFAULT_BASE_URL)) {
+      return apiKey;
+    }
+    if (!requestKeyWithheld && EMBEDDING_KEY_WITHHELD_WARNED.compareAndSet(false, true)) {
+      LOG.warn("Not sending the OPENAI_API_KEY environment variable to remote embeddings: they always "
+          + "call '{}', but the key belongs to the configured endpoint '{}' (OPENAI_BASE_URL). "
+          + "Supply an OpenAI key as the 'apiKey' request parameter or leave 'embeddingModelName' "
+          + "empty to use the local embedding model. Logged once.",
+          originOf(AgentConnectorConstants.DEFAULT_BASE_URL),
+          originOrInvalid(resolveConfiguredBaseUrl()));
+    } else {
+      LOG.debug("Not sending the OPENAI_API_KEY environment variable to remote embeddings");
+    }
+    return null;
+  }
+
+  /**
+   * Key for the agent's remote embedding model. The agent has one {@code apiKey} for its chat
+   * endpoint ({@code baseUrl}); it only goes to the embeddings, which always call
+   * {@link AgentConnectorConstants#DEFAULT_BASE_URL}, if the chat endpoint is OpenAI too.
+   * Otherwise it belongs to another provider: the embeddings then get only what
+   * {@link #resolveEmbeddingApiKey} allows for {@code OPENAI_API_KEY}.
+   */
+  String resolveAgentEmbeddingApiKey(AgentRequest request) {
+    String apiKey = request.getApiKey();
+    if (apiKey == null || apiKey.isEmpty()) {
+      return globalEmbeddingApiKey(false);
+    }
+    // The chat endpoint: the request's baseUrl, else OPENAI_BASE_URL, else the default.
+    String chatOrigin = originOf(resolveBaseUrl(request));
+    if (chatOrigin != null && chatOrigin.equals(originOf(AgentConnectorConstants.DEFAULT_BASE_URL))) {
+      return apiKey;
+    }
+    // Once only: the chat origin comes from process data.
+    if (EMBEDDING_REQUEST_KEY_WITHHELD_WARNED.compareAndSet(false, true)) {
+      LOG.warn("Not sending the 'apiKey' request parameter to remote embeddings: it belongs to the "
+          + "agent's endpoint '{}', but remote embeddings always call '{}'. They use the OPENAI_API_KEY "
+          + "environment variable if OPENAI_BASE_URL is OpenAI; otherwise leave 'embeddingModelName' "
+          + "empty to use the local embedding model. Logged once.",
+          chatOrigin == null ? INVALID_URL : chatOrigin,
+          originOf(AgentConnectorConstants.DEFAULT_BASE_URL));
+    } else {
+      LOG.debug("Not sending the 'apiKey' request parameter to remote embeddings");
+    }
+    return globalEmbeddingApiKey(true);
+  }
+
+  /**
+   * Whether {@code baseUrl} is {@code OPENAI_BASE_URL} (or the default): equal, or with the same
+   * origin. Reports an unparseable {@code OPENAI_BASE_URL} once.
+   */
+  private static boolean isConfiguredEndpoint(String baseUrl) {
+    String configuredBaseUrl = resolveConfiguredBaseUrl();
+    if (baseUrl.equals(configuredBaseUrl)) {
+      return true;
+    }
+    // URLs are never logged raw: they may carry credentials.
+    String configuredOrigin = originOf(configuredBaseUrl);
+    if (configuredOrigin == null && UNPARSEABLE_CONFIGURED_URLS.add(configuredBaseUrl)) {
+      LOG.error("OPENAI_BASE_URL is not an absolute URL with a host; the OPENAI_API_KEY "
+          + "environment variable is only sent to exactly that value");
+    }
+    String targetOrigin = originOf(baseUrl);
+    return targetOrigin != null && targetOrigin.equals(configuredOrigin);
+  }
+
+  private static String originOrInvalid(String url) {
+    String origin = originOf(url);
+    return origin == null ? INVALID_URL : origin;
+  }
+
+  /**
+   * Lower-case {@code scheme://host:port} of the parsed URL, or {@code null} if it has
+   * no host. Parsed, not string-compared, so {@code https://api.openai.com@attacker.test}
+   * does not match; contains no user info, so it is safe to log.
+   */
+  static String originOf(String url) {
+    if (url == null) {
+      return null;
+    }
+    URI uri;
+    try {
+      uri = new URI(url.trim());
+    } catch (URISyntaxException e) {
+      return null;
+    }
+    if (uri.getScheme() == null || uri.getHost() == null) {
+      return null;
+    }
+    String scheme = uri.getScheme().toLowerCase(Locale.ROOT);
+    int port = uri.getPort() != -1 ? uri.getPort()
+        : "https".equals(scheme) ? 443 : "http".equals(scheme) ? 80 : -1;
+    return scheme + "://" + uri.getHost().toLowerCase(Locale.ROOT) + ":" + port;
   }
 
   private List<Object> resolveToolInstances(AgentRequest request) {
@@ -2246,18 +2421,17 @@ public class AgentConnectorImpl extends AbstractConnector<AgentRequest, AgentRes
 
   /**
    * Factory method — override in tests to inject a stubbed embedding model.
-   * Uses {@code OpenAiEmbeddingModel} when {@code embeddingModelName} is set on the request,
-   * otherwise falls back to the local {@code AllMiniLmL6V2EmbeddingModel}.
+   * Uses {@code OpenAiEmbeddingModel} at {@link AgentConnectorConstants#DEFAULT_BASE_URL} when
+   * {@code embeddingModelName} is set on the request (the request's {@code baseUrl} is not
+   * used), otherwise falls back to the local {@code AllMiniLmL6V2EmbeddingModel}. The key
+   * comes from {@link #resolveAgentEmbeddingApiKey}.
    */
   protected EmbeddingModel createEmbeddingModel(AgentRequest request) {
     String modelName = request.getEmbeddingModelName();
     if (modelName != null && !modelName.isEmpty()) {
-      String apiKey = request.getApiKey();
-      if (apiKey == null || apiKey.isEmpty()) {
-        apiKey = System.getenv("OPENAI_API_KEY");
-      }
       return OpenAiEmbeddingModel.builder()
-          .apiKey(apiKey)
+          .apiKey(resolveAgentEmbeddingApiKey(request))
+          .baseUrl(AgentConnectorConstants.DEFAULT_BASE_URL)
           .modelName(modelName)
           .build();
     }

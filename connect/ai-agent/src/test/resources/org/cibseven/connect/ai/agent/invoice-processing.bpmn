@@ -39,7 +39,7 @@
                              defaultValue="List all available MCP tools, call each one, and return the results as a JSON array." />
           <camunda:formField id="reviewer" label="Reviewer" type="string" defaultValue="demo" />
           <camunda:formField id="langchain4jApiKey" label="OpenAI API Key" type="string" />
-          <camunda:formField id="langchain4jBaseUrl" label="OpenAI Base URL" type="string" defaultValue="https://api.openai.com/v1" />
+          <camunda:formField id="langchain4jBaseUrl" label="OpenAI Base URL (optional, empty = OPENAI_BASE_URL)" type="string" />
           <camunda:formField id="langchain4jMcpServers" label="MCP Servers JSON (optional)" type="string"
                              defaultValue="[{&quot;url&quot;: &quot;http://localhost:9090/&quot;}]" />
           <camunda:formField id="agentName" label="Agent Name" type="string" defaultValue="mcp-tool-runner" />
@@ -69,7 +69,7 @@
             <!-- ── Runtime inputs from process variables ────────── -->
             <!-- ${message} is the raw invoice string set before process start -->
             <camunda:inputParameter name="message">${message}</camunda:inputParameter>
-            <!-- ${langchain4jApiKey} overrides OPENAI_API_KEY env var; omit or leave null to use env var -->
+            <!-- ${langchain4jApiKey} overrides OPENAI_API_KEY env var (sent only to the OPENAI_BASE_URL endpoint) -->
             <camunda:inputParameter name="apiKey">${langchain4jApiKey}</camunda:inputParameter>
             <!-- ${langchain4jBaseUrl} overrides OPENAI_BASE_URL env var; omit or leave null to use env var -->
             <!-- Examples: https://openrouter.ai/api/v1 (OpenRouter), http://localhost:11434/v1 (Ollama) -->

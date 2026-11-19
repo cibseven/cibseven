@@ -291,6 +291,7 @@ public class InvoiceProcessingConnectorTest {
    * The BPMN maps {@code ${langchain4jBaseUrl}} to the {@code baseUrl} parameter.
    * When a value is present it must reach the connector so it can override
    * the {@code OPENAI_BASE_URL} environment variable — e.g. to route through OpenRouter.
+   * {@code OPENAI_API_KEY} does not follow such an override.
    */
   @Test
   public void shouldAcceptBaseUrlOverrideFromBpmnVariable() {

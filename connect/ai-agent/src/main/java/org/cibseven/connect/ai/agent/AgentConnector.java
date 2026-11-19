@@ -198,7 +198,8 @@ public interface AgentConnector extends Connector<AgentRequest> {
 
   /**
    * Optional. OpenAI-compatible base URL (e.g. for Ollama: {@code "http://localhost:11434/v1"}
-   * or Azure OpenAI endpoints). When omitted, the standard OpenAI API endpoint is used.
+   * or Azure OpenAI endpoints). When omitted, {@code OPENAI_BASE_URL} or the OpenAI API is used.
+   * Other endpoints get no {@code OPENAI_API_KEY}, only {@link #PARAM_NAME_API_KEY}.
    */
   String PARAM_NAME_BASE_URL = "baseUrl";
 
@@ -207,6 +208,9 @@ public interface AgentConnector extends Connector<AgentRequest> {
    * {@code OPENAI_API_KEY}). Do not pass a key in a process variable: it is stored in the
    * database and, at history level audit or full, in the history tables. Do not write it into
    * the BPMN XML either: it is stored in the deployment.
+   * The server's key is sent only to the endpoint configured in {@code OPENAI_BASE_URL}
+   * (or to OpenAI if none is configured); a {@link #PARAM_NAME_BASE_URL} pointing elsewhere
+   * gets no key unless the endpoint has its own.
    */
   String PARAM_NAME_API_KEY = "apiKey";
 
@@ -499,7 +503,11 @@ public interface AgentConnector extends Connector<AgentRequest> {
 
   /**
    * Optional. Embedding model name (e.g. {@code "text-embedding-3-small"}).
-   * When set, {@code OpenAiEmbeddingModel} is used with the supplied {@code apiKey}.
+   * When set, {@code OpenAiEmbeddingModel} is used at {@code https://api.openai.com/v1}
+   * (not at {@code baseUrl}). The supplied {@code apiKey} belongs to the chat endpoint
+   * ({@code baseUrl}, else {@code OPENAI_BASE_URL}) and is only used if that is OpenAI too;
+   * otherwise, and without {@code apiKey},
+   * {@code OPENAI_API_KEY} is used if {@code OPENAI_BASE_URL} is unset or points to OpenAI.
    * When empty or absent, the local {@code AllMiniLmL6V2EmbeddingModel} is used as fallback.
    */
   String PARAM_NAME_EMBEDDING_MODEL_NAME = "embeddingModelName";
