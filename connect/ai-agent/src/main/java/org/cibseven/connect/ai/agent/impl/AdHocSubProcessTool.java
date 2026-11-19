@@ -251,7 +251,7 @@ public class AdHocSubProcessTool {
                 // Named as the note names running work, by its tool (GH-610).
                 reasons.add((blockedBySame.isEmpty() ? "These" : blockedByOthers.toString())
                         + " depend on work still in flight: "
-                        + runningToolIds(scope, Collections.<String>emptySet()) + ".");
+                        + allRunningToolIds(scope) + ".");
             }
             if (!blockedBySame.isEmpty()) {
                 reasons.add((blockedByOthers.isEmpty() ? "These" : blockedBySame.toString())
@@ -298,9 +298,10 @@ public class AdHocSubProcessTool {
             // Every step while something the agent started runs (GH-610): the hint that keeps a
             // model from starting it again, for a tool not marked adHocBlockedWhileSameRuns too.
             note.append(" The activities in stillRunning are still doing the work you started them")
-                    .append(" for, unless their result said a boundary event interrupted them. Do")
-                    .append(" not start them again for that work; you will get another turn when")
-                    .append(" one finishes.");
+                    .append(" for. Do not start them again for that work; you will get another turn")
+                    .append(" when one finishes. For one whose result said a boundary event")
+                    .append(" interrupted it, that result says whether starting it again is")
+                    .append(" refused.");
         }
         if (pending.isEmpty() && childExecutionIds(scope).isEmpty()) {
             // Said out loud, because a further turn is only ever scheduled by a child
@@ -377,7 +378,7 @@ public class AdHocSubProcessTool {
                         + " when the running instance finishes.");
             }
             // Named as the note names running work, by its tool (GH-610).
-            List<String> busy = runningToolIds(scope, Collections.<String>emptySet());
+            List<String> busy = allRunningToolIds(scope);
             throw new AdHocToolRefusedException("Cannot start '" + activityId + "' while "
                     + busy + " " + (busy.size() == 1 ? "is" : "are")
                     + " still running. This activity is marked as depending on work that is still"
@@ -830,6 +831,24 @@ public class AdHocSubProcessTool {
             ids.add(leafId);
         }
         return ids;
+    }
+
+    /**
+     * What runs in the scope, named as stillRunning and the note name it (GH-610): a child the
+     * agent started a tool on by that tool, as its pending entry says, wherever its flow went; any
+     * other child as {@link #runningToolIds} names it.
+     */
+    private static List<String> allRunningToolIds(ExecutionEntity scope) {
+        Map<String, String> pending = AdHocLoopState.pending(scope);
+        Set<String> named = new LinkedHashSet<>();
+        for (PvmExecutionImpl child : ((PvmExecutionImpl) scope).getNonEventScopeExecutions()) {
+            String tracked = pending.get(child.getId());
+            if (tracked != null) {
+                named.add(tracked);
+            }
+        }
+        named.addAll(runningToolIds(scope, pending.keySet()));
+        return new ArrayList<>(named);
     }
 
     /**

@@ -3187,6 +3187,70 @@ public class AdHocSubProcessToolTest {
         .doesNotContain("second instance");
   }
 
+  /**
+   * A tool marked only adHocBlockedWhileOthersRun is refused a second instance too, its own earlier
+   * one counting as other work: its waiting result says so (GH-610).
+   */
+  @Test
+  public void aWaitingResultOfAToolMarkedToWaitForOthersSaysAStartAgainIsRefused() {
+    start("waitingHintOthers",
+        tool -> tool.startActivity("gatedWaits", Collections.<String, Object>emptyMap()));
+
+    assertThat(String.valueOf(result(0).get("resultsNote")))
+        .contains("Do not start 'gatedWaits' again for this work while it runs: that is refused"
+            + " until it has finished.")
+        .doesNotContain("second instance");
+  }
+
+  /**
+   * Work the agent started is named in blockedBecause and in the refusal as stillRunning names it,
+   * by its tool, though it waits at a follower the flows of two tools reach (GH-610).
+   */
+  @Test
+  public void workTheAgentStartedIsNamedByItsToolWhereverItWaits() {
+    start("trackedNaming", tool -> {
+      tool.startActivity("sharedA", Collections.<String, Object>emptyMap());
+      Agent.RESULTS.add(tool.turnReport());
+      return tool.startActivity("gated", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(list(result(0).get("stillRunning"))).containsExactly("sharedA");
+    assertThat(String.valueOf(result(0).get("blockedBecause")))
+        .contains("depend on work still in flight: [sharedA].")
+        .doesNotContain("sharedWaits");
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage())
+        .contains("Cannot start 'gated' while [sharedA] is still running")
+        .doesNotContain("sharedWaits");
+  }
+
+  /**
+   * Work started over REST is named by its tool there too: an embedded sub process by itself, not
+   * by its inner task, and a chain by the tool that began it, not by its later task (GH-610).
+   */
+  @Test
+  public void workStartedOverRestIsNamedByItsToolInTheRefusalAndTheReport() {
+    ProcessInstance instance = startWithoutTurn("restNaming", tool -> {
+      activateOverRest("nested");
+      activateOverRest("chainStart");
+      Agent.RESULTS.add(tool.turnReport());
+      return tool.startActivity("gated", Collections.<String, Object>emptyMap());
+    });
+    restScopeExecutionId = scopeExecutionId(instance);
+
+    runPendingTurn(instance);
+
+    assertThat(String.valueOf(result(0).get("blockedBecause")))
+        .contains("depend on work still in flight: [nested, chainStart].")
+        .doesNotContain("nestedWaits")
+        .doesNotContain("chainWaits");
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage())
+        .contains("Cannot start 'gated' while [nested, chainStart] are still running")
+        .doesNotContain("nestedWaits")
+        .doesNotContain("chainWaits");
+  }
+
   /** And every state block while it runs says the same of what stillRunning lists (GH-610). */
   @Test
   public void theReportTellsTheAgentNotToStartWhatStillRunsAgain() {
@@ -3197,9 +3261,9 @@ public class AdHocSubProcessToolTest {
 
     assertThat(list(result(0).get("stillRunning"))).containsExactly("waitsAgain");
     assertThat(String.valueOf(result(0).get("note")))
-        .contains("The activities in stillRunning are still doing the work you started them for,"
-            + " unless their result said a boundary event interrupted them. Do not start them again"
-            + " for that work");
+        .contains("The activities in stillRunning are still doing the work you started them for."
+            + " Do not start them again for that work")
+        .contains("that result says whether starting it again is refused");
   }
 
   /** Another activity stays startable while one waits. */
