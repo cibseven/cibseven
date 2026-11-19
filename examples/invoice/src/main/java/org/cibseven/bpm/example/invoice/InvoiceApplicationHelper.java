@@ -170,7 +170,10 @@ public class InvoiceApplicationHelper {
 
         processEngine.getIdentityService().setAuthenticatedUserId("mary");
         Task task = processEngine.getTaskService().createTaskQuery().processInstanceId(pi.getId()).singleResult();
-        processEngine.getTaskService().createComment(null, pi.getId(), "I cannot approve this invoice: the amount is missing.\n\n Could you please provide the amount?");
+        // since CIB7-1757 a comment on the process instance alone needs UPDATE on the instance, which mary
+        // does not have; commenting on her task needs only her task permission, and the comment still
+        // shows up on the process instance
+        processEngine.getTaskService().createComment(task.getId(), pi.getId(), "I cannot approve this invoice: the amount is missing.\n\n Could you please provide the amount?");
         processEngine.getTaskService().complete(task.getId(), createVariables().putValue("approved", false));
       }
       finally{

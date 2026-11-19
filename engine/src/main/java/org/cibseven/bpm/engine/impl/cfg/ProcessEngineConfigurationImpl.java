@@ -961,6 +961,12 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
    */
   protected boolean enforceAttachmentPermissions = true;
 
+  /**
+   * Checks permission and tenant when comments are created or read. Disabling restores the old,
+   * unchecked behaviour. Comments of a completed task are as visible as the task in the history.
+   */
+  protected boolean enforceCommentPermissions = true;
+
   protected boolean isUseSharedSqlSessionFactory = false;
 
   //History cleanup configuration
@@ -3511,6 +3517,15 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public boolean isEnforceAttachmentPermissions() {
     return enforceAttachmentPermissions;
+  }
+
+  public ProcessEngineConfigurationImpl setEnforceCommentPermissions(boolean enforce) {
+    this.enforceCommentPermissions = enforce;
+    return this;
+  }
+
+  public boolean isEnforceCommentPermissions() {
+    return enforceCommentPermissions;
   }
 
   public Map<String, JobHandler> getJobHandlers() {

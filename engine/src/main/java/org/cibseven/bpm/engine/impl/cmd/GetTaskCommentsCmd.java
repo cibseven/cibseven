@@ -37,6 +37,8 @@ public class GetTaskCommentsCmd implements Command<List<Comment>>, Serializable 
   }
 
   public List<Comment> execute(CommandContext commandContext) {
+    CommentAuthChecks.checkReadTask(taskId, commandContext);
+
     return commandContext
       .getCommentManager()
       .findCommentsByTaskId(taskId);

@@ -298,6 +298,18 @@ public abstract class AuthorizationTest extends PluggableProcessEngineTest {
     return runWithoutAuthorization(() -> taskService.createComment(taskId, processInstanceId, message));
   }
 
+  protected Comment selectTaskComment(String taskId, String commentId) {
+    return runWithoutAuthorization(() -> taskService.getTaskComment(taskId, commentId));
+  }
+
+  protected List<Comment> selectTaskComments(String taskId) {
+    return runWithoutAuthorization(() -> taskService.getTaskComments(taskId));
+  }
+
+  protected List<Comment> selectProcessInstanceComments(String processInstanceId) {
+    return runWithoutAuthorization(() -> taskService.getProcessInstanceComments(processInstanceId));
+  }
+
   protected Attachment createAttachment(String taskId, String processInstanceId) {
     return runWithoutAuthorization(() -> taskService.createAttachment("foo", taskId, processInstanceId,
         "aName", "aDescription", new ByteArrayInputStream("aContent".getBytes(StandardCharsets.UTF_8))));

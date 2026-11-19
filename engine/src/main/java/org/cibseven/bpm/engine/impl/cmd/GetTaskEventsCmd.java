@@ -37,6 +37,9 @@ public class GetTaskEventsCmd implements Command<List<Event>>, Serializable {
   }
 
   public List<Event> execute(CommandContext commandContext) {
+    // events include comments
+    CommentAuthChecks.checkReadTask(taskId, commandContext);
+
     return commandContext
       .getCommentManager()
       .findEventsByTaskId(taskId);

@@ -2520,6 +2520,87 @@ public class TaskRestServiceInteractionTest extends
   }
 
   @Test
+  public void testAddTaskCommentThrowsAuthorizationException() {
+    String message = "expected exception";
+    doThrow(new AuthorizationException(message)).when(taskServiceMock)
+        .createComment(EXAMPLE_TASK_ID, null, EXAMPLE_TASK_COMMENT_FULL_MESSAGE);
+
+    Map<String, Object> json = new HashMap<>();
+    json.put("message", EXAMPLE_TASK_COMMENT_FULL_MESSAGE);
+
+    given()
+      .pathParam("id", EXAMPLE_TASK_ID)
+      .header("accept", MediaType.APPLICATION_JSON)
+      .contentType(ContentType.JSON)
+      .body(json)
+    .then().expect()
+      .statusCode(Status.FORBIDDEN.getStatusCode())
+      .contentType(ContentType.JSON)
+      .body("type", equalTo(AuthorizationException.class.getSimpleName()))
+      .body("message", equalTo(message))
+    .when()
+      .post(SINGLE_TASK_ADD_COMMENT_URL);
+  }
+
+  @Test
+  public void testAddTaskCommentForForeignProcessInstanceKeepsReason() {
+    String message = "the task does not belong to that process instance";
+    doThrow(new BadUserRequestException(message)).when(taskServiceMock)
+        .createComment(EXAMPLE_TASK_ID, EXAMPLE_PROCESS_INSTANCE_ID, EXAMPLE_TASK_COMMENT_FULL_MESSAGE);
+
+    Map<String, Object> json = new HashMap<>();
+    json.put("message", EXAMPLE_TASK_COMMENT_FULL_MESSAGE);
+    json.put("processInstanceId", EXAMPLE_PROCESS_INSTANCE_ID);
+
+    given()
+      .pathParam("id", EXAMPLE_TASK_ID)
+      .header("accept", MediaType.APPLICATION_JSON)
+      .contentType(ContentType.JSON)
+      .body(json)
+    .then().expect()
+      .statusCode(Status.BAD_REQUEST.getStatusCode())
+      .body("message", equalTo(message))
+    .when()
+      .post(SINGLE_TASK_ADD_COMMENT_URL);
+  }
+
+  @Test
+  public void testGetTaskCommentsThrowsAuthorizationException() {
+    String message = "expected exception";
+    doThrow(new AuthorizationException(message)).when(taskServiceMock).getTaskComments(EXAMPLE_TASK_ID);
+
+    given()
+      .pathParam("id", EXAMPLE_TASK_ID)
+      .header("accept", MediaType.APPLICATION_JSON)
+    .then().expect()
+      .statusCode(Status.FORBIDDEN.getStatusCode())
+      .contentType(ContentType.JSON)
+      .body("type", equalTo(AuthorizationException.class.getSimpleName()))
+      .body("message", equalTo(message))
+    .when()
+      .get(SINGLE_TASK_COMMENTS_URL);
+  }
+
+  @Test
+  public void testGetSingleTaskCommentThrowsAuthorizationException() {
+    String message = "expected exception";
+    doThrow(new AuthorizationException(message)).when(taskServiceMock)
+        .getTaskComment(EXAMPLE_TASK_ID, EXAMPLE_TASK_COMMENT_ID);
+
+    given()
+      .pathParam("id", EXAMPLE_TASK_ID)
+      .pathParam("commentId", EXAMPLE_TASK_COMMENT_ID)
+      .header("accept", MediaType.APPLICATION_JSON)
+    .then().expect()
+      .statusCode(Status.FORBIDDEN.getStatusCode())
+      .contentType(ContentType.JSON)
+      .body("type", equalTo(AuthorizationException.class.getSimpleName()))
+      .body("message", equalTo(message))
+    .when()
+      .get(SINGLE_TASK_SINGLE_COMMENT_URL);
+  }
+
+  @Test
   public void shouldAssignProcessInstanceIdToComment() {
     when(taskServiceMock.createComment(EXAMPLE_TASK_ID, EXAMPLE_PROCESS_INSTANCE_ID,
         EXAMPLE_TASK_COMMENT_FULL_MESSAGE)).thenReturn(mockTaskComment);

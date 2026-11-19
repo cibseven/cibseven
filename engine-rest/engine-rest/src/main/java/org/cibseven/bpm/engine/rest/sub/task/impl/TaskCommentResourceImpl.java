@@ -24,6 +24,7 @@ import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.UriInfo;
 import org.cibseven.bpm.engine.AuthorizationException;
+import org.cibseven.bpm.engine.BadUserRequestException;
 import org.cibseven.bpm.engine.IdentityService;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineException;
@@ -128,6 +129,13 @@ public class TaskCommentResourceImpl implements TaskCommentResource {
     String processInstanceId = commentDto.getProcessInstanceId();
     try {
       comment = engine.getTaskService().createComment(taskId, processInstanceId, commentDto.getMessage());
+    }
+    catch (AuthorizationException e) {
+      throw e;
+    }
+    catch (BadUserRequestException e) {
+      // e.g. a process instance the task does not belong to
+      throw new InvalidRequestException(Status.BAD_REQUEST, e, e.getMessage());
     }
     catch (ProcessEngineException e) {
       throw new InvalidRequestException(Status.BAD_REQUEST, e, "Not enough parameters submitted");

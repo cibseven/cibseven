@@ -60,6 +60,8 @@ public class AddCommentCmd implements Command<Comment>, Serializable {
 
     ensureNotNull("Message", message);
 
+    CommentAuthChecks.checkCreate(taskId, processInstanceId, commandContext);
+
     String userId = commandContext.getAuthenticatedUserId();
     CommentEntity comment = new CommentEntity();
     comment.setUserId(userId);

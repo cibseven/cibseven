@@ -43,6 +43,8 @@ public class GetTaskCommentCmd implements Command<Comment>, Serializable {
     ensureNotNull("taskId", taskId);
     ensureNotNull("commentId", commentId);
 
+    CommentAuthChecks.checkReadTask(taskId, commandContext);
+
     return commandContext
       .getCommentManager()
       .findCommentByTaskIdAndCommentId(taskId, commentId);

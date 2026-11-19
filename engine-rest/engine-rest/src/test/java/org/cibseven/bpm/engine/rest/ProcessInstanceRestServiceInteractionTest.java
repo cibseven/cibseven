@@ -892,6 +892,25 @@ public class ProcessInstanceRestServiceInteractionTest extends AbstractRestServi
   }
 
   @Test
+  public void testGetProcessInstanceCommentsThrowsAuthorizationException() {
+    mockHistoryFull();
+    String message = "expected exception";
+    doThrow(new AuthorizationException(message)).when(taskServiceMock)
+        .getProcessInstanceComments(EXAMPLE_PROCESS_INSTANCE_ID);
+
+    given()
+      .pathParam("id", EXAMPLE_PROCESS_INSTANCE_ID)
+      .header("accept", MediaType.APPLICATION_JSON)
+    .then().expect()
+      .statusCode(Status.FORBIDDEN.getStatusCode())
+      .contentType(ContentType.JSON)
+      .body("type", equalTo(AuthorizationException.class.getSimpleName()))
+      .body("message", equalTo(message))
+    .when()
+      .get(PROCESS_INSTANCE_COMMENTS_URL);
+  }
+
+  @Test
   public void testDeleteInstanceCommentThrowsAuthorizationException() {
     String message = "expected exception";
     doThrow(new AuthorizationException(message)).when(taskServiceMock)
