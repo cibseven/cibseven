@@ -49,6 +49,10 @@ public class HistoricExternalTaskLogQueryImpl extends AbstractQuery<HistoricExte
   protected boolean isTenantIdSet;
   protected ExternalTaskState state;
 
+  /** For queries run inside a command, see HistoricExternalTaskLogManager. */
+  public HistoricExternalTaskLogQueryImpl() {
+  }
+
   public HistoricExternalTaskLogQueryImpl(CommandExecutor commandExecutor) {
     super(commandExecutor);
   }

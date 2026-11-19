@@ -136,6 +136,14 @@ public interface ExternalTaskService {
    * configured retry cycle (see the class-level Javadoc), and the lock lasts exactly
    * <code>lockDuration</code> without a retry interval added.</p>
    *
+   * <p>With history level FULL, the lock writes a 'fetched' entry to the external task log
+   * when it starts a new attempt: the task was not locked, its lock had expired, or the
+   * worker's last attempt failed and the task only waits for its retry
+   * ({@link #handleFailure} keeps the worker id until the retry pause ends). When the worker
+   * locks a task it is still working on, the lock is only extended and no entry is written.
+   * So each attempt has exactly one 'fetched' entry, and its processing time runs from that
+   * entry to the following 'failed' or 'successful' entry.</p>
+   *
    * @param externalTaskId the id of the external task to lock
    * @param workerId  the id of the worker to lock the task for
    * @param lockDuration the duration in milliseconds for which task should be locked

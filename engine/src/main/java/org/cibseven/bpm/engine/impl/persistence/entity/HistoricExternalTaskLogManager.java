@@ -58,6 +58,70 @@ public class HistoricExternalTaskLogManager extends AbstractManager {
     return (Long) getDbEntityManager().selectOne("selectHistoricExternalTaskLogCountByQueryCriteria", query);
   }
 
+  /**
+   * Tells whether the last attempt of the external task that was logged as 'fetched' has
+   * ended with a failure since, so that the task only waits for its retry. After
+   * {@link ExternalTaskEntity#failed} the task keeps the worker id and a lock expiration time
+   * in the future (the retry pause), so on the task itself this cannot be told apart from a
+   * lock that the worker still holds.
+   *
+   * <p>Each attempt writes one 'fetched' entry and ends with at most one 'failed' entry, so the
+   * last attempt has ended when there are at least as many 'failed' as 'fetched' entries.
+   * Entries written in the current command and not yet flushed are counted too. 'Failed'
+   * entries older than the first 'fetched' entry are ignored: they were written before the
+   * 'fetched' log existed (before 3.0, or before history level FULL was set).
+   *
+   * <p>Returns <code>false</code> when no 'fetched' entry is produced at the current history
+   * level or none is stored in the database (e.g. a custom history event handler).
+   *
+   * <p>Runs without authorization and tenant checks: the result decides what the engine
+   * writes, it must not depend on the permissions of the calling user.
+   */
+  @SuppressWarnings("unchecked")
+  public boolean isLastFetchedAttemptFailed(ExternalTask externalTask) {
+    if (!isHistoryEventProduced(HistoryEventTypes.EXTERNAL_TASK_FETCH, externalTask)) {
+      return false;
+    }
+
+    HistoricExternalTaskLogQueryImpl query = new HistoricExternalTaskLogQueryImpl();
+    query.externalTaskId(externalTask.getId());
+    query.getTenantCheck().setTenantCheckEnabled(false);
+
+    Map<String, HistoricExternalTaskLog> logs = new HashMap<>();
+    List<HistoricExternalTaskLog> stored = getDbEntityManager()
+        .selectList("selectHistoricExternalTaskLogByQueryCriteria", query);
+    for (HistoricExternalTaskLog log : stored) {
+      logs.put(log.getId(), log);
+    }
+    for (HistoricExternalTaskLogEntity cached : getDbEntityManager().getCachedEntitiesByType(HistoricExternalTaskLogEntity.class)) {
+      if (externalTask.getId().equals(cached.getExternalTaskId())) {
+        logs.put(cached.getId(), cached);
+      }
+    }
+
+    Date firstFetched = null;
+    int fetchedCount = 0;
+    for (HistoricExternalTaskLog log : logs.values()) {
+      if (log.isFetchedLog()) {
+        fetchedCount++;
+        if (firstFetched == null || log.getTimestamp().before(firstFetched)) {
+          firstFetched = log.getTimestamp();
+        }
+      }
+    }
+    if (fetchedCount == 0) {
+      return false;
+    }
+
+    int failedCount = 0;
+    for (HistoricExternalTaskLog log : logs.values()) {
+      if (log.isFailureLog() && !log.getTimestamp().before(firstFetched)) {
+        failedCount++;
+      }
+    }
+    return failedCount >= fetchedCount;
+  }
+
   // update ///////////////////////////////////////////////////////////////////
 
   public DbOperation addRemovalTimeToExternalTaskLogByRootProcessInstanceId(String rootProcessInstanceId, Date removalTime, Integer batchSize) {
