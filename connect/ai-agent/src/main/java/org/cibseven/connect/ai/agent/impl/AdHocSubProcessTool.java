@@ -300,7 +300,8 @@ public class AdHocSubProcessTool {
             note.append(" The activities in stillRunning are still doing the work you started them")
                     .append(" for. Do not start them again for that work; you will get another turn")
                     .append(" when one finishes. For one whose result said a boundary event")
-                    .append(" interrupted it, that result says whether you may start it again.");
+                    .append(" interrupted it and that it did not complete, that result says whether")
+                    .append(" you may start it again.");
         }
         if (pending.isEmpty() && childExecutionIds(scope).isEmpty()) {
             // Said out loud, because a further turn is only ever scheduled by a child
@@ -369,10 +370,13 @@ public class AdHocSubProcessTool {
             if (onlyItselfRuns(scope, activityId)) {
                 // Its own earlier instance is all that runs (GH-610): said so, not that it waits
                 // for someone else's decision.
+                // Its own earlier instance includes the path a boundary event on it took: what its
+                // result says still runs when the event interrupted it.
                 throw new AdHocToolRefusedException("Cannot start '" + activityId + "': an earlier"
-                        + " instance of '" + activityId + "' is still running, and this activity"
-                        + " is marked to start only while nothing else in the ad hoc sub process"
-                        + " runs, its own earlier instance included. Do not call it again now."
+                        + " instance of '" + activityId + "', or the path a boundary event on it"
+                        + " took, is still running, and this activity is marked to start only"
+                        + " while nothing else in the ad hoc sub process runs, its own earlier"
+                        + " instance included. Do not call it again now."
                         + " Start something else, or end your turn: you will get another turn"
                         + " when the running instance finishes.");
             }
@@ -452,15 +456,19 @@ public class AdHocSubProcessTool {
             result.put("results", Collections.emptyMap());
             // Said with every waiting result (GH-610): the next step of the turn follows at once,
             // and a model that takes "waiting" for "not done" calls the tool again. Not for a tool
-            // a boundary event interrupted: it did not complete, and whether to try it again is the
-            // agent's call, which its result says. A marked tool still stays held back while that
-            // path runs: the path is the tool's work, as its result says (CIB7-2166), and the
-            // agent is told so. Marked means either marking: adHocBlockedWhileOthersRun counts the
-            // tool's own earlier instance too, and holds it back while any other work runs as well.
+            // a boundary event on the tool itself interrupted: it did not complete, and its result
+            // says whether it may be started again. Unmarked, that is the agent's call. Marked, it
+            // stays held back while the event's path runs: the path is the tool's work, as its
+            // result says (CIB7-2166). Marked means either marking: adHocBlockedWhileOthersRun
+            // counts the tool's own earlier instance too, and holds it back while any other work
+            // runs as well. A tool interrupted further along its flow did its work, and is told
+            // not to start again like any other.
             boolean whileOthersRun = entry != null && entry.isBlockedWhileOthersRun();
             boolean whileSameRuns = entry != null && entry.isBlockedWhileSameRuns();
+            boolean didNotComplete = interrupted != null
+                    && AdHocResults.interruptedOnTheTool(result.get("interruptedBy"), activityId);
             String again;
-            if (interrupted != null) {
+            if (didNotComplete) {
                 again = whileOthersRun
                         ? "Starting '" + activityId + "' again is refused while its path or any"
                                 + " other work in the sub process runs."
@@ -735,7 +743,9 @@ public class AdHocSubProcessTool {
      * chain belongs to the tool whose flow reaches it, as the model says
      * ({@link AdHocToolDescriptor#REACHED_FROM}). Where the flows of several tools reach it and
      * nothing tracks which one it came from, it counts for each of them: a second instance is
-     * refused rather than risked.
+     * refused rather than risked. A tool among them a parse again left out counts too, since the
+     * work may be its: the set may name tools the agent does not have, so it serves the checks
+     * against the catalogue only, and the agent is shown names from {@link #allRunningToolIds}.
      * </ul>
      */
     private static Set<String> toolsRunning(ExecutionEntity scope) {
@@ -787,13 +797,10 @@ public class AdHocSubProcessTool {
                     }
                     Set<String> reaching = reachedFrom.get(id);
                     if (reaching != null) {
-                        // Only tools the agent has: one a parse again left out is none to it,
-                        // as runningToolIds names it.
-                        for (String reachingTool : reaching) {
-                            if (tools.contains(reachingTool)) {
-                                running.add(reachingTool);
-                            }
-                        }
+                        // A tool a parse again left out counts too: the work may be its, so a
+                        // marked tool sharing it is told it waits for work in flight, not for its
+                        // own earlier instance, and runningToolIds names it by its own id.
+                        running.addAll(reaching);
                     }
                 }
             }

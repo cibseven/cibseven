@@ -3072,7 +3072,8 @@ public class AdHocSubProcessToolTest {
     // Told that its own earlier instance holds it back, not that it waits for someone else's
     // decision (GH-610).
     assertThat(Agent.FAILURES.get(0).getMessage())
-        .contains("Cannot start 'gatedWaits': an earlier instance of 'gatedWaits' is still running")
+        .contains("Cannot start 'gatedWaits': an earlier instance of 'gatedWaits', or the path a"
+            + " boundary event on it took, is still running")
         .contains("its own earlier instance included")
         .contains("end your turn")
         .doesNotContain("a decision someone else has to make first");
@@ -3267,7 +3268,8 @@ public class AdHocSubProcessToolTest {
     assertThat(String.valueOf(result(0).get("note")))
         .contains("The activities in stillRunning are still doing the work you started them for."
             + " Do not start them again for that work")
-        .contains("that result says whether you may start it again.");
+        .contains("interrupted it and that it did not complete, that result says whether you may"
+            + " start it again.");
   }
 
   /** Another activity stays startable while one waits. */
@@ -3619,10 +3621,9 @@ public class AdHocSubProcessToolTest {
         .contains("Besides what stillRunning lists, work is still running in the ad hoc sub"
             + " process for: [chainStart].")
         .doesNotContain("chainWaits");
-    // blockedBecause names both, the agent's own work by its tool, in either order.
+    // blockedBecause names both, the agent's own work by its tool and first.
     assertThat(String.valueOf(result(0).get("blockedBecause")))
-        .containsAnyOf("depend on work still in flight: [waits, chainStart].",
-            "depend on work still in flight: [chainStart, waits].")
+        .contains("depend on work still in flight: [waits, chainStart].")
         .doesNotContain("chainWaits");
   }
 

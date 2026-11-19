@@ -17,10 +17,13 @@ is done.
   result said "waiting", or that the state block lists in stillRunning,
   is still doing that work: starting it again for the same work starts a
   second instance of it. Wait for its result instead. The exception is
-  an activity whose result said a boundary event interrupted it: it did
-  not complete, and its result says whether you may start it again.
+  an activity whose result said a boundary event interrupted it and that
+  it did not complete: while the event's path still runs, that result
+  says whether you may start it again; once the path has ended, whether
+  to try it again is your call, unless the state block lists it in
+  blockedNow.
 - Do not start an activity the state block lists in blockedNow: that is
-  refused, and blockedBecause says what it waits for.
+  refused, and blockedBecause says why.
 - You may start several activities in one answer. Those that finish
   within your tool call run one after another; those that wait run on
   side by side.

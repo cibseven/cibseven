@@ -3334,6 +3334,41 @@ public class AgenticTurnJobTest {
   }
 
   /**
+   * Marked adHocBlockedWhileOthersRun, an interrupted tool is told that a start again is refused
+   * while its path or any other work runs, not only until its path has finished (GH-610).
+   */
+  @Test
+  public void anInterruptedToolMarkedToWaitForOthersIsToldItWaitsForAllWork() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Warte auf den Fehlerpfad."));
+    ProcessInstance pi = startWith(failingTool("GESPERRT", "<errorEventDefinition />")
+        .replace("</extensionElements>", "<camunda:properties><camunda:property"
+            + " name='adHocBlockedWhileOthersRun' value='true' /></camunda:properties>"
+            + "</extensionElements>")
+        .replace("<serviceTask id='fehlerMerken' name='Fehler merken'",
+            "<userTask id='fehlerMerken' name='Fehler merken'")
+        .replace(" camunda:expression=\"${'kein Bestand'}\" camunda:resultVariable='fehler' />",
+            " />"));
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("'buchen' did not complete")
+        .contains("Starting 'buchen' again is refused while its path or any other work in the"
+            + " sub process runs.")
+        .doesNotContain("until its path has finished")
+        .doesNotContain("your call");
+    // The refusal names the path as the result does, not only an earlier instance.
+    assertThat(toolResults(requestBodies.get(2)))
+        .contains("Cannot start 'buchen': an earlier instance of 'buchen', or the path a boundary"
+            + " event on it took, is still running");
+    assertThat(engine.getTaskService().createTaskQuery().processInstanceId(pi.getId())
+        .taskDefinitionKey("fehlerMerken").count()).as("one error path, no second booking")
+        .isOne();
+  }
+
+  /**
    * A Java exception a boundary error event names by a class it extends: the code is the class the
    * model names, the class thrown is reported beside it, and the note does not call it a BPMN
    * error.
@@ -3492,7 +3527,12 @@ public class AgenticTurnJobTest {
         .as("the retry waits for a person: the interruption is not repaired yet")
         .contains("\"status\":\"waiting\"")
         .contains("\"interruptedBy\":[{")
-        .contains("\"attachedTo\":\"buchen\"");
+        .contains("\"attachedTo\":\"buchen\"")
+        // Interrupted further along its flow, 'anfang' did its work: a start again would repeat
+        // it, so it is told not to, as any waiting tool (GH-610).
+        .contains("Do not start 'anfang' again for this work while it runs: that would start a"
+            + " second instance of it.")
+        .doesNotContain("your call");
 
     engine.getTaskService().complete(engine.getTaskService().createTaskQuery()
         .processInstanceId(pi.getId()).taskDefinitionKey("nachfragen").singleResult().getId(),

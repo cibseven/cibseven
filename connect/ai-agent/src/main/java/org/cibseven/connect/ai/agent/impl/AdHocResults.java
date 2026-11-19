@@ -553,6 +553,35 @@ public final class AdHocResults {
     }
 
     /**
+     * Whether one of the interruptions in {@code interruptedBy}, as {@link #describeEnd} shows
+     * them, sat on the tool {@code toolId} itself (GH-610): then the tool did not complete. One
+     * further along its flow leaves the tool's own work done.
+     */
+    static boolean interruptedOnTheTool(Object interruptedBy, String toolId) {
+        Collection<?> all = (interruptedBy instanceof Collection)
+                ? (Collection<?>) interruptedBy
+                : Collections.singletonList(interruptedBy);
+        for (Object one : all) {
+            // Empty entries are skipped, as describeEnd skips them.
+            if (one instanceof Map && !((Map<?, ?>) one).isEmpty()
+                    && onTheTool((Map<?, ?>) one, toolId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Whether the interruption {@code one} sat on the tool {@code toolId} itself, the one rule
+     * {@link #describeEnd} and {@link #interruptedOnTheTool} share: an entry that says nothing
+     * of where it sat counts as on the tool.
+     */
+    private static boolean onTheTool(Map<?, ?> one, Object toolId) {
+        Object attachedTo = one.get(ATTACHED_TO);
+        return attachedTo == null || attachedTo.equals(toolId);
+    }
+
+    /**
      * An entry as it is written: the entry, and the values in it, as a {@link TreeMap}.
      */
     private static Map<String, Object> stored(Map<String, Object> entry) {
@@ -751,7 +780,7 @@ public final class AdHocResults {
         }
 
         List<Map<String, Object>> shown = new ArrayList<Map<String, Object>>();
-        boolean onTheTool = false;
+        boolean anyOnTheTool = false;
         List<String> what = new ArrayList<String>();
         for (int i = 0; i < interrupted.size(); i++) {
             Map<?, ?> one = interrupted.get(i);
@@ -765,8 +794,8 @@ public final class AdHocResults {
             shown.add(fields);
 
             Object attachedTo = one.get(ATTACHED_TO);
-            boolean onIt = attachedTo == null || attachedTo.equals(tool);
-            onTheTool |= onIt;
+            boolean onIt = onTheTool(one, tool);
+            anyOnTheTool |= onIt;
             String event = "the " + one.get(EVENT_TYPE) + " boundary event '"
                     + one.get(BOUNDARY_EVENT) + "'";
             String error = (one.get(EXCEPTION_CLASS) != null)
@@ -786,7 +815,7 @@ public final class AdHocResults {
                 ? ", which ended at '" + gathered.get(ENDED_AT) + "'" : "";
         String events = String.join("; then ", what) + ", and the process took "
                 + (interrupted.size() == 1 ? "that event's" : "the last event's") + " path" + path;
-        if (onTheTool) {
+        if (anyOnTheTool) {
             into.put("status", "interrupted");
             return "'" + tool + "' did not complete: " + events
                     + ". Do not treat its work as done.";

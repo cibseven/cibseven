@@ -170,11 +170,11 @@ public class AgenticReparseTurnTest {
 
   /**
    * The same follower, now holding back a tool marked adHocBlockedWhileOthersRun (GH-610): the
-   * left-out tool is none to the agent, so the follower counts as the tool's own flow and its
-   * blockedBecause gives that reason, not that it waits for someone else's work.
+   * work may be the left-out tool's, so the marked tool is told it waits for work in flight, named
+   * as the note names it, not for an earlier instance of its own, which never ran.
    */
   @Test
-  public void aFollowerSharedWithALeftOutToolCountsAsTheMarkedToolsOwnFlow() {
+  public void aFollowerSharedWithALeftOutToolHoldsAMarkedToolBackAsWorkInFlight() {
     ProcessEngine off = engine("off", new AbstractProcessEnginePlugin() { });
     deploy(off, model("", "<userTask id='worker' name='Worker' />"
         + "<serviceTask id='links' camunda:expression='${1}'><extensionElements><camunda:properties>"
@@ -200,12 +200,14 @@ public class AgenticReparseTurnTest {
     TurnSteps.runToTheEnd(on, pi.getId());
 
     assertThat(requests).hasSize(1);
+    // 'links' is left out on the parse again: its marking 'ja' is no valid value.
+    assertThat(toolNames(requests.get(0))).contains("behalten").doesNotContain("links");
     String state = lastUserMessage(requests.get(0));
     assertThat(state).contains("\"blockedNow\":[\"behalten\"]");
     assertThat(state)
-        .contains("have an earlier instance still running, or share running work with another"
-            + " tool's flow.")
-        .doesNotContain("depend on work still in flight");
+        .contains("depend on work still in flight: [geteilt].")
+        .contains("Work is still running in the ad hoc sub process: [geteilt].")
+        .doesNotContain("earlier instance");
     assertThat(on.getRuntimeService().createIncidentQuery().count()).isZero();
   }
 
