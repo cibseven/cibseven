@@ -25,6 +25,9 @@ import static org.cibseven.bpm.engine.test.api.runtime.migration.models.builder.
 import static org.cibseven.bpm.engine.test.api.runtime.migration.models.builder.DefaultExternalTaskModelBuilder.createDefaultExternalTaskModel;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -687,6 +690,140 @@ public class HistoricExternalTaskLogTest {
     assertHistoricLogPropertiesAreProperlySet(task, log);
     assertEquals(WORKER_ID, log.getWorkerId());
     assertLogIsInFetchedState(log);
+  }
+
+  /**
+   * After a failure the task keeps the worker id until the retry pause ends, so it looks
+   * locked by that worker. Locking it during the pause starts a new attempt: without a
+   * 'fetched' entry its processing time could not be read from the log.
+   */
+  @Test
+  public void testFetchedLogWhenOwnerLocksDuringRetryPause() {
+
+    // given a fetched task that failed with a retry pause
+    ExternalTask task = startExternalTaskProcess();
+    ensureEnoughTimePassedByForTimestampOrdering();
+    fetchExternalTasks();
+    ensureEnoughTimePassedByForTimestampOrdering();
+    failWithRetryPause(task.getId());
+
+    // when the worker locks it during the pause
+    ensureEnoughTimePassedByForTimestampOrdering();
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // then the new attempt is logged
+    List<HistoricExternalTaskLog> logs = historyService.createHistoricExternalTaskLogQuery()
+        .externalTaskId(task.getId())
+        .orderByTimestamp().asc()
+        .list();
+    assertEquals(4, logs.size());
+    assertLogIsInCreatedState(logs.get(0));
+    assertLogIsInFetchedState(logs.get(1));
+    assertLogIsInFailedState(logs.get(2));
+    assertLogIsInFetchedState(logs.get(3));
+    assertEquals(WORKER_ID, logs.get(3).getWorkerId());
+  }
+
+  @Test
+  public void testNoFetchedLogWhenOwnerExtendsLockAfterRetryPause() {
+
+    // given a task that failed with a retry pause and was locked again during the pause
+    ExternalTask task = startExternalTaskProcess();
+    fetchExternalTasks();
+    failWithRetryPause(task.getId());
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // when the worker locks it once more while working on the new attempt
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // then the lock is only extended: one 'fetched' entry per attempt
+    assertEquals(2, historyService.createHistoricExternalTaskLogQuery().fetchedLog().count());
+  }
+
+  @Test
+  public void testNoFetchedLogWhenOwnerExtendsLockOfRetriedAttempt() {
+
+    // given a task that failed and was fetched again after the pause
+    ExternalTask task = startExternalTaskProcess();
+    reportExternalTaskFailure(task.getId());       // fetch #1 + failure
+    ensureEnoughTimePassedByForTimestampOrdering();
+    fetchExternalTasks();                          // fetch #2
+
+    // when the worker extends the lock of the second attempt
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // then
+    assertEquals(2, historyService.createHistoricExternalTaskLogQuery().fetchedLog().count());
+  }
+
+  @Test
+  public void testFetchedLogWhenFailureAndLockInSameCommand() {
+
+    // given a fetched task
+    ExternalTask task = startExternalTaskProcess();
+    fetchExternalTasks();
+
+    // when the worker reports a failure and locks the task again in one command,
+    // so the 'failed' entry is not yet written to the database
+    engineRule.getProcessEngineConfiguration()
+        .getCommandExecutorTxRequired()
+        .execute(commandContext -> {
+          failWithRetryPause(task.getId());
+          externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+          return null;
+        });
+
+    // then the new attempt is logged
+    assertEquals(2, historyService.createHistoricExternalTaskLogQuery().fetchedLog().count());
+  }
+
+  /**
+   * A failure logged before the task was ever logged as 'fetched' (written before 3.0 or
+   * below history level FULL) must not make a held lock look like a retry pause.
+   */
+  @Test
+  public void testFailureBeforeFirstFetchedLogIsIgnored() {
+
+    // given a task that failed before its fetch was logged
+    ExternalTask task = startExternalTaskProcess();
+    fetchExternalTasks();
+    externalTaskService.handleFailure(task.getId(), WORKER_ID, ERROR_MESSAGE, ERROR_DETAILS, 1, 0L);
+    deleteFetchedLogs(task.getId());
+
+    // and that was fetched again after the pause
+    ensureEnoughTimePassedByForTimestampOrdering();
+    fetchExternalTasks();
+
+    // when the worker extends the lock
+    externalTaskService.lock(task.getId(), WORKER_ID, LOCK_DURATION);
+
+    // then only the fetch is logged
+    assertEquals(1, historyService.createHistoricExternalTaskLogQuery().fetchedLog().count());
+  }
+
+  protected void failWithRetryPause(String externalTaskId) {
+    externalTaskService.handleFailure(externalTaskId, WORKER_ID, ERROR_MESSAGE, ERROR_DETAILS, 1, 10 * LOCK_DURATION);
+  }
+
+  protected void deleteFetchedLogs(String externalTaskId) {
+    List<HistoricExternalTaskLog> fetchedLogs = historyService.createHistoricExternalTaskLogQuery()
+        .externalTaskId(externalTaskId)
+        .fetchedLog()
+        .list();
+    engineRule.getProcessEngineConfiguration()
+        .getCommandExecutorTxRequired()
+        .execute(commandContext -> {
+          Connection connection = commandContext.getDbSqlSession().getSqlSession().getConnection();
+          try (PreparedStatement delete = connection.prepareStatement("DELETE FROM ACT_HI_EXT_TASK_LOG WHERE ID_ = ?")) {
+            for (HistoricExternalTaskLog log : fetchedLogs) {
+              delete.setString(1, log.getId());
+              delete.executeUpdate();
+            }
+          } catch (SQLException e) {
+            throw new ProcessEngineException(e);
+          }
+          return null;
+        });
   }
 
   protected void fetchExternalTasks() {

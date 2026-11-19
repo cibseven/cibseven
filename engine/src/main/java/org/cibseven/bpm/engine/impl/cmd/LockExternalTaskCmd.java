@@ -19,6 +19,7 @@ package org.cibseven.bpm.engine.impl.cmd;
 import java.util.Date;
 
 import org.cibseven.bpm.engine.BadUserRequestException;
+import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExternalTaskEntity;
 import org.cibseven.bpm.engine.impl.util.ClockUtil;
 import org.cibseven.bpm.engine.impl.util.EnsureUtil;
@@ -34,11 +35,14 @@ public class LockExternalTaskCmd extends HandleExternalTaskCmd {
 
   @Override
   protected void execute(ExternalTaskEntity externalTask) {
-    boolean relockByOwner = isLockedByThisWorker(externalTask);
+    // a worker that locks its own task again only extends the lock: no new 'fetched' entry.
+    // Exception: after a failure the task keeps the worker id until the retry pause ends;
+    // locking it during that pause starts a new attempt, which needs its own 'fetched' entry
+    // so that the processing time of each attempt can be read from the log.
+    boolean relockByOwner = isLockedByThisWorker(externalTask) && !isInRetryPause(externalTask);
 
     externalTask.lock(workerId, lockDuration);
 
-    // a worker that locks its own task again only extends the lock: no new 'fetched' entry.
     // Safe to fire right away: a concurrent modification is not ignored here,
     // it rolls back the whole transaction including the history event
     if (!relockByOwner) {
@@ -55,6 +59,17 @@ public class LockExternalTaskCmd extends HandleExternalTaskCmd {
     return workerId.equals(externalTask.getWorkerId())
         && existingLockExpirationTime != null
         && !ClockUtil.getCurrentTime().after(existingLockExpirationTime);
+  }
+
+  /**
+   * @return <code>true</code> if the last attempt of the task ended with a failure,
+   *   so the current lock is only the retry pause, see
+   *   {@link org.cibseven.bpm.engine.impl.persistence.entity.HistoricExternalTaskLogManager#isLastFetchedAttemptFailed}
+   */
+  protected boolean isInRetryPause(ExternalTaskEntity externalTask) {
+    return Context.getCommandContext()
+        .getHistoricExternalTaskLogManager()
+        .isLastFetchedAttemptFailed(externalTask);
   }
 
   @Override
