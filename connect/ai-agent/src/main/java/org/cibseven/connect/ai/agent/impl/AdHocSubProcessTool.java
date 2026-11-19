@@ -218,7 +218,8 @@ public class AdHocSubProcessTool {
             boolean byOthers = descriptor.isBlockedWhileOthersRun() && !othersRunning.isEmpty();
             boolean bySame = descriptor.isBlockedWhileSameRuns() && toolsRunning.contains(id);
             if (byOthers && onlyItselfRuns(scope, id)) {
-                // Only its own earlier instance runs: that is the reason to give (PR #611 review).
+                // Only its own earlier instance runs: that is the reason to give, not someone
+                // else's decision (GH-610).
                 byOthers = false;
                 bySame = true;
             }
@@ -247,8 +248,10 @@ public class AdHocSubProcessTool {
             result.put("blockedNow", blockedNow);
             List<String> reasons = new ArrayList<>();
             if (!blockedByOthers.isEmpty()) {
+                // Named as the note names running work, by its tool (GH-610).
                 reasons.add((blockedBySame.isEmpty() ? "These" : blockedByOthers.toString())
-                        + " depend on work still in flight: " + othersRunning + ".");
+                        + " depend on work still in flight: "
+                        + runningToolIds(scope, Collections.<String>emptySet()) + ".");
             }
             if (!blockedBySame.isEmpty()) {
                 reasons.add((blockedByOthers.isEmpty() ? "These" : blockedBySame.toString())
@@ -295,8 +298,9 @@ public class AdHocSubProcessTool {
             // Every step while something the agent started runs (GH-610): the hint that keeps a
             // model from starting it again, for a tool not marked adHocBlockedWhileSameRuns too.
             note.append(" The activities in stillRunning are still doing the work you started them")
-                    .append(" for. Do not start them again for that work; you will get another turn")
-                    .append(" when one finishes.");
+                    .append(" for, unless their result said a boundary event interrupted them. Do")
+                    .append(" not start them again for that work; you will get another turn when")
+                    .append(" one finishes.");
         }
         if (pending.isEmpty() && childExecutionIds(scope).isEmpty()) {
             // Said out loud, because a further turn is only ever scheduled by a child
@@ -363,8 +367,8 @@ public class AdHocSubProcessTool {
         List<String> othersRunning = otherRunningActivityIds(scope);
         if (!othersRunning.isEmpty() && entry != null && entry.isBlockedWhileOthersRun()) {
             if (onlyItselfRuns(scope, activityId)) {
-                // Its own earlier instance is all that runs (PR #611 review): said so, not that
-                // it waits for someone else's decision.
+                // Its own earlier instance is all that runs (GH-610): said so, not that it waits
+                // for someone else's decision.
                 throw new AdHocToolRefusedException("Cannot start '" + activityId + "': an earlier"
                         + " instance of '" + activityId + "' is still running, and this activity"
                         + " is marked to start only while nothing else in the ad hoc sub process"
@@ -372,8 +376,10 @@ public class AdHocSubProcessTool {
                         + " Start something else, or end your turn: you will get another turn"
                         + " when the running instance finishes.");
             }
+            // Named as the note names running work, by its tool (GH-610).
+            List<String> busy = runningToolIds(scope, Collections.<String>emptySet());
             throw new AdHocToolRefusedException("Cannot start '" + activityId + "' while "
-                    + othersRunning + " " + (othersRunning.size() == 1 ? "is" : "are")
+                    + busy + " " + (busy.size() == 1 ? "is" : "are")
                     + " still running. This activity is marked as depending on work that is still"
                     + " in flight — a decision someone else has to make first. Start something"
                     + " else, or end your turn: you will get another turn when that work"
@@ -447,14 +453,20 @@ public class AdHocSubProcessTool {
             // Said with every waiting result (GH-610): the next step of the turn follows at once,
             // and a model that takes "waiting" for "not done" calls the tool again. Not for a tool
             // a boundary event interrupted: it did not complete, and whether to try it again is the
-            // agent's call. A tool marked adHocBlockedWhileSameRuns still stays held back while
-            // that path runs: the path is the tool's work, as its result says (CIB7-2166).
+            // agent's call. A marked tool still stays held back while that path runs: the path is
+            // the tool's work, as its result says (CIB7-2166), and the agent is told so. Marked
+            // means either marking: adHocBlockedWhileOthersRun counts the tool's own earlier
+            // instance too.
+            boolean refusedAgain = entry != null
+                    && (entry.isBlockedWhileSameRuns() || entry.isBlockedWhileOthersRun());
             result.put("resultsNote", interrupted != null
                     ? interrupted
                             + " Its path still runs. You will get another turn when it finishes."
+                            + (refusedAgain ? " Starting '" + activityId + "' again is refused"
+                                    + " until its path has finished." : "")
                     : "Still running. You will get another turn when it finishes. Do not start '"
                             + activityId + "' again for this work while it runs: "
-                            + (entry != null && entry.isBlockedWhileSameRuns()
+                            + (refusedAgain
                                     ? "that is refused until it has finished."
                                     : "that would start a second instance of it."));
         } else {
@@ -722,8 +734,8 @@ public class AdHocSubProcessTool {
     }
 
     /**
-     * Whether everything that runs in the scope is an instance of {@code activityId} (PR #611
-     * review): then adHocBlockedWhileOthersRun holds the activity back for its own earlier
+     * Whether everything that runs in the scope is an instance of {@code activityId} (GH-610):
+     * then adHocBlockedWhileOthersRun holds the activity back for its own earlier
      * instance only, and the agent is told that, not that it waits for someone else's decision.
      */
     private static boolean onlyItselfRuns(ExecutionEntity scope, String activityId) {
@@ -790,7 +802,7 @@ public class AdHocSubProcessTool {
      * {@code leafId} and the activities enclosing it inside the scope, innermost first, the
      * scope's own activity excluded: an embedded sub process or a multi-instance body around it.
      *
-     * <p>A multi-instance body also stands for the activity it repeats (PR #611 review): queued
+     * <p>A multi-instance body also stands for the activity it repeats (GH-610): queued
      * by {@code camunda:asyncBefore}, or between its instances, its execution carries only the
      * body, whose id the engine generates as {@code <activityId>#multiInstanceBody}, and an
      * activation over REST leaves nothing else that names the activity.

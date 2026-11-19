@@ -617,7 +617,7 @@ public class AdHocSubProcessToolTest {
         + "      <endEvent id='nestedEnd' />"
         + "    </subProcess>"
         // A multi-instance tool queued by asyncBefore: its execution carries only the generated
-        // multi-instance body (PR #611 review).
+        // multi-instance body (GH-610).
         + "    <userTask id='asyncMulti' name='Async multi' camunda:asyncBefore='true'>"
         + "      <extensionElements>" + SAME_RUNS_PROPERTIES + "</extensionElements>"
         + "      <multiInstanceLoopCharacteristics isSequential='false'>"
@@ -3070,7 +3070,7 @@ public class AdHocSubProcessToolTest {
 
     assertThat(Agent.FAILURES).hasSize(1);
     // Told that its own earlier instance holds it back, not that it waits for someone else's
-    // decision (PR #611 review).
+    // decision (GH-610).
     assertThat(Agent.FAILURES.get(0).getMessage())
         .contains("Cannot start 'gatedWaits': an earlier instance of 'gatedWaits' is still running")
         .contains("its own earlier instance included")
@@ -3197,8 +3197,9 @@ public class AdHocSubProcessToolTest {
 
     assertThat(list(result(0).get("stillRunning"))).containsExactly("waitsAgain");
     assertThat(String.valueOf(result(0).get("note")))
-        .contains("The activities in stillRunning are still doing the work you started them for."
-            + " Do not start them again for that work");
+        .contains("The activities in stillRunning are still doing the work you started them for,"
+            + " unless their result said a boundary event interrupted them. Do not start them again"
+            + " for that work");
   }
 
   /** Another activity stays startable while one waits. */
@@ -3442,7 +3443,7 @@ public class AdHocSubProcessToolTest {
 
   /**
    * A multi-instance tool queued by asyncBefore and activated over REST: its execution carries
-   * only the generated multi-instance body, which still stands for the tool (PR #611 review).
+   * only the generated multi-instance body, which still stands for the tool (GH-610).
    */
   @Test
   public void aQueuedMultiInstanceActivatedOverRestIsNotQueuedAgain() {

@@ -3303,6 +3303,35 @@ public class AgenticTurnJobTest {
   }
 
   /**
+   * A marked tool a boundary event interrupted stays held back while its path runs, the path being
+   * its work (GH-610): the agent is told so with the result, and a second start is refused.
+   */
+  @Test
+  public void anInterruptedMarkedToolIsHeldBackWhileItsPathRuns() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Warte auf den Fehlerpfad."));
+    ProcessInstance pi = startWith(failingTool("GESPERRT", "<errorEventDefinition />")
+        .replace("</extensionElements>", "<camunda:properties><camunda:property"
+            + " name='adHocBlockedWhileSameRuns' value='true' /></camunda:properties>"
+            + "</extensionElements>")
+        .replace("<serviceTask id='fehlerMerken' name='Fehler merken'",
+            "<userTask id='fehlerMerken' name='Fehler merken'")
+        .replace(" camunda:expression=\"${'kein Bestand'}\" camunda:resultVariable='fehler' />",
+            " />"));
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("'buchen' did not complete")
+        .contains("Starting 'buchen' again is refused until its path has finished.");
+    assertThat(toolResults(requestBodies.get(2))).contains("Cannot start 'buchen'");
+    assertThat(engine.getTaskService().createTaskQuery().processInstanceId(pi.getId())
+        .taskDefinitionKey("fehlerMerken").count()).as("one error path, no second booking")
+        .isOne();
+  }
+
+  /**
    * A Java exception a boundary error event names by a class it extends: the code is the class the
    * model names, the class thrown is reported beside it, and the note does not call it a BPMN
    * error.

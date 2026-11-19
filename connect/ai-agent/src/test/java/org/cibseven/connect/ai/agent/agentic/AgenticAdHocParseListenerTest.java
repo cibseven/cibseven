@@ -1796,7 +1796,7 @@ public class AgenticAdHocParseListenerTest {
   }
 
   /**
-   * PR #611 review: adHocBlockedWhileSameRuns=false beside adHocBlockedWhileOthersRun=true would
+   * GH-610: adHocBlockedWhileSameRuns=false beside adHocBlockedWhileOthersRun=true would
    * promise a second instance the older marking refuses all the same.
    */
   @Test

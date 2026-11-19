@@ -704,7 +704,7 @@ public final class AgenticToolCatalogParser {
 
   /**
    * Refuses {@code adHocBlockedWhileSameRuns=false} set on a tool marked
-   * {@link #BLOCKED_WHILE_OTHERS_RUN_PROPERTY} (PR #611 review): that marking counts the tool's
+   * {@link #BLOCKED_WHILE_OTHERS_RUN_PROPERTY} (GH-610): that marking counts the tool's
    * own earlier instance as other work, so a second instance is refused all the same, and the
    * {@code false} would promise what does not happen. On a parse again only logged: the tool
    * keeps waiting for everything else, its own earlier instance included.
