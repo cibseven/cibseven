@@ -37,7 +37,7 @@
     <version.json-path>3.0.0</version.json-path>
     <version.json-smart>2.6.0</version.json-smart>
     <version.accessors-smart>2.6.0</version.accessors-smart>
-    <version.feel-scala>1.19.3</version.feel-scala>
+    <version.feel-scala>1.19.6</version.feel-scala>
     <version.license-maven-plugin>2.4.0</version.license-maven-plugin>
     <!-- Version for cibseven-webclient-web -->
     <cibseven-webapp.version>${project.version}</cibseven-webapp.version>

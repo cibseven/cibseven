@@ -2306,7 +2306,7 @@ url: https://www.eclipse.org/aspectj/
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
-org.camunda.feel:feel-engine:1.19.3
+org.camunda.feel:feel-engine:1.19.6
 name: feel-engine
 description: This pom defines the required plugins and profiles to allow a Camunda Platform release build.
 url: https://github.com/camunda/feel-scala

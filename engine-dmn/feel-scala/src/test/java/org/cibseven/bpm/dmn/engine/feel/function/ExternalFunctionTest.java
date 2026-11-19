@@ -21,11 +21,35 @@ import org.cibseven.bpm.dmn.feel.impl.FeelException;
 
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ExternalFunctionTest {
 
+  protected static final String EXTERNAL_FUNCTION = "function(x, y) external { " +
+    "java: { class: \"java.lang.Boolean\", method signature: \"logicalAnd(boolean, boolean)\" } }";
+
   protected FeelRule feelRule = FeelRule.build();
+
+  @Test
+  public void shouldFailWhenExternalFunctionIsPositionalArgumentOfFunctionInvocation() {
+    // when
+    FeelException thrown = assertThrows(FeelException.class,
+      () -> feelRule.evaluateExpression("sort([true, false], " + EXTERNAL_FUNCTION + ")"));
+
+    // then
+    assertThat(thrown.getMessage()).contains("External functions are disabled");
+  }
+
+  @Test
+  public void shouldFailWhenExternalFunctionIsNamedArgumentOfFunctionInvocation() {
+    // when
+    FeelException thrown = assertThrows(FeelException.class,
+      () -> feelRule.evaluateExpression("sort(list: [true, false], precedes: " + EXTERNAL_FUNCTION + ")"));
+
+    // then
+    assertThat(thrown.getMessage()).contains("External functions are disabled");
+  }
 
   @Test
   public void shouldFailWhenUsingExternalFunction() {
