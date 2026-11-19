@@ -44,6 +44,7 @@ import org.cibseven.bpm.engine.impl.persistence.entity.AuthorizationEntity;
 import org.cibseven.bpm.engine.rest.dto.identity.UserDto;
 import org.cibseven.bpm.engine.rest.impl.UserRestServiceImpl;
 import org.cibseven.bpm.engine.rest.spi.ProcessEngineProvider;
+import org.cibseven.bpm.engine.rest.util.InitialSetupUtil;
 import org.cibseven.bpm.engine.rest.util.ProvidersUtil;
 import org.cibseven.bpm.webapp.impl.WebappLogger;
 import org.cibseven.bpm.webapp.impl.security.SecurityActions;
@@ -143,9 +144,7 @@ public class SetupResource {
   }
 
   protected void ensureSetupAvailable(ProcessEngine processEngine) {
-    if (processEngine.getIdentityService().isReadOnly()
-        || (processEngine.getIdentityService().createUserQuery().memberOfGroup(Groups.CAMUNDA_ADMIN).count() > 0)) {
-
+    if (!InitialSetupUtil.isSetupAvailable(processEngine)) {
       throw LOGGER.setupActionNotAvailable();
     }
   }

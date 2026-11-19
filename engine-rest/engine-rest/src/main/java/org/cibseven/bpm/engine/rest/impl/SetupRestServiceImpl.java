@@ -36,6 +36,7 @@ import org.cibseven.bpm.engine.impl.persistence.entity.AuthorizationEntity;
 import org.cibseven.bpm.engine.rest.SetupRestService;
 import org.cibseven.bpm.engine.rest.dto.identity.UserDto;
 import org.cibseven.bpm.engine.rest.exception.InvalidRequestException;
+import org.cibseven.bpm.engine.rest.util.InitialSetupUtil;
 
 import tools.jackson.databind.ObjectMapper;
 
@@ -47,14 +48,7 @@ public class SetupRestServiceImpl extends AbstractRestProcessEngineAware  implem
 
   @Override
   public boolean requiresSetup() {
-    if(getProcessEngine().getIdentityService().isReadOnly()) {
-      return false;
-    }
-
-    Boolean isNoAdminGroup = runWithoutAuthorization(() -> {
-        return hasNoCamundaAdminGroup();
-    });
-    return isNoAdminGroup;
+    return InitialSetupUtil.isSetupAvailable(getProcessEngine());
   }
 
   private <V extends Object> V runWithoutAuthorization(Supplier<V> action) {
@@ -68,12 +62,6 @@ public class SetupRestServiceImpl extends AbstractRestProcessEngineAware  implem
     } finally {
       identityService.setAuthentication(currentAuthentication);
     }
-  }
-
-  private boolean hasNoCamundaAdminGroup() {
-    final IdentityService identityService = getProcessEngine().getIdentityService();
-    long groupCount = identityService.createGroupQuery().groupId(Groups.CAMUNDA_ADMIN).count();
-    return groupCount == 0;
   }
 
   @Override
