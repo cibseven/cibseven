@@ -37,6 +37,17 @@ public class VariableInstanceResourceImpl extends AbstractResourceProvider<Varia
     super(variableId, engine);
   }
 
+  /**
+   * Declared here, not only inherited from {@link AbstractResourceProvider}: the generic
+   * {@code DTO getResource(boolean)} erases to {@code Object}, so without this method javac adds a
+   * bridge method that RESTEasy 7.0.3+ registers as a resource method, and its validator then fails
+   * with an ArrayIndexOutOfBoundsException (HTTP 500 on WildFly, CIB7-2558).
+   */
+  @Override
+  public VariableInstanceDto getResource(boolean deserializeObjectValue) {
+    return super.getResource(deserializeObjectValue);
+  }
+
   protected VariableInstanceQuery baseQuery() {
     return getEngine().getRuntimeService().createVariableInstanceQuery().variableId(getId());
   }

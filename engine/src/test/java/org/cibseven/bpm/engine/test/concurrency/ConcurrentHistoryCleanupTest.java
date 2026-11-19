@@ -40,8 +40,7 @@ import org.junit.jupiter.api.Test;
 /**
  * <p>Tests the call to history cleanup simultaneously.</p>
  *
- * <p><b>Note:</b> the test is not executed on H2 because it doesn't support the
- * exclusive lock on table.</p>
+ * <p>Also runs on H2 2.x, which acquires the exclusive lock (CIB7-2714).</p>
  *
  * @author Svetlana Dorokhova
  */
@@ -64,10 +63,15 @@ public class ConcurrentHistoryCleanupTest extends ConcurrencyTestCase {
   }
 
   @Test
-  @RequiredDatabase(excludes = { DbSqlSessionFactory.MARIADB, DbSqlSessionFactory.H2 })
+  @RequiredDatabase(excludes = DbSqlSessionFactory.MARIADB)
   public void testRunTwoHistoryCleanups() throws InterruptedException {
     final Integer transactionIsolationLevel = DatabaseHelper.getTransactionIsolationLevel(processEngineConfiguration);
-    assumeTrue((transactionIsolationLevel != null && !transactionIsolationLevel.equals(Connection.TRANSACTION_READ_COMMITTED)));
+    // The origin of the READ_COMMITTED exclusion is not documented (inherited from Camunda).
+    // HistoryCleanupCmd#createJobs queries the jobs again after acquiring the lock; on H2 2.x
+    // (MVStore, READ_COMMITTED by default) that query sees the job committed by thread 1, so the
+    // test also runs there and asserts below that thread 2 waits for the lock (CIB7-2714).
+    boolean h2 = DbSqlSessionFactory.H2.equals(processEngineConfiguration.getDatabaseType());
+    assumeTrue(h2 || (transactionIsolationLevel != null && !transactionIsolationLevel.equals(Connection.TRANSACTION_READ_COMMITTED)));
 
     ThreadControl thread1 = executeControllableCommand(new ControllableHistoryCleanupCommand());
     thread1.waitForSync();
@@ -80,8 +84,7 @@ public class ConcurrentHistoryCleanupTest extends ConcurrencyTestCase {
     thread1.waitForSync();
 
     thread2.makeContinue();
-
-    Thread.sleep(2000);
+    assertWaitsForLock(thread2);
 
     thread1.waitUntilDone();
 

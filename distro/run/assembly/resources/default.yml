@@ -49,8 +49,9 @@ spring:
       - optional:classpath:cibseven-webclient.properties
       - optional:classpath:cibseven-webclient.yaml
   # datasource configuration is required
+  # LOCK_TIMEOUT: H2 waits up to 10 s for row locks (default 2 s), e.g. for the deployment lock
   datasource:
-    url: jdbc:h2:./camunda-h2-default/process-engine;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:./camunda-h2-default/process-engine;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE;LOCK_TIMEOUT=10000
     driver-class-name: org.h2.Driver
     username: sa
     password: sa
@@ -74,6 +75,17 @@ spring:
       # /META-INF/resources in the classpath. To prevent users from accidentally sharing files, this is disabled here by setting static locations to NULL.
       # https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-spring-mvc-static-content
       static-locations: NULL
+  # MCP server of the MCP REST API, see cibseven.mcp below
+  ai:
+    mcp:
+      server:
+        enabled: ${MCP_ENABLED:false}
+        protocol: STATELESS
+        type: SYNC
+        streamable-http:
+          mcp-endpoint: /mcp
+        annotation-scanner:
+          enabled: false
 
 logging:
   level:
@@ -84,7 +96,7 @@ cibseven:
   #
   # The AI agent itself, the connector and agentic ad hoc sub processes alike,
   # is switched on and off by the start script (--ai, --production and the
-  # AI_AGENT_ENABLED environment variable), not here.
+  # AI_AGENT_ENABLED / MCP_ENABLED environment variables), not here.
   #
   # The connector reads JVM system properties (and environment-variable
   # fallbacks), not YAML keys. To override the default LLM model used when
@@ -103,6 +115,19 @@ cibseven:
   #
   #   JVM arg:  -Dcibseven.connect.ai-agent.chatMemoryVariable.enabled=false
   #   Env var:  CIBSEVEN_CONNECT_AI_AGENT_CHAT_MEMORY_VARIABLE_ENABLED=false
+
+  # MCP REST API: exposes the REST API of this engine as MCP tools under /mcp
+  # (https://docs.cibseven.org/manual/latest/user-guide/mcp-restapi/).
+  # Switched on with the environment variable MCP_ENABLED=true, which also puts
+  # configuration/userlib-ai/ on the classpath. The tools call
+  # cibseven.webclient.engineRest.url below.
+  mcp:
+    restapi-mcp: ${MCP_ENABLED:false}
+  openapi:
+    # openapi.json of the REST API of this version (cibseven-engine-rest-openapi in
+    # configuration/userlib-ai/). A file path or URL selects another document, e.g. a
+    # smaller one for LLMs that accept only a limited number of tools.
+    url: openapi.json
 
   webclient:
     modeler:
@@ -195,6 +220,10 @@ springdoc:
     path: /webapp/v3/api-docs
   swagger-ui:
     path: /webapp/swagger-ui
+    # springdoc serves the swagger-ui webjar under the version it was built with and answers 404
+    # for another one. The webclient pins a newer webjar (version.swagger-ui in cibseven-webclient,
+    # DOMPurify advisories), so the shipped version is named here. Keep both in sync.
+    version: 5.34.1
     operationsSorter: alpha
     tagsSorter: alpha
     doc-expansion: none

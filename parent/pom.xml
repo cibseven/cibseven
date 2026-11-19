@@ -20,8 +20,8 @@
   <properties>
     <version.quarkus>3.33.3</version.quarkus>
     <version.spring.framework>5.3.39</version.spring.framework>
-    <version.spring.framework7>7.0.9</version.spring.framework7>
-    <version.spring-boot>4.1.1</version.spring-boot>
+    <version.spring.framework7>7.0.10</version.spring.framework7>
+    <version.spring-boot>4.1.2</version.spring-boot>
     <!-- JAX-RS runtimes, both Jakarta REST 4.0 (Jakarta EE 11, see version.jakarta-ee-spec):
          Jersey as managed by Spring Boot (version.spring-boot) and used by the REST API webapp,
          RESTEasy as shipped by WildFly (version.wildfly) and bundled by the Tomcat distro webapp. -->
@@ -73,8 +73,8 @@
     <version.wildfly>42.0.0.Final</version.wildfly>
     <version.wildfly.core>34.0.0.Final</version.wildfly.core>
 
-    <version.tomcat10>10.1.59</version.tomcat10>
-    <version.tomcat>11.0.25</version.tomcat>
+    <version.tomcat10>10.1.61</version.tomcat10>
+    <version.tomcat>11.0.27</version.tomcat>
 
     <version.arquillian>1.10.0.Final</version.arquillian>
     <version.shrinkwrap.resolvers>2.2.7</version.shrinkwrap.resolvers>

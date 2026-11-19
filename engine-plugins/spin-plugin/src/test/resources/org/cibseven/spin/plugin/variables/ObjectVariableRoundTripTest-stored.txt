@@ -1,0 +1,252 @@
+JAVA|map String,Boolean,Integer|java java.util.LinkedHashMap
+JAVA|map Boolean,String|java java.util.LinkedHashMap
+JAVA|map Integer,String|java java.util.LinkedHashMap
+JAVA|HashMap a=1,b=x|java java.util.HashMap
+JAVA|HashMap 1=a|java java.util.HashMap
+JAVA|TreeMap of Strings|java java.util.TreeMap
+JAVA|TreeMap a=1,b=x|java java.util.TreeMap
+JAVA|nested map|java java.util.LinkedHashMap
+JAVA|map Long 7|java java.util.LinkedHashMap
+JAVA|map Long 5000000000|java java.util.LinkedHashMap
+JAVA|map BigDecimal 12.50|java java.util.LinkedHashMap
+JAVA|map Double 1.5|java java.util.LinkedHashMap
+JAVA|map Date|java java.util.LinkedHashMap
+JAVA|list [1,"a"]|java java.util.ArrayList
+JAVA|list ["a",1]|java java.util.ArrayList
+JAVA|list [1,5000000000L]|java java.util.ArrayList
+JAVA|list [7L]|java java.util.ArrayList
+JAVA|list of mixed maps|java java.util.ArrayList
+JAVA|HashSet of Strings|java java.util.HashSet
+JAVA|HashSet {1,"a"}|java java.util.HashSet
+JAVA|Map.of("a",1)|java java.util.ImmutableCollections$Map1
+JAVA|List.of(1,2)|java java.util.ImmutableCollections$List12
+JAVA|unmodifiableMap mixed|java java.util.Collections$UnmodifiableMap
+JAVA|Arrays.asList("a","b")|java java.util.Arrays$ArrayList
+JAVA|enum DayOfWeek|java java.time.DayOfWeek
+JAVA|BigDecimal 12.50|java java.math.BigDecimal
+JAVA|Date|date
+JAVA|LocalDate|java java.time.LocalDate
+JAVA|list [Dog,Dog]|java java.util.ArrayList
+JAVA|list [Dog,Cat]|java java.util.ArrayList
+JAVA|map of Dogs|java java.util.LinkedHashMap
+JAVA|map of Dog,Cat|java java.util.LinkedHashMap
+JAVA|map null,String|java java.util.LinkedHashMap
+JAVA|list [null,1,"a"]|java java.util.ArrayList
+JAVA|list [[1,2],[3]]|java java.util.ArrayList
+JAVA|list [[1],["a"]]|java java.util.ArrayList
+JAVA_VALIDATION|map String,Boolean,Integer|java java.util.LinkedHashMap
+JAVA_VALIDATION|map Boolean,String|java java.util.LinkedHashMap
+JAVA_VALIDATION|map Integer,String|java java.util.LinkedHashMap
+JAVA_VALIDATION|HashMap a=1,b=x|java java.util.HashMap
+JAVA_VALIDATION|HashMap 1=a|java java.util.HashMap
+JAVA_VALIDATION|TreeMap of Strings|java java.util.TreeMap
+JAVA_VALIDATION|TreeMap a=1,b=x|java java.util.TreeMap
+JAVA_VALIDATION|nested map|java java.util.LinkedHashMap
+JAVA_VALIDATION|map Long 7|java java.util.LinkedHashMap
+JAVA_VALIDATION|map Long 5000000000|java java.util.LinkedHashMap
+JAVA_VALIDATION|map BigDecimal 12.50|java java.util.LinkedHashMap
+JAVA_VALIDATION|map Double 1.5|java java.util.LinkedHashMap
+JAVA_VALIDATION|map Date|java java.util.LinkedHashMap
+JAVA_VALIDATION|list [1,"a"]|java java.util.ArrayList
+JAVA_VALIDATION|list ["a",1]|java java.util.ArrayList
+JAVA_VALIDATION|list [1,5000000000L]|java java.util.ArrayList
+JAVA_VALIDATION|list [7L]|java java.util.ArrayList
+JAVA_VALIDATION|list of mixed maps|java java.util.ArrayList
+JAVA_VALIDATION|HashSet of Strings|java java.util.HashSet
+JAVA_VALIDATION|HashSet {1,"a"}|java java.util.HashSet
+JAVA_VALIDATION|Map.of("a",1)|java java.util.ImmutableCollections$Map1
+JAVA_VALIDATION|List.of(1,2)|java java.util.ImmutableCollections$List12
+JAVA_VALIDATION|unmodifiableMap mixed|java java.util.Collections$UnmodifiableMap
+JAVA_VALIDATION|Arrays.asList("a","b")|java java.util.Arrays$ArrayList
+JAVA_VALIDATION|enum DayOfWeek|java java.time.DayOfWeek
+JAVA_VALIDATION|BigDecimal 12.50|java java.math.BigDecimal
+JAVA_VALIDATION|Date|date
+JAVA_VALIDATION|LocalDate|java java.time.LocalDate
+JAVA_VALIDATION|list [Dog,Dog]|java java.util.ArrayList
+JAVA_VALIDATION|list [Dog,Cat]|java java.util.ArrayList
+JAVA_VALIDATION|map of Dogs|java java.util.LinkedHashMap
+JAVA_VALIDATION|map of Dog,Cat|java java.util.LinkedHashMap
+JAVA_VALIDATION|map null,String|java java.util.LinkedHashMap
+JAVA_VALIDATION|list [null,1,"a"]|java java.util.ArrayList
+JAVA_VALIDATION|list [[1,2],[3]]|java java.util.ArrayList
+JAVA_VALIDATION|list [[1],["a"]]|java java.util.ArrayList
+JSON|map String,Boolean,Integer|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON|map Boolean,String|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON|map Integer,String|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON|HashMap a=1,b=x|json java.util.HashMap<java.lang.Object,java.lang.Object>
+JSON|HashMap 1=a|json java.util.HashMap<java.lang.Object,java.lang.Object>
+JSON|TreeMap of Strings|json java.util.TreeMap<java.lang.Object,java.lang.Object>
+JSON|TreeMap a=1,b=x|json java.util.TreeMap<java.lang.Object,java.lang.Object>
+JSON|nested map|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON|map Long 7|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON|map Long 5000000000|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON|map BigDecimal 12.50|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON|map Double 1.5|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON|map Date|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON|list [1,"a"]|json java.util.ArrayList<java.lang.Integer>
+JSON|list ["a",1]|json java.util.ArrayList<java.lang.String>
+JSON|list [1,5000000000L]|json java.util.ArrayList<java.lang.Integer>
+JSON|list [7L]|json java.util.ArrayList<java.lang.Long>
+JSON|list of mixed maps|json java.util.ArrayList<java.util.LinkedHashMap<java.lang.Object,java.lang.Object>>
+JSON|HashSet of Strings|json java.util.HashSet<java.lang.Object>
+JSON|HashSet {1,"a"}|json java.util.HashSet<java.lang.Object>
+JSON|Map.of("a",1)|json java.util.ImmutableCollections$Map1<java.lang.Object,java.lang.Object>
+JSON|List.of(1,2)|json java.util.ImmutableCollections$List12<java.lang.Integer>
+JSON|unmodifiableMap mixed|json java.util.Collections$UnmodifiableMap<java.lang.Object,java.lang.Object>
+JSON|Arrays.asList("a","b")|json java.util.Arrays$ArrayList<java.lang.String>
+JSON|enum DayOfWeek|json java.time.DayOfWeek
+JSON|BigDecimal 12.50|json java.math.BigDecimal
+JSON|Date|date
+JSON|LocalDate|json java.time.LocalDate
+JSON|list [Dog,Dog]|json java.util.ArrayList<org.cibseven.spin.plugin.variables.ObjectVariableRoundTripTest$Dog>
+JSON|list [Dog,Cat]|json java.util.ArrayList<org.cibseven.spin.plugin.variables.ObjectVariableRoundTripTest$Dog>
+JSON|map of Dogs|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON|map of Dog,Cat|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON|map null,String|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON|list [null,1,"a"]|json java.util.ArrayList<java.lang.Integer>
+JSON|list [[1,2],[3]]|json java.util.ArrayList<java.util.ArrayList<java.lang.Integer>>
+JSON|list [[1],["a"]]|json java.util.ArrayList<java.util.ArrayList<java.lang.Integer>>
+JSON_VALIDATION|map String,Boolean,Integer|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_VALIDATION|map Boolean,String|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_VALIDATION|map Integer,String|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_VALIDATION|HashMap a=1,b=x|json java.util.HashMap<java.lang.Object,java.lang.Object>
+JSON_VALIDATION|HashMap 1=a|json java.util.HashMap<java.lang.Object,java.lang.Object>
+JSON_VALIDATION|TreeMap of Strings|json java.util.TreeMap<java.lang.Object,java.lang.Object>
+JSON_VALIDATION|TreeMap a=1,b=x|json java.util.TreeMap<java.lang.Object,java.lang.Object>
+JSON_VALIDATION|nested map|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_VALIDATION|map Long 7|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_VALIDATION|map Long 5000000000|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_VALIDATION|map BigDecimal 12.50|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_VALIDATION|map Double 1.5|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_VALIDATION|map Date|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_VALIDATION|list [1,"a"]|json java.util.ArrayList<java.lang.Integer>
+JSON_VALIDATION|list ["a",1]|json java.util.ArrayList<java.lang.String>
+JSON_VALIDATION|list [1,5000000000L]|json java.util.ArrayList<java.lang.Integer>
+JSON_VALIDATION|list [7L]|json java.util.ArrayList<java.lang.Long>
+JSON_VALIDATION|list of mixed maps|json java.util.ArrayList<java.util.LinkedHashMap<java.lang.Object,java.lang.Object>>
+JSON_VALIDATION|HashSet of Strings|json java.util.HashSet<java.lang.Object>
+JSON_VALIDATION|HashSet {1,"a"}|json java.util.HashSet<java.lang.Object>
+JSON_VALIDATION|Map.of("a",1)|json java.util.ImmutableCollections$Map1<java.lang.Object,java.lang.Object>
+JSON_VALIDATION|List.of(1,2)|json java.util.ImmutableCollections$List12<java.lang.Integer>
+JSON_VALIDATION|unmodifiableMap mixed|json java.util.Collections$UnmodifiableMap<java.lang.Object,java.lang.Object>
+JSON_VALIDATION|Arrays.asList("a","b")|json java.util.Arrays$ArrayList<java.lang.String>
+JSON_VALIDATION|enum DayOfWeek|json java.time.DayOfWeek
+JSON_VALIDATION|BigDecimal 12.50|json java.math.BigDecimal
+JSON_VALIDATION|Date|date
+JSON_VALIDATION|LocalDate|json java.time.LocalDate
+JSON_VALIDATION|list [Dog,Dog]|json java.util.ArrayList<org.cibseven.spin.plugin.variables.ObjectVariableRoundTripTest$Dog>
+JSON_VALIDATION|list [Dog,Cat]|json java.util.ArrayList<org.cibseven.spin.plugin.variables.ObjectVariableRoundTripTest$Dog>
+JSON_VALIDATION|map of Dogs|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_VALIDATION|map of Dog,Cat|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_VALIDATION|map null,String|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_VALIDATION|list [null,1,"a"]|json java.util.ArrayList<java.lang.Integer>
+JSON_VALIDATION|list [[1,2],[3]]|json java.util.ArrayList<java.util.ArrayList<java.lang.Integer>>
+JSON_VALIDATION|list [[1],["a"]]|json java.util.ArrayList<java.util.ArrayList<java.lang.Integer>>
+JSON_MAP_DETECTOR|map String,Boolean,Integer|json java.util.Map<java.lang.String,java.lang.String>
+JSON_MAP_DETECTOR|map Boolean,String|json java.util.Map<java.lang.String,java.lang.Boolean>
+JSON_MAP_DETECTOR|map Integer,String|json java.util.Map<java.lang.String,java.lang.Integer>
+JSON_MAP_DETECTOR|HashMap a=1,b=x|json java.util.Map<java.lang.String,java.lang.Integer>
+JSON_MAP_DETECTOR|HashMap 1=a|json java.util.Map<java.lang.Integer,java.lang.String>
+JSON_MAP_DETECTOR|TreeMap of Strings|json java.util.Map<java.lang.String,java.lang.String>
+JSON_MAP_DETECTOR|TreeMap a=1,b=x|json java.util.Map<java.lang.String,java.lang.Integer>
+JSON_MAP_DETECTOR|nested map|json java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.Integer>>
+JSON_MAP_DETECTOR|map Long 7|json java.util.Map<java.lang.String,java.lang.Long>
+JSON_MAP_DETECTOR|map Long 5000000000|json java.util.Map<java.lang.String,java.lang.Long>
+JSON_MAP_DETECTOR|map BigDecimal 12.50|json java.util.Map<java.lang.String,java.math.BigDecimal>
+JSON_MAP_DETECTOR|map Double 1.5|json java.util.Map<java.lang.String,java.lang.Double>
+JSON_MAP_DETECTOR|map Date|json java.util.Map<java.lang.String,java.util.Date>
+JSON_MAP_DETECTOR|list [1,"a"]|json java.util.ArrayList<java.lang.Integer>
+JSON_MAP_DETECTOR|list ["a",1]|json java.util.ArrayList<java.lang.String>
+JSON_MAP_DETECTOR|list [1,5000000000L]|json java.util.ArrayList<java.lang.Integer>
+JSON_MAP_DETECTOR|list [7L]|json java.util.ArrayList<java.lang.Long>
+JSON_MAP_DETECTOR|list of mixed maps|json java.util.ArrayList<java.util.LinkedHashMap<java.lang.Object,java.lang.Object>>
+JSON_MAP_DETECTOR|HashSet of Strings|json java.util.HashSet<java.lang.Object>
+JSON_MAP_DETECTOR|HashSet {1,"a"}|json java.util.HashSet<java.lang.Object>
+JSON_MAP_DETECTOR|Map.of("a",1)|json java.util.Map<java.lang.String,java.lang.Integer>
+JSON_MAP_DETECTOR|List.of(1,2)|json java.util.ImmutableCollections$List12<java.lang.Integer>
+JSON_MAP_DETECTOR|unmodifiableMap mixed|json java.util.Map<java.lang.String,java.lang.Boolean>
+JSON_MAP_DETECTOR|Arrays.asList("a","b")|json java.util.Arrays$ArrayList<java.lang.String>
+JSON_MAP_DETECTOR|enum DayOfWeek|json java.time.DayOfWeek
+JSON_MAP_DETECTOR|BigDecimal 12.50|json java.math.BigDecimal
+JSON_MAP_DETECTOR|Date|date
+JSON_MAP_DETECTOR|LocalDate|json java.time.LocalDate
+JSON_MAP_DETECTOR|list [Dog,Dog]|json java.util.ArrayList<org.cibseven.spin.plugin.variables.ObjectVariableRoundTripTest$Dog>
+JSON_MAP_DETECTOR|list [Dog,Cat]|json java.util.ArrayList<org.cibseven.spin.plugin.variables.ObjectVariableRoundTripTest$Dog>
+JSON_MAP_DETECTOR|map of Dogs|json java.util.Map<java.lang.String,org.cibseven.spin.plugin.variables.ObjectVariableRoundTripTest$Dog>
+JSON_MAP_DETECTOR|map of Dog,Cat|json java.util.Map<java.lang.String,org.cibseven.spin.plugin.variables.ObjectVariableRoundTripTest$Dog>
+JSON_MAP_DETECTOR|map null,String|json java.util.Map<java.lang.String,java.lang.String>
+JSON_MAP_DETECTOR|list [null,1,"a"]|json java.util.ArrayList<java.lang.Integer>
+JSON_MAP_DETECTOR|list [[1,2],[3]]|json java.util.ArrayList<java.util.ArrayList<java.lang.Integer>>
+JSON_MAP_DETECTOR|list [[1],["a"]]|json java.util.ArrayList<java.util.ArrayList<java.lang.Integer>>
+JSON_MAP_DETECTOR_VALIDATION|map String,Boolean,Integer|json java.util.Map<java.lang.String,java.lang.String>
+JSON_MAP_DETECTOR_VALIDATION|map Boolean,String|json java.util.Map<java.lang.String,java.lang.Boolean>
+JSON_MAP_DETECTOR_VALIDATION|map Integer,String|json java.util.Map<java.lang.String,java.lang.Integer>
+JSON_MAP_DETECTOR_VALIDATION|HashMap a=1,b=x|json java.util.Map<java.lang.String,java.lang.Integer>
+JSON_MAP_DETECTOR_VALIDATION|HashMap 1=a|json java.util.Map<java.lang.Integer,java.lang.String>
+JSON_MAP_DETECTOR_VALIDATION|TreeMap of Strings|json java.util.Map<java.lang.String,java.lang.String>
+JSON_MAP_DETECTOR_VALIDATION|TreeMap a=1,b=x|json java.util.Map<java.lang.String,java.lang.Integer>
+JSON_MAP_DETECTOR_VALIDATION|nested map|json java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.Integer>>
+JSON_MAP_DETECTOR_VALIDATION|map Long 7|json java.util.Map<java.lang.String,java.lang.Long>
+JSON_MAP_DETECTOR_VALIDATION|map Long 5000000000|json java.util.Map<java.lang.String,java.lang.Long>
+JSON_MAP_DETECTOR_VALIDATION|map BigDecimal 12.50|json java.util.Map<java.lang.String,java.math.BigDecimal>
+JSON_MAP_DETECTOR_VALIDATION|map Double 1.5|json java.util.Map<java.lang.String,java.lang.Double>
+JSON_MAP_DETECTOR_VALIDATION|map Date|json java.util.Map<java.lang.String,java.util.Date>
+JSON_MAP_DETECTOR_VALIDATION|list [1,"a"]|json java.util.ArrayList<java.lang.Integer>
+JSON_MAP_DETECTOR_VALIDATION|list ["a",1]|json java.util.ArrayList<java.lang.String>
+JSON_MAP_DETECTOR_VALIDATION|list [1,5000000000L]|json java.util.ArrayList<java.lang.Integer>
+JSON_MAP_DETECTOR_VALIDATION|list [7L]|json java.util.ArrayList<java.lang.Long>
+JSON_MAP_DETECTOR_VALIDATION|list of mixed maps|json java.util.ArrayList<java.util.LinkedHashMap<java.lang.Object,java.lang.Object>>
+JSON_MAP_DETECTOR_VALIDATION|HashSet of Strings|json java.util.HashSet<java.lang.Object>
+JSON_MAP_DETECTOR_VALIDATION|HashSet {1,"a"}|json java.util.HashSet<java.lang.Object>
+JSON_MAP_DETECTOR_VALIDATION|Map.of("a",1)|json java.util.Map<java.lang.String,java.lang.Integer>
+JSON_MAP_DETECTOR_VALIDATION|List.of(1,2)|json java.util.ImmutableCollections$List12<java.lang.Integer>
+JSON_MAP_DETECTOR_VALIDATION|unmodifiableMap mixed|json java.util.Map<java.lang.String,java.lang.Boolean>
+JSON_MAP_DETECTOR_VALIDATION|Arrays.asList("a","b")|json java.util.Arrays$ArrayList<java.lang.String>
+JSON_MAP_DETECTOR_VALIDATION|enum DayOfWeek|json java.time.DayOfWeek
+JSON_MAP_DETECTOR_VALIDATION|BigDecimal 12.50|json java.math.BigDecimal
+JSON_MAP_DETECTOR_VALIDATION|Date|date
+JSON_MAP_DETECTOR_VALIDATION|LocalDate|json java.time.LocalDate
+JSON_MAP_DETECTOR_VALIDATION|list [Dog,Dog]|json java.util.ArrayList<org.cibseven.spin.plugin.variables.ObjectVariableRoundTripTest$Dog>
+JSON_MAP_DETECTOR_VALIDATION|list [Dog,Cat]|json java.util.ArrayList<org.cibseven.spin.plugin.variables.ObjectVariableRoundTripTest$Dog>
+JSON_MAP_DETECTOR_VALIDATION|map of Dogs|json java.util.Map<java.lang.String,org.cibseven.spin.plugin.variables.ObjectVariableRoundTripTest$Dog>
+JSON_MAP_DETECTOR_VALIDATION|map of Dog,Cat|json java.util.Map<java.lang.String,org.cibseven.spin.plugin.variables.ObjectVariableRoundTripTest$Dog>
+JSON_MAP_DETECTOR_VALIDATION|map null,String|json java.util.Map<java.lang.String,java.lang.String>
+JSON_MAP_DETECTOR_VALIDATION|list [null,1,"a"]|json java.util.ArrayList<java.lang.Integer>
+JSON_MAP_DETECTOR_VALIDATION|list [[1,2],[3]]|json java.util.ArrayList<java.util.ArrayList<java.lang.Integer>>
+JSON_MAP_DETECTOR_VALIDATION|list [[1],["a"]]|json java.util.ArrayList<java.util.ArrayList<java.lang.Integer>>
+JSON_SET_DETECTOR|map String,Boolean,Integer|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_SET_DETECTOR|map Boolean,String|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_SET_DETECTOR|map Integer,String|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_SET_DETECTOR|HashMap a=1,b=x|json java.util.HashMap<java.lang.Object,java.lang.Object>
+JSON_SET_DETECTOR|HashMap 1=a|json java.util.HashMap<java.lang.Object,java.lang.Object>
+JSON_SET_DETECTOR|TreeMap of Strings|json java.util.TreeMap<java.lang.Object,java.lang.Object>
+JSON_SET_DETECTOR|TreeMap a=1,b=x|json java.util.TreeMap<java.lang.Object,java.lang.Object>
+JSON_SET_DETECTOR|nested map|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_SET_DETECTOR|map Long 7|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_SET_DETECTOR|map Long 5000000000|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_SET_DETECTOR|map BigDecimal 12.50|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_SET_DETECTOR|map Double 1.5|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_SET_DETECTOR|map Date|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_SET_DETECTOR|list [1,"a"]|json java.util.ArrayList<java.lang.Integer>
+JSON_SET_DETECTOR|list ["a",1]|json java.util.ArrayList<java.lang.String>
+JSON_SET_DETECTOR|list [1,5000000000L]|json java.util.ArrayList<java.lang.Integer>
+JSON_SET_DETECTOR|list [7L]|json java.util.ArrayList<java.lang.Long>
+JSON_SET_DETECTOR|list of mixed maps|json java.util.ArrayList<java.util.LinkedHashMap<java.lang.Object,java.lang.Object>>
+JSON_SET_DETECTOR|HashSet of Strings|json java.util.HashSet<java.lang.String>
+JSON_SET_DETECTOR|HashSet {1,"a"}|json java.util.HashSet<java.lang.Integer>
+JSON_SET_DETECTOR|Map.of("a",1)|json java.util.ImmutableCollections$Map1<java.lang.Object,java.lang.Object>
+JSON_SET_DETECTOR|List.of(1,2)|json java.util.ImmutableCollections$List12<java.lang.Integer>
+JSON_SET_DETECTOR|unmodifiableMap mixed|json java.util.Collections$UnmodifiableMap<java.lang.Object,java.lang.Object>
+JSON_SET_DETECTOR|Arrays.asList("a","b")|json java.util.Arrays$ArrayList<java.lang.String>
+JSON_SET_DETECTOR|enum DayOfWeek|json java.time.DayOfWeek
+JSON_SET_DETECTOR|BigDecimal 12.50|json java.math.BigDecimal
+JSON_SET_DETECTOR|Date|date
+JSON_SET_DETECTOR|LocalDate|json java.time.LocalDate
+JSON_SET_DETECTOR|list [Dog,Dog]|json java.util.ArrayList<org.cibseven.spin.plugin.variables.ObjectVariableRoundTripTest$Dog>
+JSON_SET_DETECTOR|list [Dog,Cat]|json java.util.ArrayList<org.cibseven.spin.plugin.variables.ObjectVariableRoundTripTest$Dog>
+JSON_SET_DETECTOR|map of Dogs|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_SET_DETECTOR|map of Dog,Cat|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_SET_DETECTOR|map null,String|json java.util.LinkedHashMap<java.lang.Object,java.lang.Object>
+JSON_SET_DETECTOR|list [null,1,"a"]|json java.util.ArrayList<java.lang.Integer>
+JSON_SET_DETECTOR|list [[1,2],[3]]|json java.util.ArrayList<java.util.ArrayList<java.lang.Integer>>
+JSON_SET_DETECTOR|list [[1],["a"]]|json java.util.ArrayList<java.util.ArrayList<java.lang.Integer>>

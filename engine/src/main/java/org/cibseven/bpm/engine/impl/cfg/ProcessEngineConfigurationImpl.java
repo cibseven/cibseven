@@ -347,6 +347,7 @@ import org.cibseven.bpm.engine.impl.scripting.ScriptFactory;
 import org.cibseven.bpm.engine.impl.scripting.engine.BeansResolverFactory;
 import org.cibseven.bpm.engine.impl.scripting.engine.CamundaScriptEngineManager;
 import org.cibseven.bpm.engine.impl.scripting.engine.DefaultScriptEngineResolver;
+import org.cibseven.bpm.engine.impl.scripting.engine.GraalJsNumberNarrowing;
 import org.cibseven.bpm.engine.impl.scripting.engine.ResolverFactory;
 import org.cibseven.bpm.engine.impl.scripting.engine.ScriptBindingsFactory;
 import org.cibseven.bpm.engine.impl.scripting.engine.ScriptEngineResolver;
@@ -614,6 +615,12 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected boolean enableScriptEngineLoadExternalResources = false;
   protected boolean enableScriptEngineNashornCompatibility = false;
   protected boolean configureScriptEngineHostAccess = true;
+  /**
+   * Whether a Java long in int range that a JavaScript script on GraalJS hands to Java becomes an Integer, as in
+   * CIB seven 2.2: {@code long} (it does) or {@code none} (the Long that GraalJS 24 and later give). Applies when
+   * {@link #configureScriptEngineHostAccess} is true. See {@link GraalJsNumberNarrowing}.
+   */
+  protected String javaScriptNumberNarrowing = GraalJsNumberNarrowing.LONG;
   protected boolean skipIsolationLevelCheck = false;
 
   /**
@@ -4335,7 +4342,8 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   }
 
   /**
-   * @return true if the process engine acquires an exclusive lock when creating a deployment.
+   * @return true if the process engine acquires an exclusive lock when creating a deployment
+   * and when deleting deployments or process definitions.
    */
   public boolean isDeploymentLockUsed() {
     return isDeploymentLockUsed;
@@ -4344,6 +4352,19 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   /**
    * If set to true, the process engine will acquire an exclusive lock when creating a deployment.
    * This ensures that {@link DeploymentBuilder#enableDuplicateFiltering()} works correctly in a clustered environment.
+   * <p>
+   * The same lock also serializes the deletion of deployments and process definitions with each
+   * other and with deployments: a deletion waits until a concurrent deletion or deployment has
+   * committed. If the lock is disabled and deletions run in parallel, start event
+   * subscriptions and start timers may be left on deleted versions.
+   * <p>
+   * The lock is acquired on H2 2.x as well (not on H2 1.x). There the waiting time is limited by
+   * the H2 {@code LOCK_TIMEOUT} (default 2 s), which may need to be raised in the JDBC URL for
+   * long deployments or cascading deletions (e.g. {@code LOCK_TIMEOUT=10000}).
+   * <p>
+   * With {@link #isDeploymentSynchronized()} a deployment waits for this lock while holding the
+   * JVM wide deployment monitor, so while a long deletion holds the lock, the other deployments of
+   * the JVM (of all process engines) queue up behind it.
    */
   public void setDeploymentLockUsed(boolean isDeploymentLockUsed) {
     this.isDeploymentLockUsed = isDeploymentLockUsed;
@@ -4357,7 +4378,10 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   }
 
   /**
-   * Sets if deployment processing must be synchronized.
+   * Sets if deployment processing must be synchronized. The synchronized deployment also waits
+   * for the deployment lock (see {@link #setDeploymentLockUsed(boolean)}) inside the JVM wide
+   * monitor, e.g. while a concurrent deletion holds the lock. The monitor is shared by all process
+   * engines of the JVM, so deployments of other engines, even on other databases, wait as well.
    * @param deploymentSynchronized {@code true} when deployment must be synchronized,
    * {@code false} when several depoloyments may be processed in parallel
    */
@@ -4664,6 +4688,19 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public ProcessEngineConfigurationImpl setConfigureScriptEngineHostAccess(boolean configureScriptEngineHostAccess) {
     this.configureScriptEngineHostAccess = configureScriptEngineHostAccess;
+    return this;
+  }
+
+  public String getJavaScriptNumberNarrowing() {
+    return javaScriptNumberNarrowing;
+  }
+
+  /**
+   * @param javaScriptNumberNarrowing {@code long} (default) or {@code none}, see
+   *   {@link GraalJsNumberNarrowing}
+   */
+  public ProcessEngineConfigurationImpl setJavaScriptNumberNarrowing(String javaScriptNumberNarrowing) {
+    this.javaScriptNumberNarrowing = GraalJsNumberNarrowing.checkMode(javaScriptNumberNarrowing);
     return this;
   }
 

@@ -13,7 +13,7 @@
       <property name="jobExecutorAcquireByPriority">true</property>
       <property name="databaseType">h2</property>
       <property name="databaseSchemaUpdate">create-drop</property>
-      <property name="jdbcUrl">jdbc:h2:mem:engineWithJobPriority</property>
+      <property name="jdbcUrl">jdbc:h2:mem:engineWithJobPriority;LOCK_TIMEOUT=10000</property>
     </properties>
   </process-engine>
 

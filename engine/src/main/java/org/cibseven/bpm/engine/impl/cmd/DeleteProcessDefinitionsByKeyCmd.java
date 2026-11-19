@@ -51,6 +51,9 @@ public class DeleteProcessDefinitionsByKeyCmd extends AbstractDeleteProcessDefin
   public Void execute(CommandContext commandContext) {
     ensureNotNull("processDefinitionKey", processDefinitionKey);
 
+    // CIB7-2714: serialize with other deletions and deployments before reading any definition.
+    commandContext.getPropertyManager().acquireExclusiveLockIfDeploymentLockUsed();
+
     List<ProcessDefinition> processDefinitions = commandContext.getProcessDefinitionManager()
       .findDefinitionsByKeyAndTenantId(processDefinitionKey, tenantId, isTenantIdSet);
     ensureNotEmpty(NotFoundException.class, "No process definition found with key '" + processDefinitionKey + "'",

@@ -29,7 +29,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +63,8 @@ public class SpringBootManagedContainer {
   protected static long pid;
 
   protected List<File> configurationFiles = new ArrayList<>();
+
+  protected Map<String, String> environment = new HashMap<>();
 
   public SpringBootManagedContainer(String... commands) {
     this.baseDirectory = getRunHome();
@@ -100,6 +104,13 @@ public class SpringBootManagedContainer {
       final ProcessBuilder startupProcessBuilder = new ProcessBuilder(commands);
       startupProcessBuilder.redirectErrorStream(true);
       startupProcessBuilder.directory(new File(baseDirectory));
+      environment.forEach((name, value) -> {
+        if (value == null) {
+          startupProcessBuilder.environment().remove(name);
+        } else {
+          startupProcessBuilder.environment().put(name, value);
+        }
+      });
       log.info("Starting Spring Boot application with: " + startupProcessBuilder.command());
       startupProcess = startupProcessBuilder.start();
       pid = startupProcess.pid();
@@ -146,6 +157,14 @@ public class SpringBootManagedContainer {
 
   public String getBaseUrl() {
     return baseUrl;
+  }
+
+  /**
+   * Sets an environment variable for the start script; {@code null} removes the variable
+   * that the start script would otherwise inherit from the test JVM.
+   */
+  public void setEnvironmentVariable(String name, String value) {
+    environment.put(name, value);
   }
 
   protected String getScriptPath() {

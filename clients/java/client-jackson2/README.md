@@ -1,7 +1,8 @@
 # CIB seven External Task Client on Jackson 2 (deprecated)
 
 > **Deprecated, removed in CIB seven 3.1.0.** Use `cibseven-external-task-client`, which is based on Jackson 3 and
-> writes and reads the same JSON.
+> writes and reads the same JSON, with the exceptions in the
+> [update guide 2.2 to 3.0](https://docs.cibseven.org/manual/latest/update/minor/22-to-30/#jackson-3).
 
 `cibseven-external-task-client-jackson2` is the external task client of CIB seven 3.0 with the Jackson 2 code of
 CIB seven 2.x, for applications that cannot move to Jackson 3 yet.

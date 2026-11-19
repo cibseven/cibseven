@@ -42,7 +42,11 @@ The following Maven coordinate needs to be added to the projects `pom.xml`:
 Since CIB seven 3.0 the client uses Jackson 3 (`tools.jackson`) for object variables (`application/json`) and for
 the requests to the engine. The JSON is the same as with the Jackson 2 based client of CIB seven 2.x: same property
 order, dates as timestamps, enums by name, the same `objectTypeName`s. Unknown properties are still rejected when an
-object variable is read, nesting depth up to 1000 is accepted.
+object variable is read, except in a class whose `@JsonUnwrapped` property Jackson unwraps (a bean), which ignores
+them as in 2.x (rare cases stay strict, see the Javadoc of `Jackson2UnwrappedDeserializerModifier`); nesting depth
+up to 1000 is accepted. Exceptions are classes with annotations from `com.fasterxml.jackson.databind.annotation`,
+`@JsonTypeInfo(use = Id.CLASS)` on an `Object` property or `@JsonInclude(content = NON_NULL)`: see the
+[update guide 2.2 to 3.0](https://docs.cibseven.org/manual/latest/update/minor/22-to-30/#jackson-3).
 
 A `DataFormatConfigurator` for `JacksonJsonDataFormat` gets a Jackson 3 mapper. Jackson 3 mappers are immutable, so
 replace the mapper instead of changing it:

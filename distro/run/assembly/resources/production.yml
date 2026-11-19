@@ -93,8 +93,9 @@ logging:
 # do not use the H2 databse in production
 # https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#connect-to-a-database
 # https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#database
+# LOCK_TIMEOUT: H2 waits up to 10 s for row locks (default 2 s), e.g. for the deployment lock
 spring.datasource:
-  url: jdbc:h2:./camunda-h2-test-production/process-engine;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE
+  url: jdbc:h2:./camunda-h2-test-production/process-engine;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE;LOCK_TIMEOUT=10000
   driver-class-name: org.h2.Driver
   username: sa
   password: sa
@@ -104,6 +105,25 @@ spring.datasource:
 # https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-spring-mvc-static-content
 spring.web.resources:
   static-locations: NULL
+
+# MCP REST API: exposes the REST API of this engine as MCP tools under /mcp, e.g. for AI agents.
+# https://docs.cibseven.org/manual/latest/user-guide/mcp-restapi/
+# Off by default. The environment variable MCP_ENABLED=true switches it on and also puts
+# configuration/userlib-ai/ on the classpath.
+# Security: https://docs.cibseven.org/manual/latest/user-guide/mcp-restapi/#security
+# Without the oauth2 option the MCP endpoint relays the Authorization header of each request to the
+# REST API, which authenticates it (camunda.bpm.run.auth above). With the oauth2 option the MCP endpoint
+# is an OAuth2 resource server and needs spring.security.oauth2.resourceserver.jwt.issuer-uri.
+spring.ai.mcp.server:
+  enabled: ${MCP_ENABLED:false}
+  protocol: STATELESS
+  type: SYNC
+  streamable-http.mcp-endpoint: /mcp
+  annotation-scanner.enabled: false
+cibseven.mcp.restapi-mcp: ${MCP_ENABLED:false}
+# openapi.json of the REST API of this version (cibseven-engine-rest-openapi in configuration/userlib-ai/);
+# a file path or URL selects another document
+cibseven.openapi.url: openapi.json
 
 # All parameters below belong to cibseven-webclient configuration, for more info - see here:
 # https://docs.cibseven.org/manual/latest/user-guide/cibseven-run/#cib-seven-webclient-properties
@@ -194,6 +214,10 @@ springdoc:
     path: /webapp/v3/api-docs
   swagger-ui:
     path: /webapp/swagger-ui
+    # springdoc serves the swagger-ui webjar under the version it was built with and answers 404
+    # for another one. The webclient pins a newer webjar (version.swagger-ui in cibseven-webclient,
+    # DOMPurify advisories), so the shipped version is named here. Keep both in sync.
+    version: 5.34.1
     operationsSorter: alpha
     tagsSorter: alpha
     doc-expansion: none

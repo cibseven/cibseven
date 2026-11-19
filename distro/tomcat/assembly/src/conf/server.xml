@@ -54,13 +54,14 @@
           testOnBorrow="true"
           validationQuery="SELECT 1"
     -->
+    <!-- LOCK_TIMEOUT: H2 waits up to 10 s for row locks (default 2 s), e.g. for the deployment lock -->
     <Resource name="jdbc/ProcessEngine"
               auth="Container"
               type="javax.sql.DataSource" 
               factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
               uniqueResourceName="process-engine"
               driverClassName="org.h2.Driver" 
-              url="jdbc:h2:./camunda-h2-dbs/process-engine;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE"
+              url="jdbc:h2:./camunda-h2-dbs/process-engine;TRACE_LEVEL_FILE=0;DB_CLOSE_ON_EXIT=FALSE;LOCK_TIMEOUT=10000"
               defaultTransactionIsolation="READ_COMMITTED"
               username="sa"  
               password="sa"

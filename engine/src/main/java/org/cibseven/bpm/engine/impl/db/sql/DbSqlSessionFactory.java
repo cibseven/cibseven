@@ -827,6 +827,8 @@ public class DbSqlSessionFactory implements SessionFactory {
   }
 
   protected String databaseType;
+  /** H2 1.x (table locks), determined once on the first pessimistic lock; null = unknown */
+  protected volatile Boolean h2WithTableLocks;
   protected String databaseTablePrefix = "";
   /**
    * In some situations you want to set the schema to use for table checks /
@@ -946,6 +948,18 @@ public class DbSqlSessionFactory implements SessionFactory {
 
   public String getDatabaseType() {
     return databaseType;
+  }
+
+  /**
+   * @return true if the database is H2 1.x, which may lock whole tables, so no
+   * pessimistic lock is acquired; null if not determined yet (see {@link DbSqlSession#lock})
+   */
+  public Boolean getH2WithTableLocks() {
+    return h2WithTableLocks;
+  }
+
+  public void setH2WithTableLocks(Boolean h2WithTableLocks) {
+    this.h2WithTableLocks = h2WithTableLocks;
   }
 
 
