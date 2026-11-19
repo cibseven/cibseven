@@ -300,8 +300,7 @@ public class AdHocSubProcessTool {
             note.append(" The activities in stillRunning are still doing the work you started them")
                     .append(" for. Do not start them again for that work; you will get another turn")
                     .append(" when one finishes. For one whose result said a boundary event")
-                    .append(" interrupted it, that result says whether starting it again is")
-                    .append(" refused.");
+                    .append(" interrupted it, that result says whether you may start it again.");
         }
         if (pending.isEmpty() && childExecutionIds(scope).isEmpty()) {
             // Said out loud, because a further turn is only ever scheduled by a child
@@ -454,22 +453,35 @@ public class AdHocSubProcessTool {
             // Said with every waiting result (GH-610): the next step of the turn follows at once,
             // and a model that takes "waiting" for "not done" calls the tool again. Not for a tool
             // a boundary event interrupted: it did not complete, and whether to try it again is the
-            // agent's call. A marked tool still stays held back while that path runs: the path is
-            // the tool's work, as its result says (CIB7-2166), and the agent is told so. Marked
-            // means either marking: adHocBlockedWhileOthersRun counts the tool's own earlier
-            // instance too.
-            boolean refusedAgain = entry != null
-                    && (entry.isBlockedWhileSameRuns() || entry.isBlockedWhileOthersRun());
+            // agent's call, which its result says. A marked tool still stays held back while that
+            // path runs: the path is the tool's work, as its result says (CIB7-2166), and the
+            // agent is told so. Marked means either marking: adHocBlockedWhileOthersRun counts the
+            // tool's own earlier instance too, and holds it back while any other work runs as well.
+            boolean whileOthersRun = entry != null && entry.isBlockedWhileOthersRun();
+            boolean whileSameRuns = entry != null && entry.isBlockedWhileSameRuns();
+            String again;
+            if (interrupted != null) {
+                again = whileOthersRun
+                        ? "Starting '" + activityId + "' again is refused while its path or any"
+                                + " other work in the sub process runs."
+                        : whileSameRuns
+                                ? "Starting '" + activityId + "' again is refused until its path"
+                                        + " has finished."
+                                : "Starting '" + activityId + "' again is your call: it would"
+                                        + " start a new instance beside its path.";
+            } else {
+                again = "Do not start '" + activityId + "' again for this work while it runs: "
+                        + (whileOthersRun
+                                ? "that is refused while it or any other work in the sub process"
+                                        + " runs."
+                                : whileSameRuns
+                                        ? "that is refused until it has finished."
+                                        : "that would start a second instance of it.");
+            }
             result.put("resultsNote", interrupted != null
-                    ? interrupted
-                            + " Its path still runs. You will get another turn when it finishes."
-                            + (refusedAgain ? " Starting '" + activityId + "' again is refused"
-                                    + " until its path has finished." : "")
-                    : "Still running. You will get another turn when it finishes. Do not start '"
-                            + activityId + "' again for this work while it runs: "
-                            + (refusedAgain
-                                    ? "that is refused until it has finished."
-                                    : "that would start a second instance of it."));
+                    ? interrupted + " Its path still runs. You will get another turn when it"
+                            + " finishes. " + again
+                    : "Still running. You will get another turn when it finishes. " + again);
         } else {
             // Not recorded as pending: there is nothing to wait for, and an entry that
             // is already finished would refuse completeScope until a later turn
@@ -775,7 +787,13 @@ public class AdHocSubProcessTool {
                     }
                     Set<String> reaching = reachedFrom.get(id);
                     if (reaching != null) {
-                        running.addAll(reaching);
+                        // Only tools the agent has: one a parse again left out is none to it,
+                        // as runningToolIds names it.
+                        for (String reachingTool : reaching) {
+                            if (tools.contains(reachingTool)) {
+                                running.add(reachingTool);
+                            }
+                        }
                     }
                 }
             }

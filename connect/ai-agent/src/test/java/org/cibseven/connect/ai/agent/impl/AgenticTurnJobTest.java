@@ -3298,7 +3298,9 @@ public class AgenticTurnJobTest {
         .contains("'buchen' did not complete")
         .contains("Its path still runs. You will get another turn when it finishes.")
         // Interrupted, the tool did not complete: whether to try it again is the agent's call
-        // (GH-610), so its note has no do-not-start-again hint.
+        // (GH-610), so its note has no do-not-start-again hint, and says so.
+        .contains("Starting 'buchen' again is your call: it would start a new instance beside"
+            + " its path.")
         .doesNotContain("Do not start");
   }
 

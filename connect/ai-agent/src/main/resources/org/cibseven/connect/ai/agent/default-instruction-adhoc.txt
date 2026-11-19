@@ -16,7 +16,11 @@ is done.
   repeat work that is already done or still running. An activity whose
   result said "waiting", or that the state block lists in stillRunning,
   is still doing that work: starting it again for the same work starts a
-  second instance of it. Wait for its result instead.
+  second instance of it. Wait for its result instead. The exception is
+  an activity whose result said a boundary event interrupted it: it did
+  not complete, and its result says whether you may start it again.
+- Do not start an activity the state block lists in blockedNow: that is
+  refused, and blockedBecause says what it waits for.
 - You may start several activities in one answer. Those that finish
   within your tool call run one after another; those that wait run on
   side by side.

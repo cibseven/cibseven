@@ -168,6 +168,47 @@ public class AgenticReparseTurnTest {
     assertThat(on.getRuntimeService().createIncidentQuery().count()).isZero();
   }
 
+  /**
+   * The same follower, now holding back a tool marked adHocBlockedWhileOthersRun (GH-610): the
+   * left-out tool is none to the agent, so the follower counts as the tool's own flow and its
+   * blockedBecause gives that reason, not that it waits for someone else's work.
+   */
+  @Test
+  public void aFollowerSharedWithALeftOutToolCountsAsTheMarkedToolsOwnFlow() {
+    ProcessEngine off = engine("off", new AbstractProcessEnginePlugin() { });
+    deploy(off, model("", "<userTask id='worker' name='Worker' />"
+        + "<serviceTask id='links' camunda:expression='${1}'><extensionElements><camunda:properties>"
+        + "<camunda:property name='" + AgenticToolCatalogParser.BLOCKED_WHILE_OTHERS_RUN_PROPERTY
+        + "' value='ja' /></camunda:properties></extensionElements></serviceTask>"
+        + "<serviceTask id='behalten' camunda:expression='${1}'><extensionElements>"
+        + "<camunda:properties><camunda:property name='"
+        + AgenticToolCatalogParser.BLOCKED_WHILE_OTHERS_RUN_PROPERTY + "' value='true' />"
+        + "</camunda:properties></extensionElements></serviceTask>"
+        + "<sequenceFlow id='ausLinks' sourceRef='links' targetRef='geteilt' />"
+        + "<sequenceFlow id='ausBehalten' sourceRef='behalten' targetRef='geteilt' />"
+        + "<userTask id='geteilt' name='Geteilt' />", ""));
+    ProcessInstance pi = off.getRuntimeService().startProcessInstanceByKey("agenticTurn");
+    String scope = off.getRuntimeService().getActivityInstance(pi.getId())
+        .getActivityInstances("adHoc")[0].getExecutionIds()[0];
+    off.getRuntimeService().activateAdHocSubProcessActivities(scope,
+        Arrays.asList("links", "worker"));
+    ProcessEngine on = engine("on", new ConnectProcessEnginePlugin());
+    script.add(answer("Warte."));
+
+    on.getTaskService().complete(
+        on.getTaskService().createTaskQuery().taskName("Worker").singleResult().getId());
+    TurnSteps.runToTheEnd(on, pi.getId());
+
+    assertThat(requests).hasSize(1);
+    String state = lastUserMessage(requests.get(0));
+    assertThat(state).contains("\"blockedNow\":[\"behalten\"]");
+    assertThat(state)
+        .contains("have an earlier instance still running, or share running work with another"
+            + " tool's flow.")
+        .doesNotContain("depend on work still in flight");
+    assertThat(on.getRuntimeService().createIncidentQuery().count()).isZero();
+  }
+
   /** The text of the last user message a chat completion request sends. */
   protected static String lastUserMessage(String requestBody) {
     String text = null;

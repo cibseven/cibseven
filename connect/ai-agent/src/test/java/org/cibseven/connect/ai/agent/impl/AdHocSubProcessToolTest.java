@@ -3198,7 +3198,8 @@ public class AdHocSubProcessToolTest {
 
     assertThat(String.valueOf(result(0).get("resultsNote")))
         .contains("Do not start 'gatedWaits' again for this work while it runs: that is refused"
-            + " until it has finished.")
+            + " while it or any other work in the sub process runs.")
+        .doesNotContain("until it has finished")
         .doesNotContain("second instance");
   }
 
@@ -3240,13 +3241,16 @@ public class AdHocSubProcessToolTest {
 
     runPendingTurn(instance);
 
+    // In either order: the engine lists the scope's children in no fixed order.
     assertThat(String.valueOf(result(0).get("blockedBecause")))
-        .contains("depend on work still in flight: [nested, chainStart].")
+        .containsAnyOf("depend on work still in flight: [nested, chainStart].",
+            "depend on work still in flight: [chainStart, nested].")
         .doesNotContain("nestedWaits")
         .doesNotContain("chainWaits");
     assertThat(Agent.FAILURES).hasSize(1);
     assertThat(Agent.FAILURES.get(0).getMessage())
-        .contains("Cannot start 'gated' while [nested, chainStart] are still running")
+        .containsAnyOf("Cannot start 'gated' while [nested, chainStart] are still running",
+            "Cannot start 'gated' while [chainStart, nested] are still running")
         .doesNotContain("nestedWaits")
         .doesNotContain("chainWaits");
   }
@@ -3263,7 +3267,7 @@ public class AdHocSubProcessToolTest {
     assertThat(String.valueOf(result(0).get("note")))
         .contains("The activities in stillRunning are still doing the work you started them for."
             + " Do not start them again for that work")
-        .contains("that result says whether starting it again is refused");
+        .contains("that result says whether you may start it again.");
   }
 
   /** Another activity stays startable while one waits. */
@@ -3614,6 +3618,11 @@ public class AdHocSubProcessToolTest {
     assertThat(String.valueOf(result(0).get("note")))
         .contains("Besides what stillRunning lists, work is still running in the ad hoc sub"
             + " process for: [chainStart].")
+        .doesNotContain("chainWaits");
+    // blockedBecause names both, the agent's own work by its tool, in either order.
+    assertThat(String.valueOf(result(0).get("blockedBecause")))
+        .containsAnyOf("depend on work still in flight: [waits, chainStart].",
+            "depend on work still in flight: [chainStart, waits].")
         .doesNotContain("chainWaits");
   }
 
