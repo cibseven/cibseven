@@ -21,6 +21,7 @@ import java.io.Reader;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -43,7 +44,9 @@ import org.cibseven.bpm.engine.impl.el.ExpressionManager;
 import org.cibseven.bpm.engine.impl.el.JuelExpressionManager;
 import org.cibseven.bpm.engine.impl.el.ProcessEngineElContext;
 import org.cibseven.bpm.engine.impl.scripting.ScriptLogger;
+import org.cibseven.bpm.impl.juel.ExpressionAccessPolicy;
 import org.cibseven.bpm.impl.juel.JuelBeanELResolver;
+import org.cibseven.bpm.impl.juel.RestrictedELResolver;
 import org.cibseven.bpm.impl.juel.SimpleResolver;
 
 import jakarta.el.ArrayELResolver;
@@ -150,12 +153,34 @@ public class JuelScriptEngine extends AbstractScriptEngine {
     ExpressionManager expressionManager = configuration.getExpressionManager();
     if (expressionManager instanceof JuelExpressionManager) {
       JuelExpressionManager juelExpressionManager = (JuelExpressionManager) expressionManager;
-      return juelExpressionManager.isAppliedToJuelScripts() ? juelExpressionManager.getElResolver() : null;
+      if (!juelExpressionManager.isAppliedToJuelScripts()) {
+        return null;
+      }
+      // restricted again in createElContext; keep a restriction the customer added
+      ELResolver chain = juelExpressionManager.getElResolver();
+      if (chain instanceof RestrictedELResolver
+          && ((RestrictedELResolver) chain).getPolicy() == juelExpressionManager.getExpressionAccessPolicy()) {
+        return ((RestrictedELResolver) chain).getDelegate();
+      }
+      return chain;
     }
     if (expressionManager != null && WARNED_EXPRESSION_MANAGERS.putIfAbsent(expressionManager, Boolean.TRUE) == null) {
       LOG.warnJuelScriptWithoutExpressionManagerResolver(expressionManager.getClass().getName());
     }
     return null;
+  }
+
+  // the same policy as the engine's expressions, fixed when the engine was built
+  private static ExpressionAccessPolicy getExpressionAccessPolicy() {
+    ProcessEngineConfigurationImpl configuration = Context.getProcessEngineConfiguration();
+    if (configuration == null) {
+      return ExpressionAccessPolicy.DEFAULT;
+    }
+    ExpressionManager expressionManager = configuration.getExpressionManager();
+    if (expressionManager instanceof JuelExpressionManager) {
+      return ((JuelExpressionManager) expressionManager).getExpressionAccessPolicy();
+    }
+    return configuration.getExpressionAccessPolicy();
   }
 
   private String readFully(Reader reader) throws ScriptException {
@@ -189,12 +214,17 @@ public class JuelScriptEngine extends AbstractScriptEngine {
 
     scriptCtx.setAttribute("context", scriptCtx, ScriptContext.ENGINE_SCOPE);
 
-    // Built-in function are added to ScriptCtx
-    scriptCtx.setAttribute("out:print", getPrintMethod(), ScriptContext.ENGINE_SCOPE);
+    // the deny list applies to every script, with or without the expression manager's chain
+    final ExpressionAccessPolicy accessPolicy = getExpressionAccessPolicy();
+
+    // Built-in functions are added to ScriptCtx; a blocked one stays out of it, since a script could
+    // invoke it via 'context', and only the function mapper knows it, to reject it by name.
+    Map<String, Method> blockedFunctions = new HashMap<>();
+    addFunction(scriptCtx, accessPolicy, blockedFunctions, "out", "print", getPrintMethod());
 
     SecurityManager securityManager = System.getSecurityManager();
     if (securityManager == null) {
-      scriptCtx.setAttribute("lang:import", getImportMethod(), ScriptContext.ENGINE_SCOPE);
+      addFunction(scriptCtx, accessPolicy, blockedFunctions, "lang", "import", getImportMethod());
     }
 
     ELResolver expressionManagerResolver = getExpressionManagerResolver();
@@ -207,13 +237,14 @@ public class JuelScriptEngine extends AbstractScriptEngine {
         LOG.warnJuelScriptWithoutScriptBindings(expressionManager.getClass().getName());
       }
     }
-    final ELResolver elResolver = useExpressionManager
+    final ELResolver elResolver = accessPolicy.restrict(useExpressionManager
         ? createEngineElResolver(expressionManagerResolver)
-        : createDefaultElResolver();
+        : createDefaultElResolver());
 
     // ProcessEngineElContext converts with the factory put into the context, i.e. with JUEL, on
     // every EL API, not with the server's EL implementation (CIB7-2609)
-    ELContext elContext = new ProcessEngineElContext(new ScriptContextFunctionMapper(scriptCtx), elResolver) {
+    ELContext elContext = new ProcessEngineElContext(
+        accessPolicy.restrict(new ScriptContextFunctionMapper(scriptCtx, blockedFunctions)), elResolver) {
 
       final VariableMapper varMapper = new ScriptContextVariableMapper(scriptCtx, !useExpressionManager);
 
@@ -232,6 +263,16 @@ public class JuelScriptEngine extends AbstractScriptEngine {
     // Store the elcontext in the scriptContext to be able to reuse
     scriptCtx.setAttribute("elcontext", elContext, ScriptContext.ENGINE_SCOPE);
     return elContext;
+  }
+
+  private static void addFunction(ScriptContext scriptCtx, ExpressionAccessPolicy accessPolicy,
+      Map<String, Method> blockedFunctions, String prefix, String localName, Method method) {
+    String name = prefix + ":" + localName;
+    if (accessPolicy.blocksFunction(prefix, localName, method)) {
+      blockedFunctions.put(name, method);
+    } else {
+      scriptCtx.setAttribute(name, method, ScriptContext.ENGINE_SCOPE);
+    }
   }
 
   private static Method getPrintMethod() {
@@ -265,10 +306,12 @@ public class JuelScriptEngine extends AbstractScriptEngine {
     } else {
       throw new ELException("Class or class name is missing");
     }
+    // a blocked function is not imported: a script could invoke it via 'context'
+    ExpressionAccessPolicy accessPolicy = getExpressionAccessPolicy();
     Method[] methods = clazz.getMethods();
     for (Method m : methods) {
       int mod = m.getModifiers();
-      if (Modifier.isStatic(mod) && Modifier.isPublic(mod)) {
+      if (Modifier.isStatic(mod) && Modifier.isPublic(mod) && !accessPolicy.blocksFunction(namespace, m.getName(), m)) {
         String name = namespace + ":" + m.getName();
         ctx.setAttribute(name, m, ScriptContext.ENGINE_SCOPE);
       }
@@ -386,9 +429,12 @@ public class JuelScriptEngine extends AbstractScriptEngine {
   private class ScriptContextFunctionMapper extends FunctionMapper {
 
     private ScriptContext scriptContext;
+    // blocked built-in functions, resolved only to be rejected by name
+    private final Map<String, Method> blockedFunctions;
 
-    ScriptContextFunctionMapper(ScriptContext ctx) {
+    ScriptContextFunctionMapper(ScriptContext ctx, Map<String, Method> blockedFunctions) {
       this.scriptContext = ctx;
+      this.blockedFunctions = blockedFunctions;
     }
 
     private String getFullFunctionName(String prefix, String localName) {
@@ -404,7 +450,7 @@ public class JuelScriptEngine extends AbstractScriptEngine {
         Object attributeValue = scriptContext.getAttribute(functionName);
         return (attributeValue instanceof Method) ? (Method) attributeValue : null;
       } else {
-        return null;
+        return blockedFunctions.get(functionName);
       }
     }
   }

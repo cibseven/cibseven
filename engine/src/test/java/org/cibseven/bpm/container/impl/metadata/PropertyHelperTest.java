@@ -16,7 +16,10 @@
  */
 package org.cibseven.bpm.container.impl.metadata;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -25,6 +28,8 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cfg.StandaloneProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.jobexecutor.DefaultJobExecutor;
 import org.cibseven.bpm.engine.impl.jobexecutor.JobExecutor;
+import org.cibseven.bpm.impl.juel.ExpressionAccessPolicy;
+import org.cibseven.bpm.impl.juel.ExpressionHardeningMode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -61,6 +66,41 @@ public class PropertyHelperTest {
   protected static final String SC_WAIT_INCREASE_FACTOR = "wait_increase_factor";
   protected static final String SC_BACKOFF_TIME_IN_MILLIS = "backoff_time_in_millis";
 
+
+  /**
+   * CIB7-2652: the deny list is set by name, as in bpm-platform.xml or Spring Boot generic properties.
+   */
+  @Test
+  public void shouldApplyExpressionAccessProperties() {
+    ProcessEngineConfigurationImpl engineConfiguration = new StandaloneProcessEngineConfiguration();
+    Map<String, String> propertiesToSet = new HashMap<String, String>();
+    propertiesToSet.put("deniedExpressionAccess", "java.lang.System,-getClass");
+    propertiesToSet.put("expressionHardeningMode", "report");
+
+    PropertyHelper.applyProperties(engineConfiguration, propertiesToSet);
+
+    List<String> expected = new ArrayList<String>(Arrays.asList(ExpressionAccessPolicy.DEFAULT_DENIED_EXPRESSION_ACCESS.split(",")));
+    expected.remove("getClass");
+    expected.add("java.lang.System");
+    Assertions.assertEquals(expected, new ArrayList<String>(engineConfiguration.getExpressionAccessPolicy().getDeniedEntries()));
+    Assertions.assertEquals(ExpressionHardeningMode.REPORT, engineConfiguration.getExpressionAccessPolicy().getMode());
+  }
+
+  @Test
+  public void shouldRejectInvalidExpressionHardeningModeProperty() {
+    ProcessEngineConfiguration engineConfiguration = new StandaloneProcessEngineConfiguration();
+    Map<String, String> propertiesToSet = new HashMap<String, String>();
+    propertiesToSet.put("expressionHardeningMode", "warn");
+
+    Throwable thrown = Assertions.assertThrows(RuntimeException.class,
+        () -> PropertyHelper.applyProperties(engineConfiguration, propertiesToSet));
+
+    boolean explained = false;
+    for (Throwable cause = thrown; cause != null; cause = cause.getCause()) {
+      explained |= cause.getMessage() != null && cause.getMessage().contains("off, report, enforce");
+    }
+    Assertions.assertTrue(explained, "the error names the valid modes");
+  }
 
   /**
    * Assert that String, int and boolean properties can be set.

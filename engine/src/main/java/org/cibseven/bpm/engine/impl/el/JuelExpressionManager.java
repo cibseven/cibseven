@@ -29,11 +29,13 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import org.cibseven.bpm.dmn.engine.impl.spi.el.ElProvider;
+import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.delegate.VariableScope;
 import org.cibseven.bpm.engine.impl.core.variable.scope.AbstractVariableScope;
 import org.cibseven.bpm.engine.impl.dmn.el.ProcessEngineJuelElProvider;
 
 
+import org.cibseven.bpm.impl.juel.ExpressionAccessPolicy;
 import org.cibseven.bpm.impl.juel.ExpressionFactoryImpl;
 import org.cibseven.bpm.engine.impl.util.EnsureUtil;
 import org.cibseven.bpm.engine.test.mock.MockElResolver;
@@ -57,6 +59,7 @@ public class JuelExpressionManager implements ExpressionManager, ElProviderCompa
   // Default implementation (does nothing)
   protected ELContext parsingElContext;
   protected volatile ElProvider elProvider;
+  protected volatile ExpressionAccessPolicy expressionAccessPolicy = ExpressionAccessPolicy.DEFAULT;
 
   public JuelExpressionManager() {
     this(null);
@@ -132,8 +135,9 @@ public class JuelExpressionManager implements ExpressionManager, ElProviderCompa
     if (!initialized) {
       synchronized (this) {
         if (!initialized) {
-          elResolver = createElResolver();
-          functionMapper = createFunctionMapper();
+          // restrict the whole chain, also for subclasses that override createElResolver()
+          elResolver = expressionAccessPolicy.restrict(createElResolver());
+          functionMapper = expressionAccessPolicy.restrict(createFunctionMapper());
           parsingElContext = new ProcessEngineElContext(functionMapper);
           initialized = true;
         }
@@ -151,12 +155,38 @@ public class JuelExpressionManager implements ExpressionManager, ElProviderCompa
     return getClass() != JuelExpressionManager.class;
   }
 
-  /**
-   * The resolver chain from {@link #createElResolver()}. Shared, do not modify.
-   */
+  /** The chain of {@link #createElResolver()}, restricted by the policy. Shared, do not modify. */
   public ELResolver getElResolver() {
     ensureInitialized();
     return elResolver;
+  }
+
+  public ExpressionAccessPolicy getExpressionAccessPolicy() {
+    return expressionAccessPolicy;
+  }
+
+  /** @return whether the policy can still be set, i.e. the manager was not used yet */
+  public boolean canChangeExpressionAccessPolicy() {
+    return !initialized;
+  }
+
+  /**
+   * Sets the deny list; the engine sets it from its properties unless a non-default policy was set.
+   *
+   * @throws ProcessEngineException if the expression manager was already used
+   */
+  public void setExpressionAccessPolicy(ExpressionAccessPolicy expressionAccessPolicy) {
+    EnsureUtil.ensureNotNull("expressionAccessPolicy", expressionAccessPolicy);
+    synchronized (this) {
+      if (this.expressionAccessPolicy == expressionAccessPolicy) {
+        return;
+      }
+      // fixed once the chain is built
+      if (initialized) {
+        throw new ProcessEngineException("The expression access policy cannot be changed after the expression manager was used");
+      }
+      this.expressionAccessPolicy = expressionAccessPolicy;
+    }
   }
 
   protected ELResolver createElResolver() {

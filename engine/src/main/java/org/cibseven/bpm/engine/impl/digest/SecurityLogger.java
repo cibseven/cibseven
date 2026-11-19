@@ -39,4 +39,73 @@ public class SecurityLogger extends ProcessEngineLogger {
       hashAlgorithmName
     ));
   }
+
+  /**
+   * The message does not name the configured list: it reaches API clients (e.g. REST responses of a
+   * deployment or a process start), and the list is part of the security configuration.
+   */
+  public ProcessEngineException executionNotAllowed(String kind, String name, String activityId) {
+    return new ProcessEngineException(exceptionMessage(
+      "003",
+      "The {} '{}'{} is not allowed by the executionAllowList. An administrator can add it to the list to allow it.",
+      kind,
+      name,
+      describeActivity(activityId)
+    ));
+  }
+
+  /**
+   * Server log only, so the configured list is included to help the administrator.
+   */
+  public void reportExecutionNotAllowed(String kind, String name, String activityId, Collection<String> allowList) {
+    logWarn(
+      "004",
+      "The {} '{}'{} is not in the executionAllowList {}. It is not blocked, since the expressionHardeningMode is 'report'.",
+      kind,
+      name,
+      describeActivity(activityId),
+      allowList
+    );
+  }
+
+  protected String describeActivity(String activityId) {
+    return activityId != null ? " of activity '" + activityId + "'" : "";
+  }
+
+  // expression deny list (CIB7-2652): codes 010-013, 003-009 are left to the execution allow list (CIB7-2653)
+  public void reportDeniedExpressionAccess(String violation) {
+    logWarn(
+      "010",
+      "{}. Allowed anyway because the expression access policy is in report mode; switch it to enforce to block this access.",
+      violation
+    );
+  }
+
+  public void warnExpressionManagerNotRestricted(String expressionManagerClass) {
+    logWarn(
+      "011",
+      "Expression manager '{}' is not a JuelExpressionManager: deniedExpressionAccess and expressionHardeningMode "
+          + "do not apply to its expressions. Restrict its EL resolver chain with an ExpressionAccessPolicy.",
+      expressionManagerClass
+    );
+  }
+
+  public void warnExpressionAccessPropertiesIgnored(String expressionManagerClass) {
+    logWarn(
+      "012",
+      "Expression manager '{}' has its own expression access policy: deniedExpressionAccess and "
+          + "expressionHardeningMode of the process engine configuration are ignored.",
+      expressionManagerClass
+    );
+  }
+
+  public void warnExpressionManagerAlreadyUsed(String expressionManagerClass) {
+    logWarn(
+      "013",
+      "Expression manager '{}' was used before the process engine was built and keeps its expression access policy: "
+          + "deniedExpressionAccess and expressionHardeningMode of the process engine configuration are ignored. "
+          + "Build the process engine before using the expression manager.",
+      expressionManagerClass
+    );
+  }
 }

@@ -30,6 +30,7 @@ import java.util.Map;
 
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.Expression;
+import org.cibseven.bpm.engine.impl.ExecutionAllowListChecker;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.pvm.delegate.ActivityExecution;
 
@@ -86,6 +87,9 @@ public class ShellActivityBehavior extends AbstractBpmnActivityBehavior {
   }
 
   public void execute(ActivityExecution execution) {
+
+    // also covers process definitions deployed before the allow list was set
+    ExecutionAllowListChecker.ensureTaskTypeAllowed(ExecutionAllowListChecker.TASK_TYPE_SHELL, execution.getCurrentActivityId());
 
     readFields(execution);
 

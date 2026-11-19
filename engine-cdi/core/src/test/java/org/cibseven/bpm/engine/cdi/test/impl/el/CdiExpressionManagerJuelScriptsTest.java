@@ -17,8 +17,13 @@
 package org.cibseven.bpm.engine.cdi.test.impl.el;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import jakarta.el.ELContext;
 
 import org.cibseven.bpm.engine.cdi.CdiExpressionManager;
+import org.cibseven.bpm.engine.variable.Variables;
+import org.cibseven.bpm.impl.juel.ExpressionAccessDeniedException;
 import org.junit.jupiter.api.Test;
 
 public class CdiExpressionManagerJuelScriptsTest {
@@ -26,6 +31,16 @@ public class CdiExpressionManagerJuelScriptsTest {
   @Test
   public void shouldNotApplyStockExpressionManagerToJuelScripts() {
     assertThat(new CdiExpressionManager().isAppliedToJuelScripts()).isFalse();
+  }
+
+  @Test
+  public void shouldDenyClassAccessByDefault() {
+    // CIB7-2652: the deny list restricts the chain of createElResolver()
+    CdiExpressionManager expressionManager = new CdiExpressionManager();
+    ELContext context = expressionManager.createElContext(Variables.createVariables().asVariableContext());
+
+    assertThatThrownBy(() -> expressionManager.createValueExpression("${''.getClass()}").getValue(context))
+        .isInstanceOf(ExpressionAccessDeniedException.class);
   }
 
   @Test

@@ -30,10 +30,13 @@ import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
 import org.cibseven.bpm.dmn.engine.impl.spi.el.DmnScriptEngineResolver;
 import org.cibseven.bpm.dmn.engine.impl.spi.el.ElProvider;
 import org.cibseven.bpm.dmn.feel.impl.FeelEngineFactory;
+import org.cibseven.bpm.dmn.feel.impl.juel.FeelEngineFactoryImpl;
 import org.cibseven.bpm.engine.ProcessEngine;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.dmn.el.ProcessEngineJuelElProvider;
+import org.cibseven.bpm.impl.juel.ExpressionAccessPolicy;
+import org.cibseven.bpm.impl.juel.ExpressionHardeningMode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -87,6 +90,27 @@ public class DmnEngineConfigurationTest {
 
     // then the custom listener should be set on the DMN engine
     assertThat(getConfigurationOfDmnEngine().getCustomPostDecisionTableEvaluationListeners()).contains(customEvaluationListener);
+  }
+
+  @Test
+  public void setExpressionAccessPolicy() {
+    // given a DMN engine configuration with a deny list
+    DefaultDmnEngineConfiguration dmnEngineConfiguration = (DefaultDmnEngineConfiguration) DmnEngineConfiguration.createDefaultDmnEngineConfiguration();
+    ExpressionAccessPolicy policy = ExpressionAccessPolicy.create("java.lang.Runtime", ExpressionHardeningMode.ENFORCE);
+    dmnEngineConfiguration.setExpressionAccessPolicy(policy);
+
+    ProcessEngineConfigurationImpl processEngineConfiguration = createProcessEngineConfiguration();
+    processEngineConfiguration.setDmnEngineConfiguration(dmnEngineConfiguration);
+    processEngineConfiguration.setDmnFeelEnableLegacyBehavior(true);
+
+    // when the engine is initialized
+    engine = processEngineConfiguration.buildProcessEngine();
+
+    // then the DMN engine configuration keeps its deny list, which applies to the legacy FEEL engine;
+    // DMN JUEL expressions use the process engine's expression manager and its deny list
+    assertThat(getConfigurationOfDmnEngine().getExpressionAccessPolicy()).isSameAs(policy);
+    assertThat(((FeelEngineFactoryImpl) getConfigurationOfDmnEngine().getFeelEngineFactory()).getExpressionAccessPolicy())
+        .isSameAs(policy);
   }
 
   @Test

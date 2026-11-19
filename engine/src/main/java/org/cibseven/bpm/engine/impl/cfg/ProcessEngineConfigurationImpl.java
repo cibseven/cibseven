@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -392,6 +393,8 @@ import org.cibseven.bpm.engine.runtime.WhitelistingDeserializationTypeValidator;
 import org.cibseven.bpm.engine.task.TaskQuery;
 import org.cibseven.bpm.engine.test.mock.MocksResolverFactory;
 import org.cibseven.bpm.engine.variable.Variables;
+import org.cibseven.bpm.impl.juel.ExpressionAccessPolicy;
+import org.cibseven.bpm.impl.juel.ExpressionHardeningMode;
 
 /**
  * @author Tom Baeyens
@@ -402,6 +405,13 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public static final String DB_SCHEMA_UPDATE_CREATE = "create";
   public static final String DB_SCHEMA_UPDATE_DROP_CREATE = "drop-create";
+
+  /** {@link #setExpressionHardeningMode(String)}: no check. */
+  public static final String EXPRESSION_HARDENING_MODE_OFF = "off";
+  /** {@link #setExpressionHardeningMode(String)}: only log violations. */
+  public static final String EXPRESSION_HARDENING_MODE_REPORT = "report";
+  /** {@link #setExpressionHardeningMode(String)}: block violations (default). */
+  public static final String EXPRESSION_HARDENING_MODE_ENFORCE = "enforce";
 
   public static final int HISTORYLEVEL_NONE = HistoryLevel.HISTORY_LEVEL_NONE.getId();
   public static final int HISTORYLEVEL_ACTIVITY = HistoryLevel.HISTORY_LEVEL_ACTIVITY.getId();
@@ -890,6 +900,42 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected boolean enableFilterExpressionWhitelist = true;
 
   /**
+   * Deny list for JUEL expressions and scripts, see {@link ExpressionAccessPolicy}. Extends the defaults
+   * (unlike {@link #allowedFilterExpressions}); {@code -entry} removes one. Applies to BPMN/CMMN expressions,
+   * JUEL scripts, DMN JUEL and legacy FEEL; not to other script languages or the Scala-based FEEL engine.
+   */
+  protected String deniedExpressionAccess;
+
+  /**
+   * Allow list of the built-in execution mechanisms a process definition may use: the task types
+   * {@code shell}, {@code mail} and {@code external} ({@code camunda:type}) and the script languages
+   * (e.g. {@code groovy}, {@code javascript}, {@code juel}) in one list. Empty by default, which means
+   * no check. Once the list has entries, only the listed task types and script languages are allowed;
+   * {@link #expressionHardeningMode} decides what happens on a violation. Entries are matched in full
+   * and ignoring case. Configured via {@link #setExecutionAllowList(String)}, a comma-separated String.
+   *
+   * @see org.cibseven.bpm.engine.impl.ExecutionAllowListChecker
+   */
+  protected Set<String> executionAllowList = Collections.emptySet();
+
+  /**
+   * Shared mode of the built-in hardening checks: the deny list {@link #deniedExpressionAccess} for
+   * expressions and scripts (CIB7-2652) and the allow list {@link #executionAllowList} for task types and
+   * script languages (CIB7-2653). Decides what happens on a violation of either list:
+   * {@value #EXPRESSION_HARDENING_MODE_OFF} (no check), {@value #EXPRESSION_HARDENING_MODE_REPORT}
+   * (log only) or {@value #EXPRESSION_HARDENING_MODE_ENFORCE} (block, the default).
+   * The default switches only the deny list on (with its defaults); an empty {@link #executionAllowList}
+   * means no allow list check.
+   * Fixed once the process engine build started, see {@link #setExpressionHardeningMode(String)}.
+   */
+  protected ExpressionHardeningMode expressionHardeningMode = ExpressionHardeningMode.ENFORCE;
+
+  protected ExpressionAccessPolicy expressionAccessPolicy;
+
+  /** Set when the build starts; the deny list and the mode cannot be changed afterwards. */
+  protected boolean expressionAccessPolicyFrozen = false;
+
+  /**
    * If false, disables XML eXternal Entity (XXE) Processing. This provides protection against XXE Processing attacks.
    */
   protected boolean enableXxeProcessing = false;
@@ -1216,6 +1262,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     initCmmnHistoryEventProducer();
     initDmnHistoryEventProducer();
     initHistoryEventHandler();
+    initExpressionAccessPolicy();
     initExpressionManager();
     initBeans();
     initArtifactFactory();
@@ -2758,7 +2805,8 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
           .scriptEngineResolver(scriptingEngines)
           .feelCustomFunctionProviders(dmnFeelCustomFunctionProviders)
           .enableFeelLegacyBehavior(dmnFeelEnableLegacyBehavior)
-          .returnBlankTableOutputAsNull(dmnReturnBlankTableOutputAsNull);
+          .returnBlankTableOutputAsNull(dmnReturnBlankTableOutputAsNull)
+          .expressionAccessPolicy(getExpressionAccessPolicy());
 
       if (dmnElProvider != null) {
         dmnEngineConfigurationBuilder.elProvider(dmnElProvider);
@@ -2778,6 +2826,32 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected void initExpressionManager() {
     if (expressionManager == null) {
       expressionManager = new JuelExpressionManager(beans);
+    }
+
+    if (expressionManager instanceof JuelExpressionManager) {
+      JuelExpressionManager juelExpressionManager = (JuelExpressionManager) expressionManager;
+      ExpressionAccessPolicy managerPolicy = juelExpressionManager.getExpressionAccessPolicy();
+      if (!juelExpressionManager.canChangeExpressionAccessPolicy()) {
+        // used before the build: keep its policy
+        if (isExpressionAccessConfigured() && !hasSameRules(managerPolicy, getExpressionAccessPolicy())) {
+          ProcessEngineLogger.SECURITY_LOGGER.warnExpressionManagerAlreadyUsed(expressionManager.getClass().getName());
+        }
+        expressionAccessPolicy = managerPolicy;
+      } else if (managerPolicy == ExpressionAccessPolicy.DEFAULT) {
+        juelExpressionManager.setExpressionAccessPolicy(getExpressionAccessPolicy());
+      } else {
+        // a custom manager's policy applies on every path
+        if (managerPolicy.hasDefaultReporter()) {
+          managerPolicy = managerPolicy.withReporter(ProcessEngineLogger.SECURITY_LOGGER::reportDeniedExpressionAccess);
+          juelExpressionManager.setExpressionAccessPolicy(managerPolicy);
+        }
+        if (isExpressionAccessConfigured() && !hasSameRules(managerPolicy, getExpressionAccessPolicy())) {
+          ProcessEngineLogger.SECURITY_LOGGER.warnExpressionAccessPropertiesIgnored(expressionManager.getClass().getName());
+        }
+        expressionAccessPolicy = managerPolicy;
+      }
+    } else if (expressionManager != null && getExpressionAccessPolicy().isActive()) {
+      ProcessEngineLogger.SECURITY_LOGGER.warnExpressionManagerNotRestricted(expressionManager.getClass().getName());
     }
 
 
@@ -4778,6 +4852,136 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
 
   public void setEnableFilterExpressionWhitelist(boolean enableFilterExpressionWhitelist) {
     this.enableFilterExpressionWhitelist = enableFilterExpressionWhitelist;
+  }
+
+  /** @return the configured entries; {@link #getExpressionAccessPolicy()} has the effective ones */
+  public String getDeniedExpressionAccess() {
+    return deniedExpressionAccess;
+  }
+
+  /**
+   * @param deniedExpressionAccess entries added to the defaults, e.g. {@code "java.lang.System,-lang:import"};
+   *        null or blank for the defaults only.
+   *        EL functions are checked at parse time, also when the deployment
+   *        cache is rebuilt: a newly denied function can stop deployed definitions from loading, check in report mode first.
+   * @throws ProcessEngineException for an invalid entry, or once the process engine build started
+   */
+  public ProcessEngineConfigurationImpl setDeniedExpressionAccess(String deniedExpressionAccess) {
+    ensureExpressionAccessPolicyNotFrozen("deniedExpressionAccess");
+    try {
+      // fail on an invalid entry now
+      ExpressionAccessPolicy.create(deniedExpressionAccess, ExpressionHardeningMode.ENFORCE);
+    } catch (IllegalArgumentException e) {
+      throw new ProcessEngineException(e.getMessage(), e);
+    }
+    this.deniedExpressionAccess = deniedExpressionAccess;
+    this.expressionAccessPolicy = null;
+    return this;
+  }
+
+  /**
+   * @return the allowed task types and script languages, lower case. Empty means no check.
+   */
+  public Set<String> getExecutionAllowList() {
+    return executionAllowList;
+  }
+
+  /**
+   * @param executionAllowList comma-separated task types and script languages, e.g.
+   *        {@code "external, mail, juel, groovy, javascript, feel"}. {@code null} or an empty
+   *        String switches the check off. Entries are names, not patterns: an entry with a leading
+   *        minus (deny-list syntax of other settings) or a wildcard is rejected, since it would switch
+   *        the check on and block everything.
+   */
+  public ProcessEngineConfigurationImpl setExecutionAllowList(String executionAllowList) {
+    if (executionAllowList == null) {
+      this.executionAllowList = Collections.emptySet();
+    } else {
+      Set<String> entries = new HashSet<>();
+      for (String entry : executionAllowList.split(",")) {
+        entry = entry.trim();
+        if (entry.isEmpty()) {
+          continue;
+        }
+        if (entry.startsWith("-") || entry.contains("*")) {
+          throw new ProcessEngineException("Invalid executionAllowList entry '" + entry + "'. The list only contains the "
+              + "allowed task types and script languages by name; leading minus and wildcards are not supported. "
+              + "To deny an entry, leave it out of the list.");
+        }
+        entries.add(entry.toLowerCase(Locale.ROOT));
+      }
+      this.executionAllowList = Collections.unmodifiableSet(entries);
+    }
+    return this;
+  }
+
+  /**
+   * @return the configured mode in lower case, one of {@value #EXPRESSION_HARDENING_MODE_OFF},
+   *         {@value #EXPRESSION_HARDENING_MODE_REPORT} or {@value #EXPRESSION_HARDENING_MODE_ENFORCE};
+   *         {@link #getExpressionAccessPolicy()} has the effective mode of the deny list
+   */
+  public String getExpressionHardeningMode() {
+    return expressionHardeningMode.toString();
+  }
+
+  /**
+   * @param expressionHardeningMode {@value #EXPRESSION_HARDENING_MODE_OFF},
+   *        {@value #EXPRESSION_HARDENING_MODE_REPORT} or {@value #EXPRESSION_HARDENING_MODE_ENFORCE},
+   *        ignoring case. {@code null} or an empty String (e.g. an unset property placeholder) means the
+   *        default {@value #EXPRESSION_HARDENING_MODE_ENFORCE}. Applies to the deny list and the allow list.
+   * @throws ProcessEngineException for an unknown mode, or for a change once the process engine build started
+   *         (setting the current mode again is no change)
+   */
+  public ProcessEngineConfigurationImpl setExpressionHardeningMode(String expressionHardeningMode) {
+    ExpressionHardeningMode mode;
+    try {
+      mode = ExpressionHardeningMode.parse(expressionHardeningMode);
+    } catch (IllegalArgumentException e) {
+      throw new ProcessEngineException("Invalid expressionHardeningMode '" + expressionHardeningMode + "'. Allowed values: "
+          + EXPRESSION_HARDENING_MODE_OFF + ", " + EXPRESSION_HARDENING_MODE_REPORT + ", " + EXPRESSION_HARDENING_MODE_ENFORCE + ".", e);
+    }
+    if (mode == this.expressionHardeningMode) {
+      return this;
+    }
+    ensureExpressionAccessPolicyNotFrozen("expressionHardeningMode");
+    this.expressionHardeningMode = mode;
+    this.expressionAccessPolicy = null;
+    return this;
+  }
+
+  /** Whether the properties change the default policy, by content ("," or "class" change nothing). */
+  protected boolean isExpressionAccessConfigured() {
+    return !hasSameRules(getExpressionAccessPolicy(), ExpressionAccessPolicy.DEFAULT);
+  }
+
+  // same mode and entries; in mode off only the mode
+  protected static boolean hasSameRules(ExpressionAccessPolicy policy, ExpressionAccessPolicy other) {
+    return policy.getMode() == other.getMode()
+        && (!policy.isActive() || policy.getDeniedEntries().equals(other.getDeniedEntries()));
+  }
+
+  protected void ensureExpressionAccessPolicyNotFrozen(String property) {
+    if (expressionAccessPolicyFrozen) {
+      throw new ProcessEngineException(
+          "Property '" + property + "' cannot be changed after the process engine build started");
+    }
+  }
+
+  protected void initExpressionAccessPolicy() {
+    getExpressionAccessPolicy();
+    // a later change would not reach the expression manager, DMN or FEEL
+    expressionAccessPolicyFrozen = true;
+  }
+
+  /** The effective deny list: from the properties or a custom {@link JuelExpressionManager}; fixed at build. */
+  public ExpressionAccessPolicy getExpressionAccessPolicy() {
+    ExpressionAccessPolicy policy = expressionAccessPolicy;
+    if (policy == null) {
+      policy = ExpressionAccessPolicy.create(deniedExpressionAccess, expressionHardeningMode)
+          .withReporter(ProcessEngineLogger.SECURITY_LOGGER::reportDeniedExpressionAccess);
+      expressionAccessPolicy = policy;
+    }
+    return policy;
   }
 
   public boolean isEnableXxeProcessing() {

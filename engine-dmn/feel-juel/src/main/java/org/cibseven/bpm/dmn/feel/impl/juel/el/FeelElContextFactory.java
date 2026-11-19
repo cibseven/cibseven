@@ -28,6 +28,7 @@ import org.cibseven.bpm.dmn.feel.impl.juel.FeelEngineLogger;
 import org.cibseven.bpm.dmn.feel.impl.juel.FeelLogger;
 import org.cibseven.bpm.engine.variable.context.VariableContext;
 
+import org.cibseven.bpm.impl.juel.ExpressionAccessPolicy;
 import org.cibseven.bpm.impl.juel.SimpleResolver;
 
 public class FeelElContextFactory implements ElContextFactory {
@@ -35,10 +36,22 @@ public class FeelElContextFactory implements ElContextFactory {
   public static final FeelEngineLogger LOG = FeelLogger.ENGINE_LOGGER;
 
   protected CustomFunctionMapper customFunctionMapper = new CustomFunctionMapper();
+  protected final ExpressionAccessPolicy expressionAccessPolicy;
+
+  public FeelElContextFactory() {
+    this(ExpressionAccessPolicy.DEFAULT);
+  }
+
+  /**
+   * @param expressionAccessPolicy the deny list for the resolver and the functions
+   */
+  public FeelElContextFactory(ExpressionAccessPolicy expressionAccessPolicy) {
+    this.expressionAccessPolicy = expressionAccessPolicy;
+  }
 
   public ELContext createContext(ExpressionFactory expressionFactory, VariableContext variableContext) {
-    ELResolver elResolver = createElResolver();
-    FunctionMapper functionMapper = createFunctionMapper();
+    ELResolver elResolver = expressionAccessPolicy.restrict(createElResolver());
+    FunctionMapper functionMapper = expressionAccessPolicy.restrict(createFunctionMapper());
     VariableMapper variableMapper = createVariableMapper(expressionFactory, variableContext);
 
     return new FeelElContext(elResolver, functionMapper, variableMapper);

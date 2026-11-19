@@ -60,7 +60,13 @@ public final class TreeValueExpression extends jakarta.el.ValueExpression {
 		Tree tree = store.get(expr);
 
 		this.builder = store.getBuilder();
-		this.bindings = tree.bind(functions, variables, converter);
+		// functions are bound here: the deny list reports a denied function with this expression
+		String previous = ExpressionAccessPolicy.enterExpression(expr);
+		try {
+			this.bindings = tree.bind(functions, variables, converter);
+		} finally {
+			ExpressionAccessPolicy.exitExpression(previous);
+		}
 		this.expr = expr;
 		this.type = type;
 		this.node = tree.getRoot();
@@ -97,7 +103,12 @@ public final class TreeValueExpression extends jakarta.el.ValueExpression {
    */
 	@Override
 	public Class<?> getType(ELContext context) throws ELException {
-		return node.getType(bindings, context);
+		String previous = ExpressionAccessPolicy.enterExpression(expr);
+		try {
+			return node.getType(bindings, context);
+		} finally {
+			ExpressionAccessPolicy.exitExpression(previous);
+		}
 	}
 
   /**
@@ -109,7 +120,12 @@ public final class TreeValueExpression extends jakarta.el.ValueExpression {
    */
 	@Override
 	public Object getValue(ELContext context) throws ELException {
-		return node.getValue(bindings, context, type);
+		String previous = ExpressionAccessPolicy.enterExpression(expr);
+		try {
+			return node.getValue(bindings, context, type);
+		} finally {
+			ExpressionAccessPolicy.exitExpression(previous);
+		}
 	}
 
 	/**
@@ -122,7 +138,12 @@ public final class TreeValueExpression extends jakarta.el.ValueExpression {
 	 */
 	@Override
 	public boolean isReadOnly(ELContext context) throws ELException {
-		return node.isReadOnly(bindings, context);
+		String previous = ExpressionAccessPolicy.enterExpression(expr);
+		try {
+			return node.isReadOnly(bindings, context);
+		} finally {
+			ExpressionAccessPolicy.exitExpression(previous);
+		}
 	}
 
 	/**
@@ -133,7 +154,12 @@ public final class TreeValueExpression extends jakarta.el.ValueExpression {
 	 */
 	@Override
 	public void setValue(ELContext context, Object value) throws ELException {
-		node.setValue(bindings, context, value); 
+		String previous = ExpressionAccessPolicy.enterExpression(expr);
+		try {
+			node.setValue(bindings, context, value);
+		} finally {
+			ExpressionAccessPolicy.exitExpression(previous);
+		}
 	}
 
 	/**
@@ -146,7 +172,12 @@ public final class TreeValueExpression extends jakarta.el.ValueExpression {
 
 	@Override
 	public ValueReference getValueReference(ELContext context) {
-		return node.getValueReference(bindings, context);
+		String previous = ExpressionAccessPolicy.enterExpression(expr);
+		try {
+			return node.getValueReference(bindings, context);
+		} finally {
+			ExpressionAccessPolicy.exitExpression(previous);
+		}
 	}
 
 	/**

@@ -27,6 +27,7 @@ import jakarta.el.ResourceBundleELResolver;
 import org.cibseven.bpm.dmn.engine.impl.spi.el.ElExpression;
 import org.cibseven.bpm.dmn.engine.impl.spi.el.ElProvider;
 
+import org.cibseven.bpm.impl.juel.ExpressionAccessPolicy;
 import org.cibseven.bpm.impl.juel.ExpressionFactoryImpl;
 import org.cibseven.bpm.impl.juel.JuelBeanELResolver;
 import org.cibseven.bpm.impl.juel.TreeValueExpression;
@@ -45,11 +46,18 @@ public class JuelElProvider implements ElProvider {
   protected final ELContext parsingElContext;
 
   public JuelElProvider() {
-    this(new ExpressionFactoryImpl());
+    this(ExpressionAccessPolicy.DEFAULT);
   }
 
-  private JuelElProvider(ExpressionFactoryImpl expressionFactory) {
-    this(expressionFactory, new JuelElContextFactory(createDefaultResolver(), expressionFactory));
+  /**
+   * @param expressionAccessPolicy the deny list for the expressions
+   */
+  public JuelElProvider(ExpressionAccessPolicy expressionAccessPolicy) {
+    this(new ExpressionFactoryImpl(), expressionAccessPolicy);
+  }
+
+  private JuelElProvider(ExpressionFactoryImpl expressionFactory, ExpressionAccessPolicy expressionAccessPolicy) {
+    this(expressionFactory, new JuelElContextFactory(createDefaultResolver(), expressionFactory, expressionAccessPolicy));
   }
 
   public JuelElProvider(ExpressionFactoryImpl expressionFactory, JuelElContextFactory elContextFactory) {

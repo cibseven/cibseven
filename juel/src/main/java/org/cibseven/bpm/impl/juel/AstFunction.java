@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 
 import jakarta.el.ELContext;
 import jakarta.el.ELException;
+import jakarta.el.ELResolver;
 
 
 public class AstFunction extends AstRightValue implements FunctionNode {
@@ -114,7 +115,20 @@ public class AstFunction extends AstRightValue implements FunctionNode {
 	public Object eval(Bindings bindings, ELContext context) {
 		Method method = bindings.getFunction(index);
 		try {
-			return invoke(bindings, context, null, method);
+			Object result = invoke(bindings, context, null, method);
+			// a function calls its method directly, no resolver sees the result
+			ExpressionAccessPolicy policy = null;
+			ELResolver resolver = context.getELResolver();
+			if (resolver instanceof RestrictedELResolver) {
+				policy = ((RestrictedELResolver) resolver).getPolicy();
+			} else if (context.getFunctionMapper() instanceof RestrictedFunctionMapper) {
+				// e.g. a context that wraps the restricted resolver
+				policy = ((RestrictedFunctionMapper) context.getFunctionMapper()).getPolicy();
+			}
+			if (policy != null) {
+				policy.checkResult(null, null, result);
+			}
+			return result;
 		} catch (IllegalAccessException e) {
 			throw new ELException(LocalMessages.get("error.function.access", name), e);
 		} catch (InvocationTargetException e) {

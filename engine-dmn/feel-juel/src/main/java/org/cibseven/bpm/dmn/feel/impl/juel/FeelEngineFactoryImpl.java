@@ -34,6 +34,7 @@ import org.cibseven.bpm.dmn.feel.impl.juel.transform.FeelToJuelTransformImpl;
 import org.cibseven.commons.utils.cache.Cache;
 import org.cibseven.commons.utils.cache.ConcurrentLruCache;
 
+import org.cibseven.bpm.impl.juel.ExpressionAccessPolicy;
 import org.cibseven.bpm.impl.juel.ExpressionFactoryImpl;
 
 public class FeelEngineFactoryImpl implements FeelEngineFactory {
@@ -46,6 +47,7 @@ public class FeelEngineFactoryImpl implements FeelEngineFactory {
 
   protected final int expressionCacheSize;
   protected final List<FeelToJuelFunctionTransformer> customFunctionTransformers;
+  protected final ExpressionAccessPolicy expressionAccessPolicy;
 
   public FeelEngineFactoryImpl() {
     this(DEFAULT_EXPRESSION_CACHE_SIZE);
@@ -60,10 +62,23 @@ public class FeelEngineFactoryImpl implements FeelEngineFactory {
   }
 
   public FeelEngineFactoryImpl(int expressionCacheSize, List<FeelToJuelFunctionTransformer> customFunctionTransformers) {
+    this(expressionCacheSize, customFunctionTransformers, ExpressionAccessPolicy.DEFAULT);
+  }
+
+  /**
+   * @param expressionAccessPolicy the deny list for the transformed JUEL expressions
+   */
+  public FeelEngineFactoryImpl(int expressionCacheSize, List<FeelToJuelFunctionTransformer> customFunctionTransformers,
+      ExpressionAccessPolicy expressionAccessPolicy) {
     this.expressionCacheSize = expressionCacheSize;
     this.customFunctionTransformers = customFunctionTransformers;
+    this.expressionAccessPolicy = expressionAccessPolicy;
 
     feelEngine = createFeelEngine();
+  }
+
+  public ExpressionAccessPolicy getExpressionAccessPolicy() {
+    return expressionAccessPolicy;
   }
 
   public FeelEngine createInstance() {
@@ -105,7 +120,7 @@ public class FeelEngineFactoryImpl implements FeelEngineFactory {
   }
 
   protected ElContextFactory createElContextFactory() {
-    FeelElContextFactory factory = new FeelElContextFactory();
+    FeelElContextFactory factory = new FeelElContextFactory(expressionAccessPolicy);
 
     for (FeelToJuelFunctionTransformer functionTransformer : customFunctionTransformers) {
       factory.addCustomFunction(functionTransformer.getName(), functionTransformer.getMethod());

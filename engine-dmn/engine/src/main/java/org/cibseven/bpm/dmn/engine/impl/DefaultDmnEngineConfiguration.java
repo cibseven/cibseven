@@ -18,6 +18,7 @@ package org.cibseven.bpm.dmn.engine.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.cibseven.bpm.dmn.engine.DmnEngine;
@@ -36,8 +37,10 @@ import org.cibseven.bpm.dmn.engine.spi.DmnEngineMetricCollector;
 import org.cibseven.bpm.dmn.feel.impl.FeelEngine;
 import org.cibseven.bpm.dmn.feel.impl.FeelEngineFactory;
 import org.cibseven.bpm.dmn.feel.impl.juel.FeelEngineFactoryImpl;
+import org.cibseven.bpm.dmn.feel.impl.juel.transform.FeelToJuelFunctionTransformer;
 import org.cibseven.bpm.dmn.feel.impl.scala.ScalaFeelEngineFactory;
 import org.cibseven.bpm.dmn.feel.impl.scala.function.FeelCustomFunctionProvider;
+import org.cibseven.bpm.impl.juel.ExpressionAccessPolicy;
 import org.cibseven.bpm.model.dmn.impl.DmnModelConstants;
 
 public class DefaultDmnEngineConfiguration extends DmnEngineConfiguration {
@@ -65,6 +68,12 @@ public class DefaultDmnEngineConfiguration extends DmnEngineConfiguration {
   protected ElProvider elProvider;
   protected FeelEngineFactory feelEngineFactory;
   protected FeelEngine feelEngine;
+
+  /**
+   * Deny list for JUEL expressions and the legacy JUEL-based FEEL engine,
+   * {@link ExpressionAccessPolicy#DEFAULT} if not set.
+   */
+  protected ExpressionAccessPolicy expressionAccessPolicy;
 
   /**
    * a list of DMN FEEL custom function providers
@@ -97,6 +106,7 @@ public class DefaultDmnEngineConfiguration extends DmnEngineConfiguration {
     initDecisionEvaluationListener();
     initScriptEngineResolver();
     initElDefaults();
+    initExpressionAccessPolicy();
     initElProvider();
     initFeelEngine();
   }
@@ -177,9 +187,15 @@ public class DefaultDmnEngineConfiguration extends DmnEngineConfiguration {
     return defaultListeners;
   }
 
+  protected void initExpressionAccessPolicy() {
+    if (expressionAccessPolicy == null) {
+      expressionAccessPolicy = ExpressionAccessPolicy.DEFAULT;
+    }
+  }
+
   protected void initElProvider() {
     if(elProvider == null) {
-      elProvider = new JuelElProvider();
+      elProvider = new JuelElProvider(expressionAccessPolicy);
     }
   }
 
@@ -195,7 +211,8 @@ public class DefaultDmnEngineConfiguration extends DmnEngineConfiguration {
         feelEngineFactory = new ScalaFeelEngineFactory(feelCustomFunctionProviders);
 
       } else {
-        feelEngineFactory = new FeelEngineFactoryImpl();
+        feelEngineFactory = new FeelEngineFactoryImpl(FeelEngineFactoryImpl.DEFAULT_EXPRESSION_CACHE_SIZE,
+            Collections.<FeelToJuelFunctionTransformer> emptyList(), expressionAccessPolicy);
 
       }
     }
@@ -389,6 +406,24 @@ public class DefaultDmnEngineConfiguration extends DmnEngineConfiguration {
    */
   public DefaultDmnEngineConfiguration feelEngineFactory(FeelEngineFactory feelEngineFactory) {
     setFeelEngineFactory(feelEngineFactory);
+    return this;
+  }
+
+  /**
+   * @return the deny list for JUEL expressions and the legacy JUEL-based FEEL engine
+   */
+  public ExpressionAccessPolicy getExpressionAccessPolicy() {
+    return expressionAccessPolicy;
+  }
+
+  /** Deny list for the default el provider and legacy FEEL engine factory; {@code DEFAULT} if not set. */
+  public void setExpressionAccessPolicy(ExpressionAccessPolicy expressionAccessPolicy) {
+    this.expressionAccessPolicy = expressionAccessPolicy;
+  }
+
+  /** Deny list for the default el provider and legacy FEEL engine factory; {@code DEFAULT} if not set. */
+  public DefaultDmnEngineConfiguration expressionAccessPolicy(ExpressionAccessPolicy expressionAccessPolicy) {
+    setExpressionAccessPolicy(expressionAccessPolicy);
     return this;
   }
 

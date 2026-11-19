@@ -18,6 +18,8 @@ package org.cibseven.bpm.engine.impl.scripting.engine;
 
 import static org.cibseven.bpm.engine.impl.util.EnsureUtil.ensureNotNull;
 
+import java.util.Locale;
+
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -31,6 +33,7 @@ import org.cibseven.bpm.application.ProcessApplicationUnavailableException;
 import org.cibseven.bpm.dmn.engine.impl.spi.el.DmnScriptEngineResolver;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.delegate.VariableScope;
+import org.cibseven.bpm.engine.impl.ExecutionAllowListChecker;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.Context;
 
@@ -101,13 +104,17 @@ public class ScriptingEngines implements DmnScriptEngineResolver {
    *
    * @param language the name of the script language to lookup an implementation for
    * @return the script engine
-   * @throws ProcessEngineException if no such engine can be found.
+   * @throws ProcessEngineException if no such engine can be found, or if the
+   *   {@link ProcessEngineConfigurationImpl#getExecutionAllowList() executionAllowList} does not allow the language.
    */
   public ScriptEngine getScriptEngineForLanguage(String language) {
 
     if (language != null) {
-      language = language.toLowerCase();
+      language = language.toLowerCase(Locale.ROOT);
     }
+
+    // checked here and not in the ScriptEngineResolver: the process application path below bypasses the resolver
+    ExecutionAllowListChecker.ensureScriptLanguageAllowed(language);
 
     ProcessApplicationReference pa = Context.getCurrentProcessApplication();
     ProcessEngineConfigurationImpl config = Context.getProcessEngineConfiguration();

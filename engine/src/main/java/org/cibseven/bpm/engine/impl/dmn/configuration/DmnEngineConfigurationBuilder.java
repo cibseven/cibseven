@@ -31,6 +31,7 @@ import org.cibseven.bpm.engine.impl.dmn.transformer.DecisionRequirementsDefiniti
 import org.cibseven.bpm.engine.impl.history.parser.HistoryDecisionEvaluationListener;
 import org.cibseven.bpm.engine.impl.history.producer.DmnHistoryEventProducer;
 import org.cibseven.bpm.engine.impl.metrics.dmn.MetricsDecisionEvaluationListener;
+import org.cibseven.bpm.impl.juel.ExpressionAccessPolicy;
 import org.cibseven.bpm.model.dmn.instance.Decision;
 import org.cibseven.bpm.model.dmn.instance.Definitions;
 
@@ -49,6 +50,7 @@ public class DmnEngineConfigurationBuilder {
   protected DmnScriptEngineResolver scriptEngineResolver;
   protected ElProvider elProvider;
   protected List<FeelCustomFunctionProvider> feelCustomFunctionProviders;
+  protected ExpressionAccessPolicy expressionAccessPolicy;
 
   /**
    * Creates a new builder to modify the given DMN engine configuration.
@@ -73,6 +75,12 @@ public class DmnEngineConfigurationBuilder {
 
   public DmnEngineConfigurationBuilder elProvider(ElProvider elProvider) {
     this.elProvider = elProvider;
+
+    return this;
+  }
+
+  public DmnEngineConfigurationBuilder expressionAccessPolicy(ExpressionAccessPolicy expressionAccessPolicy) {
+    this.expressionAccessPolicy = expressionAccessPolicy;
 
     return this;
   }
@@ -107,6 +115,11 @@ public class DmnEngineConfigurationBuilder {
     if (dmnEngineConfiguration.getElProvider() == null) {
       ensureNotNull("elProvider", elProvider);
       dmnEngineConfiguration.setElProvider(elProvider);
+    }
+
+    // do not override the deny list if set
+    if (dmnEngineConfiguration.getExpressionAccessPolicy() == null) {
+      dmnEngineConfiguration.setExpressionAccessPolicy(expressionAccessPolicy);
     }
 
     if (dmnEngineConfiguration.getFeelCustomFunctionProviders() == null) {

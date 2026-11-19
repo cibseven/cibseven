@@ -16,6 +16,7 @@
  */
 package org.cibseven.bpm.engine.impl.bpmn.behavior;
 
+import org.cibseven.bpm.engine.impl.ExecutionAllowListChecker;
 import org.cibseven.bpm.engine.impl.PriorityProvider;
 import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.core.variable.mapping.value.ParameterValueProvider;
@@ -46,6 +47,9 @@ public class ExternalTaskActivityBehavior extends AbstractBpmnActivityBehavior i
 
   @Override
   public void execute(ActivityExecution execution) throws Exception {
+    // also covers process definitions deployed before the allow list was set
+    ExecutionAllowListChecker.ensureTaskTypeAllowed(ExecutionAllowListChecker.TASK_TYPE_EXTERNAL, execution.getCurrentActivityId());
+
     ExecutionEntity executionEntity = (ExecutionEntity) execution;
     PriorityProvider<ExternalTaskActivityBehavior> provider = Context.getProcessEngineConfiguration().getExternalTaskPriorityProvider();
 

@@ -42,6 +42,7 @@ import org.cibseven.bpm.engine.delegate.ExecutionListener;
 import org.cibseven.bpm.engine.delegate.TaskListener;
 import org.cibseven.bpm.engine.delegate.VariableListener;
 import org.cibseven.bpm.engine.impl.Condition;
+import org.cibseven.bpm.engine.impl.ExecutionAllowListChecker;
 import org.cibseven.bpm.engine.impl.HistoryTimeToLiveParser;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.bpmn.behavior.BoundaryConditionalEventActivityBehavior;
@@ -2315,11 +2316,14 @@ public class BpmnParse extends Parse {
     String resultVariableName = parseResultVariable(serviceTaskElement);
 
     if (type != null) {
-      if (type.equalsIgnoreCase("mail")) {
+      if (type.equalsIgnoreCase(ExecutionAllowListChecker.TASK_TYPE_MAIL)) {
+        checkTaskTypeAllowed(ExecutionAllowListChecker.TASK_TYPE_MAIL, activity, serviceTaskElement);
         parseEmailServiceTask(activity, serviceTaskElement, parseFieldDeclarations(serviceTaskElement));
-      } else if (type.equalsIgnoreCase("shell")) {
+      } else if (type.equalsIgnoreCase(ExecutionAllowListChecker.TASK_TYPE_SHELL)) {
+        checkTaskTypeAllowed(ExecutionAllowListChecker.TASK_TYPE_SHELL, activity, serviceTaskElement);
         parseShellServiceTask(activity, serviceTaskElement, parseFieldDeclarations(serviceTaskElement));
-      } else if (type.equalsIgnoreCase("external")) {
+      } else if (type.equalsIgnoreCase(ExecutionAllowListChecker.TASK_TYPE_EXTERNAL)) {
+        checkTaskTypeAllowed(ExecutionAllowListChecker.TASK_TYPE_EXTERNAL, activity, serviceTaskElement);
         parseExternalServiceTask(activity, serviceTaskElement, camundaPropertiesElement);
       } else {
         addError("Invalid usage of type attribute on " + elementName + ": '" + type + "'", serviceTaskElement);
@@ -2340,6 +2344,22 @@ public class BpmnParse extends Parse {
     } else if (expression != null && expression.trim().length() > 0) {
       activity.setActivityBehavior(new ServiceTaskExpressionActivityBehavior(expressionManager.createExpression(expression), resultVariableName));
 
+    }
+  }
+
+  /**
+   * Rejects a new deployment whose task type the
+   * {@link org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl#getExecutionAllowList() executionAllowList}
+   * does not allow.
+   * Process definitions of existing deployments (e.g. parsed again after a cache eviction) are not
+   * rejected here, so they stay readable; the behaviors check them at execution time.
+   */
+  protected void checkTaskTypeAllowed(String taskType, ActivityImpl activity, Element element) {
+    if (deployment != null && !deployment.isNew()) {
+      return;
+    }
+    if (ExecutionAllowListChecker.isBlocked(ExecutionAllowListChecker.KIND_TASK_TYPE, taskType, activity.getId())) {
+      addError(ExecutionAllowListChecker.getViolationMessage(ExecutionAllowListChecker.KIND_TASK_TYPE, taskType, activity.getId()), element);
     }
   }
 

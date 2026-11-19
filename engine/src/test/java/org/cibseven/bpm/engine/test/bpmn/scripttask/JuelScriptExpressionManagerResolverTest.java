@@ -55,6 +55,8 @@ import org.cibseven.bpm.engine.variable.VariableMap;
 import org.cibseven.bpm.engine.variable.Variables;
 import org.cibseven.bpm.model.bpmn.Bpmn;
 import org.cibseven.bpm.model.bpmn.BpmnModelInstance;
+import org.cibseven.bpm.impl.juel.ExpressionAccessDeniedException;
+import org.cibseven.bpm.impl.juel.ExpressionAccessPolicy;
 import org.cibseven.commons.testing.ProcessEngineLoggingRule;
 import org.cibseven.commons.testing.WatchLogger;
 import org.junit.jupiter.api.AfterEach;
@@ -147,6 +149,31 @@ public class JuelScriptExpressionManagerResolverTest {
     assertThatThrownBy(() -> startProcess(memberNameVariables()))
         .isInstanceOf(ProcessEngineException.class)
         .hasStackTraceContaining(BLOCKED);
+  }
+
+  /**
+   * CIB7-2652: with the default deny list, the filter throws (a resolver that only declines would be
+   * skipped) and covers getValue ({@code ''.class}, {@code ''['class']}) and invoke ({@code ''.getClass()}),
+   * with the stock and with a customized expression manager.
+   */
+  @Test
+  public void shouldThrowForEveryClassNotationWithDefaultDenyList() {
+    for (boolean customized : new boolean[] { false, true }) {
+      for (String notation : accessNotations().toArray(String[]::new)) {
+        try {
+          buildEngine(expressionManager(customized), configuration -> configuration.setDeniedExpressionAccess(null));
+          deploy(juelScriptProcess(notation));
+
+          assertThatThrownBy(() -> startProcess(memberNameVariables()))
+              .isInstanceOf(ProcessEngineException.class)
+              .hasRootCauseInstanceOf(ExpressionAccessDeniedException.class);
+        } catch (AssertionError | RuntimeException e) {
+          throw new AssertionError("customized = " + customized + ", notation = " + notation, e);
+        } finally {
+          closeEngine();
+        }
+      }
+    }
   }
 
   @Test
@@ -577,6 +604,10 @@ public class JuelScriptExpressionManagerResolverTest {
     if (expressionManager != null) {
       configuration.setExpressionManager(expressionManager);
     }
+    // isolate the expression manager's chain from the deny list (CIB7-2652), which blocks getClass first:
+    // remove every default entry, only the protected types stay denied
+    configuration.setDeniedExpressionAccess(
+        "-" + ExpressionAccessPolicy.DEFAULT_DENIED_EXPRESSION_ACCESS.replace(",", ",-"));
     configurator.accept(configuration);
     engine = configuration.buildProcessEngine();
   }

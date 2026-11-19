@@ -22,6 +22,7 @@ import jakarta.el.ExpressionFactory;
 
 import org.cibseven.bpm.engine.variable.context.VariableContext;
 
+import org.cibseven.bpm.impl.juel.ExpressionAccessPolicy;
 import org.cibseven.bpm.impl.juel.SimpleContext;
 
 /**
@@ -33,17 +34,31 @@ public class JuelElContextFactory {
   protected final ELResolver resolver;
   protected final ExpressionFactory expressionFactory;
 
+  /**
+   * Restricts the resolver with {@link ExpressionAccessPolicy#DEFAULT}.
+   */
   public JuelElContextFactory(ELResolver resolver) {
-    this(resolver, null);
+    this(resolver, null, ExpressionAccessPolicy.DEFAULT);
   }
 
   /**
+   * Restricts the resolver with {@link ExpressionAccessPolicy#DEFAULT}.
+   *
    * @param expressionFactory the factory that is put into every context, so that
    *          {@link ELContext#convertToType(Object, Class)} converts with JUEL instead of
    *          the global {@link jakarta.el.ELManager} (CIB7-2609); may be {@code null}
    */
   public JuelElContextFactory(ELResolver resolver, ExpressionFactory expressionFactory) {
-    this.resolver = resolver;
+    this(resolver, expressionFactory, ExpressionAccessPolicy.DEFAULT);
+  }
+
+  /**
+   * @param expressionFactory the factory that is put into every context (CIB7-2609); may be {@code null}
+   * @param expressionAccessPolicy the deny list the resolver is restricted with
+   */
+  public JuelElContextFactory(ELResolver resolver, ExpressionFactory expressionFactory,
+      ExpressionAccessPolicy expressionAccessPolicy) {
+    this.resolver = expressionAccessPolicy.restrict(resolver);
     this.expressionFactory = expressionFactory;
   }
 

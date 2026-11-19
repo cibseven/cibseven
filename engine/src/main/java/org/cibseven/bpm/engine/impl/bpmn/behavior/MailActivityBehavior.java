@@ -24,6 +24,7 @@ import org.apache.commons.mail.HtmlEmail;
 import org.apache.commons.mail.SimpleEmail;
 import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.Expression;
+import org.cibseven.bpm.engine.impl.ExecutionAllowListChecker;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.context.Context;
@@ -47,6 +48,9 @@ public class MailActivityBehavior extends AbstractBpmnActivityBehavior {
   protected Expression charset;
 
   public void execute(ActivityExecution execution) {
+    // also covers process definitions deployed before the allow list was set
+    ExecutionAllowListChecker.ensureTaskTypeAllowed(ExecutionAllowListChecker.TASK_TYPE_MAIL, execution.getCurrentActivityId());
+
     String toStr = getStringFromField(to, execution);
     String fromStr = getStringFromField(from, execution);
     String ccStr = getStringFromField(cc, execution);
