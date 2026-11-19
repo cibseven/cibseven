@@ -3296,7 +3296,10 @@ public class AgenticTurnJobTest {
         .contains("\"interruptedBy\":[{")
         .contains("\"errorCode\":\"GESPERRT\"")
         .contains("'buchen' did not complete")
-        .contains("Its path still runs. You will get another turn when it finishes.");
+        .contains("Its path still runs. You will get another turn when it finishes.")
+        // Interrupted, the tool did not complete: whether to try it again is the agent's call
+        // (GH-610), so its note has no do-not-start-again hint.
+        .doesNotContain("Do not start");
   }
 
   /**

@@ -471,6 +471,14 @@ public class AdHocSubProcessToolTest {
 
   // --- models ----------------------------------------------------------------
 
+  /**
+   * Marks a child as one the agent may not start again while an earlier instance of it runs
+   * (GH-610): {@code adHocBlockedWhileSameRuns} is off unless a model sets it.
+   */
+  private static final String SAME_RUNS_PROPERTIES = "<camunda:properties>"
+      + "<camunda:property name='adHocBlockedWhileSameRuns' value='true' />"
+      + "</camunda:properties>";
+
   private static final String LONG_TEXT = WritesLongText.class.getName();
   private static final String OBJECT = WritesObject.class.getName();
   private static final String DOCUMENT = WritesDocument.class.getName();
@@ -520,10 +528,12 @@ public class AdHocSubProcessToolTest {
         // any variable they like, which is what aDeclaringActivityReportsOnlyWhatItDeclares
         // is about.
         + "        <camunda:formField id='decision' label='Decision' type='string' />"
-        + "      </camunda:formData></extensionElements>"
+        + "      </camunda:formData>" + SAME_RUNS_PROPERTIES + "</extensionElements>"
         + "    </userTask>"
         + "    <serviceTask id='quick' name='Quick'"
-        + "        camunda:expression='${200}' camunda:resultVariable='amount' />"
+        + "        camunda:expression='${200}' camunda:resultVariable='amount'>"
+        + "      <extensionElements>" + SAME_RUNS_PROPERTIES + "</extensionElements>"
+        + "    </serviceTask>"
         + "    <serviceTask id='bigText' name='Big text' camunda:class='" + LONG_TEXT + "'>"
         + "      <extensionElements><camunda:properties>"
         + "        <camunda:property name='adHocResultVariables' value='report' />"
@@ -535,8 +545,11 @@ public class AdHocSubProcessToolTest {
         + "      </camunda:properties></extensionElements>"
         + "    </serviceTask>"
         + "    <serviceTask id='asyncChild' name='Async child' camunda:asyncBefore='true'"
-        + "        camunda:expression='${1}' camunda:resultVariable='asyncDone' />"
+        + "        camunda:expression='${1}' camunda:resultVariable='asyncDone'>"
+        + "      <extensionElements>" + SAME_RUNS_PROPERTIES + "</extensionElements>"
+        + "    </serviceTask>"
         + "    <userTask id='multi' name='Multi'>"
+        + "      <extensionElements>" + SAME_RUNS_PROPERTIES + "</extensionElements>"
         + "      <multiInstanceLoopCharacteristics isSequential='false'>"
         + "        <loopCardinality>3</loopCardinality>"
         + "      </multiInstanceLoopCharacteristics>"
@@ -573,6 +586,54 @@ public class AdHocSubProcessToolTest {
         + "        <camunda:property name='adHocResultVariables' value='q0,q1,q2' />"
         + "      </camunda:properties></extensionElements>"
         + "    </serviceTask>"
+        // As 'waits', but not marked, so it may run more than once at a time (GH-610).
+        + "    <userTask id='waitsAgain' name='Waits for a person, more than once'>"
+        + "      <extensionElements>"
+        + "        <camunda:formData>"
+        + "          <camunda:formField id='decision' label='Decision' type='string' />"
+        + "        </camunda:formData>"
+        + "      </extensionElements>"
+        + "    </userTask>"
+        // Marked to wait for everything else, not for a second instance of itself (GH-610):
+        // whether the older marking alone holds back a second instance of it.
+        + "    <userTask id='gatedWaits' name='Gated, waits'>"
+        + "      <extensionElements><camunda:properties>"
+        + "        <camunda:property name='adHocBlockedWhileOthersRun' value='true' />"
+        + "      </camunda:properties></extensionElements>"
+        + "    </userTask>"
+        // A tool whose chain goes on along an inner flow to a task that waits (GH-610).
+        + "    <serviceTask id='chainStart' name='Chain start' camunda:expression='${1}'>"
+        + "      <extensionElements>" + SAME_RUNS_PROPERTIES + "</extensionElements>"
+        + "    </serviceTask>"
+        + "    <sequenceFlow id='chainFlow' sourceRef='chainStart' targetRef='chainWaits' />"
+        + "    <userTask id='chainWaits' name='Chain waits' />"
+        // An embedded sub process, whose execution shows only its inner task (GH-610).
+        + "    <subProcess id='nested' name='Nested'>"
+        + "      <extensionElements>" + SAME_RUNS_PROPERTIES + "</extensionElements>"
+        + "      <startEvent id='nestedStart' />"
+        + "      <sequenceFlow id='nestedIn' sourceRef='nestedStart' targetRef='nestedWaits' />"
+        + "      <userTask id='nestedWaits' name='Nested waits' />"
+        + "      <sequenceFlow id='nestedOut' sourceRef='nestedWaits' targetRef='nestedEnd' />"
+        + "      <endEvent id='nestedEnd' />"
+        + "    </subProcess>"
+        // A multi-instance tool queued by asyncBefore: its execution carries only the generated
+        // multi-instance body (PR #611 review).
+        + "    <userTask id='asyncMulti' name='Async multi' camunda:asyncBefore='true'>"
+        + "      <extensionElements>" + SAME_RUNS_PROPERTIES + "</extensionElements>"
+        + "      <multiInstanceLoopCharacteristics isSequential='false'>"
+        + "        <loopCardinality>2</loopCardinality>"
+        + "      </multiInstanceLoopCharacteristics>"
+        + "    </userTask>"
+        // Two tools whose flows meet in one task (GH-610).
+        + "    <serviceTask id='sharedA' name='Shared A' camunda:expression='${1}'>"
+        + "      <extensionElements>" + SAME_RUNS_PROPERTIES + "</extensionElements>"
+        + "    </serviceTask>"
+        + "    <serviceTask id='sharedB' name='Shared B' camunda:expression='${1}'>"
+        + "      <extensionElements>" + SAME_RUNS_PROPERTIES + "</extensionElements>"
+        + "    </serviceTask>"
+        + "    <sequenceFlow id='sharedFromA' sourceRef='sharedA' targetRef='sharedWaits' />"
+        + "    <sequenceFlow id='sharedFromB' sourceRef='sharedB' targetRef='sharedWaits' />"
+        + "    <userTask id='sharedWaits' name='Shared waits' />"
         + "    <serviceTask id='quotedBlock' name='Quoted block' camunda:class='"
         + WritesManyQuotedTexts.class.getName() + "'>"
         + "      <extensionElements><camunda:properties>"
@@ -656,13 +717,19 @@ public class AdHocSubProcessToolTest {
 
   private ProcessInstance startWithoutTurn(String processId, String extraScopeProperties,
                                            Turn... script) {
+    return startModelWithoutTurn(processId, model(processId, extraScopeProperties), script);
+  }
+
+  /** Same, with a model of the test's own, such as a variant of {@link #model}. */
+  private ProcessInstance startModelWithoutTurn(String processId, String modelXml,
+                                                Turn... script) {
     ScriptedAgent.Turn[] turns = new ScriptedAgent.Turn[script.length];
     for (int i = 0; i < script.length; i++) {
       turns[i] = agent(script[i]);
     }
     ScriptedAgent.install(turns);
     ENGINE.getRepositoryService().createDeployment()
-        .addString(processId + ".bpmn20.xml", model(processId, extraScopeProperties))
+        .addString(processId + ".bpmn20.xml", modelXml)
         .deploy();
     return ENGINE.getRuntimeService().startProcessInstanceByKey(processId);
   }
@@ -2800,14 +2867,15 @@ public class AdHocSubProcessToolTest {
    */
   @Test
   public void twoPerformancesOfOneToolAreReportedSeparately() {
+    // 'waitsAgain' opts out of the guard against a second instance (GH-610).
     start("twoRuns", tool -> {
-      tool.startActivity("waits", Collections.<String, Object>emptyMap());
-      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      tool.startActivity("waitsAgain", Collections.<String, Object>emptyMap());
+      tool.startActivity("waitsAgain", Collections.<String, Object>emptyMap());
       return null;
     });
 
     for (Task task : ENGINE.getTaskService().createTaskQuery()
-        .taskDefinitionKey("waits").list()) {
+        .taskDefinitionKey("waitsAgain").list()) {
       ENGINE.getTaskService().complete(task.getId(),
           Collections.<String, Object>singletonMap("decision", "for-" + task.getId()));
     }
@@ -2818,7 +2886,7 @@ public class AdHocSubProcessToolTest {
 
     List<Map<String, Object>> finished = finished(result(1));
     assertThat(finished).as("both performances, not one").hasSize(2);
-    assertThat(ids2(finished, "activityId")).containsExactly("waits", "waits");
+    assertThat(ids2(finished, "activityId")).containsExactly("waitsAgain", "waitsAgain");
     assertThat(ids2(finished, "activityInstanceId"))
         .as("each entry names the performance it came from").doesNotHaveDuplicates();
     List<Object> decisions = new ArrayList<>();
@@ -2951,13 +3019,15 @@ public class AdHocSubProcessToolTest {
 
   @Test
   public void theReportSaysWhichActivityIsNotStartableAndWhy() {
+    // 'waitsAgain' opts out of the guard against a second instance (GH-610), so only the
+    // marked activity is blocked.
     start("gatedListing", tool -> {
-      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      tool.startActivity("waitsAgain", Collections.<String, Object>emptyMap());
       return tool.turnReport();
     });
 
-    assertThat(list(result(0).get("blockedNow"))).containsExactly("gated");
-    assertThat(String.valueOf(result(0).get("blockedBecause"))).contains("waits");
+    assertThat(list(result(0).get("blockedNow"))).containsExactly("gated", "gatedWaits");
+    assertThat(String.valueOf(result(0).get("blockedBecause"))).contains("waitsAgain");
   }
 
   /** Nothing running, nothing said — the ordinary case costs no prompt. */
@@ -2985,6 +3055,568 @@ public class AdHocSubProcessToolTest {
 
     assertThat(Agent.FAILURES).isEmpty();
     assertThat(result(1).get("status")).isEqualTo("finished");
+  }
+
+  /**
+   * The older marking holds back a second instance of the marked activity itself, whatever
+   * adHocBlockedWhileSameRuns says: its own earlier instance is something else running.
+   */
+  @Test
+  public void aMarkedActivityIsHeldBackByItsOwnEarlierInstance() {
+    ProcessInstance instance = start("gatedSelf", tool -> {
+      tool.startActivity("gatedWaits", Collections.<String, Object>emptyMap());
+      return tool.startActivity("gatedWaits", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    // Told that its own earlier instance holds it back, not that it waits for someone else's
+    // decision (PR #611 review).
+    assertThat(Agent.FAILURES.get(0).getMessage())
+        .contains("Cannot start 'gatedWaits': an earlier instance of 'gatedWaits' is still running")
+        .contains("its own earlier instance included")
+        .contains("end your turn")
+        .doesNotContain("a decision someone else has to make first");
+    assertThat(ENGINE.getTaskService().createTaskQuery().processInstanceId(instance.getId())
+        .taskDefinitionKey("gatedWaits").count()).isOne();
+  }
+
+  /**
+   * A tool marked both ways, running beside other work, is listed under each reason: once the
+   * other work ends, its own earlier instance still holds it back.
+   */
+  @Test
+  public void aToolMarkedBothWaysIsListedUnderBothReasons() {
+    String processId = "bothWays";
+    String model = model(processId, "").replace("  </adHocSubProcess>",
+        "    <userTask id='gatedOnce' name='Gated, once'>"
+        + "      <extensionElements><camunda:properties>"
+        + "        <camunda:property name='adHocBlockedWhileOthersRun' value='true' />"
+        + "        <camunda:property name='adHocBlockedWhileSameRuns' value='true' />"
+        + "      </camunda:properties></extensionElements>"
+        + "    </userTask>"
+        + "  </adHocSubProcess>");
+    assertThat(model).contains("gatedOnce");
+    startModelWithoutTurn(processId, model, tool -> {
+      tool.startActivity("gatedOnce", Collections.<String, Object>emptyMap());
+      tool.startActivity("waitsAgain", Collections.<String, Object>emptyMap());
+      return tool.turnReport();
+    });
+    runPendingTurn(instance(processId));
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(list(result(0).get("blockedNow"))).containsOnlyOnce("gatedOnce");
+    assertThat(String.valueOf(result(0).get("blockedBecause")))
+        .contains("gatedOnce] depend on work still in flight")
+        .contains("[gatedOnce] have an earlier instance still running");
+  }
+
+  /** And the report gives that reason for it, while what waits for it gives its own. */
+  @Test
+  public void theReportSaysAMarkedActivityWaitsForItsOwnEarlierInstance() {
+    start("gatedSelfListing", tool -> {
+      tool.startActivity("gatedWaits", Collections.<String, Object>emptyMap());
+      return tool.turnReport();
+    });
+
+    assertThat(list(result(0).get("blockedNow"))).contains("gated", "gatedWaits");
+    assertThat(String.valueOf(result(0).get("blockedBecause")))
+        .contains("[gated] depend on work still in flight: [gatedWaits].")
+        .contains("[gatedWaits] have an earlier instance still running");
+  }
+
+  // --- one instance at a time (GH-610) --------------------------------------
+
+  /** A marked activity is not started again while an earlier instance of it waits. */
+  @Test
+  public void anActivityIsRefusedWhileAnEarlierInstanceOfItRuns() {
+    ProcessInstance instance = start("sameRefused", tool -> {
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      return tool.startActivity("waits", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0)).isInstanceOf(AdHocToolRefusedException.class);
+    assertThat(Agent.FAILURES.get(0).getMessage())
+        .contains("Cannot start 'waits'")
+        .contains("still running")
+        .contains("end your turn");
+    assertThat(ENGINE.getTaskService().createTaskQuery().processInstanceId(instance.getId())
+        .taskDefinitionKey("waits").count()).as("no second task").isOne();
+  }
+
+  /**
+   * Unmarked, the default, an activity starts a second instance as before: ad hoc lets an
+   * activity run several times, and the guard is the model's choice (GH-610).
+   */
+  @Test
+  public void anUnmarkedActivityStartsASecondInstance() {
+    ProcessInstance instance = start("sameUnmarked", tool -> {
+      tool.startActivity("waitsAgain", Collections.<String, Object>emptyMap());
+      return tool.startActivity("waitsAgain", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(result(0).get("status")).isEqualTo("waiting");
+    assertThat(ENGINE.getTaskService().createTaskQuery().processInstanceId(instance.getId())
+        .taskDefinitionKey("waitsAgain").count()).isEqualTo(2);
+  }
+
+  /**
+   * Whether marked or not, a waiting result tells the agent not to start the activity again for
+   * the same work (GH-610): the next step of the turn follows at once.
+   */
+  @Test
+  public void aWaitingResultTellsTheAgentNotToStartTheActivityAgain() {
+    start("waitingHint",
+        tool -> tool.startActivity("waitsAgain", Collections.<String, Object>emptyMap()));
+
+    assertThat(result(0).get("status")).isEqualTo("waiting");
+    assertThat(String.valueOf(result(0).get("resultsNote")))
+        .contains("Do not start 'waitsAgain' again for this work while it runs");
+  }
+
+  /** For a marked tool it says what would happen: the start is refused, not run twice. */
+  @Test
+  public void aWaitingResultOfAMarkedToolSaysAStartAgainIsRefused() {
+    start("waitingHintMarked",
+        tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()));
+
+    assertThat(String.valueOf(result(0).get("resultsNote")))
+        .contains("Do not start 'waits' again for this work while it runs: that is refused until"
+            + " it has finished.")
+        .doesNotContain("second instance");
+  }
+
+  /** And every state block while it runs says the same of what stillRunning lists (GH-610). */
+  @Test
+  public void theReportTellsTheAgentNotToStartWhatStillRunsAgain() {
+    start("stillRunningHint", tool -> {
+      tool.startActivity("waitsAgain", Collections.<String, Object>emptyMap());
+      return tool.turnReport();
+    });
+
+    assertThat(list(result(0).get("stillRunning"))).containsExactly("waitsAgain");
+    assertThat(String.valueOf(result(0).get("note")))
+        .contains("The activities in stillRunning are still doing the work you started them for."
+            + " Do not start them again for that work");
+  }
+
+  /** Another activity stays startable while one waits. */
+  @Test
+  public void anotherActivityStartsWhileOneWaits() {
+    ProcessInstance instance = start("sameOther", tool -> {
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      return tool.startActivity("chatty", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(result(0).get("status")).isEqualTo("waiting");
+    assertThat(task(instance, "waits")).isNotNull();
+    assertThat(task(instance, "chatty")).isNotNull();
+  }
+
+  /** Once the earlier instance has finished, the next turn starts the activity again. */
+  @Test
+  public void anActivityStartsAgainInTheTurnAfterItsEarlierInstanceFinished() {
+    ProcessInstance instance = start("sameLater",
+        tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()),
+        tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()));
+
+    ENGINE.getTaskService().complete(task(instance, "waits").getId());
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(result(1).get("status")).isEqualTo("waiting");
+    assertThat(task(instance, "waits")).as("the new instance").isNotNull();
+  }
+
+  /** An activity that ends within its call runs nothing a second call could duplicate. */
+  @Test
+  public void anActivityThatEndsWithinItsCallStartsTwiceInOneAnswer() {
+    start("sameQuick", tool -> {
+      tool.startActivity("quick", Collections.<String, Object>emptyMap());
+      return tool.startActivity("quick", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(result(0).get("status")).isEqualTo("finished");
+  }
+
+  /** The report names the activity whose earlier instance waits, and says why. */
+  @Test
+  public void theReportNamesAnActivityWhoseEarlierInstanceRuns() {
+    start("sameListing", tool -> {
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      return tool.turnReport();
+    });
+
+    assertThat(list(result(0).get("blockedNow"))).contains("waits")
+        .doesNotContain("waitsAgain", "quick", "chatty");
+    // Each reason names its own activities, so the model is not told the wrong thing
+    // about a tool.
+    assertThat(String.valueOf(result(0).get("blockedBecause")))
+        .contains("[gated, gatedWaits] depend on work still in flight: [waits].")
+        .contains("[waits] have an earlier instance still running");
+  }
+
+  /**
+   * The ordinary model, with no child marked adHocBlockedWhileOthersRun: only the guard against
+   * a second instance blocks, and the report says so and nothing else. The running instance
+   * was started over REST, so nothing the agent started runs, and the note must not say the
+   * scope ends here: it stands while that instance runs.
+   */
+  @Test
+  public void theReportGivesOnlyTheSameRunsReasonWhenNothingIsMarkedToWaitForOthers() {
+    String processId = "sameOnlyListing";
+    String model = model(processId, "").replace(
+        "<camunda:property name='adHocBlockedWhileOthersRun' value='true' />", "");
+    assertThat(model).as("the variant has no child marked to wait for others")
+        .doesNotContain("adHocBlockedWhileOthersRun' value='true'");
+    ProcessInstance instance = startModelWithoutTurn(processId, model, tool -> {
+      ENGINE.getRuntimeService().activateAdHocSubProcessActivities(
+          restScopeExecutionId, Collections.singletonList("waits"), null);
+      return tool.turnReport();
+    }, tool -> tool.turnReport());
+    restScopeExecutionId = ENGINE.getRuntimeService().createExecutionQuery()
+        .processInstanceId(instance.getId()).activityId("adHoc").list().get(0).getId();
+
+    runPendingTurn(instance);
+
+    // What the note promises: the turn ended with nothing the agent started, and the scope stays
+    // open while the work started over REST runs; its end brings another turn.
+    assertThat(ENGINE.getRuntimeService().createExecutionQuery()
+        .processInstanceId(instance.getId()).activityId("adHoc").count())
+        .as("the scope stays open").isOne();
+    ENGINE.getTaskService().complete(task(instance, "waits").getId());
+    runPendingTurn(instance);
+    assertThat(Agent.RESULTS).as("the end of that work brought another turn").hasSize(2);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(list(result(0).get("blockedNow"))).containsExactly("waits");
+    assertThat(String.valueOf(result(0).get("blockedBecause")))
+        .startsWith("These have an earlier instance still running")
+        .doesNotContain("depend on work still in flight");
+    // Neutral: whether that work came from outside or from a branch the agent's tool forked
+    // into cannot be told.
+    assertThat(String.valueOf(result(0).get("note")))
+        .contains("Work is still running in the ad hoc sub process: [waits].")
+        .doesNotContain("the ad hoc sub process ends here")
+        .doesNotContain("from outside");
+  }
+
+  /**
+   * The note names a running embedded sub process by its tool, not by the task inside it, which
+   * is no tool the agent could recognise.
+   */
+  @Test
+  public void theNoteNamesRunningWorkByItsTool() {
+    ProcessInstance instance = startWithoutTurn("runningByTool", tool -> {
+      ENGINE.getRuntimeService().activateAdHocSubProcessActivities(
+          nestedScopeExecutionId, Collections.singletonList("nested"), null);
+      return tool.turnReport();
+    });
+    nestedScopeExecutionId = ENGINE.getRuntimeService().createExecutionQuery()
+        .processInstanceId(instance.getId()).activityId("adHoc").list().get(0).getId();
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(String.valueOf(result(0).get("note")))
+        .contains("Work is still running in the ad hoc sub process: [nested].")
+        .doesNotContain("nestedWaits");
+  }
+
+  /** A chain that has moved on along an inner flow still runs the activity that began it. */
+  @Test
+  public void anActivityIsRefusedWhileItsChainStillRuns() {
+    ProcessInstance instance = start("sameChain", tool -> {
+      tool.startActivity("chainStart", Collections.<String, Object>emptyMap());
+      return tool.startActivity("chainStart", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage())
+        .contains("Cannot start 'chainStart'")
+        .contains("end your turn");
+    assertThat(ENGINE.getTaskService().createTaskQuery().processInstanceId(instance.getId())
+        .taskDefinitionKey("chainWaits").count()).isOne();
+  }
+
+  /** The report names a tool whose chain has moved on along an inner flow. */
+  @Test
+  public void theReportNamesAnActivityWhoseChainStillRuns() {
+    start("sameChainListing", tool -> {
+      tool.startActivity("chainStart", Collections.<String, Object>emptyMap());
+      return tool.turnReport();
+    });
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(list(result(0).get("blockedNow"))).contains("chainStart");
+    assertThat(String.valueOf(result(0).get("blockedBecause")))
+        .contains("earlier instance still running");
+  }
+
+  /** Set before the turn runs, so it can activate the sub process as an outside caller would. */
+  static volatile String nestedScopeExecutionId;
+
+  /** An embedded sub process activated over REST runs while its inner task does. */
+  @Test
+  public void anEmbeddedSubProcessActivatedOverRestIsNotStartedAgain() {
+    ProcessInstance instance = startWithoutTurn("sameNested", tool -> {
+      ENGINE.getRuntimeService().activateAdHocSubProcessActivities(
+          nestedScopeExecutionId, Collections.singletonList("nested"), null);
+      return tool.startActivity("nested", Collections.<String, Object>emptyMap());
+    });
+    nestedScopeExecutionId = ENGINE.getRuntimeService().createExecutionQuery()
+        .processInstanceId(instance.getId()).activityId("adHoc").list().get(0).getId();
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage())
+        .contains("Cannot start 'nested'")
+        .contains("Start something else, or end your turn");
+    assertThat(ENGINE.getTaskService().createTaskQuery().processInstanceId(instance.getId())
+        .taskDefinitionKey("nestedWaits").count()).as("no second instance").isOne();
+  }
+
+  /** A queued asyncBefore instance runs already, though its job has not. */
+  @Test
+  public void anActivityIsRefusedWhileAnEarlierInstanceIsQueued() {
+    start("sameQueued", tool -> {
+      tool.startActivity("asyncChild", Collections.<String, Object>emptyMap());
+      return tool.startActivity("asyncChild", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage()).contains("Cannot start 'asyncChild'");
+  }
+
+  /** A multi-instance activity runs while any of its instances does. */
+  @Test
+  public void aMultiInstanceActivityIsRefusedWhileItsInstancesRun() {
+    ProcessInstance instance = start("sameMulti", tool -> {
+      tool.startActivity("multi", Collections.<String, Object>emptyMap());
+      return tool.startActivity("multi", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage()).contains("Cannot start 'multi'");
+    assertThat(ENGINE.getTaskService().createTaskQuery().processInstanceId(instance.getId())
+        .taskDefinitionKey("multi").count()).isEqualTo(3);
+  }
+
+  /** Set before the turn runs, so it can activate a child as an outside caller would. */
+  static volatile String restScopeExecutionId;
+
+  /** An instance a person activated over REST counts as running, too. */
+  @Test
+  public void anActivityIsRefusedWhileAnInstanceActivatedOverRestRuns() {
+    ProcessInstance instance = startWithoutTurn("sameRest", tool -> {
+      ENGINE.getRuntimeService().activateAdHocSubProcessActivities(
+          restScopeExecutionId, Collections.singletonList("waits"), null);
+      return tool.startActivity("waits", Collections.<String, Object>emptyMap());
+    });
+    restScopeExecutionId = ENGINE.getRuntimeService().createExecutionQuery()
+        .processInstanceId(instance.getId()).activityId("adHoc").list().get(0).getId();
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage()).contains("Cannot start 'waits'");
+    assertThat(ENGINE.getTaskService().createTaskQuery().processInstanceId(instance.getId())
+        .taskDefinitionKey("waits").count()).isOne();
+  }
+
+  /** The id of the ad hoc scope's execution, for an activation over REST from within a turn. */
+  private static String scopeExecutionId(ProcessInstance instance) {
+    return ENGINE.getRuntimeService().createExecutionQuery()
+        .processInstanceId(instance.getId()).activityId("adHoc").list().get(0).getId();
+  }
+
+  /** Activates {@code activityId} as an outside caller would, over the runtime API. */
+  private static void activateOverRest(String activityId) {
+    ENGINE.getRuntimeService().activateAdHocSubProcessActivities(
+        restScopeExecutionId, Collections.singletonList(activityId), null);
+  }
+
+  /**
+   * A multi-instance tool queued by asyncBefore and activated over REST: its execution carries
+   * only the generated multi-instance body, which still stands for the tool (PR #611 review).
+   */
+  @Test
+  public void aQueuedMultiInstanceActivatedOverRestIsNotQueuedAgain() {
+    ProcessInstance instance = startWithoutTurn("sameAsyncMulti", tool -> {
+      activateOverRest("asyncMulti");
+      return tool.startActivity("asyncMulti", Collections.<String, Object>emptyMap());
+    });
+    restScopeExecutionId = scopeExecutionId(instance);
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage()).contains("Cannot start 'asyncMulti'");
+  }
+
+  @Test
+  public void theReportBlocksAQueuedMultiInstanceActivatedOverRest() {
+    ProcessInstance instance = startWithoutTurn("sameAsyncMultiListing", tool -> {
+      activateOverRest("asyncMulti");
+      return tool.turnReport();
+    });
+    restScopeExecutionId = scopeExecutionId(instance);
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(list(result(0).get("blockedNow"))).contains("asyncMulti");
+    assertThat(String.valueOf(result(0).get("note"))).contains("[asyncMulti]");
+  }
+
+  /** A chain activated over REST that has moved on along an inner flow still runs its tool. */
+  @Test
+  public void aChainActivatedOverRestIsNotStartedAgain() {
+    ProcessInstance instance = startWithoutTurn("sameRestChain", tool -> {
+      activateOverRest("chainStart");
+      return tool.startActivity("chainStart", Collections.<String, Object>emptyMap());
+    });
+    restScopeExecutionId = scopeExecutionId(instance);
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage()).contains("Cannot start 'chainStart'");
+    assertThat(ENGINE.getTaskService().createTaskQuery().processInstanceId(instance.getId())
+        .taskDefinitionKey("chainWaits").count()).isOne();
+  }
+
+  /**
+   * A task two tools' flows meet in belongs to the tool the agent started, as its tracking says:
+   * the other tool stays startable, and the started one is held back.
+   */
+  @Test
+  public void aSharedFollowerTheAgentStartedHoldsBackOnlyItsOwnTool() {
+    ProcessInstance instance = start("sharedByAgent", tool -> {
+      tool.startActivity("sharedA", Collections.<String, Object>emptyMap());
+      tool.startActivity("sharedB", Collections.<String, Object>emptyMap());
+      return tool.startActivity("sharedA", Collections.<String, Object>emptyMap());
+    });
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage()).contains("Cannot start 'sharedA'");
+    assertThat(ENGINE.getTaskService().createTaskQuery().processInstanceId(instance.getId())
+        .taskDefinitionKey("sharedWaits").count()).as("one from each tool").isEqualTo(2);
+  }
+
+  /**
+   * Started over REST, nothing says which tool such a task came from, so it holds back every tool
+   * whose flow reaches it: a second instance is refused rather than risked.
+   */
+  @Test
+  public void aSharedFollowerStartedOverRestHoldsBackEveryToolReachingIt() {
+    ProcessInstance instance = startWithoutTurn("sharedByRest", tool -> {
+      activateOverRest("sharedA");
+      return tool.startActivity("sharedB", Collections.<String, Object>emptyMap());
+    });
+    restScopeExecutionId = scopeExecutionId(instance);
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage()).contains("Cannot start 'sharedB'");
+    assertThat(ENGINE.getTaskService().createTaskQuery().processInstanceId(instance.getId())
+        .taskDefinitionKey("sharedWaits").count()).isOne();
+  }
+
+  /**
+   * Work beside what the agent started is named in the note too, so that what blockedNow cites is
+   * in the state: a chain started over REST, by the tool whose flow reaches the task it waits at.
+   */
+  @Test
+  public void theNoteNamesOtherWorkBesideWhatTheAgentStartedByItsTool() {
+    ProcessInstance instance = startWithoutTurn("otherWorkListing", tool -> {
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      activateOverRest("chainStart");
+      return tool.turnReport();
+    });
+    restScopeExecutionId = scopeExecutionId(instance);
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(list(result(0).get("stillRunning"))).containsExactly("waits");
+    assertThat(list(result(0).get("blockedNow"))).contains("waits", "chainStart");
+    assertThat(String.valueOf(result(0).get("note")))
+        .contains("Besides what stillRunning lists, work is still running in the ad hoc sub"
+            + " process for: [chainStart].")
+        .doesNotContain("chainWaits");
+  }
+
+  /**
+   * A second instance of a tool the agent started, started over REST, is named too, although
+   * stillRunning names the tool already: the agent is told two run, not one.
+   */
+  @Test
+  public void theNoteNamesASecondInstanceStartedOverRestOfAToolTheAgentStarted() {
+    ProcessInstance instance = startWithoutTurn("secondOverRest", tool -> {
+      tool.startActivity("waits", Collections.<String, Object>emptyMap());
+      activateOverRest("waits");
+      return tool.turnReport();
+    });
+    restScopeExecutionId = scopeExecutionId(instance);
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(list(result(0).get("stillRunning"))).containsExactly("waits");
+    assertThat(String.valueOf(result(0).get("note")))
+        .contains("Besides what stillRunning lists, work is still running in the ad hoc sub"
+            + " process for: [waits].");
+    assertThat(ENGINE.getTaskService().createTaskQuery().processInstanceId(instance.getId())
+        .taskDefinitionKey("waits").count()).isEqualTo(2);
+  }
+
+  /**
+   * A task the flows of two tools reach, started over REST, belongs to neither for certain: the
+   * note names it by its own id rather than guess a tool.
+   */
+  @Test
+  public void theNoteNamesASharedFollowerByItsOwnId() {
+    ProcessInstance instance = startWithoutTurn("sharedListing", tool -> {
+      activateOverRest("sharedA");
+      return tool.turnReport();
+    });
+    restScopeExecutionId = scopeExecutionId(instance);
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).isEmpty();
+    assertThat(list(result(0).get("blockedNow"))).contains("sharedA", "sharedB");
+    assertThat(String.valueOf(result(0).get("note")))
+        .contains("Work is still running in the ad hoc sub process: [sharedWaits].");
+  }
+
+  /**
+   * When one of two children ends, the other still counts as running: the engine keeps it a child
+   * of the scope rather than folding it into the scope's own execution.
+   */
+  @Test
+  public void theLastChildLeftRunningStillHoldsItsToolBack() {
+    ProcessInstance instance = startWithoutTurn("lastChild",
+        tool -> {
+          tool.startActivity("waits", Collections.<String, Object>emptyMap());
+          return tool.startActivity("chatty", Collections.<String, Object>emptyMap());
+        },
+        tool -> tool.startActivity("waits", Collections.<String, Object>emptyMap()));
+    runPendingTurn(instance);
+    ENGINE.getTaskService().complete(task(instance, "chatty").getId());
+
+    runPendingTurn(instance);
+
+    assertThat(Agent.FAILURES).hasSize(1);
+    assertThat(Agent.FAILURES.get(0).getMessage()).contains("Cannot start 'waits'");
+    assertThat(ENGINE.getTaskService().createTaskQuery().processInstanceId(instance.getId())
+        .taskDefinitionKey("waits").count()).isOne();
   }
 
   // --- what happens after the scope has been ended --------------------------

@@ -56,6 +56,15 @@ public final class AdHocToolDescriptor {
             new PropertyKey<List<AdHocToolDescriptor>>("agenticToolCatalog");
 
     /**
+     * Which tools' flows reach each element of the scope, by the element's id, as
+     * {@link AgenticToolCatalogParser#reachedFrom} reads the model: stored beside the catalogue
+     * so a running activity further along a chain can be told apart by the tool it belongs to,
+     * whoever started it (GH-610). A tool itself is in no entry.
+     */
+    public static final PropertyKey<Map<String, Set<String>>> REACHED_FROM =
+            new PropertyKey<Map<String, Set<String>>>("agenticToolReachedFrom");
+
+    /**
      * The types a parameter may declare — JSON schema scalars, because that is what
      * a tool specification can say and what an activation can carry as a variable. In this
      * order, which is the order a deployment error lists them in.
@@ -171,6 +180,7 @@ public final class AdHocToolDescriptor {
     private final List<String> readVariables;
     private final List<String> resultVariables;
     private final boolean blockedWhileOthersRun;
+    private final boolean blockedWhileSameRuns;
     private final List<Parameter> parameters;
 
     public AdHocToolDescriptor(String activityId, String name, String documentation,
@@ -180,15 +190,25 @@ public final class AdHocToolDescriptor {
                 blockedWhileOthersRun, parameters);
     }
 
+    /** Not blocked while the same activity runs, as by default (GH-610). */
     public AdHocToolDescriptor(String activityId, String name, String documentation,
             List<String> readVariables, List<String> resultVariables,
             boolean blockedWhileOthersRun, List<Parameter> parameters) {
+        this(activityId, name, documentation, readVariables, resultVariables,
+                blockedWhileOthersRun, false, parameters);
+    }
+
+    public AdHocToolDescriptor(String activityId, String name, String documentation,
+            List<String> readVariables, List<String> resultVariables,
+            boolean blockedWhileOthersRun, boolean blockedWhileSameRuns,
+            List<Parameter> parameters) {
         this.activityId = activityId;
         this.name = name;
         this.documentation = documentation;
         this.readVariables = Collections.unmodifiableList(readVariables);
         this.resultVariables = Collections.unmodifiableList(resultVariables);
         this.blockedWhileOthersRun = blockedWhileOthersRun;
+        this.blockedWhileSameRuns = blockedWhileSameRuns;
         this.parameters = Collections.unmodifiableList(parameters);
     }
 
@@ -227,6 +247,15 @@ public final class AdHocToolDescriptor {
     /** Whether this activity may only start while nothing else in the scope runs. */
     public boolean isBlockedWhileOthersRun() {
         return blockedWhileOthersRun;
+    }
+
+    /**
+     * Whether this activity may only start while no earlier instance of it in the scope runs
+     * (GH-610); {@code false} unless the model says {@code adHocBlockedWhileSameRuns=true}. It
+     * holds for the agent's own starts only: an activation over the runtime API is not checked.
+     */
+    public boolean isBlockedWhileSameRuns() {
+        return blockedWhileSameRuns;
     }
 
     /** The declared input parameters, possibly empty, never null. */

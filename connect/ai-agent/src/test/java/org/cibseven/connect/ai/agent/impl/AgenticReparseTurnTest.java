@@ -26,6 +26,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -121,6 +122,65 @@ public class AgenticReparseTurnTest {
         .contains("worker").doesNotContain("gesperrt");
     assertThat(alive(on, pi)).as("the agent's answer ended the scope").isFalse();
     assertThat(on.getRuntimeService().createIncidentQuery().count()).isZero();
+  }
+
+  /**
+   * A follower a tool left out on a parse again shares with a tool the agent has (GH-610): started
+   * over REST by the left-out tool, it counts for both, as any follower whose tool nothing tracks,
+   * so the agent's tool is held back; and the note names it by its own id, not by a tool that never
+   * ran nor by one the agent does not have.
+   */
+  @Test
+  public void aFollowerSharedWithALeftOutToolIsNamedByItsOwnId() {
+    ProcessEngine off = engine("off", new AbstractProcessEnginePlugin() { });
+    deploy(off, model("", "<userTask id='worker' name='Worker' />"
+        + "<serviceTask id='links' camunda:expression='${1}'><extensionElements><camunda:properties>"
+        + "<camunda:property name='" + AgenticToolCatalogParser.BLOCKED_WHILE_OTHERS_RUN_PROPERTY
+        + "' value='ja' /></camunda:properties></extensionElements></serviceTask>"
+        + "<serviceTask id='behalten' camunda:expression='${1}'><extensionElements>"
+        + "<camunda:properties><camunda:property name='"
+        + AgenticToolCatalogParser.BLOCKED_WHILE_SAME_RUNS_PROPERTY + "' value='true' />"
+        + "</camunda:properties></extensionElements></serviceTask>"
+        + "<sequenceFlow id='ausLinks' sourceRef='links' targetRef='geteilt' />"
+        + "<sequenceFlow id='ausBehalten' sourceRef='behalten' targetRef='geteilt' />"
+        + "<userTask id='geteilt' name='Geteilt' />", ""));
+    ProcessInstance pi = off.getRuntimeService().startProcessInstanceByKey("agenticTurn");
+    String scope = off.getRuntimeService().getActivityInstance(pi.getId())
+        .getActivityInstances("adHoc")[0].getExecutionIds()[0];
+    off.getRuntimeService().activateAdHocSubProcessActivities(scope,
+        Arrays.asList("links", "worker"));
+    ProcessEngine on = engine("on", new ConnectProcessEnginePlugin());
+    script.add(answer("Warte."));
+
+    on.getTaskService().complete(
+        on.getTaskService().createTaskQuery().taskName("Worker").singleResult().getId());
+    TurnSteps.runToTheEnd(on, pi.getId());
+
+    assertThat(requests).hasSize(1);
+    assertThat(toolNames(requests.get(0))).contains("behalten").doesNotContain("links");
+    String state = lastUserMessage(requests.get(0));
+    assertThat(state).as("held back by the shared follower")
+        .contains("\"blockedNow\":[\"behalten\"]");
+    assertThat(state)
+        .contains("Work is still running in the ad hoc sub process: [geteilt].")
+        .doesNotContain("process: [behalten]")
+        .doesNotContain("process: [links]");
+    assertThat(on.getRuntimeService().createIncidentQuery().count()).isZero();
+  }
+
+  /** The text of the last user message a chat completion request sends. */
+  protected static String lastUserMessage(String requestBody) {
+    String text = null;
+    try {
+      for (JsonNode message : new ObjectMapper().readTree(requestBody).path("messages")) {
+        if ("user".equals(message.path("role").asText())) {
+          text = message.path("content").asText();
+        }
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+    return text;
   }
 
   /**
