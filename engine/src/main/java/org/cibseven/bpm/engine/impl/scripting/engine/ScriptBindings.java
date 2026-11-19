@@ -97,6 +97,10 @@ public class ScriptBindings implements Bindings {
     return false;
   }
 
+  public VariableScope getVariableScope() {
+    return variableScope;
+  }
+
   public boolean containsKey(Object key) {
     for (Resolver scriptResolver: scriptResolvers) {
       if (scriptResolver.containsKey(key)) {

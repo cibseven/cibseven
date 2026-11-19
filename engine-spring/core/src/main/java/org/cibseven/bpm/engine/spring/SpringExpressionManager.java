@@ -89,4 +89,10 @@ public class SpringExpressionManager extends JuelExpressionManager {
   }
 
 
+
+  @Override
+  public boolean isAppliedToJuelScripts() {
+    // a limited set of beans is a restriction
+    return getClass() != SpringExpressionManager.class || beans != null;
+  }
 }

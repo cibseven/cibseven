@@ -45,6 +45,20 @@ public class ScriptLogger extends ProcessEngineLogger {
         "003", "Failed to close script engine: {}", e.getMessage());
   }
 
+  public void warnJuelScriptWithoutExpressionManagerResolver(String expressionManagerClass) {
+    logWarn(
+        "004", "Expression manager '{}' is not a JuelExpressionManager, its resolver restrictions do not apply to JUEL scripts. "
+            + "Extend JuelExpressionManager to apply them.",
+        expressionManagerClass);
+  }
+
+  public void warnJuelScriptWithoutScriptBindings(String expressionManagerClass) {
+    logWarn(
+        "005", "JUEL script evaluated without the engine's script bindings, the resolver restrictions of expression manager '{}' "
+            + "do not apply to it. A custom ScriptingEngines or ScriptBindingsFactory must create ScriptBindings.",
+        expressionManagerClass);
+  }
+
   public ProcessEngineException graalJsNumberNarrowingFailed(String mode, Throwable cause) {
     return new ProcessEngineException(exceptionMessage(
         "006", "Cannot create the GraalJS script engine with javaScriptNumberNarrowing '{}': {}. Set "

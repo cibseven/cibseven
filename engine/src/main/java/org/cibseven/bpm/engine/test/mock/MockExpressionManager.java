@@ -48,4 +48,9 @@ public class MockExpressionManager extends JuelExpressionManager {
     return compositeElResolver;
   }
 
+
+  @Override
+  public boolean isAppliedToJuelScripts() {
+    return getClass() != MockExpressionManager.class;
+  }
 }

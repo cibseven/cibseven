@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import javax.script.AbstractScriptEngine;
 import javax.script.Bindings;
@@ -31,8 +34,15 @@ import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
 import org.cibseven.bpm.engine.ProcessEngineException;
+import org.cibseven.bpm.engine.delegate.VariableScope;
+import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
+import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import org.cibseven.bpm.engine.impl.context.Context;
 import org.cibseven.bpm.engine.impl.el.ExpressionFactoryResolver;
+import org.cibseven.bpm.engine.impl.el.ExpressionManager;
+import org.cibseven.bpm.engine.impl.el.JuelExpressionManager;
 import org.cibseven.bpm.engine.impl.el.ProcessEngineElContext;
+import org.cibseven.bpm.engine.impl.scripting.ScriptLogger;
 import org.cibseven.bpm.impl.juel.JuelBeanELResolver;
 import org.cibseven.bpm.impl.juel.SimpleResolver;
 
@@ -60,6 +70,12 @@ import org.cibseven.bpm.engine.impl.util.ReflectUtil;
  * @author Frederik Heremans
  */
 public class JuelScriptEngine extends AbstractScriptEngine {
+
+  private static final ScriptLogger LOG = ProcessEngineLogger.SCRIPT_LOGGER;
+
+  // warn once per expression manager
+  private static final Map<ExpressionManager, Boolean> WARNED_EXPRESSION_MANAGERS =
+      Collections.synchronizedMap(new WeakHashMap<>());
 
   private ScriptEngineFactory scriptEngineFactory;
   private ExpressionFactory expressionFactory;
@@ -106,7 +122,16 @@ public class JuelScriptEngine extends AbstractScriptEngine {
     }
   }
 
-  private ELResolver createElResolver() {
+  /** Like attribute expressions, plus the variable scope key (e.g. {@code connector}). */
+  private ELResolver createEngineElResolver(ELResolver expressionManagerResolver) {
+    CompositeELResolver compositeResolver = new CompositeELResolver();
+    compositeResolver.add(new ResourceBundleELResolver());
+    compositeResolver.add(expressionManagerResolver);
+    compositeResolver.add(new VariableScopeKeyElResolver());
+    return compositeResolver;
+  }
+
+  private ELResolver createDefaultElResolver() {
     CompositeELResolver compositeResolver = new CompositeELResolver();
     compositeResolver.add(new ArrayELResolver());
     compositeResolver.add(new ListELResolver());
@@ -114,6 +139,23 @@ public class JuelScriptEngine extends AbstractScriptEngine {
     compositeResolver.add(new ResourceBundleELResolver());
     compositeResolver.add(new JuelBeanELResolver());
     return new SimpleResolver(compositeResolver);
+  }
+
+  private ELResolver getExpressionManagerResolver() {
+    ProcessEngineConfigurationImpl configuration = Context.getProcessEngineConfiguration();
+    if (configuration == null) {
+      // no command context
+      return null;
+    }
+    ExpressionManager expressionManager = configuration.getExpressionManager();
+    if (expressionManager instanceof JuelExpressionManager) {
+      JuelExpressionManager juelExpressionManager = (JuelExpressionManager) expressionManager;
+      return juelExpressionManager.isAppliedToJuelScripts() ? juelExpressionManager.getElResolver() : null;
+    }
+    if (expressionManager != null && WARNED_EXPRESSION_MANAGERS.putIfAbsent(expressionManager, Boolean.TRUE) == null) {
+      LOG.warnJuelScriptWithoutExpressionManagerResolver(expressionManager.getClass().getName());
+    }
+    return null;
   }
 
   private String readFully(Reader reader) throws ScriptException {
@@ -155,11 +197,25 @@ public class JuelScriptEngine extends AbstractScriptEngine {
       scriptCtx.setAttribute("lang:import", getImportMethod(), ScriptContext.ENGINE_SCOPE);
     }
 
+    ELResolver expressionManagerResolver = getExpressionManagerResolver();
+    Bindings engineBindings = scriptCtx.getBindings(ScriptContext.ENGINE_SCOPE);
+    // in the engine, resolve names through the expression manager's chain
+    final boolean useExpressionManager = expressionManagerResolver != null && engineBindings instanceof ScriptBindings;
+    if (expressionManagerResolver != null && !useExpressionManager) {
+      ExpressionManager expressionManager = Context.getProcessEngineConfiguration().getExpressionManager();
+      if (WARNED_EXPRESSION_MANAGERS.putIfAbsent(expressionManager, Boolean.TRUE) == null) {
+        LOG.warnJuelScriptWithoutScriptBindings(expressionManager.getClass().getName());
+      }
+    }
+    final ELResolver elResolver = useExpressionManager
+        ? createEngineElResolver(expressionManagerResolver)
+        : createDefaultElResolver();
+
     // ProcessEngineElContext converts with the factory put into the context, i.e. with JUEL, on
     // every EL API, not with the server's EL implementation (CIB7-2609)
-    ELContext elContext = new ProcessEngineElContext(new ScriptContextFunctionMapper(scriptCtx), createElResolver()) {
+    ELContext elContext = new ProcessEngineElContext(new ScriptContextFunctionMapper(scriptCtx), elResolver) {
 
-      final VariableMapper varMapper = new ScriptContextVariableMapper(scriptCtx);
+      final VariableMapper varMapper = new ScriptContextVariableMapper(scriptCtx, !useExpressionManager);
 
       @Override
       public VariableMapper getVariableMapper() {
@@ -167,6 +223,12 @@ public class JuelScriptEngine extends AbstractScriptEngine {
       }
     };
     elContext.putContext(ExpressionFactory.class, expressionFactory);
+    if (useExpressionManager) {
+      VariableScope variableScope = ((ScriptBindings) engineBindings).getVariableScope();
+      if (variableScope != null) {
+        elContext.putContext(VariableScope.class, variableScope);
+      }
+    }
     // Store the elcontext in the scriptContext to be able to reuse
     scriptCtx.setAttribute("elcontext", elContext, ScriptContext.ENGINE_SCOPE);
     return elContext;
@@ -245,13 +307,19 @@ public class JuelScriptEngine extends AbstractScriptEngine {
   private class ScriptContextVariableMapper extends VariableMapper {
 
     private ScriptContext scriptContext;
+    private boolean bindVariables;
 
-    ScriptContextVariableMapper(ScriptContext scriptCtx) {
+    ScriptContextVariableMapper(ScriptContext scriptCtx, boolean bindVariables) {
       this.scriptContext = scriptCtx;
+      this.bindVariables = bindVariables;
     }
 
     @Override
     public ValueExpression resolveVariable(String variableName) {
+      if (!bindVariables) {
+        // resolved by the EL resolver
+        return null;
+      }
       int scope = scriptContext.getAttributesScope(variableName);
       if (scope != -1) {
         Object value = scriptContext.getAttribute(variableName, scope);
@@ -271,6 +339,42 @@ public class JuelScriptEngine extends AbstractScriptEngine {
       ValueExpression previousValue = resolveVariable(name);
       scriptContext.setAttribute(name, value, ScriptContext.ENGINE_SCOPE);
       return previousValue;
+    }
+  }
+
+  /** Resolves the variable scope key, e.g. {@code connector}. */
+  private static class VariableScopeKeyElResolver extends ELResolver {
+
+    @Override
+    public Object getValue(ELContext context, Object base, Object property) {
+      if (base == null && property instanceof String) {
+        VariableScope variableScope = (VariableScope) context.getContext(VariableScope.class);
+        if (variableScope != null && property.equals(variableScope.getVariableScopeKey())) {
+          context.setPropertyResolved(true);
+          return variableScope;
+        }
+      }
+      return null;
+    }
+
+    @Override
+    public Class<?> getType(ELContext context, Object base, Object property) {
+      return null;
+    }
+
+    @Override
+    public void setValue(ELContext context, Object base, Object property, Object value) {
+    }
+
+    @Override
+    public boolean isReadOnly(ELContext context, Object base, Object property) {
+      return true;
+    }
+
+
+    @Override
+    public Class<?> getCommonPropertyType(ELContext context, Object base) {
+      return base == null ? String.class : null;
     }
   }
 

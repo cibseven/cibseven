@@ -62,4 +62,9 @@ public class CdiExpressionManager extends JuelExpressionManager {
     return compositeElResolver;
   }
 
+
+  @Override
+  public boolean isAppliedToJuelScripts() {
+    return getClass() != CdiExpressionManager.class;
+  }
 }

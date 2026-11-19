@@ -141,6 +141,24 @@ public class JuelExpressionManager implements ExpressionManager, ElProviderCompa
     }
   }
 
+  /**
+   * Whether JUEL scripts resolve names, properties and methods through this
+   * expression manager's chain. True for subclasses, so their restrictions
+   * apply in scripts; the stock expression managers keep the previous script
+   * behavior.
+   */
+  public boolean isAppliedToJuelScripts() {
+    return getClass() != JuelExpressionManager.class;
+  }
+
+  /**
+   * The resolver chain from {@link #createElResolver()}. Shared, do not modify.
+   */
+  public ELResolver getElResolver() {
+    ensureInitialized();
+    return elResolver;
+  }
+
   protected ELResolver createElResolver() {
     CompositeELResolver elResolver = new CompositeELResolver();
     elResolver.add(new VariableScopeElResolver());
