@@ -64,7 +64,7 @@
             <camunda:inputParameter name="agentName">${agentName}</camunda:inputParameter>
             <camunda:inputParameter name="agentDescription">${agentDescription}</camunda:inputParameter>
             <camunda:inputParameter name="instruction">${instruction}</camunda:inputParameter>
-            <camunda:inputParameter name="model">gpt-5.4-nano</camunda:inputParameter>
+            <camunda:inputParameter name="model">gpt-6.1-terra</camunda:inputParameter>
 
             <!-- ── Runtime inputs from process variables ────────── -->
             <!-- ${message} is the raw invoice string set before process start -->

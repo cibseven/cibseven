@@ -142,7 +142,7 @@ public class InvoiceProcessingConnectorTest {
         .agentName("invoice-agent")
         .agentDescription("Invoice processing assistant that extracts structured data from invoice text")
         .instruction("You are an invoice processing assistant.")
-        .model("gpt-5.4-nano")
+        .model("gpt-6.1-terra")
         .message(INVOICE_TEXT)
         .apiKey("test-api-key");
 
@@ -152,7 +152,7 @@ public class InvoiceProcessingConnectorTest {
     assertThat(connector.lastRequestParameters)
         .containsEntry(AgentConnector.PARAM_NAME_AGENT_NAME, "invoice-agent")
         .containsEntry(AgentConnector.PARAM_NAME_MESSAGE, INVOICE_TEXT)
-        .containsEntry(AgentConnector.PARAM_NAME_MODEL, "gpt-5.4-nano")
+        .containsEntry(AgentConnector.PARAM_NAME_MODEL, "gpt-6.1-terra")
         .containsEntry(AgentConnector.PARAM_NAME_API_KEY, "test-api-key");
   }
 

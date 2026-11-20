@@ -1615,7 +1615,7 @@ public class AgentChatListenerTest {
 
   @Test
   public void contextEventShouldOmitChatModelIdentityFields() {
-    AgentChatListener listener = new AgentChatListener("gpt-5.4-nano", "https://example/v1");
+    AgentChatListener listener = new AgentChatListener("gpt-6.1-terra", "https://example/v1");
 
     listener.recordContextEvent(new HashMap<>(Map.of("declared", 1)), null);
 
@@ -1705,7 +1705,7 @@ public class AgentChatListenerTest {
 
   @Test
   public void retrievalEventShouldOmitChatModelIdentityFields() {
-    AgentChatListener listener = new AgentChatListener("gpt-5.4-nano", "https://example/v1");
+    AgentChatListener listener = new AgentChatListener("gpt-6.1-terra", "https://example/v1");
 
     Map<String, Object> payload = new HashMap<>();
     payload.put("query", "hi");

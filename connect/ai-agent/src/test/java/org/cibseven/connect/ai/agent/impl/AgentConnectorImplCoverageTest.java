@@ -740,7 +740,7 @@ public class AgentConnectorImplCoverageTest {
         .pgHost("pg-host").pgPort("5433").pgDatabase("ragdb").pgUser("u").pgPassword("p")
         .pgTable("docs").embeddingDimension(8).maxRagResults(5).minRagScore(0.5);
 
-    AgentChatListener listener = new AgentChatListener("gpt-5.4-nano", "https://chat/v1");
+    AgentChatListener listener = new AgentChatListener("gpt-6.1-terra", "https://chat/v1");
     ProcessStarterToolContext.setActiveListener(listener);
 
     ContentRetriever retriever = ragConnector.createContentRetriever(request);
@@ -798,7 +798,7 @@ public class AgentConnectorImplCoverageTest {
     AgentRequest request = ragConnector.createRequest()
         .pgHost("h").pgPort("5432").pgDatabase("d").pgUser("u").pgPassword("p")
         .pgTable("t").embeddingDimension(8).maxRagResults(5).minRagScore(0.0);
-    AgentChatListener listener = new AgentChatListener("gpt-5.4-nano", "https://chat/v1");
+    AgentChatListener listener = new AgentChatListener("gpt-6.1-terra", "https://chat/v1");
     ProcessStarterToolContext.setActiveListener(listener);
     String message = AgentConnectorImpl.STATE_BLOCK_OPEN + "\n"
         + "{\"processData\":{\"kunde\":\"Müller GmbH\"}}\n"
