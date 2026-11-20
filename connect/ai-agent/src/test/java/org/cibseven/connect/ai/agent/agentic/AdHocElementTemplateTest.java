@@ -425,28 +425,30 @@ public class AdHocElementTemplateTest {
   }
 
   /**
-   * A scope built from the template names its model: the connector's default is a small model
-   * that, in an agentic scope, starts a tool that waits for a person a second time. So the Model
-   * field is preset to a stronger one, shown as its placeholder too, and its text names the
-   * minimum and how the server's default is set. The service task's template keeps an empty
-   * field: there one model call answers once, and the server's default applies.
+   * A scope whose Model field is empty runs on the server's default model, so the field stays
+   * empty and its placeholder shows that default, in both templates: what the modeller sees in
+   * an empty field is what runs. The ad hoc template's text names the minimum for agentic work,
+   * what a weaker model does, and how the server's default is set. A preset value would also
+   * hide the server's default from every new scope.
    */
   @Test
-  public void theModelFieldPresetsAModelForAgenticWork() throws IOException {
+  public void anEmptyModelFieldShowsTheServersDefaultAndTheMinimumForAgenticWork()
+      throws IOException {
     String binding = "camunda:inputParameter:" + AgentConnector.PARAM_NAME_MODEL;
-    JsonNode model = fields(read(AD_HOC).get("scopes").get(0).get("properties")).get(binding);
-    JsonNode standard = fields(read(STANDARD).get("scopes").get(0).get("properties")).get(binding);
-
-    String preset = text(model, "value");
-    assertThat(preset).isNotEmpty().isNotEqualTo(AgentConnectorConstants.DEFAULT_MODEL);
-    assertThat(text(model, "placeholder")).isEqualTo(preset);
-    assertThat(text(model, "description"))
-        .contains("Preset to " + preset)
-        .contains(preset + " or stronger")
+    String fallback = AgentConnectorConstants.DEFAULT_MODEL;
+    for (String resource : new String[] { STANDARD, AD_HOC }) {
+      JsonNode model = fields(read(resource).get("scopes").get(0).get("properties")).get(binding);
+      assertThat(model.has("value")).as(resource + ": no preset model").isFalse();
+      assertThat(text(model, "placeholder")).as(resource + ": the placeholder").isEqualTo(fallback);
+    }
+    JsonNode adHoc = fields(read(AD_HOC).get("scopes").get(0).get("properties")).get(binding);
+    assertThat(text(adHoc, "description"))
+        .contains("Empty: the server's default model, " + fallback)
         .contains(AgentConnectorConstants.DEFAULT_MODEL_PROPERTY)
         .contains(AgentConnectorConstants.DEFAULT_MODEL_ENV_VAR)
-        .contains("openai/" + preset);
-    assertThat(standard.has("value")).as("the service task's Model field stays empty").isFalse();
+        .contains("made for agentic work")
+        .contains(fallback + " or stronger")
+        .contains("openai/" + fallback);
   }
 
   /** Same label, type and binding as the service task's field; defaults and texts may differ. */

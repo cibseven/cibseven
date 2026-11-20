@@ -160,7 +160,7 @@
           "type": "String",
           "group": "agent",
           "description": "LLM model identifier, e.g. gpt-5.5, claude-opus-4.7, gemma-4-26b. On OpenRouter prefix with provider: openai/gpt-5.5.",
-          "placeholder": "gpt-5.4-nano",
+          "placeholder": "gpt-6-luna",
           "binding": {
             "type": "camunda:inputParameter",
             "name": "model"
