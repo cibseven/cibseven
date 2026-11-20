@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+    xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+    xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+    xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+    typeLanguage="http://www.w3.org/2001/XMLSchema"
+    expressionLanguage="http://www.w3.org/1999/XPath"
+    targetNamespace="test">
+
+  <process id="HtmlFormEngineEscapingTest.defaultValueFromVariable" isExecutable="true">
+
+    <startEvent id="start" />
+
+    <sequenceFlow id="flow1" sourceRef="start" targetRef="task" />
+
+    <userTask id="task" name="Task">
+      <extensionElements>
+        <camunda:formData>
+            <camunda:formField
+                id="field" label="Field" type="string" defaultValue="${evilDefault}">
+            </camunda:formField>
+        </camunda:formData>
+      </extensionElements>
+    </userTask>
+
+    <sequenceFlow id="flow2" sourceRef="task" targetRef="end" />
+
+    <endEvent id="end" />
+
+  </process>
+
+</definitions>

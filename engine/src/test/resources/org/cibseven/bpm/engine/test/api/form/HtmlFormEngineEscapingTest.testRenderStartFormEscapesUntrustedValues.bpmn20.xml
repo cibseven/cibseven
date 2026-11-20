@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+    xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+    xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+    xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+    typeLanguage="http://www.w3.org/2001/XMLSchema"
+    expressionLanguage="http://www.w3.org/1999/XPath"
+    targetNamespace="test">
+
+  <process id="HtmlFormEngineEscapingTest.untrustedValues" isExecutable="true">
+
+    <startEvent id="start">
+      <extensionElements>
+        <camunda:formData>
+            <camunda:formField
+                id="stringField" label="&lt;img src=x onerror=alert(1)&gt;" type="string"
+                defaultValue="&quot;&gt;&lt;b&gt;">
+              <camunda:validation>
+                <camunda:constraint name="maxlength" config="&quot;&gt;&lt;img&gt;" />
+              </camunda:validation>
+            </camunda:formField>
+            <camunda:formField
+                id="dateField" label="Date Field" type="date"
+                datePattern="'&lt;b&gt;'dd.MM.yyyy">
+            </camunda:formField>
+            <camunda:formField
+                id="enumField" label="Enum Field" type="enum">
+              <camunda:value id="&quot;&gt;" name="&lt;i&gt;x&lt;/i&gt;" />
+            </camunda:formField>
+        </camunda:formData>
+      </extensionElements>
+    </startEvent>
+
+  </process>
+
+</definitions>
