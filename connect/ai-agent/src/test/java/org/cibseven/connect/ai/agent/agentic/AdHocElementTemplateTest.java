@@ -424,6 +424,31 @@ public class AdHocElementTemplateTest {
     assertThat(unknown).as("quoted names that are no choice of their dropdown").isEmpty();
   }
 
+  /**
+   * A scope built from the template names its model: the connector's default is a small model
+   * that, in an agentic scope, starts a tool that waits for a person a second time. So the Model
+   * field is preset to a stronger one, shown as its placeholder too, and its text names the
+   * minimum and how the server's default is set. The service task's template keeps an empty
+   * field: there one model call answers once, and the server's default applies.
+   */
+  @Test
+  public void theModelFieldPresetsAModelForAgenticWork() throws IOException {
+    String binding = "camunda:inputParameter:" + AgentConnector.PARAM_NAME_MODEL;
+    JsonNode model = fields(read(AD_HOC).get("scopes").get(0).get("properties")).get(binding);
+    JsonNode standard = fields(read(STANDARD).get("scopes").get(0).get("properties")).get(binding);
+
+    String preset = text(model, "value");
+    assertThat(preset).isNotEmpty().isNotEqualTo(AgentConnectorConstants.DEFAULT_MODEL);
+    assertThat(text(model, "placeholder")).isEqualTo(preset);
+    assertThat(text(model, "description"))
+        .contains("Preset to " + preset)
+        .contains(preset + " or stronger")
+        .contains(AgentConnectorConstants.DEFAULT_MODEL_PROPERTY)
+        .contains(AgentConnectorConstants.DEFAULT_MODEL_ENV_VAR)
+        .contains("openai/" + preset);
+    assertThat(standard.has("value")).as("the service task's Model field stays empty").isFalse();
+  }
+
   /** Same label, type and binding as the service task's field; defaults and texts may differ. */
   @Test
   public void everyConnectorFieldIsTheServiceTasksField() throws IOException {
