@@ -2751,8 +2751,11 @@ public class TaskServiceTest {
       assertThat(taskService.createTaskQuery().taskId(other.getId()).singleResult().getLastUpdated())
           .isNotEqualTo(saveTime);
     } finally {
-      taskService.deleteTask(owner.getId(), true);
-      taskService.deleteTask(other.getId(), true);
+      try {
+        taskService.deleteTask(owner.getId(), true);
+      } finally {
+        taskService.deleteTask(other.getId(), true);
+      }
     }
   }
 

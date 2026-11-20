@@ -60,8 +60,10 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
   @AfterEach
   public void cleanUp() {
     try {
-      // delete by id: a blank task id is stored as NULL on Oracle, so "TASK_ID_ = ''" would match nothing there
+      // delete by id: a blank task id is stored as NULL on Oracle, so "TASK_ID_ = ''" matches nothing there;
+      // the blank-task-id sweep stays as a safety net for unexpected leaks on the other databases
       processEngineConfiguration.getCommandExecutorTxRequired().execute(commandContext -> {
+        commandContext.getCommentManager().deleteCommentsByTaskId("");
         for (String commentId : unboundCommentIds) {
           CommentEntity comment = commandContext.getDbEntityManager().selectById(CommentEntity.class, commentId);
           if (comment != null) {
