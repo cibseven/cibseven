@@ -30,10 +30,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.cibseven.bpm.engine.AuthorizationException;
 import org.cibseven.bpm.engine.authorization.HistoricProcessInstancePermissions;
+import org.cibseven.bpm.engine.impl.persistence.entity.CommentEntity;
 import org.cibseven.bpm.engine.task.Comment;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
@@ -46,6 +48,8 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
   protected static final String ONE_TASK_PROCESS = "org/cibseven/bpm/engine/test/api/oneTaskProcess.bpmn20.xml";
 
   protected boolean originalEnforceCommentPermissions;
+  // comments bound to neither a task nor a process instance; nothing else removes them
+  protected final List<String> unboundCommentIds = new ArrayList<>();
 
   @BeforeEach
   public void enforceCommentPermissions() {
@@ -56,8 +60,16 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
   @AfterEach
   public void cleanUp() {
     try {
+      // delete by id: a blank task id is stored as NULL on Oracle, so "TASK_ID_ = ''" matches nothing there;
+      // the blank-task-id sweep stays as a safety net for unexpected leaks on the other databases
       processEngineConfiguration.getCommandExecutorTxRequired().execute(commandContext -> {
         commandContext.getCommentManager().deleteCommentsByTaskId("");
+        for (String commentId : unboundCommentIds) {
+          CommentEntity comment = commandContext.getDbEntityManager().selectById(CommentEntity.class, commentId);
+          if (comment != null) {
+            commandContext.getCommentManager().delete(comment);
+          }
+        }
         return null;
       });
     } finally {
@@ -418,7 +430,7 @@ public class ProcessInstanceCommentAuthorizationTest extends AuthorizationTest {
   @Test
   public void shouldNotReadCommentsOfBlankTaskIdWithoutAdmin() {
     // given
-    createComment("", null, "aComment");
+    unboundCommentIds.add(createComment("", null, "aComment").getId());
 
     // when/then
     assertThatThrownBy(() -> taskService.getTaskComments(""))
