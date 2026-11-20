@@ -2733,23 +2733,27 @@ public class TaskServiceTest {
     Attachment attachment = taskService.createAttachment("web page", owner.getId(), null, "weatherforcast",
         "temperatures and more", "http://weather.com");
 
-    Date saveTime = new Date(ClockUtil.getCurrentTime().getTime() + 60_000);
+    // whole seconds only: MySQL stores LAST_UPDATED_ as datetime without fractional seconds and rounds them
+    long saveMillis = ClockUtil.getCurrentTime().getTime() + 60_000;
+    Date saveTime = new Date(saveMillis - saveMillis % 1000);
     ClockUtil.setCurrentTime(saveTime);
 
-    // when - the caller names another task than the one the attachment is stored for
-    AttachmentEntity update = (AttachmentEntity) taskService.getAttachment(attachment.getId());
-    update.setTaskId(other.getId());
-    update.setName("updatedName");
-    taskService.saveAttachment(update);
+    try {
+      // when - the caller names another task than the one the attachment is stored for
+      AttachmentEntity update = (AttachmentEntity) taskService.getAttachment(attachment.getId());
+      update.setTaskId(other.getId());
+      update.setName("updatedName");
+      taskService.saveAttachment(update);
 
-    // then
-    assertThat(taskService.createTaskQuery().taskId(owner.getId()).singleResult().getLastUpdated())
-        .isEqualTo(saveTime);
-    assertThat(taskService.createTaskQuery().taskId(other.getId()).singleResult().getLastUpdated())
-        .isNotEqualTo(saveTime);
-
-    taskService.deleteTask(owner.getId(), true);
-    taskService.deleteTask(other.getId(), true);
+      // then
+      assertThat(taskService.createTaskQuery().taskId(owner.getId()).singleResult().getLastUpdated())
+          .isEqualTo(saveTime);
+      assertThat(taskService.createTaskQuery().taskId(other.getId()).singleResult().getLastUpdated())
+          .isNotEqualTo(saveTime);
+    } finally {
+      taskService.deleteTask(owner.getId(), true);
+      taskService.deleteTask(other.getId(), true);
+    }
   }
 
   @Test
