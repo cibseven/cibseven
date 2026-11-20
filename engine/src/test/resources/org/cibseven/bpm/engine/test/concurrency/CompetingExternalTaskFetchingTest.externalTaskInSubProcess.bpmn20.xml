@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions
+  xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+  targetNamespace="Examples">
+
+  <!-- the external task runs in a child execution, so locking it resolves the execution tree -->
+  <process id="externalTaskInSubProcess" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="flow1" sourceRef="start" targetRef="subProcess" />
+    <subProcess id="subProcess">
+      <startEvent id="subStart" />
+      <sequenceFlow id="subFlow1" sourceRef="subStart" targetRef="externalTask" />
+      <serviceTask id="externalTask" camunda:type="external" camunda:topic="externalTaskTopic" />
+      <sequenceFlow id="subFlow2" sourceRef="externalTask" targetRef="subEnd" />
+      <endEvent id="subEnd" />
+    </subProcess>
+    <sequenceFlow id="flow2" sourceRef="subProcess" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>
