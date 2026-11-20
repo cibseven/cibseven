@@ -1,6 +1,6 @@
 License Book for CIB seven ${project.version}
 
-This is a license book. It contains licensing information for third-party libraries which are used in this release of the CIB seven platform ${project.version}. (Document generated on the: 2024-12-19)
+This is a license book. It contains licensing information for third-party libraries which are used in this release of the CIB seven platform ${project.version}. (Document generated on the: 2026-11-20)
 
 Introduction
 This document, which forms part of the program documentation, is intended to help the reader in understanding the license terms and copyright for third-party libraries associated with the CIB seven platform.
@@ -994,7 +994,6 @@ license url: https://www.eclipse.org/legal/epl-2.0
 com.ethlo.time:itu:1.14.0
 name: itu
 description: Extremely fast date-time parser and formatter - RFC 3339 (ISO 8601 profile) and W3C format
-url: https://github.com/ethlo/itu
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -1076,6 +1075,7 @@ license url: https://opensource.org/licenses/Apache-2.0
 com.github.victools:jsonschema-generator:5.0.0
 name: jsonschema-generator
 description: Java JSON Schema Generator – creating a JSON Schema (Draft 6, Draft 7 or Draft 2019-09) from your Java classes
+url: https://github.com/victools/jsonschema-generator
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -1114,7 +1114,6 @@ license url: https://opensource.org/licenses/Apache-2.0
 com.googlecode.javaewah:JavaEWAH:1.2.3
 name: JavaEWAH
 description: The bit array data structure is implemented in Java as the BitSet class. Unfortunately, this fails to scale without compression. JavaEWAH is a word-aligned compressed variant of the Java bitset class. It uses a 64-bit run-length encoding (RLE) compression scheme. The goal of word-aligned compression is not to achieve the best compression, but rather to improve query processing time. Hence, we try to save CPU cycles, maybe at the expense of storage. However, the EWAH scheme we implemented is always more efficient storage-wise than an uncompressed bitmap (implemented in Java as the BitSet class). Unlike some alternatives, javaewah does not rely on a patented scheme.
-url: https://github.com/lemire/javaewah
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -1135,6 +1134,7 @@ license url: https://raw.githubusercontent.com/unicode-org/icu/main/icu4c/LICENS
 com.jayway.jsonpath:json-path:3.0.0
 name: json-path
 description: A library to query and verify JSON
+url: https://github.com/jayway/JsonPath
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -1574,14 +1574,9 @@ license url: https://opensource.org/licenses/EPL-2.0
 jakarta.authorization:jakarta.authorization-api:3.0.0
 name: jakarta.authorization-api
 description: Jakarta Authorization defines a low-level SPI for authorization modules, which are repositories of permissions facilitating subject based security by determining whether a given subject has a given permission, and algorithms to transform security constraints for specific containers (such as Jakarta Servlet or Jakarta Enterprise Beans) into these permissions.
+url: https://github.com/jakartaee/authorization
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
-========================================================================
-jakarta.data:jakarta.data-api:1.0.1
-name: jakarta.data-api
-description: Jakarta Data :: API
-license: Apache-2.0
-license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
 jakarta.ejb:jakarta.ejb-api:4.0.1
 name: jakarta.ejb-api
@@ -1610,24 +1605,6 @@ description: APIs for CDI (Contexts and Dependency Injection for Java)
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
-jakarta.enterprise:jakarta.enterprise.cdi-el-api:4.1.0
-name: jakarta.enterprise.cdi-el-api
-description: API for integrating CDI with Unified EL
-license: Apache-2.0
-license url: https://www.apache.org/licenses/LICENSE-2.0
-========================================================================
-jakarta.enterprise:jakarta.enterprise.lang-model:4.1.0
-name: jakarta.enterprise.lang-model
-description: Build Compatible (Reflection-Free) Java Language Model for CDI
-license: Apache-2.0
-license url: https://www.apache.org/licenses/LICENSE-2.0
-========================================================================
-jakarta.faces:jakarta.faces-api:4.1.2
-name: jakarta.faces-api
-description: Jakarta Faces defines an MVC framework for building user interfaces for web applications, including UI components, state management, event handing, input validation, page navigation, and support for internationalization and accessibility.
-license: EPL-2.0
-license url: https://opensource.org/licenses/EPL-2.0
-========================================================================
 jakarta.inject:jakarta.inject-api:2.0.1
 name: jakarta.inject-api
 description: Jakarta Dependency Injection
@@ -1649,35 +1626,10 @@ url: https://projects.eclipse.org/projects/ee4j.jms
 license: EPL-2.0
 license url: https://www.eclipse.org/legal/epl-2.0
 ========================================================================
-jakarta.json.bind:jakarta.json.bind-api:3.0.4
-name: jakarta.json.bind-api
-description: Jakarta JSON Binding is a standard binding layer for converting Java objects to/from JSON documents.
-license: EPL-2.0
-license url: https://www.eclipse.org/legal/epl-2.0
-========================================================================
-jakarta.json:jakarta.json-api:2.1.3
-name: jakarta.json-api
-description: Jakarta JSON Processing defines a Java(R) based framework for parsing, generating, transforming, and querying JSON documents.
-url: https://github.com/eclipse-ee4j/jsonp
-license: EPL-2.0
-license url: https://www.eclipse.org/legal/epl-2.0
-========================================================================
 jakarta.persistence:jakarta.persistence-api:3.2.0
 name: jakarta.persistence-api
 description: Eclipse Enterprise for Java (EE4J) is an open source initiative to create standard APIs, implementations of those APIs, and technology compatibility kits for Java runtimes that enable development, deployment, and management of server-side and cloud-native applications.
-url: https://github.com/jakartaee/persistence.git
-license: EPL-2.0
-license url: https://opensource.org/licenses/EPL-2.0
-========================================================================
-jakarta.platform:jakarta.jakartaee-core-api:11.0.0
-name: jakarta.jakartaee-core-api
-description: Eclipse Enterprise for Java (EE4J) is an open source initiative to create standard APIs, implementations of those APIs, and technology compatibility kits for Java runtimes that enable development, deployment, and management of server-side and cloud-native applications.
-license: EPL-2.0
-license url: https://opensource.org/licenses/EPL-2.0
-========================================================================
-jakarta.platform:jakarta.jakartaee-web-api:11.0.0
-name: jakarta.jakartaee-web-api
-description: Eclipse Enterprise for Java (EE4J) is an open source initiative to create standard APIs, implementations of those APIs, and technology compatibility kits for Java runtimes that enable development, deployment, and management of server-side and cloud-native applications.
+url: https://github.com/jakartaee/persistence
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -1685,19 +1637,6 @@ jakarta.resource:jakarta.resource-api:2.1.0
 name: jakarta.resource-api
 description: Jakarta Connectors 2.1
 url: https://github.com/eclipse-ee4j/jca-api
-license: EPL-2.0
-license url: https://opensource.org/licenses/EPL-2.0
-========================================================================
-jakarta.security.enterprise:jakarta.security.enterprise-api:4.0.0
-name: jakarta.security.enterprise-api
-description: Jakarta Security defines a standard for creating secure Jakarta EE applications in modern application paradigms. It defines an overarching (end-user targeted) Security API for Jakarta EE Applications.
-license: EPL-2.0
-license url: https://opensource.org/licenses/EPL-2.0
-========================================================================
-jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:3.0.2
-name: jakarta.servlet.jsp.jstl-api
-description: Jakarta Standard Tag Library API
-url: https://projects.eclipse.org/projects/ee4j.jstl
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
@@ -1728,20 +1667,6 @@ description: Jakarta Validation API
 url: https://beanvalidation.org
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
-========================================================================
-jakarta.websocket:jakarta.websocket-api:2.2.0
-name: jakarta.websocket-api
-description: Jakarta WebSocket - Server API
-url: https://projects.eclipse.org/projects/ee4j.websocket
-license: EPL-2.0
-license url: https://opensource.org/licenses/EPL-2.0
-========================================================================
-jakarta.websocket:jakarta.websocket-client-api:2.2.0
-name: jakarta.websocket-client-api
-description: Jakarta WebSocket - Client API
-url: https://projects.eclipse.org/projects/ee4j.websocket
-license: EPL-2.0
-license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
 jakarta.ws.rs:jakarta.ws.rs-api:4.0.0
 name: jakarta.ws.rs-api
@@ -2033,14 +1958,7 @@ url: https://www.eclipse.org/aspectj/
 license: EPL-2.0
 license url: https://opensource.org/licenses/EPL-2.0
 ========================================================================
-org.assertj:assertj-core:3.27.7
-name: assertj-core
-description: Rich and fluent assertions for testing in Java
-url: https://assertj.github.io/doc/#assertj-core
-license: Apache-2.0
-license url: https://www.apache.org/licenses/LICENSE-2.0
-========================================================================
-org.camunda.feel:feel-engine:1.19.3
+org.camunda.feel:feel-engine:1.19.6
 name: feel-engine
 description: This pom defines the required plugins and profiles to allow a Camunda Platform release build.
 url: https://github.com/camunda/feel-scala
@@ -2410,6 +2328,7 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.infinispan.protostream:protostream:6.0.9
 name: protostream
 description: ProtoStream is a serialization library based on Protocol buffers format for serializing structured data.
+url: https://github.com/infinispan/protostream
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
@@ -2441,7 +2360,6 @@ license url: https://www-archive.mozilla.org/mpl/mpl-1.1
 org.jboss.classfilewriter:jboss-classfilewriter:1.3.1.Final
 name: jboss-classfilewriter
 description: A bytecode writer that creates .class files at runtime
-url: https://github.com/jbossas/jboss-classfilewriter
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -2606,6 +2524,7 @@ license url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html
 org.jboss.threads:jboss-threads:3.9.2
 name: jboss-threads
 description: Thread pool implementations and threading utilities
+url: https://github.com/jbossas/jboss-threads
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
@@ -2624,13 +2543,13 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.jboss:jboss-ejb-client:5.0.10.Final
 name: jboss-ejb-client
 description: Client library for EJB applications working against Wildfly - Jakarta EE Variant
+url: https://github.com/wildfly/jboss-ejb-client
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
 org.jboss:jboss-iiop-client:2.0.1.Final
 name: jboss-iiop-client
 description: Client library for EJB applications working against JBoss AS using the IIOP protocol
-url: https://github.com/jbossas/jboss-iiop-client
 license: Apache-2.0
 license url: https://www.apache.org/licenses/LICENSE-2.0
 ========================================================================
@@ -2718,6 +2637,7 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.jspecify:jspecify:1.0.0
 name: jspecify
 description: An artifact of well-named and well-specified annotations to power static analysis checks
+url: https://github.com/jspecify/jspecify/
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -2808,7 +2728,7 @@ license url: https://opensource.org/license/mit/
 org.snakeyaml:snakeyaml-engine:3.0.1
 name: snakeyaml-engine
 description: Core YAML 1.2 parser and emitter for Java
-url: https://bitbucket.org/snakeyaml/snakeyaml-engine/src
+url: https://bitbucket.org/snakeyaml/snakeyaml-engine
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -2889,6 +2809,7 @@ license url: https://opensource.org/licenses/Apache-2.0
 org.springframework.ai:spring-ai-starter-mcp-server-webmvc:2.0.1
 name: spring-ai-starter-mcp-server-webmvc
 description: Spring AI MCP Server WebMvc Spring Boot Starter
+url: https://github.com/spring-projects/spring-ai
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -2916,6 +2837,7 @@ license url: https://opensource.org/licenses/Apache-2.0
 org.springframework.boot:spring-boot-autoconfigure:4.1.2
 name: spring-boot-autoconfigure
 description: Spring Boot AutoConfigure
+url: https://github.com/spring-projects/spring-boot
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -3216,7 +3138,6 @@ license url: https://opensource.org/licenses/Apache-2.0
 org.springframework.data:spring-data-commons:4.1.2
 name: spring-data-commons
 description: Core Spring concepts underpinning every Spring Data module.
-url: https://github.com/spring-projects/spring-data-commons
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -3374,7 +3295,6 @@ license url: https://www.apache.org/licenses/LICENSE-2.0
 org.webjars:webjars-locator-lite:1.1.5
 name: webjars-locator-lite
 description: WebJars Locator Lite
-url: https://github.com/webjars/webjars-locator-lite
 license: MIT
 license url: https://opensource.org/license/mit/
 ========================================================================
@@ -3408,7 +3328,6 @@ license url: https://opensource.org/licenses/Apache-2.0
 org.wildfly.clustering:wildfly-clustering-marshalling-jboss:12.0.0.CR5
 name: wildfly-clustering-marshalling-jboss
 description: WildFly Clustering: Marshalling: JBoss Marshalling
-url: https://github.com/wildfly-clustering/wildfly-clustering
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
@@ -4433,13 +4352,6 @@ url: git+https://code.haverbeke.berlin/codemirror/view
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@esbuild:linux-x64:0.25.12
-name: linux-x64
-description: The Linux 64-bit binary for esbuild, a JavaScript bundler.
-url: https://github.com/evanw/esbuild
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
 @ibm:telemetry-js:1.11.0
 name: telemetry-js
 description: JavaScript telemetry tooling for open/inner source projects
@@ -4566,13 +4478,6 @@ url: https://github.com/Templarian/MaterialDesign-Webfont
 license: Apache-2.0
 license url: https://opensource.org/licenses/Apache-2.0
 ========================================================================
-@napi-rs:lzma-linux-x64-gnu:1.5.1
-name: lzma-linux-x64-gnu
-description: lzma / lzma2 / xz compression for Node.js and the browser, backed by pure-Rust lzma-rust2 via https://napi.rs
-url: https://github.com/Brooooooklyn/lzma
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
 @noble:hashes:1.8.0
 name: hashes
 description: Audited & minimal 0-dependency JS implementation of SHA, RIPEMD, BLAKE, HMAC, HKDF, PBKDF & Scrypt
@@ -4594,45 +4499,10 @@ url: https://github.com/ericelliott/cuid2
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-@parcel:watcher-linux-x64-glibc:2.6.0
-name: watcher-linux-x64-glibc
-description: A native C++ Node module for querying and subscribing to filesystem events. Used by Parcel 2.
-url: https://github.com/parcel-bundler/watcher
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
-@parcel:watcher-linux-x64-musl:2.6.0
-name: watcher-linux-x64-musl
-description: A native C++ Node module for querying and subscribing to filesystem events. Used by Parcel 2.
-url: https://github.com/parcel-bundler/watcher
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
-@parcel:watcher:2.6.0
-name: watcher
-description: A native C++ Node module for querying and subscribing to filesystem events. Used by Parcel 2.
-url: https://github.com/parcel-bundler/watcher
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
 @popperjs:core:2.11.8
 name: core
 description: Tooltip and Popover Positioning Engine
 url: https://github.com/popperjs/popper-core
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
-@rollup:rollup-linux-x64-gnu:4.62.5
-name: rollup-linux-x64-gnu
-description: Native bindings for Rollup
-url: https://github.com/rollup/rollup
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
-@rollup:rollup-linux-x64-musl:4.62.5
-name: rollup-linux-x64-musl
-description: Native bindings for Rollup
-url: https://github.com/rollup/rollup
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -4668,13 +4538,6 @@ license url: https://opensource.org/licenses/MIT
 name: svg.select.js
 description: An extension of svg.js which allows to select elements with mouse
 url: https://github.com/svgdotjs/svg.select.js
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
-@types:estree:1.0.9
-name: estree
-description: TypeScript definitions for estree
-url: https://github.com/DefinitelyTyped/DefinitelyTyped
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -4902,7 +4765,7 @@ url: https://github.com/twbs/bootstrap
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-bpm-sdk:2.1.4-dev.0
+bpm-sdk:2.1.4
 name: bpm-sdk
 description: Camunda BPM SDK extracted as a standalone library.
 license: Apache-2.0
@@ -5139,13 +5002,6 @@ url: https://github.com/felixge/node-delayed-stream
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-detect-libc:2.1.2
-name: detect-libc
-description: Node.js module to detect the C standard library (libc) implementation family and version
-url: https://github.com/lovell/detect-libc
-license: Apache-2.0
-license url: https://opensource.org/licenses/Apache-2.0
-========================================================================
 dezalgo:1.0.4
 name: dezalgo
 description: Contain async insanity so that the dark pony lord doesn't eat souls
@@ -5311,13 +5167,6 @@ es-set-tostringtag:2.1.0
 name: es-set-tostringtag
 description: A helper to optimistically set Symbol.toStringTag, when possible.
 url: https://github.com/es-shims/es-set-tostringtag
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
-esbuild:0.25.12
-name: esbuild
-description: An extremely fast JavaScript and CSS bundler and minifier.
-url: https://github.com/evanw/esbuild
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -5509,13 +5358,6 @@ url: https://github.com/bpmn-io/ids
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-immutable:5.1.9
-name: immutable
-description: Immutable Data Collections
-url: https://github.com/immutable-js/immutable-js
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
 inferno-shared:5.6.3
 name: inferno-shared
 description: Helpers functions for Inferno
@@ -5543,20 +5385,6 @@ description: A inherits fork that is safe per default to use in browsers
 url: https://github.com/nikku/inherits-browser
 license: ISC
 license url: https://opensource.org/license/isc-license-txt
-========================================================================
-is-extglob:2.1.1
-name: is-extglob
-description: Returns true if a string has an extglob.
-url: https://github.com/jonschlinkert/is-extglob
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
-is-glob:4.0.3
-name: is-glob
-description: Returns `true` if the given string looks like a glob pattern or an extglob pattern. This makes it easy to create code that only uses external modules like node-glob when necessary, resulting in much faster code execution and initialization time, and a better user experience.
-url: https://github.com/micromatch/is-glob
-license: MIT
-license url: https://opensource.org/licenses/MIT
 ========================================================================
 is-unsafe:2.0.2
 name: is-unsafe
@@ -5775,13 +5603,6 @@ url: https://github.com/ai/nanoid
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
-node-addon-api:7.1.1
-name: node-addon-api
-description: Node.js API (Node-API)
-url: https://github.com/nodejs/node-addon-api
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
 object-inspect:1.13.4
 name: object-inspect
 description: string representations of objects in node and the browser
@@ -5933,20 +5754,6 @@ readdirp:5.1.1
 name: readdirp
 description: Recursive version of fs.readdir with small RAM & CPU footprint
 url: https://github.com/paulmillr/readdirp
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
-rollup:4.62.5
-name: rollup
-description: Next-generation ES module bundler
-url: https://github.com/rollup/rollup
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
-sass:1.103.1
-name: sass
-description: A pure JavaScript implementation of Sass.
-url: https://github.com/sass/dart-sass
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
@@ -6122,13 +5929,6 @@ uuid:13.0.2
 name: uuid
 description: RFC9562 UUIDs
 url: https://github.com/uuidjs/uuid
-license: MIT
-license url: https://opensource.org/licenses/MIT
-========================================================================
-vite:6.4.5
-name: vite
-description: Native-ESM powered web dev build tool
-url: https://github.com/vitejs/vite
 license: MIT
 license url: https://opensource.org/licenses/MIT
 ========================================================================
