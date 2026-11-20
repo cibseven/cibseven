@@ -1779,6 +1779,149 @@ public class AgenticAdHocParseListenerTest {
         .hasMessageContaining("must be 'true' or 'false'");
   }
 
+  /** GH-610: a value of the same-runs guard that is neither true nor false. */
+  @Test
+  public void refusesAnUnparseableSameRunsMark() {
+    String model = agentic("<userTask id='once'>"
+        + "  <extensionElements><camunda:properties>"
+        + "    <camunda:property name='adHocBlockedWhileSameRuns' value='ja' />"
+        + "  </camunda:properties></extensionElements>"
+        + "</userTask>");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("adHocBlockedWhileSameRuns is 'ja'")
+        .hasMessageContaining("'once'")
+        .hasMessageContaining("must be 'true' or 'false'");
+  }
+
+  /**
+   * GH-610: adHocBlockedWhileSameRuns=false beside adHocBlockedWhileOthersRun=true would
+   * promise a second instance the older marking refuses all the same.
+   */
+  @Test
+  public void refusesSameRunsOffBesideOthersRun() {
+    String model = agentic("<userTask id='beide'>"
+        + "  <extensionElements><camunda:properties>"
+        + "    <camunda:property name='adHocBlockedWhileOthersRun' value='true' />"
+        + "    <camunda:property name='adHocBlockedWhileSameRuns' value='false' />"
+        + "  </camunda:properties></extensionElements>"
+        + "</userTask>");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("child 'beide'")
+        .hasMessageContaining("adHocBlockedWhileSameRuns is 'false', but adHocBlockedWhileOthersRun"
+            + " is 'true'");
+  }
+
+  /**
+   * GH-610: the same-runs guard on an activity an inner flow reaches, which the agent never starts,
+   * would do nothing there; the deployment says where it belongs.
+   */
+  @Test
+  public void refusesASameRunsMarkOnAnActivityThatIsNoTool() {
+    String model = agentic("<serviceTask id='anstossen' camunda:expression='${1}' />"
+        + "<sequenceFlow id='weiter' sourceRef='anstossen' targetRef='extern' />"
+        + "<serviceTask id='extern' camunda:type='external' camunda:topic='t'>"
+        + "  <extensionElements><camunda:properties>"
+        + "    <camunda:property name='adHocBlockedWhileSameRuns' value='true' />"
+        + "  </camunda:properties></extensionElements>"
+        + "</serviceTask>");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("child 'extern'")
+        .hasMessageContaining("adHocBlockedWhileSameRuns is set on an activity the agent never"
+            + " starts")
+        .hasMessageContaining("Set it on the tool whose flow reaches it");
+  }
+
+  /** Nor does it on a task inside a tool's embedded sub process, which the agent never starts. */
+  @Test
+  public void refusesASameRunsMarkInsideAnEmbeddedSubProcessTool() {
+    String model = agentic("<subProcess id='eingebettet'>"
+        + "  <startEvent id='innenStart' />"
+        + "  <sequenceFlow id='innenRein' sourceRef='innenStart' targetRef='innen' />"
+        + "  <userTask id='innen'>"
+        + "    <extensionElements><camunda:properties>"
+        + "      <camunda:property name='adHocBlockedWhileSameRuns' value='true' />"
+        + "    </camunda:properties></extensionElements>"
+        + "  </userTask>"
+        + "  <sequenceFlow id='innenRaus' sourceRef='innen' targetRef='innenEnde' />"
+        + "  <endEvent id='innenEnde' />"
+        + "</subProcess>");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("child 'innen'")
+        .hasMessageContaining("Set it on the tool whose flow reaches it or that contains it");
+  }
+
+  /** Nor a typo there: on an activity that is no tool, only 'false' or nothing deploys. */
+  @Test
+  public void refusesAnUnreadableSameRunsMarkOnAnActivityThatIsNoTool() {
+    String model = agentic("<serviceTask id='anstossen' camunda:expression='${1}' />"
+        + "<sequenceFlow id='weiter' sourceRef='anstossen' targetRef='danach' />"
+        + "<userTask id='danach'>"
+        + "  <extensionElements><camunda:properties>"
+        + "    <camunda:property name='adHocBlockedWhileSameRuns' value='ja' />"
+        + "  </camunda:properties></extensionElements>"
+        + "</userTask>");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("child 'danach'")
+        .hasMessageContaining("adHocBlockedWhileSameRuns is set on an activity the agent never"
+            + " starts");
+  }
+
+  /** A nested ad hoc sub process without an agent of its own is checked as any sub process. */
+  @Test
+  public void refusesASameRunsMarkInsideAPlainNestedAdHocTool() {
+    String model = agentic("<adHocSubProcess id='schlicht'>"
+        + "  <userTask id='drinnen'>"
+        + "    <extensionElements><camunda:properties>"
+        + "      <camunda:property name='adHocBlockedWhileSameRuns' value='true' />"
+        + "    </camunda:properties></extensionElements>"
+        + "  </userTask>"
+        + "</adHocSubProcess>");
+
+    assertThatThrownBy(() -> deploy(model))
+        .isInstanceOf(ProcessEngineException.class)
+        .hasMessageContaining("child 'drinnen'")
+        .hasMessageContaining("adHocBlockedWhileSameRuns is set on an activity the agent never"
+            + " starts");
+  }
+
+  /**
+   * One with an agent of its own starts its children itself: a mark there is that agent's, and the
+   * outer parse leaves it to the nested scope's own catalogue.
+   */
+  @Test
+  public void leavesASameRunsMarkInsideANestedAgentToItsOwnCatalogue() {
+    deploy(agentic("<adHocSubProcess id='helfer'><extensionElements>"
+        + connectorElement("<camunda:inputParameter name='message'>Hilf.</camunda:inputParameter>")
+        + "</extensionElements>"
+        + "<userTask id='innen'>"
+        + "  <extensionElements><camunda:properties>"
+        + "    <camunda:property name='adHocBlockedWhileSameRuns' value='true' />"
+        + "  </camunda:properties></extensionElements>"
+        + "</userTask></adHocSubProcess>"));
+  }
+
+  /** 'false', the default, on an activity that is no tool promises nothing: it deploys. */
+  @Test
+  public void acceptsASameRunsMarkOfFalseOnAnActivityThatIsNoTool() {
+    deploy(agentic("<serviceTask id='anstossen' camunda:expression='${1}' />"
+        + "<sequenceFlow id='weiter' sourceRef='anstossen' targetRef='danach' />"
+        + "<userTask id='danach'>"
+        + "  <extensionElements><camunda:properties>"
+        + "    <camunda:property name='adHocBlockedWhileSameRuns' value='false' />"
+        + "  </camunda:properties></extensionElements>"
+        + "</userTask>"));
+  }
+
   /**
    * What a tool reads, from its model (CIB7-2169): the variable a simple expression of its input
    * mapping names, or the root of a path; what a connector on it maps in; the sources of a call

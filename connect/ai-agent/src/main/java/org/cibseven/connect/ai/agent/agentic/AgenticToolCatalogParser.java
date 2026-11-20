@@ -97,6 +97,19 @@ public final class AgenticToolCatalogParser {
   public static final String BLOCKED_WHILE_OTHERS_RUN_PROPERTY = "adHocBlockedWhileOthersRun";
 
   /**
+   * {@code camunda:property} on a child: whether the agent may start it only while no earlier
+   * instance of the same activity in the scope still runs (GH-610). Off by default: a model sets
+   * it on a tool a second instance of which does harm, such as one whose external task a worker
+   * would do twice. It belongs on the tool, the activity the agent starts, and counts for its
+   * whole flow; on any other activity of the scope, one further along a flow or inside a tool's
+   * embedded sub process, which the agent never starts, it refuses the deployment. It holds for
+   * the agent's own starts only: an activation over the runtime API is not checked. Ad hoc lets
+   * an activity run several times, and an agent may start one again for other work; the agent's
+   * instructions tell it not to for the same work.
+   */
+  public static final String BLOCKED_WHILE_SAME_RUNS_PROPERTY = "adHocBlockedWhileSameRuns";
+
+  /**
    * The variable {@code toolCall} itself: not part of a longer name, and no property of something
    * else, as in {@code order.toolCall}.
    */
@@ -233,8 +246,10 @@ public final class AgenticToolCatalogParser {
     for (Element child : scopeElement.elements()) {
       String id = child.attribute("id");
       if (id == null || !startableIds.contains(id)) {
+        refuseSameRunsOffATool(scopeElement, child, parsing);
         continue;
       }
+      refuseSameRunsInside(scopeElement, child, parsing);
       // On a parse again a tool these would refuse is left out, so the agent never starts it
       // (CIB7-2367): one whose id cannot be a tool name could not be called, one whose guard
       // cannot be read would run unguarded. The model can still start it itself, when the scope
@@ -257,19 +272,23 @@ public final class AgenticToolCatalogParser {
       }
       Map<String, String> properties = childProperties(child);
       boolean blockedWhileOthersRun;
+      boolean blockedWhileSameRuns;
       List<AdHocToolDescriptor.Parameter> parameters;
       try {
         blockedWhileOthersRun = blockedWhileOthersRun(scopeElement, child, properties);
+        blockedWhileSameRuns = blockedWhileSameRuns(scopeElement, child, properties);
         parameters = parameters(scopeElement, child, parsing);
       } catch (BpmnParseException refusal) {
         parsing.refuse(refusal, leftOut);
         continue;
       }
+      refuseSameRunsOffUnderOthersRun(scopeElement, child, properties, blockedWhileOthersRun,
+          parsing);
       declared.put(id, parameters);
       catalog.add(new AdHocToolDescriptor(id, child.attribute("name"),
           firstDocumentation(child), readVariables(child),
           resultVariables(parsing, scopeElement, child, properties),
-          blockedWhileOthersRun, parameters));
+          blockedWhileOthersRun, blockedWhileSameRuns, parameters));
     }
     parsing.check(() -> refuseUnreadCalls(scopeElement, startableIds));
     parsing.check(() -> refuseUndeclaredReadsInFollowers(scopeElement, startableIds, declared));
@@ -627,7 +646,92 @@ public final class AgenticToolCatalogParser {
    */
   protected static boolean blockedWhileOthersRun(Element scopeElement, Element child,
       Map<String, String> properties) {
-    String raw = properties.get(BLOCKED_WHILE_OTHERS_RUN_PROPERTY);
+    return booleanProperty(scopeElement, child, properties, BLOCKED_WHILE_OTHERS_RUN_PROPERTY);
+  }
+
+  /**
+   * Whether the child carries {@link #BLOCKED_WHILE_SAME_RUNS_PROPERTY} (GH-610): the agent then
+   * starts it only while no earlier instance of it runs. Off when it does not, so a model
+   * deployed before behaves as it did. A value that is neither {@code true} nor {@code false}
+   * refuses the deployment, as with {@link #BLOCKED_WHILE_OTHERS_RUN_PROPERTY}.
+   */
+  protected static boolean blockedWhileSameRuns(Element scopeElement, Element child,
+      Map<String, String> properties) {
+    return booleanProperty(scopeElement, child, properties, BLOCKED_WHILE_SAME_RUNS_PROPERTY);
+  }
+
+  /**
+   * Refuses {@link #BLOCKED_WHILE_SAME_RUNS_PROPERTY} on a child of the scope that is no tool
+   * (GH-610): one an inner flow reaches, which the agent never starts, so the property would do
+   * nothing there. It belongs on the tool whose flow reaches the child, and counts for that whole
+   * flow. On a parse again only logged: the property is ignored, as it always was there.
+   */
+  protected static void refuseSameRunsOffATool(Element scopeElement, Element element,
+      Parsing parsing) {
+    String value = childProperties(element).get(BLOCKED_WHILE_SAME_RUNS_PROPERTY);
+    // 'false', the default, or nothing promises nothing that fails to happen; 'true' and any
+    // other value, a typo included, would.
+    if (value != null && !value.trim().isEmpty() && !"false".equalsIgnoreCase(value.trim())) {
+      String id = element.attribute("id");
+      parsing.refuse(new BpmnParseException("Ad hoc sub process '" + scopeElement.attribute("id")
+          + "', child '" + (id != null ? id : element.getTagName()) + "': "
+          + BLOCKED_WHILE_SAME_RUNS_PROPERTY + " is set on an activity the agent never starts."
+          + " Set it on the tool whose flow reaches it or that contains it: it counts for that"
+          + " tool's whole flow.", element), "the property is ignored there");
+    }
+    refuseSameRunsInside(scopeElement, element, parsing);
+  }
+
+  /**
+   * Refuses {@link #BLOCKED_WHILE_SAME_RUNS_PROPERTY} on what is inside {@code element}, as on an
+   * activity no tool is: the inner activities of an embedded sub process, which the agent never
+   * starts itself. A nested ad hoc sub process with an agent of its own is left to its own
+   * catalogue: its agent starts its children. One without is checked as any sub process.
+   */
+  protected static void refuseSameRunsInside(Element scopeElement, Element element,
+      Parsing parsing) {
+    if ("adHocSubProcess".equals(element.getTagName())
+        && AgenticAdHocParseListener.asksForAnAgent(element)) {
+      return;
+    }
+    for (Element inner : element.elements()) {
+      if ("extensionElements".equals(inner.getTagName())) {
+        continue;
+      }
+      refuseSameRunsOffATool(scopeElement, inner, parsing);
+    }
+  }
+
+  /**
+   * Refuses {@code adHocBlockedWhileSameRuns=false} set on a tool marked
+   * {@link #BLOCKED_WHILE_OTHERS_RUN_PROPERTY} (GH-610): that marking counts the tool's
+   * own earlier instance as other work, so a second instance is refused all the same, and the
+   * {@code false} would promise what does not happen. On a parse again only logged: the tool
+   * keeps waiting for everything else, its own earlier instance included.
+   */
+  protected static void refuseSameRunsOffUnderOthersRun(Element scopeElement, Element child,
+      Map<String, String> properties, boolean blockedWhileOthersRun, Parsing parsing) {
+    String sameRuns = properties.get(BLOCKED_WHILE_SAME_RUNS_PROPERTY);
+    if (!blockedWhileOthersRun || sameRuns == null || !"false".equalsIgnoreCase(sameRuns.trim())) {
+      return;
+    }
+    parsing.refuse(new BpmnParseException("Ad hoc sub process '" + scopeElement.attribute("id")
+        + "', child '" + child.attribute("id") + "': " + BLOCKED_WHILE_SAME_RUNS_PROPERTY
+        + " is 'false', but " + BLOCKED_WHILE_OTHERS_RUN_PROPERTY + " is 'true', and that counts"
+        + " the activity's own earlier instance as other work: a second instance is refused all"
+        + " the same. Remove " + BLOCKED_WHILE_SAME_RUNS_PROPERTY + ", or "
+        + BLOCKED_WHILE_OTHERS_RUN_PROPERTY + " if the activity may run beside other work.", child),
+        BLOCKED_WHILE_OTHERS_RUN_PROPERTY + " holds as it is, the activity's own earlier instance"
+            + " included");
+  }
+
+  /**
+   * A boolean property of the child: {@code false} when it is absent or empty, refused when it is
+   * neither {@code true} nor {@code false}.
+   */
+  protected static boolean booleanProperty(Element scopeElement, Element child,
+      Map<String, String> properties, String property) {
+    String raw = properties.get(property);
     if (raw == null || raw.trim().isEmpty()) {
       return false;
     }
@@ -639,7 +743,7 @@ public final class AgenticToolCatalogParser {
       return false;
     }
     throw new BpmnParseException("Ad hoc sub process '" + scopeElement.attribute("id")
-        + "', child '" + child.attribute("id") + "': " + BLOCKED_WHILE_OTHERS_RUN_PROPERTY
+        + "', child '" + child.attribute("id") + "': " + property
         + " is '" + value + "', but must be 'true' or 'false'.", child);
   }
 

@@ -19,6 +19,7 @@ package org.cibseven.connect.ai.agent.agentic;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -338,6 +339,20 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
     activity.getProperties().set(BpmnProperties.EXTENSION_PROPERTIES, properties);
 
     activity.getProperties().set(AdHocToolDescriptor.CATALOG, catalog);
+    // Which tool a running activity further along a chain belongs to, for the guard against a
+    // second instance of a tool (GH-610): read from the model, so it holds for a chain started
+    // over REST and for each branch of a tool that forks, which no tracking sees.
+    // From every startable child, a tool left out on a parse again among them: work it started
+    // over REST is then known as its own, and a follower it shares with a tool counts for both,
+    // as for any follower whose tool nothing tracks. Read only from here on, by every instance of
+    // the cached definition, so it is stored unmodifiable.
+    Map<String, Set<String>> reachedFrom = new HashMap<String, Set<String>>();
+    for (Map.Entry<String, Set<String>> reached
+        : AgenticToolCatalogParser.reachedFrom(scopeElement, startable).entrySet()) {
+      reachedFrom.put(reached.getKey(), Collections.unmodifiableSet(reached.getValue()));
+    }
+    activity.getProperties().set(AdHocToolDescriptor.REACHED_FROM,
+        Collections.unmodifiableMap(reachedFrom));
 
     // A tool that holds variables of its own loses them before this scope is told it ended: they
     // are carried out as it ends (CIB7-2215). So does any such activity further along a tool's
