@@ -39,6 +39,22 @@
     </dependency>
 
     <!-- Test dependencies -->
+
+    <!-- Spin JSON on Jackson 3 (tools.jackson), see SpinJsonTest. Never the deprecated Jackson 2
+         variant cibseven-spin-dataformat-json-jackson2: it has the same packages and class names,
+         and the enforce-single-spin-json-variant rule of the parent POM bans it. -->
+    <dependency>
+      <groupId>org.cibseven.bpm</groupId>
+      <artifactId>cibseven-engine-plugin-spin</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.cibseven.spin</groupId>
+      <artifactId>cibseven-spin-dataformat-json-jackson</artifactId>
+      <scope>test</scope>
+    </dependency>
+
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-junit5-internal</artifactId>
