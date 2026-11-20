@@ -263,7 +263,7 @@
           "label": "Model",
           "type": "String",
           "group": "agent",
-          "description": "LLM model identifier. Empty: the server's default model, gpt-6-luna unless the installation sets another (system property cibseven.connect.ai-agent.defaultModel or environment variable CIBSEVEN_CONNECT_AI_AGENT_DEFAULT_MODEL). Where you can, choose a model made for agentic work with tool calls, gpt-6-luna or stronger: a weaker one, such as gpt-5.4-nano, may start a tool that waits for a person a second time, or pass a made-up value as a tool's argument. On OpenRouter prefix with provider: openai/gpt-6-luna.",
+          "description": "LLM model identifier. Empty: the server's default model, gpt-6-luna (the default can be configured on the server). Prefer a model built for agentic tool calling, gpt-6-luna or stronger. On OpenRouter prefix with provider: openai/gpt-6-luna.",
           "placeholder": "gpt-6-luna",
           "binding": {
             "type": "camunda:inputParameter",

@@ -159,7 +159,7 @@
           "label": "Model",
           "type": "String",
           "group": "agent",
-          "description": "LLM model identifier, e.g. gpt-5.5, claude-opus-4.7, gemma-4-26b. On OpenRouter prefix with provider: openai/gpt-5.5.",
+          "description": "LLM model identifier, e.g. gpt-6-luna, claude-haiku-5-5, gemma-4-26b. Empty: the server's default model, gpt-6-luna (the default can be configured on the server). On OpenRouter prefix with provider: openai/gpt-6-luna.",
           "placeholder": "gpt-6-luna",
           "binding": {
             "type": "camunda:inputParameter",
