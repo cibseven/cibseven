@@ -784,9 +784,18 @@ public class EnginePersistenceLogger extends ProcessEngineLogger {
 
   public void logTaskWithoutExecution(String taskId) {
     logDebug("108",
-      "Execution of external task {} is null. This indicates that the task was concurrently completed or deleted. "
-      + "It is not returned by the current fetch and lock command.",
+      "Execution or process instance of external task {} is null. This indicates that the task was concurrently "
+      + "completed or deleted. It is not returned by the current fetch and lock command.",
       taskId);
+  }
+
+  public ProcessEngineException processInstanceOfExecutionNotFoundException(String processInstanceId, String executionId) {
+    return new ProcessEngineException(exceptionMessage(
+        "111",
+        "Cannot find process instance with id '{}' of execution '{}', perhaps it ended in the meantime",
+        processInstanceId,
+        executionId
+        ));
   }
 
   public ProcessEngineException multipleTenantsForCamundaFormDefinitionKeyException(String camundaFormDefinitionKey) {

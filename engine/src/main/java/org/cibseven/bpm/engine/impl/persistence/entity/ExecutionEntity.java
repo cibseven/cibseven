@@ -810,6 +810,19 @@ public class ExecutionEntity extends PvmExecutionImpl implements Execution, Proc
     return processInstance;
   }
 
+  /**
+   * Like {@link #getProcessInstance()}, but returns null instead of failing when the
+   * process instance no longer exists, e.g. because it ended concurrently after this
+   * execution was read.
+   */
+  public ExecutionEntity getProcessInstanceIfExists() {
+    if (processInstance == null && processInstanceId != null && !id.equals(processInstanceId)
+        && isExecutionTreePrefetchEnabled() && !initializeExecutionTree()) {
+      return null;
+    }
+    return getProcessInstance();
+  }
+
   protected void ensureProcessInstanceInitialized() {
     if ((processInstance == null) && (processInstanceId != null)) {
 
@@ -1309,6 +1322,18 @@ public class ExecutionEntity extends PvmExecutionImpl implements Execution, Proc
    *
    */
   protected void ensureExecutionTreeInitialized() {
+    if (!initializeExecutionTree()) {
+      throw LOG.processInstanceOfExecutionNotFoundException(processInstanceId, id);
+    }
+  }
+
+  /**
+   * Loads the executions of the process instance and restores the execution tree.
+   *
+   * @return false if the process instance execution is not found, e.g. because the
+   *   process instance ended after this execution was read; the tree is not restored then.
+   */
+  protected boolean initializeExecutionTree() {
     List<ExecutionEntity> executions = Context.getCommandContext()
       .getExecutionManager()
       .findExecutionsByProcessInstanceId(processInstanceId);
@@ -1323,7 +1348,12 @@ public class ExecutionEntity extends PvmExecutionImpl implements Execution, Proc
       }
     }
 
+    if (processInstance == null) {
+      return false;
+    }
+
     processInstance.restoreProcessInstance(executions, null, null, null, null, null, null);
+    return true;
   }
 
   /**
