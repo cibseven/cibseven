@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.cibseven.spin</groupId>
     <artifactId>cibseven-spin-root</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0</version>
   </parent>
 
   <!-- Deprecated: the Jackson 2 variant of cibseven-spin-dataformat-all (which bundles the Jackson 3
