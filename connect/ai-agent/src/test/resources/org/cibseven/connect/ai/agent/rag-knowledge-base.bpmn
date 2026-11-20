@@ -65,7 +65,7 @@
           <!-- LLM configuration -->
           <camunda:formField id="apiKey" label="OpenAI API Key (optional, uses env var)" type="string" />
           <camunda:formField id="baseUrl" label="OpenAI Base URL (optional, empty = OPENAI_BASE_URL)" type="string" />
-          <camunda:formField id="model" label="Model" type="string" defaultValue="gpt-5.4-nano" />
+          <camunda:formField id="model" label="Model" type="string" defaultValue="gpt-6.1-terra" />
           <camunda:formField id="embeddingModelName" label="Embedding Model Name (empty = local AllMiniLmL6V2)" type="string"
                              defaultValue="text-embedding-3-small" />
 

@@ -36,8 +36,11 @@ public final class AgentConnectorConstants {
    * </ul>
    *
    * <p>Resolution order is implemented by {@link #resolveDefaultModel()}.
+   *
+   * <p>The smallest OpenAI model that runs an agentic ad hoc scope reliably: a weaker one
+   * starts a tool that waits for a person a second time and passes made-up arguments.
    */
-  public static final String DEFAULT_MODEL = "gpt-5.4-nano";
+  public static final String DEFAULT_MODEL = "gpt-6-luna";
 
   /**
    * JVM system property that overrides {@link #DEFAULT_MODEL} for the deployment.

@@ -37,7 +37,7 @@ import org.cibseven.connect.spi.Connector;
  *       <camunda:inputParameter name="agentDescription">Customer support agent</camunda:inputParameter>
  *       <camunda:inputParameter name="instruction">You are a helpful assistant.</camunda:inputParameter>
  *       <camunda:inputParameter name="instructionMode">append</camunda:inputParameter>
- *       <camunda:inputParameter name="model">gpt-5.4-nano</camunda:inputParameter>
+ *       <camunda:inputParameter name="model">gpt-6-luna</camunda:inputParameter>
  *       <camunda:inputParameter name="message">${userMessage}</camunda:inputParameter>
  *
  *       <!-- Process context: allowlist of variable NAMES (not expressions).
@@ -179,8 +179,8 @@ public interface AgentConnector extends Connector<AgentRequest> {
   String PARAM_NAME_INSTRUCTION_MODE = "instructionMode";
 
   /**
-   * Optional. LLM model identifier (e.g. {@code gpt-5.4-nano}, {@code claude-opus-4.7},
-   * {@code gemma-4-26b}; on OpenRouter prefix with provider, e.g. {@code openai/gpt-5.4-nano}).
+   * Optional. LLM model identifier (e.g. {@code gpt-6-luna}, {@code claude-opus-4.7},
+   * {@code gemma-4-26b}; on OpenRouter prefix with provider, e.g. {@code openai/gpt-6-luna}).
    * Defaults to {@value AgentConnectorConstants#DEFAULT_MODEL}.
    */
   String PARAM_NAME_MODEL = "model";

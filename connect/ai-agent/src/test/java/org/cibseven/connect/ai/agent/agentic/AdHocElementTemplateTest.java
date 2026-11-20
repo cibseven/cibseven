@@ -424,6 +424,33 @@ public class AdHocElementTemplateTest {
     assertThat(unknown).as("quoted names that are no choice of their dropdown").isEmpty();
   }
 
+  /**
+   * An activity whose Model field is empty runs on the server's default model, so the field
+   * stays empty and shows that default, in its placeholder and its text, in both templates: what
+   * the modeller sees in an empty field is what runs. The ad hoc template's text also names the
+   * minimum for agentic work. A preset value would hide the
+   * server's default from every new activity.
+   */
+  @Test
+  public void anEmptyModelFieldShowsTheServersDefaultAndTheMinimumForAgenticWork()
+      throws IOException {
+    String binding = "camunda:inputParameter:" + AgentConnector.PARAM_NAME_MODEL;
+    String fallback = AgentConnectorConstants.DEFAULT_MODEL;
+    for (String resource : new String[] { STANDARD, AD_HOC }) {
+      JsonNode model = fields(read(resource).get("scopes").get(0).get("properties")).get(binding);
+      assertThat(model.has("value")).as(resource + ": no preset model").isFalse();
+      assertThat(text(model, "placeholder")).as(resource + ": the placeholder").isEqualTo(fallback);
+      assertThat(text(model, "description")).as(resource + ": the text")
+          .contains("Empty: the server's default model, " + fallback)
+          .contains("the default can be configured")
+          .contains("openai/" + fallback);
+    }
+    JsonNode adHoc = fields(read(AD_HOC).get("scopes").get(0).get("properties")).get(binding);
+    assertThat(text(adHoc, "description"))
+        .contains("built for agentic tool calling")
+        .contains(fallback + " or stronger");
+  }
+
   /** Same label, type and binding as the service task's field; defaults and texts may differ. */
   @Test
   public void everyConnectorFieldIsTheServiceTasksField() throws IOException {

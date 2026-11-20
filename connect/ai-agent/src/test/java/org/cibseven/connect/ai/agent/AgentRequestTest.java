@@ -67,8 +67,8 @@ public class AgentRequestTest {
 
   @Test
   public void shouldSetAndGetModel() {
-    AgentRequest request = connector.createRequest().model("gpt-5.4-nano");
-    assertThat(request.getModel()).isEqualTo("gpt-5.4-nano");
+    AgentRequest request = connector.createRequest().model("gpt-6.1-terra");
+    assertThat(request.getModel()).isEqualTo("gpt-6.1-terra");
   }
 
   @Test
@@ -156,13 +156,13 @@ public class AgentRequestTest {
     AgentRequest request = connector.createRequest()
         .agentName("my-agent")
         .instruction("You are helpful.")
-        .model("gpt-5.4-nano")
+        .model("gpt-6.1-terra")
         .message("Hello");
 
     assertThat(request.getRequestParameters())
         .containsEntry(AgentConnector.PARAM_NAME_AGENT_NAME, "my-agent")
         .containsEntry(AgentConnector.PARAM_NAME_INSTRUCTION, "You are helpful.")
-        .containsEntry(AgentConnector.PARAM_NAME_MODEL, "gpt-5.4-nano")
+        .containsEntry(AgentConnector.PARAM_NAME_MODEL, "gpt-6.1-terra")
         .containsEntry(AgentConnector.PARAM_NAME_MESSAGE, "Hello");
   }
 

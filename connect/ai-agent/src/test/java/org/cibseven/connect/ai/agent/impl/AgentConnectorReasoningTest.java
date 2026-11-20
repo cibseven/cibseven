@@ -86,7 +86,7 @@ public class AgentConnectorReasoningTest {
 
   @Test
   public void shouldUseStandardChatModelByDefault() {
-    AgentRequest request = connector.createRequest().model("gpt-5.4-nano");
+    AgentRequest request = connector.createRequest().model("gpt-6.1-terra");
 
     ChatModel model = connector.createChatModel(request, "test-key", null, Map.of());
 
@@ -98,7 +98,7 @@ public class AgentConnectorReasoningTest {
   @Test
   public void shouldKeepStandardChatModelWhenOnlyReasoningEffortIsSet() {
     AgentRequest request = connector.createRequest()
-        .model("gpt-5.4-nano")
+        .model("gpt-6.1-terra")
         .reasoningEffort("low");
 
     ChatModel model = connector.createChatModel(request, "test-key", null, Map.of());
@@ -113,7 +113,7 @@ public class AgentConnectorReasoningTest {
   @Test
   public void shouldSwitchToResponsesApiWhenReasoningSummaryIsSet() {
     AgentRequest request = connector.createRequest()
-        .model("gpt-5.4-nano")
+        .model("gpt-6.1-terra")
         .reasoningSummary("auto");
 
     ChatModel model = connector.createChatModel(request, "test-key", null, Map.of());
@@ -127,7 +127,7 @@ public class AgentConnectorReasoningTest {
   @Test
   public void shouldForwardBothReasoningParamsToResponsesApi() {
     AgentRequest request = connector.createRequest()
-        .model("gpt-5.4-nano")
+        .model("gpt-6.1-terra")
         .reasoningEffort("high")
         .reasoningSummary("auto");
 
@@ -145,7 +145,7 @@ public class AgentConnectorReasoningTest {
   @Test
   public void shouldNotSwitchToResponsesApiWhenReasoningSummaryIsEmpty() {
     AgentRequest request = connector.createRequest()
-        .model("gpt-5.4-nano")
+        .model("gpt-6.1-terra")
         .reasoningSummary("");
 
     ChatModel model = connector.createChatModel(request, "test-key", null, Map.of());
@@ -158,7 +158,7 @@ public class AgentConnectorReasoningTest {
   @Test
   public void shouldNotFailWhenReasoningSummarySetWithCustomHeaders() {
     AgentRequest request = connector.createRequest()
-        .model("gpt-5.4-nano")
+        .model("gpt-6.1-terra")
         .reasoningSummary("auto");
 
     ChatModel model = connector.createChatModel(request, "test-key", null,
