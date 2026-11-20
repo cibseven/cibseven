@@ -1,0 +1,4 @@
+# Configuration of the DCO GitHub App (https://github.com/apps/dco), see CONTRIBUTING.md.
+# Members of the cibseven organization are not required to sign off their commits.
+require:
+  members: false
