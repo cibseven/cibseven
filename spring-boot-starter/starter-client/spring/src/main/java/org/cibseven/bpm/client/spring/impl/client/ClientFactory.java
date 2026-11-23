@@ -27,6 +27,7 @@ import org.cibseven.bpm.client.ExternalTaskClient;
 import org.cibseven.bpm.client.ExternalTaskClientBuilder;
 import org.cibseven.bpm.client.backoff.BackoffStrategy;
 import org.cibseven.bpm.client.interceptor.ClientRequestInterceptor;
+import org.cibseven.bpm.client.spring.ExternalTaskClientHttpCustomizer;
 import org.cibseven.bpm.client.spring.exception.SpringExternalTaskClientException;
 import org.cibseven.bpm.client.spring.impl.client.util.ClientLoggerUtil;
 import org.springframework.beans.factory.DisposableBean;
@@ -47,6 +48,7 @@ public class ClientFactory
 
   protected BackoffStrategy backoffStrategy;
   protected List<ClientRequestInterceptor> requestInterceptors = new ArrayList<>();
+  protected List<ExternalTaskClientHttpCustomizer> httpClientCustomizers = new ArrayList<>();
 
   protected ExternalTaskClient client;
 
@@ -64,6 +66,7 @@ public class ClientFactory
       }
 
       addClientRequestInterceptors(clientBuilder);
+      applyHttpClientCustomizers(clientBuilder);
 
       if (clientConfiguration.getMaxTasks() != null) {
         clientBuilder.maxTasks(clientConfiguration.getMaxTasks());
@@ -107,6 +110,10 @@ public class ClientFactory
 
   protected void addClientRequestInterceptors(ExternalTaskClientBuilder taskClientBuilder) {
     requestInterceptors.forEach(taskClientBuilder::addInterceptor);
+  }
+
+  protected void applyHttpClientCustomizers(ExternalTaskClientBuilder taskClientBuilder) {
+    httpClientCustomizers.forEach(taskClientBuilder::customizeHttpClient);
   }
 
   protected void tryConfigureCreateTimeOrder(ExternalTaskClientBuilder builder) {
@@ -163,6 +170,14 @@ public class ClientFactory
   }
 
   @Autowired(required = false)
+  public void setHttpClientCustomizers(List<ExternalTaskClientHttpCustomizer> httpClientCustomizers) {
+    if (httpClientCustomizers != null) {
+      this.httpClientCustomizers.addAll(httpClientCustomizers);
+      LOG.httpClientCustomizersFound(this.httpClientCustomizers.size());
+    }
+  }
+
+  @Autowired(required = false)
   public void setClientBackoffStrategy(BackoffStrategy backoffStrategy) {
     this.backoffStrategy = backoffStrategy;
     LOG.backoffStrategyFound();
@@ -192,6 +207,10 @@ public class ClientFactory
 
   public List<ClientRequestInterceptor> getRequestInterceptors() {
     return requestInterceptors;
+  }
+
+  public List<ExternalTaskClientHttpCustomizer> getHttpClientCustomizers() {
+    return httpClientCustomizers;
   }
 
   @Override

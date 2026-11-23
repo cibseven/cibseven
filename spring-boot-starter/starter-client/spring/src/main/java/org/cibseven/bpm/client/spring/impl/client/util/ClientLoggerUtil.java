@@ -55,4 +55,8 @@ public class ClientLoggerUtil extends LoggerUtil {
             "when only one matching client annotation was expected."));
   }
 
+  public void httpClientCustomizersFound(int httpClientCustomizerCount) {
+    logDebug("008", "Found '{}' HTTP client customizers", httpClientCustomizerCount);
+  }
+
 }
