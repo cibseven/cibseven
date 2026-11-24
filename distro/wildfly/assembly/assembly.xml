@@ -32,6 +32,10 @@
           <exclude>**/bin/standalone.conf.bat</exclude>
           <!-- exclude wildfly's shipped version of h2database -->
           <exclude>**/h2database/**</exclude>
+          <!-- exclude wildfly's shipped jackson 2 core modules (annotations, core, databind):
+               replaced by the main-slot modules built in ../modules, patched to version.jackson.
+               WildFly's other jackson modules stay and resolve these by name. -->
+          <exclude>**/modules/system/layers/base/com/fasterxml/jackson/core/**</exclude>
         </excludes>
       </unpackOptions>
     </dependencySet>

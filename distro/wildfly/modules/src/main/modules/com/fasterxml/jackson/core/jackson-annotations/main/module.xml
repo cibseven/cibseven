@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Replaces the WildFly system module of the same name and slot (the system copy is excluded
+  in distro/wildfly/assembly/assembly.xml), so that WildFly and its deployments run on the
+  Jackson 2 version CIB seven is patched to (version.jackson). Dependencies mirror the
+  WildFly original.
+-->
+<module name="com.fasterxml.jackson.core.jackson-annotations" xmlns="urn:jboss:module:1.9">
+  <resources>
+    <resource-root path="jackson-annotations-@version.jackson@.jar"/>
+  </resources>
+
+  <dependencies>
+  </dependencies>
+</module>
