@@ -97,7 +97,7 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
       return org.cibseven.bpm.engine.impl.scripting.util.CibSevenScriptEngineUtil.createGroovyScriptEngine();
     }
 
-    return super.getEngineByName(shortName);
+    return getEngineByNameFromFactories(shortName);
   }
 
   private static class CibSevenClassLoader extends ClassLoader {
@@ -166,92 +166,130 @@ public class CamundaScriptEngineManager extends ScriptEngineManager {
    */
   protected ScriptEngine createGraalJSScriptEngineWithCibSevenClassLoader(ProcessEngineConfigurationImpl config) {
     try {
+      // host classes come through the context classloader of the caller: taken before it changes below
       ClassLoader cibSevenClassLoader = createCibSevenClassLoader();
+      // not initialized yet: its static fields create GraalJS objects, which must find GraalJS (see below)
+      Class<?> graalJSEngineClass = Class.forName("com.oracle.truffle.js.scriptengine.GraalJSScriptEngine", false,
+          CamundaScriptEngineManager.class.getClassLoader());
 
-      // Use reflection to load GraalVM classes
-      Class<?> contextClass = Class.forName("org.graalvm.polyglot.Context");
-      Class<?> hostAccessClass = Class.forName("org.graalvm.polyglot.HostAccess");
-      Class<?> graalJSEngineClass = Class.forName("com.oracle.truffle.js.scriptengine.GraalJSScriptEngine");
-      Class<?> engineClass = Class.forName("org.graalvm.polyglot.Engine");
-
-      // Context.newBuilder("js")
-      var newBuilderMethod = contextClass.getMethod("newBuilder", String[].class);
-      Object builder = newBuilderMethod.invoke(null, (Object) new String[]{"js"});
-      var builderClass = builder.getClass();
-
-      // .allowExperimentalOptions(true)
-      var allowExpOpts = builderClass.getMethod("allowExperimentalOptions", boolean.class);
-      builder = allowExpOpts.invoke(builder, true);
-
-      // .hostClassLoader(cibSevenClassLoader)
-      var hostClassLoaderMethod = builderClass.getMethod("hostClassLoader", ClassLoader.class);
-      builder = hostClassLoaderMethod.invoke(builder, cibSevenClassLoader);
-
-      // .option(...) calls
-      var optionMethod = builderClass.getMethod("option", String.class, String.class);
-      builder = optionMethod.invoke(builder, JS_SYNTAX_EXTENSIONS_OPTION, "true");
-      builder = optionMethod.invoke(builder, JS_LOAD_OPTION, "true");
-      builder = optionMethod.invoke(builder, JS_PRINT_OPTION, "true");
-      builder = optionMethod.invoke(builder, JS_GLOBAL_ARGUMENTS_OPTION, "true");
-      builder = optionMethod.invoke(builder, JS_SCRIPT_ENGINE_GLOBAL_SCOPE_IMPORT_OPTION, "true");
-
-      boolean narrowNumbers = config.isConfigureScriptEngineHostAccess()
-          && GraalJsNumberNarrowing.isNarrowing(config.getJavaScriptNumberNarrowing());
-      if (config.isConfigureScriptEngineHostAccess()) {
-        // make sure Graal JS can provide access to the host and can lookup classes,
-        // with the number types of javaScriptNumberNarrowing
-        var hostAccess = narrowNumbers
-            ? GraalJsNumberNarrowing.getHostAccess(this, graalJSEngineClass,
-                config.isEnableScriptEngineNashornCompatibility())
-            : hostAccessClass.getField("ALL").get(null);
-        var allowHostAccess = builderClass.getMethod("allowHostAccess", hostAccessClass);
-        builder = allowHostAccess.invoke(builder, hostAccess);
-        var allowHostClassLookup = builderClass.getMethod("allowHostClassLookup", Predicate.class);
-        builder = allowHostClassLookup.invoke(builder, (Predicate<String>) className -> true);
-      }
-      if (config.isEnableScriptEngineLoadExternalResources()) {
-        // make sure Graal JS can load external scripts
-        try {
-          Class<?> ioAccessClass = Class.forName("org.graalvm.polyglot.io.IOAccess");
-          var allowIO = builderClass.getMethod("allowIO", ioAccessClass);
-          var ioAccessAll = ioAccessClass.getField("ALL").get(null);
-          builder = allowIO.invoke(builder, ioAccessAll);
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
-          var allowIO = builderClass.getMethod("allowIO", boolean.class);
-          builder = allowIO.invoke(builder, true);
-        }
-      }
-      if (config.isEnableScriptEngineNashornCompatibility()) {
-        // enable Nashorn compatibility mode
-        builder = optionMethod.invoke(builder, JS_NASHORN_COMPAT_OPTION, "true");
-        builder = optionMethod.invoke(builder, JS_ECMASCRIPT_VERSION_OPTION, GRAAL_JS_NASHORN_COMPAT_ECMASCRIPT_VERSION);
-        var allowAllAccess = builderClass.getMethod("allowAllAccess", boolean.class);
-        builder = allowAllAccess.invoke(builder, true);
-        if (narrowNumbers) {
-          // what the attribute polyglot.js.nashorn-compat sets too, which DefaultScriptEngineResolver does not set on
-          // a script engine with its own host access
-          try {
-            var useSystemExit = builderClass.getMethod("useSystemExit", boolean.class);
-            builder = useSystemExit.invoke(builder, true);
-          } catch (NoSuchMethodException e) {
-            // GraalJS 21.3 does not have it, and its Nashorn compatibility mode does not set it either
-          }
-        }
-      }
-
-      // GraalJSScriptEngine.create(null, builder)
-      var createMethod = graalJSEngineClass.getMethod("create", engineClass, builderClass);
-      ScriptEngine scriptEngine = (ScriptEngine) createMethod.invoke(null, null, builder);
-      if (narrowNumbers) {
-        // DefaultScriptEngineResolver must not replace this host access with HostAccess.ALL
-        GraalJsNumberNarrowing.markOwnHostAccess(scriptEngine);
-      }
-      return scriptEngine;
+      // with the classloader of GraalJS as the context classloader: GraalJSScriptEngine.create builds a polyglot
+      // engine, which must find the polyglot implementation and the JavaScript language also when the deployment that
+      // runs the script does not see them (see GraalJsNumberNarrowing.withGraalJsClassLoader)
+      return GraalJsNumberNarrowing.withGraalJsClassLoader(graalJSEngineClass,
+          () -> createGraalJSScriptEngine(config, cibSevenClassLoader, graalJSEngineClass));
 
     } catch (Exception e) {
       System.err.println("Failed to create GraalJS script engine with CibSevenClassLoader: " + e.getMessage());
-      return super.getEngineByName(GRAAL_JS_SCRIPT_ENGINE_NAME);
+      return getEngineByNameFromFactories(GRAAL_JS_SCRIPT_ENGINE_NAME);
     }
+  }
+
+  private ScriptEngine createGraalJSScriptEngine(ProcessEngineConfigurationImpl config,
+      ClassLoader cibSevenClassLoader, Class<?> graalJSEngineClass) throws ReflectiveOperationException {
+    // Use reflection to load GraalVM classes
+    Class<?> contextClass = Class.forName("org.graalvm.polyglot.Context");
+    Class<?> hostAccessClass = Class.forName("org.graalvm.polyglot.HostAccess");
+    Class<?> engineClass = Class.forName("org.graalvm.polyglot.Engine");
+
+    // Context.newBuilder("js")
+    var newBuilderMethod = contextClass.getMethod("newBuilder", String[].class);
+    Object builder = newBuilderMethod.invoke(null, (Object) new String[]{"js"});
+    var builderClass = builder.getClass();
+
+    // .allowExperimentalOptions(true)
+    var allowExpOpts = builderClass.getMethod("allowExperimentalOptions", boolean.class);
+    builder = allowExpOpts.invoke(builder, true);
+
+    // .hostClassLoader(cibSevenClassLoader)
+    var hostClassLoaderMethod = builderClass.getMethod("hostClassLoader", ClassLoader.class);
+    builder = hostClassLoaderMethod.invoke(builder, cibSevenClassLoader);
+
+    // .option(...) calls
+    var optionMethod = builderClass.getMethod("option", String.class, String.class);
+    builder = optionMethod.invoke(builder, JS_SYNTAX_EXTENSIONS_OPTION, "true");
+    builder = optionMethod.invoke(builder, JS_LOAD_OPTION, "true");
+    builder = optionMethod.invoke(builder, JS_PRINT_OPTION, "true");
+    builder = optionMethod.invoke(builder, JS_GLOBAL_ARGUMENTS_OPTION, "true");
+    builder = optionMethod.invoke(builder, JS_SCRIPT_ENGINE_GLOBAL_SCOPE_IMPORT_OPTION, "true");
+
+    boolean narrowNumbers = config.isConfigureScriptEngineHostAccess()
+        && GraalJsNumberNarrowing.isNarrowing(config.getJavaScriptNumberNarrowing());
+    if (config.isConfigureScriptEngineHostAccess()) {
+      // make sure Graal JS can provide access to the host and can lookup classes,
+      // with the number types of javaScriptNumberNarrowing
+      var hostAccess = narrowNumbers
+          ? GraalJsNumberNarrowing.getHostAccess(this, graalJSEngineClass,
+              config.isEnableScriptEngineNashornCompatibility())
+          : hostAccessClass.getField("ALL").get(null);
+      var allowHostAccess = builderClass.getMethod("allowHostAccess", hostAccessClass);
+      builder = allowHostAccess.invoke(builder, hostAccess);
+      var allowHostClassLookup = builderClass.getMethod("allowHostClassLookup", Predicate.class);
+      builder = allowHostClassLookup.invoke(builder, (Predicate<String>) className -> true);
+    }
+    if (config.isEnableScriptEngineLoadExternalResources()) {
+      // make sure Graal JS can load external scripts
+      try {
+        Class<?> ioAccessClass = Class.forName("org.graalvm.polyglot.io.IOAccess");
+        var allowIO = builderClass.getMethod("allowIO", ioAccessClass);
+        var ioAccessAll = ioAccessClass.getField("ALL").get(null);
+        builder = allowIO.invoke(builder, ioAccessAll);
+      } catch (ClassNotFoundException | NoSuchMethodException e) {
+        var allowIO = builderClass.getMethod("allowIO", boolean.class);
+        builder = allowIO.invoke(builder, true);
+      }
+    }
+    if (config.isEnableScriptEngineNashornCompatibility()) {
+      // enable Nashorn compatibility mode
+      builder = optionMethod.invoke(builder, JS_NASHORN_COMPAT_OPTION, "true");
+      builder = optionMethod.invoke(builder, JS_ECMASCRIPT_VERSION_OPTION, GRAAL_JS_NASHORN_COMPAT_ECMASCRIPT_VERSION);
+      var allowAllAccess = builderClass.getMethod("allowAllAccess", boolean.class);
+      builder = allowAllAccess.invoke(builder, true);
+      if (narrowNumbers) {
+        // what the attribute polyglot.js.nashorn-compat sets too, which DefaultScriptEngineResolver does not set on
+        // a script engine with its own host access
+        try {
+          var useSystemExit = builderClass.getMethod("useSystemExit", boolean.class);
+          builder = useSystemExit.invoke(builder, true);
+        } catch (NoSuchMethodException e) {
+          // GraalJS 21.3 does not have it, and its Nashorn compatibility mode does not set it either
+        }
+      }
+    }
+
+    // GraalJSScriptEngine.create(null, builder), which builds a polyglot engine of its own
+    var createMethod = graalJSEngineClass.getMethod("create", engineClass, builderClass);
+    ScriptEngine scriptEngine = (ScriptEngine) createMethod.invoke(null, null, builder);
+    if (narrowNumbers) {
+      // DefaultScriptEngineResolver must not replace this host access with HostAccess.ALL
+      GraalJsNumberNarrowing.markOwnHostAccess(scriptEngine);
+    }
+    return scriptEngine;
+  }
+
+  /**
+   * {@link ScriptEngineManager#getEngineByName}, for a name of GraalJS with the classloader of GraalJS as the context
+   * classloader: the factory builds its polyglot engine there, which must find the polyglot implementation and the
+   * JavaScript language also when the deployment that asks does not see them (see
+   * {@link GraalJsNumberNarrowing#withGraalJsClassLoader}). Other script engines, such as Groovy's, are created with
+   * the context classloader of the caller, as before.
+   */
+  protected ScriptEngine getEngineByNameFromFactories(String shortName) {
+    ScriptEngineFactory graalJsFactory = getGraalJsFactory(shortName);
+    if (graalJsFactory == null) {
+      return super.getEngineByName(shortName);
+    }
+    return GraalJsNumberNarrowing.withGraalJsClassLoader(graalJsFactory.getClass(),
+        () -> super.getEngineByName(shortName));
+  }
+
+  /** @return the GraalJS factory of this manager that has the name, or null */
+  protected ScriptEngineFactory getGraalJsFactory(String shortName) {
+    for (ScriptEngineFactory factory : getEngineFactories()) {
+      if (GRAAL_JS_SCRIPT_ENGINE_NAME.equals(factory.getEngineName()) && factory.getNames().contains(shortName)) {
+        return factory;
+      }
+    }
+    return null;
   }
 
   /**

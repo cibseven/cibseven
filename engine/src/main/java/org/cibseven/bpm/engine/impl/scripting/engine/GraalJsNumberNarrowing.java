@@ -37,6 +37,7 @@ import javax.script.ScriptEngine;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.impl.ProcessEngineLogger;
 import org.cibseven.bpm.engine.impl.scripting.ScriptLogger;
+import org.cibseven.bpm.engine.impl.util.ClassLoaderUtil;
 
 /**
  * Keeps the Java type of the numbers that JavaScript scripts on GraalJS hand to Java as CIB seven 2.2 did.
@@ -148,18 +149,20 @@ public final class GraalJsNumberNarrowing {
    */
   public static ScriptEngine createScriptEngine(ScriptEngine factoryScriptEngine, boolean nashornCompatibility) {
     try {
-      Graal graal = graal(factoryScriptEngine.getFactory(), factoryScriptEngine.getClass());
-      Object polyglotEngine = graal.polyglotEngine(nashornCompatibility);
-      Object builder = graal.newContextBuilder(polyglotEngine);
-      if (nashornCompatibility || Boolean.getBoolean(NASHORN_COMPAT_SYSTEM_PROPERTY)) {
-        // the settings GraalJSScriptEngine gives a context in this mode, also when only the system property asks
-        // for it; the host access is the one the factory's script engine ends with: of Nashorn with the property of
-        // the process engine, HostAccess.ALL with the system property alone (polyglot.js.allowHostAccess)
-        builder = graal.nashornCompatibility(builder);
-      }
-      builder = graal.allowHostAccess.invoke(builder, graal.hostAccess(nashornCompatibility));
-
-      ScriptEngine scriptEngine = (ScriptEngine) graal.create.invoke(null, polyglotEngine, builder);
+      // with the classloader of GraalJS: the polyglot engine must have JavaScript whichever deployment asks first
+      ScriptEngine scriptEngine = withGraalJsClassLoader(factoryScriptEngine.getClass(), () -> {
+        Graal graal = graal(factoryScriptEngine.getFactory(), factoryScriptEngine.getClass());
+        Object polyglotEngine = graal.polyglotEngine(nashornCompatibility);
+        Object builder = graal.newContextBuilder(polyglotEngine);
+        if (nashornCompatibility || Boolean.getBoolean(NASHORN_COMPAT_SYSTEM_PROPERTY)) {
+          // the settings GraalJSScriptEngine gives a context in this mode, also when only the system property asks
+          // for it; the host access is the one the factory's script engine ends with: of Nashorn with the property
+          // of the process engine, HostAccess.ALL with the system property alone (polyglot.js.allowHostAccess)
+          builder = graal.nashornCompatibility(builder);
+        }
+        builder = graal.allowHostAccess.invoke(builder, graal.hostAccess(nashornCompatibility));
+        return (ScriptEngine) graal.create.invoke(null, polyglotEngine, builder);
+      });
       Bindings globalBindings = factoryScriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
       if (globalBindings != null) {
         scriptEngine.setBindings(globalBindings, ScriptContext.GLOBAL_SCOPE);
@@ -280,7 +283,10 @@ public final class GraalJsNumberNarrowing {
       return hostAccesses[index];
     }
 
-    /** @return the polyglot engine for the host access, built as GraalJSEngineFactory builds its own */
+    /**
+     * @return the polyglot engine for the host access, built as GraalJSEngineFactory builds its own; the caller sets
+     *   the classloader of GraalJS as the context classloader ({@link GraalJsNumberNarrowing#withGraalJsClassLoader})
+     */
     synchronized Object polyglotEngine(boolean nashornCompatibility) throws ReflectiveOperationException {
       int index = nashornCompatibility ? 1 : 0;
       Object engine = polyglotEngines[index] == null ? null : polyglotEngines[index].get();
@@ -321,6 +327,46 @@ public final class GraalJsNumberNarrowing {
             && optionDescriptorsClass.getMethod("get", String.class).invoke(options, CHARSET_OPTION[0]) != null;
       }
       return knowsCharsetOption;
+    }
+  }
+
+  /** Code that creates GraalJS objects: a script engine, a polyglot engine. */
+  @FunctionalInterface
+  interface GraalJsAction<T, E extends Exception> {
+    T run() throws E;
+  }
+
+  /**
+   * Runs the action with the classloader of GraalJS as the context classloader of the thread, and restores the one
+   * before. GraalJS finds two things with the ServiceLoader, also through the context classloader, and keeps them:
+   * <ul>
+   * <li>the polyglot implementation (Truffle), once for the JVM. Found by a thread that does not see it (on WildFly,
+   * one of a deployment that does not import GraalJS), GraalJS keeps an invalid one instead, every polyglot engine
+   * fails, and every script gets no script engine ("scriptEngine is null").</li>
+   * <li>the languages of a polyglot engine, when it is built. Built on a thread that does not see the JavaScript
+   * language, the engine has none, and every script on it fails with "Could not find option with name
+   * js.syntax-extensions".</li>
+   * </ul>
+   * Either way, until a restart, and for every deployment that shares it. So the first use of GraalJS by any
+   * deployment must not depend on what that deployment sees. Only the creation: host classes that a script looks up
+   * ({@code Java.type}) still come through the context classloader of the thread that runs the script, the process
+   * application's.
+   *
+   * @param graalJsClass a class of GraalJS, such as {@code GraalJSScriptEngine} or its factory: its classloader sees the
+   *   polyglot implementation and the JavaScript language
+   */
+  static <T, E extends Exception> T withGraalJsClassLoader(Class<?> graalJsClass, GraalJsAction<T, E> action)
+      throws E {
+    ClassLoader graalJsClassLoader = graalJsClass.getClassLoader();
+    ClassLoader contextClassLoader = ClassLoaderUtil.getContextClassloader();
+    if (graalJsClassLoader == null || graalJsClassLoader == contextClassLoader) {
+      return action.run();
+    }
+    ClassLoaderUtil.setContextClassloader(graalJsClassLoader);
+    try {
+      return action.run();
+    } finally {
+      ClassLoaderUtil.setContextClassloader(contextClassLoader);
     }
   }
 

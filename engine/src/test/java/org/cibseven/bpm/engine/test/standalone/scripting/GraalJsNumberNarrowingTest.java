@@ -372,6 +372,63 @@ public class GraalJsNumberNarrowingTest {
     assertThat(longValueOf).isEqualTo(5);
   }
 
+  static Stream<Arguments> modesAndPaths() {
+    return Stream.of(
+        Arguments.of(LONG, false),
+        Arguments.of(LONG, true),
+        Arguments.of(NONE, false),
+        Arguments.of(NONE, true));
+  }
+
+  @ParameterizedTest(name = "mode {0}, useCibSevenNamespaceInScripting={1}")
+  @MethodSource("modesAndPaths")
+  public void shouldRunTheFirstScriptFromADeploymentThatDoesNotSeeGraalJs(String mode, boolean useCibSevenNamespace)
+      throws Exception {
+    // given: a new resolver, whose polyglot engines are not built yet, and a thread whose context class loader sees no
+    // GraalJS, as that of a WAR on WildFly that does not import it (CIB7-2873); in mode none the scripts run on the
+    // polyglot engine of the factory
+    DefaultScriptEngineResolver resolver = sharedResolver();
+    ProcessEngineConfigurationImpl configuration = configuration(mode);
+    configuration.setUseCibSevenNamespaceInScripting(useCibSevenNamespace);
+    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+    try (URLClassLoader deployment = new URLClassLoader(new URL[0], ClassLoader.getPlatformClassLoader())) {
+      Thread.currentThread().setContextClassLoader(deployment);
+
+      // when: the first JavaScript script, then a second one
+      Object first = evaluate(resolver, configuration, false, "sink.set(java.lang.Long.valueOf(5))");
+      Object second = evaluate(resolver, configuration, false, "sink.set(java.lang.Long.valueOf(6))");
+
+      // then: both ran, and the deployment's context class loader is back
+      assertThat(first).isEqualTo(LONG.equals(mode) ? (Object) 5 : (Object) 5L);
+      assertThat(second).isEqualTo(LONG.equals(mode) ? (Object) 6 : (Object) 6L);
+      assertThat(Thread.currentThread().getContextClassLoader()).isSameAs(deployment);
+    } finally {
+      Thread.currentThread().setContextClassLoader(contextClassLoader);
+    }
+  }
+
+  @Test
+  public void shouldLookUpHostClassesThroughTheContextClassLoaderOfTheCaller() throws Exception {
+    // given: a class of the application, which the class loader of GraalJS sees as well on this class path
+    String script = "Java.type('" + Sink.class.getName() + "')";
+    ProcessEngineConfigurationImpl configuration = configuration(LONG);
+    assertThat(evaluate(sharedResolver(), configuration, false, script)).isNotNull();
+
+    // when: a script runs on a thread whose context class loader does not see the class
+    DefaultScriptEngineResolver resolver = sharedResolver();
+    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+    try (URLClassLoader deployment = new URLClassLoader(new URL[0], ClassLoader.getPlatformClassLoader())) {
+      Thread.currentThread().setContextClassLoader(deployment);
+
+      // then: not found; the class loader of GraalJS is only for creating GraalJS objects (CIB7-2873), host classes
+      // come from the deployment that runs the script
+      assertThatThrownBy(() -> evaluate(resolver, configuration, false, script))
+          .isInstanceOf(ScriptException.class);
+    } finally {
+      Thread.currentThread().setContextClassLoader(contextClassLoader);
+    }
+  }
+
   /**
    * GraalJS as the WildFly modules of CIB seven load it: everything in one class loader but the classes of
    * org.graalvm.sdk.nativeimage, whose class loader cannot see org.graalvm.sdk.word.
