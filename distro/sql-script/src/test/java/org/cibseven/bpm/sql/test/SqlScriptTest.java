@@ -216,7 +216,7 @@ public class SqlScriptTest {
     // when the CIB seven changelog is applied to it
     liquibase.update(new Contexts());
 
-    // then the Camunda steps were skipped and only the CIB seven steps ran
+    // then the Camunda steps were skipped
     Map<String, String> execTypes = execTypesOfNewlyEvaluatedChangeSets();
     assertThat(execTypes).containsAllEntriesOf(expectedExecTypes());
 
@@ -273,15 +273,16 @@ public class SqlScriptTest {
     assertThat(causeChainMessage(thrown)).contains("older than Camunda 7.16");
   }
 
-  /** Camunda-era steps must be skipped, CIB seven steps must run. */
+  /**
+   * Camunda-era steps must be skipped. This set is closed, since Camunda 7.24 is the final Camunda
+   * release. The CIB seven steps are not listed, so this needs no update per release; a CIB seven
+   * step that changes the schema is covered by the schema comparison.
+   */
   protected static Map<String, String> expectedExecTypes() {
     Map<String, String> expected = new LinkedHashMap<>();
     for (String id : new String[] { "7.16.0-baseline", "7.16-to-7.17", "7.17-to-7.18", "7.18-to-7.19",
         "7.19-to-7.20", "7.20-to-7.21", "7.21-to-7.22", "7.22-to-7.23", "7.23-to-7.24" }) {
       expected.put(id, "MARK_RAN");
-    }
-    for (String id : new String[] { "7.24-to-2.1", "2.1-to-2.2", "2.2-to-3.0" }) {
-      expected.put(id, "EXECUTED");
     }
     return expected;
   }
