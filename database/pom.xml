@@ -312,7 +312,7 @@
         <database.type>mariadb</database.type>
         <database.driver>org.mariadb.jdbc.Driver</database.driver>
         <database.datasource.class>org.mariadb.jdbc.MySQLDataSource</database.datasource.class>
-        <database.tc.url>cibmariadb:11.4</database.tc.url>
+        <database.tc.url>cibmariadb:10.6</database.tc.url>
         <!--
           The parameters are separated by ? instead of &: Testcontainers accepts both and the URL
           then needs no XML escaping. With &amp;amp; the Maven plugins above read the escaped value,
@@ -410,7 +410,7 @@
         <database.type>oracle</database.type>
         <database.driver>oracle.jdbc.OracleDriver</database.driver>
         <database.datasource.class>oracle.jdbc.pool.OracleDataSource</database.datasource.class>
-        <database.tc.url>ciboracle:21-slim-faststart</database.tc.url>
+        <database.tc.url>ciboraclefree:23.26.3-slim-faststart</database.tc.url>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
         <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
       </properties>
@@ -456,7 +456,7 @@
         <database.datasource.class>org.postgresql.ds.PGSimpleDataSource</database.datasource.class>
         <jboss.datasource.filename>postgresql-ds.xml</jboss.datasource.filename>
         <hibernate.dialect>org.hibernate.dialect.PostgreSQLDialect</hibernate.dialect>
-        <database.tc.url>cibpostgresql:13.2</database.tc.url>
+        <database.tc.url>cibpostgresql:15</database.tc.url>
         <database.tc.params>TC_DAEMON=true${database.tc.reuse}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}:///${database.name}/${database.tc.params}</database.url>
         <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
@@ -508,7 +508,7 @@
         <database.type>mssql</database.type>
         <database.driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</database.driver>
         <database.datasource.class>com.microsoft.sqlserver.jdbc.SQLServerDataSource</database.datasource.class>
-        <database.tc.url>cibsqlserver:2019-latest</database.tc.url>
+        <database.tc.url>cibsqlserver:2017-latest</database.tc.url>
         <database.tc.params>;databaseName=${database.name};user=${database.username};password=${database.password}${database.tc.reuse}</database.tc.params>
         <database.url>jdbc:tc:${database.tc.url}://localhost:${database.port}${database.tc.params}</database.url>
         <database.plugin.driver>org.testcontainers.jdbc.ContainerDatabaseDriver</database.plugin.driver>
@@ -627,7 +627,8 @@
     <!--
       One profile per tested database version, from Oleg's feat/tc-qa-tests. They only point the
       Testcontainers alias at another image tag; everything else comes from the database profile
-      above. The plain database profiles keep the versions that the daily build has always used.
+      above. Only the versions of the support matrix are listed, of which the plain database
+      profiles pin the oldest one each (see the supported environments of the documentation).
     -->
     <profile>
       <id>postgresql-15</id>
@@ -658,44 +659,9 @@
     </profile>
 
     <profile>
-      <id>mariadb-1011</id>
-      <properties>
-        <database.tc.url>cibmariadb:10.11</database.tc.url>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>mariadb-114</id>
-      <properties>
-        <database.tc.url>cibmariadb:11.4</database.tc.url>
-      </properties>
-    </profile>
-
-    <profile>
       <id>mariadb-118</id>
       <properties>
         <database.tc.url>cibmariadb:11.8</database.tc.url>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>mariadb-123</id>
-      <properties>
-        <database.tc.url>cibmariadb:12.3</database.tc.url>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>mysql-84</id>
-      <properties>
-        <database.tc.url>cibmysql:8.4</database.tc.url>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>mysql-97</id>
-      <properties>
-        <database.tc.url>cibmysql:9.7</database.tc.url>
       </properties>
     </profile>
 
@@ -710,13 +676,6 @@
       <id>sqlserver-2022</id>
       <properties>
         <database.tc.url>cibsqlserver:2022-latest</database.tc.url>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>sqlserver-2025</id>
-      <properties>
-        <database.tc.url>cibsqlserver:2025-latest</database.tc.url>
       </properties>
     </profile>
 
