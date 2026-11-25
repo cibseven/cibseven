@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Replaces the WildFly system module of the same name and slot (the system copy is excluded
+  in distro/wildfly/assembly/assembly.xml), so that WildFly and its deployments run on the
+  Jackson 2 version CIB seven is patched to (version.jackson). Dependencies mirror the
+  WildFly original.
+-->
+<module name="com.fasterxml.jackson.core.jackson-databind" xmlns="urn:jboss:module:1.9">
+  <resources>
+    <resource-root path="jackson-databind-@version.jackson@.jar"/>
+  </resources>
+
+  <dependencies>
+    <module name="java.desktop"/>
+    <module name="java.logging"/>
+    <module name="java.sql"/>
+    <module name="java.xml"/>
+    <module name="com.fasterxml.jackson.core.jackson-annotations"/>
+    <module name="com.fasterxml.jackson.core.jackson-core"/>
+  </dependencies>
+</module>
