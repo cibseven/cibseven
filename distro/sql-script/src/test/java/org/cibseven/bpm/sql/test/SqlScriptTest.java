@@ -177,6 +177,8 @@ public class SqlScriptTest {
     // old CREATE scripts executed
     executeSqlScript("scripts-old/", "create", "engine_" + oldMajorMinor + ".0");
     executeSqlScript("scripts-old/", "create", "identity_" + oldMajorMinor + ".0");
+    // the old version (3.0 or later) ships the webclient tables as their own script
+    executeSqlScript("scripts-old/", "create", "extensions_" + oldMajorMinor + ".0");
 
     // when UPGRADE scripts executed
     executeSqlScript("local-upgrade-test/", "upgrade", "engine_" + oldMajorMinor + "_patch");
