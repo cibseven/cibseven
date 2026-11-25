@@ -17,57 +17,89 @@
 package org.cibseven.bpm.client.spring.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
-import java.util.ArrayList;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.core5.util.Timeout;
 import org.cibseven.bpm.client.ExternalTaskClient;
+import org.cibseven.bpm.client.impl.EngineClient;
+import org.cibseven.bpm.client.impl.ExternalTaskClientImpl;
 import org.cibseven.bpm.client.spring.ExternalTaskClientHttpCustomizer;
 import org.cibseven.bpm.client.spring.impl.client.ClientConfiguration;
 import org.cibseven.bpm.client.spring.impl.client.ClientFactory;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Builds a real client (no mocked builder) to check that the customizers receive the
- * HTTP client builder the external task client is built from.
+ * Builds a real client (no mocked builder) against a local server that accepts connections
+ * but never answers, to check that a customizer's settings reach the HTTP client the
+ * external task client sends its engine calls with.
  */
 public class ClientFactoryHttpClientCustomizerTest {
 
+  /** Far below HttpClient 5's default response timeout of three minutes. */
+  protected static final Duration TEST_TIMEOUT = Duration.ofSeconds(30);
+
+  protected ServerSocket silentEngine;
+  protected List<Socket> acceptedConnections = new CopyOnWriteArrayList<>();
   protected ClientFactory clientFactory;
 
+  @BeforeEach
+  public void startSilentEngine() throws IOException {
+    silentEngine = new ServerSocket(0, 50, InetAddress.getLoopbackAddress());
+    Thread acceptor = new Thread(() -> {
+      try {
+        while (!silentEngine.isClosed()) {
+          // keep the connection open and never write a response
+          acceptedConnections.add(silentEngine.accept());
+        }
+      } catch (IOException e) {
+        // server socket closed by stopSilentEngine
+      }
+    }, "silent-engine");
+    acceptor.setDaemon(true);
+    acceptor.start();
+  }
+
   @AfterEach
-  public void stopClient() {
+  public void stopClientAndSilentEngine() throws IOException {
     if (clientFactory != null) {
       clientFactory.destroy();
+    }
+    silentEngine.close();
+    for (Socket connection : acceptedConnections) {
+      connection.close();
     }
   }
 
   @Test
-  public void shouldPassHttpClientBuilderToCustomizersBeforeClientIsBuilt() {
+  public void shouldApplyCustomizedResponseTimeoutToEngineCalls() {
     // given
-    List<HttpClientBuilder> customizedBuilders = new ArrayList<>();
-    ExternalTaskClientHttpCustomizer responseTimeout = builder -> {
-      customizedBuilders.add(builder);
-      builder.setDefaultRequestConfig(RequestConfig.custom()
-          .setResponseTimeout(Timeout.ofSeconds(30))
-          .build());
-    };
-    ExternalTaskClientHttpCustomizer second = customizedBuilders::add;
+    ExternalTaskClientHttpCustomizer responseTimeout = builder ->
+        builder.setDefaultRequestConfig(RequestConfig.custom()
+            .setResponseTimeout(Timeout.ofSeconds(1))
+            .build());
 
     clientFactory = createClientFactory();
-    clientFactory.setHttpClientCustomizers(List.of(responseTimeout, second));
+    clientFactory.setHttpClientCustomizers(List.of(responseTimeout));
+    EngineClient engineClient = getEngineClient(clientFactory.getObject());
 
-    // when
-    ExternalTaskClient client = clientFactory.getObject();
-
-    // then
-    assertThat(client).isNotNull();
-    assertThat(customizedBuilders).hasSize(2);
-    assertThat(customizedBuilders.get(0)).isNotNull().isSameAs(customizedBuilders.get(1));
+    // when / then: the call fails on the customized timeout, not after the default three minutes
+    assertTimeoutPreemptively(TEST_TIMEOUT, () ->
+        assertThatThrownBy(() -> engineClient.unlock("aTaskId"))
+            .hasRootCauseInstanceOf(SocketTimeoutException.class));
+    assertThat(acceptedConnections).isNotEmpty();
   }
 
   @Test
@@ -86,12 +118,17 @@ public class ClientFactoryHttpClientCustomizerTest {
 
   protected ClientFactory createClientFactory() {
     ClientConfiguration configuration = new ClientConfiguration();
-    configuration.setBaseUrl("http://localhost:8080/engine-rest");
+    configuration.setBaseUrl("http://" + silentEngine.getInetAddress().getHostAddress() + ":"
+        + silentEngine.getLocalPort() + "/engine-rest");
     configuration.setDisableAutoFetching(true);
 
     ClientFactory factory = new ClientFactory();
     factory.setClientConfiguration(configuration);
     return factory;
+  }
+
+  protected EngineClient getEngineClient(ExternalTaskClient client) {
+    return ((ExternalTaskClientImpl) client).getTopicSubscriptionManager().getEngineClient();
   }
 
 }
