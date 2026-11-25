@@ -27,8 +27,23 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
  * <p>Configure under the {@code camunda.bpm.client.oauth2} prefix. Exactly one of
  * {@code clientSecret} or {@code assertion} must be set.</p>
  *
+ * <p>Whether the client authenticates via OAuth2 is controlled by {@link #enabled}:</p>
+ * <ul>
+ *   <li>not set: OAuth2 is used as soon as any {@code camunda.bpm.client.oauth2.*} property is set
+ *       (the behaviour before the property existed)</li>
+ *   <li>{@code true}: OAuth2 is used</li>
+ *   <li>{@code false}: OAuth2 is not used and all other {@code camunda.bpm.client.oauth2.*}
+ *       properties are ignored</li>
+ * </ul>
+ *
  */
 public class OAuth2Properties {
+
+  /**
+   * Turns OAuth2 authentication on ({@code true}) or off ({@code false}). Optional.
+   * When not set, OAuth2 is used as soon as any {@code camunda.bpm.client.oauth2.*} property is set.
+   */
+  private Boolean enabled;
 
   /**
    * OAuth2 token endpoint URI. Required.
@@ -80,6 +95,22 @@ public class OAuth2Properties {
    */
   @NestedConfigurationProperty
   private AssertionProperties assertion;
+
+  public Boolean getEnabled() {
+    return enabled;
+  }
+
+  public void setEnabled(Boolean enabled) {
+    this.enabled = enabled;
+  }
+
+  /**
+   * @return {@code false} if OAuth2 was turned off explicitly via {@link #enabled},
+   *         {@code true} otherwise
+   */
+  public boolean isActive() {
+    return !Boolean.FALSE.equals(enabled);
+  }
 
   public String getTokenUri() {
     return tokenUri;
