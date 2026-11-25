@@ -28,18 +28,27 @@ import org.cibseven.bpm.client.ExternalTaskClientBuilder;
  * {@link ExternalTaskClientBuilder#customizeHttpClient(Consumer)} when the client is built,
  * in the order given by {@code @Order} or {@link org.springframework.core.Ordered}.
  *
+ * <p>Every customizer applies to every external task client created in the same application
+ * context, the same way {@link org.cibseven.bpm.client.interceptor.ClientRequestInterceptor}
+ * beans do. There is no way to target a single client.
+ *
  * <p>Example, a response timeout for the client's calls to the engine:
  * <pre>
  * &#64;Bean
  * public ExternalTaskClientHttpCustomizer responseTimeout() {
  *   return builder -&gt; builder.setDefaultRequestConfig(RequestConfig.custom()
- *       .setResponseTimeout(Timeout.ofSeconds(30))
+ *       .setResponseTimeout(Timeout.ofSeconds(70))
  *       .build());
  * }
  * </pre>
  *
- * <p>A response timeout also applies to the long-polling fetch and lock request. Keep it
- * greater than the client's {@code asyncResponseTimeout}, otherwise every long poll fails.
+ * <p>A response timeout also applies to the fetch and lock request. With long polling
+ * ({@code asyncResponseTimeout}), the engine holds that request open until a task is available
+ * or the {@code asyncResponseTimeout} has passed. Keep the response timeout a clear margin above
+ * {@code asyncResponseTimeout}, for example ten seconds, to cover network and engine delay.
+ * Otherwise a fetch can time out on the client just as the engine locks a task to this worker:
+ * the response is lost, and the task stays locked and unprocessed until its lock expires.
+ * The example above assumes an {@code asyncResponseTimeout} of 60 seconds.
  *
  * <p>{@code setDefaultRequestConfig} replaces the whole request configuration, so when several
  * customizers set it, the last one wins.
