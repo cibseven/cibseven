@@ -13,6 +13,9 @@
     
     <!-- Database configurations -->
     <property name="databaseSchemaUpdate" value="true" />
+    <!-- since 3.0 the webclient tables are a separate schema component; create them too, so the
+         upgrade covers them and the final drop of the extensions finds them -->
+    <property name="webclientExtensionsEnabled" value="true" />
     
     <!-- job executor configurations -->
     <property name="jobExecutorActivate" value="false" />
