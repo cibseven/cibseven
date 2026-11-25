@@ -15,5 +15,7 @@
 -- limitations under the License.
 --
 
+-- The webclient tables of this release are upgraded by mssql_extensions_3.0_to_3.1.sql.
+
 insert into ACT_GE_SCHEMA_LOG
 values ('1700', CURRENT_TIMESTAMP, '3.1.0');
