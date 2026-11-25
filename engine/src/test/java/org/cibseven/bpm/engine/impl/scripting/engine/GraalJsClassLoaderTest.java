@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 import com.oracle.truffle.js.scriptengine.GraalJSScriptEngine;
 
 /**
- * The polyglot engine is built with the classloader of GraalJS as the context classloader (CIB7-2873), and the one of
+ * The polyglot engine is built with the classloader of GraalJS as the context classloader (CIB7-2871), and the one of
  * the caller comes back afterwards.
  */
 public class GraalJsClassLoaderTest {
