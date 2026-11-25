@@ -59,4 +59,24 @@ public class ClientLoggerUtil extends LoggerUtil {
     logDebug("008", "Found '{}' HTTP client customizers", httpClientCustomizerCount);
   }
 
+  public SpringExternalTaskClientException httpClientTimeoutNotGreaterThanZero(String property, long value) {
+    return new SpringExternalTaskClientException(exceptionMessage(
+        "009", "The client property '{}' must be greater than zero, but was '{}'", property, value));
+  }
+
+  public SpringExternalTaskClientException responseTimeoutNotGreaterThanAsyncResponseTimeout(
+      long responseTimeout, long asyncResponseTimeout) {
+    return new SpringExternalTaskClientException(exceptionMessage(
+        "010", "The client property 'responseTimeout' ({} ms) must be greater than " +
+            "'asyncResponseTimeout' ({} ms), otherwise long-polling fetch and lock requests time out " +
+            "on the client while the engine still holds them", responseTimeout, asyncResponseTimeout));
+  }
+
+  public void responseTimeoutMarginTooSmall(long responseTimeout, long asyncResponseTimeout, long recommendedMargin) {
+    logWarn("011", "The client property 'responseTimeout' ({} ms) is less than {} ms above " +
+        "'asyncResponseTimeout' ({} ms). A fetch and lock request can time out on the client just as " +
+        "the engine locks a task to this worker; that task then stays locked until its lock expires",
+        responseTimeout, recommendedMargin, asyncResponseTimeout);
+  }
+
 }

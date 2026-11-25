@@ -33,6 +33,9 @@ import static org.assertj.core.api.Assertions.assertThat;
     "camunda.bpm.client.lock-duration=777",
     "camunda.bpm.client.disable-auto-fetching=true",
     "camunda.bpm.client.disable-backoff-strategy=true",
+    "camunda.bpm.client.connect-timeout=1111",
+    "camunda.bpm.client.response-timeout=2222",
+    "camunda.bpm.client.connection-request-timeout=3333",
     "camunda.bpm.client.basic-auth.username=username",
     "camunda.bpm.client.basic-auth.password=password",
 })
@@ -50,6 +53,9 @@ public class ClientConfigurationTest extends ParsePropertiesHelper {
     assertThat(properties.getLockDuration()).isEqualTo(777);
     assertThat(properties.getDisableAutoFetching()).isEqualTo(true);
     assertThat(properties.getDisableBackoffStrategy()).isEqualTo(true);
+    assertThat(properties.getConnectTimeout()).isEqualTo(1111);
+    assertThat(properties.getResponseTimeout()).isEqualTo(2222);
+    assertThat(properties.getConnectionRequestTimeout()).isEqualTo(3333);
     assertThat(basicAuth.getUsername()).isEqualTo("username");
     assertThat(basicAuth.getPassword()).isEqualTo("password");
     assertThat(subscriptions).isEmpty();

@@ -25,10 +25,15 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!-- used directly by the public ExternalTaskClientHttpCustomizer interface -->
+    <!-- used directly by the public ExternalTaskClientHttpCustomizer interface
+         and by ClientFactory for the timeout properties -->
     <dependency>
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents.core5</groupId>
+      <artifactId>httpcore5</artifactId>
     </dependency>
 
     <dependency>

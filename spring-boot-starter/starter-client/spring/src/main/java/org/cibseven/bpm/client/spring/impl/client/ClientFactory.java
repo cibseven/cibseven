@@ -23,6 +23,11 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.cibseven.bpm.client.ExternalTaskClient;
 import org.cibseven.bpm.client.ExternalTaskClientBuilder;
 import org.cibseven.bpm.client.backoff.BackoffStrategy;
@@ -43,6 +48,9 @@ public class ClientFactory
     implements FactoryBean<ExternalTaskClient>, InitializingBean, DisposableBean {
 
   protected static final ClientLoggerUtil LOG = ClientLoggerUtil.CLIENT_LOGGER;
+
+  /** Below this margin over asyncResponseTimeout, a warning about the responseTimeout is logged. */
+  protected static final long RECOMMENDED_RESPONSE_TIMEOUT_MARGIN = 10_000;
 
   protected ClientConfiguration clientConfiguration;
 
@@ -66,6 +74,8 @@ public class ClientFactory
       }
 
       addClientRequestInterceptors(clientBuilder);
+      // properties first, so that customizer beans can override them
+      applyHttpClientTimeouts(clientBuilder);
       applyHttpClientCustomizers(clientBuilder);
 
       if (clientConfiguration.getMaxTasks() != null) {
@@ -114,6 +124,90 @@ public class ClientFactory
 
   protected void applyHttpClientCustomizers(ExternalTaskClientBuilder taskClientBuilder) {
     httpClientCustomizers.forEach(taskClientBuilder::customizeHttpClient);
+  }
+
+  /**
+   * Applies the timeout properties to the HTTP client. Runs before
+   * {@link #applyHttpClientCustomizers(ExternalTaskClientBuilder)}, so customizers can override it.
+   * <ul>
+   *   <li>The response and connection request timeouts become the default request configuration.
+   *   A customizer that sets its own default request configuration replaces them.</li>
+   *   <li>The connect timeout goes on the connection manager, as HttpClient 5 recommends.
+   *   A customizer that sets its own connection manager replaces it.</li>
+   * </ul>
+   * Does nothing when no timeout is configured, so the HTTP client keeps its defaults.
+   */
+  protected void applyHttpClientTimeouts(ExternalTaskClientBuilder taskClientBuilder) {
+    Long connectTimeout = clientConfiguration.getConnectTimeout();
+    boolean hasRequestTimeouts = clientConfiguration.getResponseTimeout() != null
+        || clientConfiguration.getConnectionRequestTimeout() != null;
+    if (connectTimeout == null && !hasRequestTimeouts) {
+      return;
+    }
+
+    checkHttpClientTimeouts();
+
+    taskClientBuilder.customizeHttpClient(httpClientBuilder -> {
+      if (hasRequestTimeouts) {
+        httpClientBuilder.setDefaultRequestConfig(createRequestConfig());
+      }
+      if (connectTimeout != null) {
+        httpClientBuilder.setConnectionManager(createConnectionManager(connectTimeout));
+      }
+    });
+  }
+
+  protected void checkHttpClientTimeouts() {
+    checkGreaterThanZero("connectTimeout", clientConfiguration.getConnectTimeout());
+    checkGreaterThanZero("responseTimeout", clientConfiguration.getResponseTimeout());
+    checkGreaterThanZero("connectionRequestTimeout", clientConfiguration.getConnectionRequestTimeout());
+
+    Long responseTimeout = clientConfiguration.getResponseTimeout();
+    Long asyncResponseTimeout = clientConfiguration.getAsyncResponseTimeout();
+    if (responseTimeout != null && asyncResponseTimeout != null) {
+      if (responseTimeout <= asyncResponseTimeout) {
+        throw LOG.responseTimeoutNotGreaterThanAsyncResponseTimeout(responseTimeout, asyncResponseTimeout);
+      }
+      if (responseTimeout - asyncResponseTimeout < RECOMMENDED_RESPONSE_TIMEOUT_MARGIN) {
+        LOG.responseTimeoutMarginTooSmall(responseTimeout, asyncResponseTimeout,
+            RECOMMENDED_RESPONSE_TIMEOUT_MARGIN);
+      }
+    }
+  }
+
+  protected void checkGreaterThanZero(String property, Long value) {
+    if (value != null && value <= 0) {
+      throw LOG.httpClientTimeoutNotGreaterThanZero(property, value);
+    }
+  }
+
+  protected RequestConfig createRequestConfig() {
+    RequestConfig.Builder requestConfig = RequestConfig.custom();
+    if (clientConfiguration.getResponseTimeout() != null) {
+      requestConfig.setResponseTimeout(Timeout.ofMilliseconds(clientConfiguration.getResponseTimeout()));
+    }
+    if (clientConfiguration.getConnectionRequestTimeout() != null) {
+      requestConfig.setConnectionRequestTimeout(
+          Timeout.ofMilliseconds(clientConfiguration.getConnectionRequestTimeout()));
+    }
+    return requestConfig.build();
+  }
+
+  /**
+   * Builds the connection manager the HTTP client would create by default (the external task
+   * client enables system properties), plus the connect timeout.
+   */
+  protected PoolingHttpClientConnectionManager createConnectionManager(long connectTimeout) {
+    return PoolingHttpClientConnectionManagerBuilder.create()
+        .useSystemProperties()
+        .setDefaultConnectionConfig(createConnectionConfig(connectTimeout))
+        .build();
+  }
+
+  protected ConnectionConfig createConnectionConfig(long connectTimeout) {
+    return ConnectionConfig.custom()
+        .setConnectTimeout(Timeout.ofMilliseconds(connectTimeout))
+        .build();
   }
 
   protected void tryConfigureCreateTimeOrder(ExternalTaskClientBuilder builder) {

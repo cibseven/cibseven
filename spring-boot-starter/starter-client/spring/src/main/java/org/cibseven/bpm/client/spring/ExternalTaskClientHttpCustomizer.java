@@ -50,8 +50,16 @@ import org.cibseven.bpm.client.ExternalTaskClientBuilder;
  * the response is lost, and the task stays locked and unprocessed until its lock expires.
  * The example above assumes an {@code asyncResponseTimeout} of 60 seconds.
  *
+ * <p>For timeouts alone, the client properties {@code connectTimeout}, {@code responseTimeout}
+ * and {@code connectionRequestTimeout} are simpler (in Spring Boot,
+ * {@code camunda.bpm.client.response-timeout} and so on). They are applied before the
+ * customizers.
+ *
  * <p>{@code setDefaultRequestConfig} replaces the whole request configuration, so when several
- * customizers set it, the last one wins.
+ * customizers set it, the last one wins. A customizer that sets it also replaces the
+ * {@code responseTimeout} and {@code connectionRequestTimeout} client properties. The
+ * {@code connectTimeout} client property is set on the connection manager instead, so a customizer
+ * that sets its own connection manager replaces that one.
  */
 @FunctionalInterface
 public interface ExternalTaskClientHttpCustomizer extends Consumer<HttpClientBuilder> {

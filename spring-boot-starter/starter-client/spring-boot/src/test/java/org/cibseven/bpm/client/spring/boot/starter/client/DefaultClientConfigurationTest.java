@@ -37,6 +37,9 @@ public class DefaultClientConfigurationTest extends ParsePropertiesHelper {
     assertThat(properties.getLockDuration()).isNull();
     assertThat(properties.getDisableAutoFetching()).isNull();
     assertThat(properties.getDisableBackoffStrategy()).isNull();
+    assertThat(properties.getConnectTimeout()).isNull();
+    assertThat(properties.getResponseTimeout()).isNull();
+    assertThat(properties.getConnectionRequestTimeout()).isNull();
     assertThat(properties.getBasicAuth()).isNull();
     assertThat(subscriptions).isEmpty();
   }

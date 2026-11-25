@@ -103,6 +103,57 @@ public class ClientFactoryHttpClientCustomizerTest {
   }
 
   @Test
+  public void shouldApplyResponseTimeoutPropertyToEngineCalls() {
+    // given: only the responseTimeout property (1 s), no customizer bean
+    clientFactory = createClientFactory();
+    clientFactory.getClientConfiguration().setResponseTimeout(1_000L);
+    EngineClient engineClient = getEngineClient(clientFactory.getObject());
+
+    // when / then: the call to the silent engine fails on the property's timeout,
+    // not after the HTTP client's default of three minutes
+    assertTimeoutPreemptively(TEST_TIMEOUT, () ->
+        assertThatThrownBy(() -> engineClient.unlock("aTaskId"))
+            .hasRootCauseInstanceOf(SocketTimeoutException.class));
+    assertThat(acceptedConnections).isNotEmpty();
+  }
+
+  @Test
+  public void shouldSendEngineCallsThroughConnectionManagerOfConnectTimeoutProperty() {
+    // given: the connectTimeout property replaces the HTTP client's default connection manager,
+    // and the responseTimeout property (1 s) still has to apply to calls made through it
+    clientFactory = createClientFactory();
+    clientFactory.getClientConfiguration().setConnectTimeout(5_000L);
+    clientFactory.getClientConfiguration().setResponseTimeout(1_000L);
+    EngineClient engineClient = getEngineClient(clientFactory.getObject());
+
+    // when / then: the replacement manager connects to the silent engine,
+    // and the call fails on the response timeout
+    assertTimeoutPreemptively(TEST_TIMEOUT, () ->
+        assertThatThrownBy(() -> engineClient.unlock("aTaskId"))
+            .hasRootCauseInstanceOf(SocketTimeoutException.class));
+    assertThat(acceptedConnections).isNotEmpty();
+  }
+
+  @Test
+  public void shouldLetCustomizerOverrideTimeoutProperties() {
+    // given: a property that would outlast the test, and a customizer with a short timeout
+    ExternalTaskClientHttpCustomizer responseTimeout = builder ->
+        builder.setDefaultRequestConfig(RequestConfig.custom()
+            .setResponseTimeout(Timeout.ofSeconds(1))
+            .build());
+
+    clientFactory = createClientFactory();
+    clientFactory.getClientConfiguration().setResponseTimeout(TEST_TIMEOUT.toMillis() * 4);
+    clientFactory.setHttpClientCustomizers(List.of(responseTimeout));
+    EngineClient engineClient = getEngineClient(clientFactory.getObject());
+
+    // when / then: only the customizer's timeout, applied after the property, ends the call in time
+    assertTimeoutPreemptively(TEST_TIMEOUT, () ->
+        assertThatThrownBy(() -> engineClient.unlock("aTaskId"))
+            .hasRootCauseInstanceOf(SocketTimeoutException.class));
+  }
+
+  @Test
   public void shouldBuildClientWithoutCustomizers() {
     // given
     clientFactory = createClientFactory();
