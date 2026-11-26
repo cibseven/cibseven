@@ -98,7 +98,10 @@ public class FetchExternalTasksCmd implements Command<List<LockedExternalTask>> 
       // retrieve the execution first to detect concurrent modifications @https://jira.camunda.com/browse/CAM-10750
       ExecutionEntity execution = entity.getExecution(false);
 
-      if (execution != null) {
+      // the process instance may also have ended since the execution was read; resolve it
+      // (and with it the execution tree) before locking, so the task is skipped instead of
+      // failing the whole fetch when the variables are collected
+      if (execution != null && getProcessInstance(execution) != null) {
         // consume the attempt before locking: lockForFetchedAttempt()'s retry-delay
         // calculation (see ExternalTaskEntity#getConfiguredRetryDelay) assumes retries are
         // already decremented for the attempt currently being handed out
@@ -119,7 +122,7 @@ public class FetchExternalTasksCmd implements Command<List<LockedExternalTask>> 
           fetchedEventTasks.add(entity);
         }
       } else {
-        LOG.logTaskWithoutExecution(workerId);
+        LOG.logTaskWithoutExecution(entity.getId());
       }
     }
 
@@ -127,6 +130,13 @@ public class FetchExternalTasksCmd implements Command<List<LockedExternalTask>> 
     produceFetchedEvents(commandContext, fetchedEventTasks, result);
 
     return result;
+  }
+
+  /**
+   * @return the process instance of the execution, or null if it no longer exists
+   */
+  protected ExecutionEntity getProcessInstance(ExecutionEntity execution) {
+    return execution.getProcessInstanceIfExists();
   }
 
   /**

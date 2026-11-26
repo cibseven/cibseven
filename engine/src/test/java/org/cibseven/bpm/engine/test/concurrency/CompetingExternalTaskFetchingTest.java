@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.cibseven.bpm.engine.ExternalTaskService;
 import org.cibseven.bpm.engine.HistoryService;
 import org.cibseven.bpm.engine.OptimisticLockingException;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
@@ -34,6 +35,7 @@ import org.cibseven.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.cibseven.bpm.engine.impl.cmd.FetchExternalTasksCmd;
 import org.cibseven.bpm.engine.impl.externaltask.TopicFetchInstruction;
 import org.cibseven.bpm.engine.impl.interceptor.CommandContext;
+import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExternalTaskEntity;
 import org.cibseven.bpm.engine.test.Deployment;
 import org.cibseven.bpm.engine.test.RequiredHistoryLevel;
@@ -127,6 +129,99 @@ public class CompetingExternalTaskFetchingTest {
       controllableThread.returnControlToTestThreadAndWait();
       super.produceFetchedEvents(commandContext, fetchedEventTasks, result);
     }
+  }
+
+  /**
+   * Returns control to the test thread once, after the execution of the first task is read
+   * but before its process instance is resolved: the window in which another worker can
+   * complete the task and end the process instance (CIB7-2798).
+   */
+  public static class PausingBeforeProcessInstanceFetchCmd extends FetchExternalTasksCmd {
+
+    protected ControllableThread controllableThread;
+    protected String pausedProcessInstanceId;
+
+    public PausingBeforeProcessInstanceFetchCmd(ControllableThread controllableThread, String workerId,
+                                                int maxResults, Map<String, TopicFetchInstruction> instructions) {
+      super(workerId, maxResults, instructions);
+      this.controllableThread = controllableThread;
+    }
+
+    @Override
+    protected ExecutionEntity getProcessInstance(ExecutionEntity execution) {
+      if (pausedProcessInstanceId == null) {
+        pausedProcessInstanceId = execution.getProcessInstanceId();
+        controllableThread.returnControlToTestThreadAndWait();
+      }
+      return super.getProcessInstance(execution);
+    }
+  }
+
+  public class PausingFetcherThread extends ControllableThread {
+
+    protected PausingBeforeProcessInstanceFetchCmd cmd;
+    protected List<LockedExternalTask> fetchedTasks = Collections.emptyList();
+    protected RuntimeException exception;
+
+    public PausingFetcherThread(String workerId) {
+      Map<String, TopicFetchInstruction> instructions = new HashMap<>();
+      instructions.put("externalTaskTopic", new TopicFetchInstruction("externalTaskTopic", 10000L));
+      cmd = new PausingBeforeProcessInstanceFetchCmd(this, workerId, 5, instructions);
+    }
+
+    @Override
+    public void run() {
+      try {
+        fetchedTasks = processEngineConfiguration.getCommandExecutorTxRequired().execute(cmd);
+      } catch (RuntimeException e) {
+        exception = e;
+      }
+    }
+  }
+
+  @Deployment(resources = "org/cibseven/bpm/engine/test/concurrency/CompetingExternalTaskFetchingTest.externalTaskInSubProcess.bpmn20.xml")
+  @Test
+  public void testFetchingTaskWhoseProcessInstanceEndedConcurrently() {
+    assertFetchSkipsTaskWhoseProcessInstanceEndedConcurrently();
+  }
+
+  @Deployment(resources = "org/cibseven/bpm/engine/test/concurrency/CompetingExternalTaskFetchingTest.externalTaskInSubProcess.bpmn20.xml")
+  @Test
+  public void testFetchingTaskWhoseProcessInstanceEndedConcurrentlyWithoutTreePrefetch() {
+    boolean prefetch = processEngineConfiguration.isExecutionTreePrefetchEnabled();
+    processEngineConfiguration.setExecutionTreePrefetchEnabled(false);
+    try {
+      assertFetchSkipsTaskWhoseProcessInstanceEndedConcurrently();
+    } finally {
+      processEngineConfiguration.setExecutionTreePrefetchEnabled(prefetch);
+    }
+  }
+
+  protected void assertFetchSkipsTaskWhoseProcessInstanceEndedConcurrently() {
+    String firstId = runtimeService.startProcessInstanceByKey("externalTaskInSubProcess").getId();
+    String secondId = runtimeService.startProcessInstanceByKey("externalTaskInSubProcess").getId();
+
+    // worker A has read the execution of one task and pauses before reading its process instance
+    PausingFetcherThread workerA = new PausingFetcherThread("workerA");
+    workerA.startAndWaitUntilControlIsReturned();
+    String endedId = workerA.cmd.pausedProcessInstanceId;
+    String remainingId = endedId.equals(firstId) ? secondId : firstId;
+
+    // meanwhile worker B locks and completes that task, which ends the process instance
+    ExternalTaskService externalTaskService = engineRule.getExternalTaskService();
+    String endedTaskId = externalTaskService.createExternalTaskQuery()
+        .processInstanceId(endedId).singleResult().getId();
+    externalTaskService.lock(endedTaskId, "workerB", 10000L);
+    externalTaskService.complete(endedTaskId, "workerB");
+    assertEquals(0, runtimeService.createProcessInstanceQuery().processInstanceId(endedId).count());
+
+    // worker A skips that task and returns the other one without an error
+    workerA.proceedAndWaitTillDone();
+    assertNull(workerA.exception);
+    assertEquals(1, workerA.fetchedTasks.size());
+    assertEquals(remainingId, workerA.fetchedTasks.get(0).getProcessInstanceId());
+    assertEquals("workerA", externalTaskService.createExternalTaskQuery()
+        .processInstanceId(remainingId).singleResult().getWorkerId());
   }
 
   @Deployment

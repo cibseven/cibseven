@@ -29,6 +29,7 @@ import org.cibseven.bpm.engine.delegate.DelegateExecution;
 import org.cibseven.bpm.engine.delegate.DelegateTask;
 import org.cibseven.bpm.engine.delegate.ExecutionListener;
 import org.cibseven.bpm.engine.delegate.TaskListener;
+import org.cibseven.bpm.engine.impl.interceptor.Command;
 import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
@@ -113,6 +114,94 @@ public class ExecutionEntityTest {
     assertEquals("singleTaskProcess", pi.getProcessDefinitionKey());
     processEngineRule.getRuntimeService().signal(execution.getId());
     // then (see #TestLocalVariableTaskListener::notify)
+  }
+
+  @Test
+  public void testGetProcessInstanceIfExists() {
+    // given an execution below the process instance
+    String processInstanceId = startProcessWithTaskInSubProcess();
+    String executionId = findTaskExecutionId();
+
+    // when / then the execution tree is resolved
+    String resolvedId = executeInCommand(commandContext -> {
+      ExecutionEntity execution = commandContext.getExecutionManager().findExecutionById(executionId);
+      return execution.getProcessInstanceIfExists().getId();
+    });
+    assertEquals(processInstanceId, resolvedId);
+
+    // and the process instance execution resolves to itself
+    String selfId = executeInCommand(commandContext -> commandContext.getExecutionManager()
+        .findExecutionById(processInstanceId)
+        .getProcessInstanceIfExists()
+        .getId());
+    assertEquals(processInstanceId, selfId);
+  }
+
+  @Test
+  public void testGetProcessInstanceIfExistsWhenProcessInstanceEndedConcurrently() {
+    // given an execution read before its process instance ended
+    String processInstanceId = startProcessWithTaskInSubProcess();
+    String executionId = findTaskExecutionId();
+
+    // when / then null is returned instead of failing
+    Boolean isNull = executeInCommand(commandContext -> {
+      ExecutionEntity execution = commandContext.getExecutionManager().findExecutionById(executionId);
+      deleteProcessInstanceInNewTransaction(processInstanceId);
+      return execution.getProcessInstanceIfExists() == null;
+    });
+    assertEquals(Boolean.TRUE, isNull);
+  }
+
+  @Test
+  public void testGetProcessInstanceWhenProcessInstanceEndedConcurrently() {
+    // given an execution read before its process instance ended
+    String processInstanceId = startProcessWithTaskInSubProcess();
+    String executionId = findTaskExecutionId();
+
+    // when / then a meaningful exception is thrown instead of a NullPointerException
+    assertThatThrownBy(() -> executeInCommand(commandContext -> {
+      ExecutionEntity execution = commandContext.getExecutionManager().findExecutionById(executionId);
+      deleteProcessInstanceInNewTransaction(processInstanceId);
+      return execution.getProcessInstance();
+    }))
+      .isInstanceOf(ProcessEngineException.class)
+      .hasMessageContaining("ENGINE-03111")
+      .hasMessageContaining("Cannot find process instance with id '" + processInstanceId
+          + "' of execution '" + executionId + "', perhaps it ended in the meantime");
+  }
+
+  protected String startProcessWithTaskInSubProcess() {
+    BpmnModelInstance modelInstance = Bpmn.createExecutableProcess("subProcessTaskProcess")
+      .startEvent()
+      .subProcess()
+        .embeddedSubProcess()
+          .startEvent()
+          .userTask("taskInSubProcess")
+          .endEvent()
+        .subProcessDone()
+      .endEvent()
+      .done();
+    testRule.deploy(modelInstance);
+    return processEngineRule.getRuntimeService().startProcessInstanceByKey("subProcessTaskProcess").getId();
+  }
+
+  protected String findTaskExecutionId() {
+    String executionId = processEngineRule.getRuntimeService().createExecutionQuery()
+      .activityId("taskInSubProcess")
+      .singleResult()
+      .getId();
+    return executionId;
+  }
+
+  protected <T> T executeInCommand(Command<T> command) {
+    return processEngineRule.getProcessEngineConfiguration().getCommandExecutorTxRequired().execute(command);
+  }
+
+  protected void deleteProcessInstanceInNewTransaction(String processInstanceId) {
+    processEngineRule.getProcessEngineConfiguration().getCommandExecutorTxRequiresNew().execute(commandContext -> {
+      processEngineRule.getRuntimeService().deleteProcessInstance(processInstanceId, null);
+      return null;
+    });
   }
 
   public static class TestLocalVariableExecutionListener implements ExecutionListener {
