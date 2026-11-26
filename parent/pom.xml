@@ -25,7 +25,7 @@
     <!-- JAX-RS runtimes, both Jakarta REST 4.0 (Jakarta EE 11, see version.jakarta-ee-spec):
          Jersey as managed by Spring Boot (version.spring-boot) and used by the REST API webapp,
          RESTEasy as shipped by WildFly (version.wildfly) and bundled by the Tomcat distro webapp. -->
-    <version.jersey>4.0.2</version.jersey>
+    <version.jersey>4.0.3</version.jersey>
     <version.resteasy>7.0.5.Final</version.resteasy>
     <version.groovy>5.0.4</version.groovy>
     <version.graal.js>25.0.1</version.graal.js>
@@ -44,8 +44,8 @@
     <!-- Jakarta Activation implementation: a runtime dependency of cibseven-commons-typed-values
          (CIB7-2605) and shipped in the Tomcat lib/; matches its jakarta.activation-api 2.1.3 -->
     <version.angus-activation>2.0.2</version.angus-activation>
-    <version.httpclient5>5.6.4</version.httpclient5>
-    <version.httpcore5>5.4.3</version.httpcore5>
+    <version.httpclient5>5.6.5</version.httpclient5>
+    <version.httpcore5>5.4.4</version.httpcore5>
     <version.cronutils>9.2.1</version.cronutils>
     <version.jjwt>0.12.6</version.jjwt>
     <version.caffeine>3.2.4</version.caffeine>

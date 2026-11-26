@@ -22,15 +22,6 @@
 
   <dependencyManagement>
     <dependencies>
-      <dependency>
-        <!-- Override HK2 from 4.0.0-M3 (bundled with Spring Boot) to 4.0.0 stable -->
-        <groupId>org.glassfish.hk2</groupId>
-        <artifactId>hk2-bom</artifactId>
-        <version>4.0.0</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-
       <!-- Addressing Jackson 2 CVEs coming from v2.21.5
         jackson-core:
         CVE-2026-89407, CVE-2026-89425,
@@ -85,51 +76,6 @@
         <version>${version.spring-boot}</version>
         <scope>import</scope>
         <type>pom</type>
-      </dependency>
-
-      <!-- Temporary Apache HttpComponents CVE overrides.
-           Remove these once the imported Spring Boot BOM manages fixed versions. -->
-      <dependency>
-        <groupId>org.apache.httpcomponents.client5</groupId>
-        <artifactId>httpclient5</artifactId>
-        <version>${version.httpclient5}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.httpcomponents.core5</groupId>
-        <artifactId>httpcore5</artifactId>
-        <version>${version.httpcore5}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.httpcomponents.core5</groupId>
-        <artifactId>httpcore5-h2</artifactId>
-        <version>${version.httpcore5}</version>
-      </dependency>
-
-      <!-- hk2-bom (imported above, ahead of Spring Boot) manages spring-context 6.2.x for its
-           spring-bridge, and that would win over Spring Boot's Framework 7.
-           Pin it back to the Framework line Spring Boot ships. -->
-      <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-context</artifactId>
-        <version>${version.spring.framework7}</version>
-      </dependency>
-
-      <!-- Temporary Apache Tomcat CVE overrides (BOM pins a vulnerable version).
-           Remove these once the imported Spring Boot BOM manages fixed versions. -->
-      <dependency>
-        <groupId>org.apache.tomcat.embed</groupId>
-        <artifactId>tomcat-embed-core</artifactId>
-        <version>${version.tomcat}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.tomcat.embed</groupId>
-        <artifactId>tomcat-embed-el</artifactId>
-        <version>${version.tomcat}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.tomcat.embed</groupId>
-        <artifactId>tomcat-embed-websocket</artifactId>
-        <version>${version.tomcat}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
