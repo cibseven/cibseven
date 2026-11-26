@@ -76,6 +76,8 @@ public class HistoricExternalTaskLogManager extends AbstractManager {
    *
    * <p>Runs without authorization and tenant checks: the result decides what the engine
    * writes, it must not depend on the permissions of the calling user.
+   *
+   * <p>Called only when a worker locks a task it already holds, see LockExternalTaskCmd.
    */
   @SuppressWarnings("unchecked")
   public boolean isLastFetchedAttemptFailed(ExternalTask externalTask) {
@@ -85,6 +87,11 @@ public class HistoricExternalTaskLogManager extends AbstractManager {
 
     HistoricExternalTaskLogQueryImpl query = new HistoricExternalTaskLogQueryImpl();
     query.externalTaskId(externalTask.getId());
+    // EXT_TASK_ID_ has no index: the process instance id lets the query use
+    // ACT_HI_EXT_TASK_LOG_PROCINST and read only the log of that process instance
+    if (externalTask.getProcessInstanceId() != null) {
+      query.processInstanceId(externalTask.getProcessInstanceId());
+    }
     query.getTenantCheck().setTenantCheckEnabled(false);
 
     Map<String, HistoricExternalTaskLog> logs = new HashMap<>();
