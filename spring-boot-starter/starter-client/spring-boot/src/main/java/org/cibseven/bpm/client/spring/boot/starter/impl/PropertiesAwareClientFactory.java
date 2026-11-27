@@ -75,7 +75,7 @@ public class PropertiesAwareClientFactory extends ClientFactory implements Resou
 
   protected void addOAuth2Interceptor() throws Exception {
     OAuth2Properties oauth2 = clientProperties.getOauth2();
-    if (oauth2 == null) {
+    if (oauth2 == null || !oauth2.isActive()) {
       return;
     }
 
