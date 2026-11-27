@@ -13,9 +13,11 @@ public class CamundaDb2ContainerProvider extends Db2ContainerProvider {
 
   private static final String NAME = "cibdb2";
 
-  // Additional log files on demand: DB2 11.5 defaults to 3 primary + 10 secondary logs (~52 MB), 
-  // so large transactions can fail with SQL0964C (SQLCODE=-1476) on the qa/large-data test.
-  private static final int LOG_SECONDARY_FILES = 254;
+  // Additional log files on demand: the image has 13 primary + 12 secondary logs of 4 MB (100 MB),
+  // so large transactions fail with SQL0964C (SQLCODE=-1476) on the qa/large-data test. DB2 rejects
+  // the whole update if logprimary + logsecond exceeds 256 (SQL5153N). With 32 MB files, 113 files
+  // are up to 3.5 GB on the disk of the Docker host: for more, raise the file size, not the count.
+  private static final int LOG_SECONDARY_FILES = 100;
   // 4 KB pages: 8192 pages are 32 MB per log file, instead of the 1024 pages (4 MB) of the image
   private static final int LOG_FILE_SIZE_PAGES = 8192;
 

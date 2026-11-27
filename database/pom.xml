@@ -49,31 +49,13 @@
     <database.plugin.driver>${database.driver}</database.plugin.driver>
 
     <!--
-      Raw variants of the connection settings, for consumers that read the Maven property
-      directly (the sql-maven-plugin and liquibase-maven-plugin below) instead of through a
-      filtered XML resource, which decodes the entities again. They default to the normal
-      properties and are only overridden where a value has to be XML encoded - see aurora15.
+      Raw variant of the password, for the consumers that read the Maven property directly (the
+      sql-maven-plugin and liquibase-maven-plugin below, and properties-from-pom.properties of
+      distro/sql-script) instead of through a filtered XML resource, which decodes the entities
+      again. It defaults to the normal property. The jobs that test an externally hosted database
+      pass the password twice: XML encoded as database.password, as is as database.password.raw.
     -->
-    <database.url.raw>${database.url}</database.url.raw>
     <database.password.raw>${database.password}</database.password.raw>
-
-    <!--
-      Connection URL of the externally hosted Aurora PostgreSQL clusters, shared by the aurora*
-      profiles below, which differ only in the host they are given from outside.
-
-      connectTimeout and loginTimeout are in seconds, sslResponseTimeout in milliseconds.
-      sslResponseTimeout is the one that matters while a cluster resumes from auto-pause: it
-      limits the wait for the answer to the SSL upgrade request and defaults to 5s.
-      gssEncMode=disable skips the GSSAPI upgrade request, which these clusters do not use and
-      which otherwise burns another 5s (gssResponseTimeout) before the SSL request is sent.
-
-      aurora.url is filtered into the XML test configurations (camunda.cfg.xml), which Maven does
-      not parse again, so the separator between the URL parameters has to survive as the XML
-      entity &amp;amp; - hence the double escaping of &amp;amp;amp;. aurora.url.raw is the same URL with a
-      plain '&amp;' for the consumers that read the Maven property directly. Keep both in sync.
-    -->
-    <aurora.url>jdbc:postgresql://${database.host}:${database.port}/${database.name}?sslmode=require&amp;amp;gssEncMode=disable&amp;amp;connectTimeout=90&amp;amp;loginTimeout=90&amp;amp;sslResponseTimeout=90000</aurora.url>
-    <aurora.url.raw>jdbc:postgresql://${database.host}:${database.port}/${database.name}?sslmode=require&amp;gssEncMode=disable&amp;connectTimeout=90&amp;loginTimeout=90&amp;sslResponseTimeout=90000</aurora.url.raw>
   </properties>
 
   <dependencyManagement>
@@ -124,7 +106,7 @@
           <artifactId>sql-maven-plugin</artifactId>
           <configuration>
             <driver>${database.plugin.driver}</driver>
-            <url>${database.url.raw}</url>
+            <url>${database.url}</url>
             <username>${database.username}</username>
             <password>${database.password.raw}</password>
           </configuration>
@@ -135,7 +117,7 @@
           <version>${version.liquibase}</version>
           <configuration>
             <driver>${database.plugin.driver}</driver>
-            <url>${database.url.raw}</url>
+            <url>${database.url}</url>
             <username>${database.username}</username>
             <password>${database.password.raw}</password>
             <hubMode>off</hubMode>
@@ -547,29 +529,23 @@
     </profile>
 
     <!--
-      Databases that are hosted externally (AWS) instead of being started by Testcontainers.
-      They are reached over a plain JDBC connection, so they are combined with the `database`
-      profile, which drops the schema before and after the test run, and with the profile of
-      the underlying database technology, which provides the driver and the dialect:
+      Externally hosted databases, combined with the `database` profile and the profile of the
+      database technology. Host and credentials are supplied from outside:
 
         mvn test -Pdatabase,postgresql,aurora15 -Ddatabase.host=... -Ddatabase.username=... -Ddatabase.password=...
         mvn test -Pdatabase,sqlserver,azuresql  -Ddatabase.host=... -Ddatabase.username=... -Ddatabase.password=...
 
-      Declared after the profiles they refine, so that `database.url` wins over the
-      `jdbc:tc:` URL defined there. Only the host is confidential; port, database name and
-      the connection parameters are kept here next to the rest of the database settings.
-      See also the "What about database technology X in environment Y?" section in TESTING.md.
+      Declared after the profiles they refine, so that their database.url wins.
     -->
     <!--
-      One profile per Aurora cluster. They share the URL defined in aurora.url above and differ
-      only in the host, which is supplied from outside together with the credentials.
+      Aurora: the connection parameters are in settings/maven/pg_service.conf, which the environment
+      variable PGSERVICEFILE has to point to - not in the URL, where an ampersand would need XML escaping.
     -->
     <profile>
       <!-- Amazon Aurora PostgreSQL 15 -->
       <id>aurora15</id>
       <properties>
-        <database.url>${aurora.url}</database.url>
-        <database.url.raw>${aurora.url.raw}</database.url.raw>
+        <database.url>jdbc:postgresql://${database.host}:${database.port}/${database.name}?service=aurora</database.url>
         <!-- not a Testcontainers URL: undo the Testcontainers driver of the postgresql profile -->
         <database.plugin.driver>${database.driver}</database.plugin.driver>
       </properties>
@@ -579,8 +555,7 @@
       <!-- Amazon Aurora PostgreSQL 16 -->
       <id>aurora16</id>
       <properties>
-        <database.url>${aurora.url}</database.url>
-        <database.url.raw>${aurora.url.raw}</database.url.raw>
+        <database.url>jdbc:postgresql://${database.host}:${database.port}/${database.name}?service=aurora</database.url>
         <!-- not a Testcontainers URL: undo the Testcontainers driver of the postgresql profile -->
         <database.plugin.driver>${database.driver}</database.plugin.driver>
       </properties>
@@ -590,8 +565,7 @@
       <!-- Amazon Aurora PostgreSQL 17 -->
       <id>aurora17</id>
       <properties>
-        <database.url>${aurora.url}</database.url>
-        <database.url.raw>${aurora.url.raw}</database.url.raw>
+        <database.url>jdbc:postgresql://${database.host}:${database.port}/${database.name}?service=aurora</database.url>
         <!-- not a Testcontainers URL: undo the Testcontainers driver of the postgresql profile -->
         <database.plugin.driver>${database.driver}</database.plugin.driver>
       </properties>
@@ -601,8 +575,7 @@
       <!-- Amazon Aurora PostgreSQL 18 -->
       <id>aurora18</id>
       <properties>
-        <database.url>${aurora.url}</database.url>
-        <database.url.raw>${aurora.url.raw}</database.url.raw>
+        <database.url>jdbc:postgresql://${database.host}:${database.port}/${database.name}?service=aurora</database.url>
         <!-- not a Testcontainers URL: undo the Testcontainers driver of the postgresql profile -->
         <database.plugin.driver>${database.driver}</database.plugin.driver>
       </properties>
