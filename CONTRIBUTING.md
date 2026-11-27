@@ -5,7 +5,7 @@
 * [Build from source](#build-from-source)
 * [Create a pull request](#create-a-pull-request)
 * [Contribution checklist](#contribution-checklist)
-* [Contributor License Agreement (CLA)](#contributor-license-agreement-cla)
+* [Developer Certificate of Origin (DCO)](#developer-certificate-of-origin-dco)
 * [Commit message conventions](#commit-message-conventions)
 * [Review process](#review-process)
 
@@ -121,10 +121,23 @@ Before submitting your pull request for code review, please go through the follo
     * Have a look at other tests in the same module for how it works.
     * In rare cases, it is not feasible to write an automated test. Please ask us if you think that is the case for your contribution.
 1. Do your commits follow our [commit message conventions](#commit-message-conventions)?
+1. Is every commit signed off (`git commit -s`), see [Developer Certificate of Origin (DCO)](#developer-certificate-of-origin-dco)?
 
-# Contributor License Agreement (CLA)
+# Developer Certificate of Origin (DCO)
 
-Before we can merge your contribution you have to sign our [Contributor License Agreement](https://cla-assistant.io/cibseven/) (CLA). The CLA contains the terms and conditions under which the contribution is submitted. You need to do this only once for your first pull request. Keep in mind that without a signed CLA we cannot merge your contribution.
+CIB seven is licensed under the [Apache License 2.0](LICENSE). Your contribution is submitted under the same license (section 5 of the license). We do not ask you to sign a Contributor License Agreement.
+
+Instead, every commit in a pull request must be signed off. With the sign-off you certify the [Developer Certificate of Origin 1.1](https://developercertificate.org/): you wrote the change, or you otherwise have the right to submit it under the project's open source license.
+
+The sign-off is a line at the end of the commit message. It must match the name and e-mail address of the commit author:
+
+```
+Signed-off-by: Jane Doe <jane.doe@example.com>
+```
+
+Git adds it for you with `git commit -s` (or `--signoff`). To sign off commits you have already made, use `git commit --amend -s` for the last commit or `git rebase --signoff main` for all commits of your branch, and push again.
+
+A DCO check on the pull request shows whether all commits are signed off.
 
 # Commit message conventions
 
