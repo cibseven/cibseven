@@ -36,6 +36,9 @@ public class ClientConfiguration {
   protected Long lockDuration;
   protected Boolean disableAutoFetching;
   protected Boolean disableBackoffStrategy;
+  protected Long connectTimeout;
+  protected Long responseTimeout;
+  protected Long connectionRequestTimeout;
 
   public String getBaseUrl() {
     return baseUrl;
@@ -131,6 +134,43 @@ public class ClientConfiguration {
 
   public void setDisableBackoffStrategy(Boolean disableBackoffStrategy) {
     this.disableBackoffStrategy = disableBackoffStrategy;
+  }
+
+  /**
+   * @return time in milliseconds to establish a connection to the engine, or {@code null} for
+   * the HTTP client's default
+   */
+  public Long getConnectTimeout() {
+    return connectTimeout;
+  }
+
+  public void setConnectTimeout(Long connectTimeout) {
+    this.connectTimeout = connectTimeout;
+  }
+
+  /**
+   * @return time in milliseconds to wait for the engine's response to a call, or {@code null}
+   * for the HTTP client's default. Also applies to the long-polling fetch and lock request, so it
+   * must be greater than {@link #getAsyncResponseTimeout()}.
+   */
+  public Long getResponseTimeout() {
+    return responseTimeout;
+  }
+
+  public void setResponseTimeout(Long responseTimeout) {
+    this.responseTimeout = responseTimeout;
+  }
+
+  /**
+   * @return time in milliseconds to wait for a free connection from the HTTP client's pool, or
+   * {@code null} for the HTTP client's default
+   */
+  public Long getConnectionRequestTimeout() {
+    return connectionRequestTimeout;
+  }
+
+  public void setConnectionRequestTimeout(Long connectionRequestTimeout) {
+    this.connectionRequestTimeout = connectionRequestTimeout;
   }
 
   public void fromAnnotation(EnableExternalTaskClient annotation) {
