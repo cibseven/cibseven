@@ -656,7 +656,7 @@
             <configuration>
               <target>
                 <!-- Patterns of the two checks below, shared with their self-test. -->
-                <property name="engine.jar.allowed" value="org/cibseven/**,camundajar/**,META-INF/MANIFEST.MF,META-INF/NOTICE,META-INF/maven/**,META-INF/services/**,*.xsd" />
+                <property name="engine.jar.allowed" value="org/cibseven/**,camundajar/**,META-INF/MANIFEST.MF,META-INF/NOTICE,META-INF/maven/**,META-INF/services/**,*.xsd,element-templates/*.json" />
                 <property name="engine.jar.forbidden.ee" value="jakarta/**,javax/**,org/glassfish/expressly/**,com/sun/el/**" />
                 <!-- Self-test: a sample jar with allowed and forbidden entries; each check must flag
                      exactly the forbidden ones, so a broken pattern cannot let a foreign library pass. -->
@@ -666,6 +666,7 @@
                   <zipfileset file="${basedir}/pom.xml" fullpath="camundajar/impl/com/google/gson/Allowed.class" />
                   <zipfileset file="${basedir}/pom.xml" fullpath="META-INF/services/org.cibseven.Allowed" />
                   <zipfileset file="${basedir}/pom.xml" fullpath="allowed.xsd" />
+                  <zipfileset file="${basedir}/pom.xml" fullpath="element-templates/allowed.json" />
                   <zipfileset file="${basedir}/pom.xml" fullpath="org/apache/commons/logging/LogFactory.class" />
                   <zipfileset file="${basedir}/pom.xml" fullpath="org/jspecify/annotations/Nullable.class" />
                   <zipfileset file="${basedir}/pom.xml" fullpath="META-INF/versions/9/module-info.class" />
@@ -699,8 +700,9 @@
                 <!-- Allowlist of the jar's entries (CIB7-2636; it also covers Gson's
                      error_prone_annotations dependency and module descriptor, CIB7-2634).
                      META-INF/NOTICE is written by the ApacheNoticeResourceTransformer that
-                     release-parent configures for every shaded jar. -->
-                <fail message="${project.build.finalName}.jar contains entries outside org/cibseven/, camundajar/, META-INF/MANIFEST.MF, META-INF/NOTICE, META-INF/maven/, META-INF/services/ and the root *.xsd files, e.g. an unrelocated library (commons-logging, jspecify, com.google.*) or a multi-release META-INF/versions/ folder. Shade only the libraries of the maven-shade-plugin artifactSet includes, relocated to camundajar.impl.*, and keep every other library a regular dependency.">
+                     release-parent configures for every shaded jar. element-templates/*.json are
+                     the Modeler's element templates for the engine's own elements (CIB7-2939). -->
+                <fail message="${project.build.finalName}.jar contains entries outside org/cibseven/, camundajar/, META-INF/MANIFEST.MF, META-INF/NOTICE, META-INF/maven/, META-INF/services/, the root *.xsd files and element-templates/*.json, e.g. an unrelocated library (commons-logging, jspecify, com.google.*) or a multi-release META-INF/versions/ folder. Shade only the libraries of the maven-shade-plugin artifactSet includes, relocated to camundajar.impl.*, and keep every other library a regular dependency.">
                   <condition>
                     <resourcecount when="greater" count="0">
                       <zipfileset src="${project.build.directory}/${project.build.finalName}.jar" includes="**" excludes="${engine.jar.allowed}" />

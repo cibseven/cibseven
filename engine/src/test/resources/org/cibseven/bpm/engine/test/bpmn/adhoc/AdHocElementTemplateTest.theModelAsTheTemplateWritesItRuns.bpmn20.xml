@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- An ad hoc sub process as the element template writes it (CIB7-2939): the template's id and version, the
+     three extension properties of its fields, and a completion condition from the Modeler's own group. -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://cibseven.org/adhoc-scenarios">
+  <process id="adHocTemplate" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="toScope" sourceRef="start" targetRef="handleIncident" />
+    <adHocSubProcess id="handleIncident" camunda:modelerTemplate="org.cibseven.bpm.AdHocSubProcess"
+                     camunda:modelerTemplateVersion="1">
+      <extensionElements>
+        <camunda:properties>
+          <camunda:property name="activitiesToActivate" value="callCustomer, checkLogs" />
+          <camunda:property name="outputCollection" value="findings" />
+          <camunda:property name="outputElement" value="${execution.currentActivityId == 'checkLogs' ? finding : null}" />
+        </camunda:properties>
+      </extensionElements>
+      <userTask id="callCustomer" />
+      <userTask id="checkLogs" />
+      <userTask id="orderSparePart" />
+      <completionCondition xsi:type="tFormalExpression">${execution.hasVariable('resolved') and resolved}</completionCondition>
+    </adHocSubProcess>
+    <sequenceFlow id="fromScope" sourceRef="handleIncident" targetRef="closeIncident" />
+    <userTask id="closeIncident" />
+    <sequenceFlow id="toEnd" sourceRef="closeIncident" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+</definitions>
