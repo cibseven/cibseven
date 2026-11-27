@@ -3296,7 +3296,76 @@ public class AgenticTurnJobTest {
         .contains("\"interruptedBy\":[{")
         .contains("\"errorCode\":\"GESPERRT\"")
         .contains("'buchen' did not complete")
-        .contains("Its path still runs. You will get another turn when it finishes.");
+        .contains("Its path still runs. You will get another turn when it finishes.")
+        // Interrupted, the tool did not complete: whether to try it again is the agent's call
+        // (GH-610), so its note has no do-not-start-again hint, and says so.
+        .contains("Starting 'buchen' again is your call: it would start a new instance beside"
+            + " its path.")
+        .doesNotContain("Do not start");
+  }
+
+  /**
+   * A marked tool a boundary event interrupted stays held back while its path runs, the path being
+   * its work (GH-610): the agent is told so with the result, and a second start is refused.
+   */
+  @Test
+  public void anInterruptedMarkedToolIsHeldBackWhileItsPathRuns() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Warte auf den Fehlerpfad."));
+    ProcessInstance pi = startWith(failingTool("GESPERRT", "<errorEventDefinition />")
+        .replace("</extensionElements>", "<camunda:properties><camunda:property"
+            + " name='adHocBlockedWhileSameRuns' value='true' /></camunda:properties>"
+            + "</extensionElements>")
+        .replace("<serviceTask id='fehlerMerken' name='Fehler merken'",
+            "<userTask id='fehlerMerken' name='Fehler merken'")
+        .replace(" camunda:expression=\"${'kein Bestand'}\" camunda:resultVariable='fehler' />",
+            " />"));
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("'buchen' did not complete")
+        .contains("Starting 'buchen' again is refused until its path has finished.");
+    assertThat(toolResults(requestBodies.get(2))).contains("Cannot start 'buchen'");
+    assertThat(engine.getTaskService().createTaskQuery().processInstanceId(pi.getId())
+        .taskDefinitionKey("fehlerMerken").count()).as("one error path, no second booking")
+        .isOne();
+  }
+
+  /**
+   * Marked adHocBlockedWhileOthersRun, an interrupted tool is told that a start again is refused
+   * while its path or any other work runs, not only until its path has finished (GH-610).
+   */
+  @Test
+  public void anInterruptedToolMarkedToWaitForOthersIsToldItWaitsForAllWork() throws IOException {
+    script.add(toolCall("buchen", "{}"));
+    script.add(toolCall("buchen", "{}"));
+    script.add(answer("Warte auf den Fehlerpfad."));
+    ProcessInstance pi = startWith(failingTool("GESPERRT", "<errorEventDefinition />")
+        .replace("</extensionElements>", "<camunda:properties><camunda:property"
+            + " name='adHocBlockedWhileOthersRun' value='true' /></camunda:properties>"
+            + "</extensionElements>")
+        .replace("<serviceTask id='fehlerMerken' name='Fehler merken'",
+            "<userTask id='fehlerMerken' name='Fehler merken'")
+        .replace(" camunda:expression=\"${'kein Bestand'}\" camunda:resultVariable='fehler' />",
+            " />"));
+
+    runWaitingTurn();
+
+    assertThat(toolResults(requestBodies.get(1)))
+        .contains("'buchen' did not complete")
+        .contains("Starting 'buchen' again is refused while its path or any other work in the"
+            + " sub process runs.")
+        .doesNotContain("until its path has finished")
+        .doesNotContain("your call");
+    // The refusal covers the path as part of the tool's flow, not only an earlier instance.
+    assertThat(toolResults(requestBodies.get(2)))
+        .contains("Cannot start 'buchen': an earlier instance of 'buchen' or its flow is still"
+            + " running");
+    assertThat(engine.getTaskService().createTaskQuery().processInstanceId(pi.getId())
+        .taskDefinitionKey("fehlerMerken").count()).as("one error path, no second booking")
+        .isOne();
   }
 
   /**
@@ -3458,7 +3527,12 @@ public class AgenticTurnJobTest {
         .as("the retry waits for a person: the interruption is not repaired yet")
         .contains("\"status\":\"waiting\"")
         .contains("\"interruptedBy\":[{")
-        .contains("\"attachedTo\":\"buchen\"");
+        .contains("\"attachedTo\":\"buchen\"")
+        // Interrupted further along its flow, 'anfang' did its work: a start again would repeat
+        // it, so it is told not to, as any waiting tool (GH-610).
+        .contains("Do not start 'anfang' again for this work while it runs: that would start a"
+            + " second instance of it.")
+        .doesNotContain("your call");
 
     engine.getTaskService().complete(engine.getTaskService().createTaskQuery()
         .processInstanceId(pi.getId()).taskDefinitionKey("nachfragen").singleResult().getId(),

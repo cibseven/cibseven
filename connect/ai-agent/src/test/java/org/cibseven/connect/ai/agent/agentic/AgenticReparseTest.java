@@ -801,6 +801,30 @@ public class AgenticReparseTest {
                 + "</extensionElements></userTask>"),
             "adHocBlockedWhileOthersRun is 'ja', but must be 'true' or 'false'",
             "the tool 'gesperrt' is left out of the agent's catalogue", tools("arbeit")),
+        Arguments.of("a bad adHocBlockedWhileSameRuns",
+            adHoc(connector(MESSAGE), "<userTask id='arbeit' /><userTask id='einmalig'>"
+                + "<extensionElements>" + properties(
+                    AgenticToolCatalogParser.BLOCKED_WHILE_SAME_RUNS_PROPERTY, "ja")
+                + "</extensionElements></userTask>"),
+            "adHocBlockedWhileSameRuns is 'ja', but must be 'true' or 'false'",
+            "the tool 'einmalig' is left out of the agent's catalogue", tools("arbeit")),
+        Arguments.of("adHocBlockedWhileSameRuns=false beside adHocBlockedWhileOthersRun",
+            adHoc(connector(MESSAGE), "<userTask id='arbeit' /><userTask id='beide'>"
+                + "<extensionElements>" + properties(
+                    AgenticToolCatalogParser.BLOCKED_WHILE_OTHERS_RUN_PROPERTY, "true",
+                    AgenticToolCatalogParser.BLOCKED_WHILE_SAME_RUNS_PROPERTY, "false")
+                + "</extensionElements></userTask>"),
+            "adHocBlockedWhileSameRuns is 'false', but adHocBlockedWhileOthersRun is 'true'",
+            "adHocBlockedWhileOthersRun holds as it is, the activity's own earlier instance"
+                + " included", tools("arbeit", "beide")),
+        Arguments.of("adHocBlockedWhileSameRuns on an activity that is no tool",
+            adHoc(connector(MESSAGE), "<serviceTask id='arbeit' camunda:expression='${1}' />"
+                + "<sequenceFlow id='weiter' sourceRef='arbeit' targetRef='danach' />"
+                + "<userTask id='danach'><extensionElements>" + properties(
+                    AgenticToolCatalogParser.BLOCKED_WHILE_SAME_RUNS_PROPERTY, "true")
+                + "</extensionElements></userTask>"),
+            "adHocBlockedWhileSameRuns is set on an activity the agent never starts",
+            "the property is ignored there", tools("arbeit")),
         Arguments.of("an unknown onLimit",
             adHoc(properties(AgenticAdHocParseListener.ON_LIMIT, "fail") + connector(MESSAGE),
                 "<userTask id='arbeit' />"),

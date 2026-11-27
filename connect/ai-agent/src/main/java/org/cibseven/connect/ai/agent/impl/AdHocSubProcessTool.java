@@ -37,6 +37,7 @@ import org.cibseven.connect.ai.agent.agentic.AdHocToolDescriptor;
 import org.cibseven.connect.ai.agent.agentic.AgenticAdHocParseListener;
 import org.cibseven.connect.ai.agent.agentic.AgenticToolCatalogParser;
 import org.cibseven.bpm.engine.impl.bpmn.helper.BpmnProperties;
+import org.cibseven.bpm.engine.impl.bpmn.behavior.MultiInstanceActivityBehavior;
 import org.cibseven.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.cibseven.bpm.engine.runtime.AdHocSubProcessActivationBuilder;
 import java.time.Instant;
@@ -206,10 +207,30 @@ public class AdHocSubProcessTool {
         // the previous turn no longer counts as blocking.
         List<String> othersRunning = otherRunningActivityIds(scope);
 
+        Set<String> toolsRunning = toolsRunning(scope);
         List<String> blockedNow = new ArrayList<>();
+        List<String> blockedByOthers = new ArrayList<>();
+        List<String> blockedBySame = new ArrayList<>();
         for (AdHocToolDescriptor descriptor : catalog(scope)) {
-            if (descriptor.isBlockedWhileOthersRun() && !othersRunning.isEmpty()) {
-                blockedNow.add(descriptor.getActivityId());
+            String id = descriptor.getActivityId();
+            // Each reason on its own, so a tool held back by both is told both: once the other
+            // work ends, its own earlier instance may still hold it back.
+            boolean byOthers = descriptor.isBlockedWhileOthersRun() && !othersRunning.isEmpty();
+            boolean bySame = descriptor.isBlockedWhileSameRuns() && toolsRunning.contains(id);
+            if (byOthers && onlyItselfRuns(scope, id)) {
+                // Only its own earlier instance runs: that is the reason to give, not someone
+                // else's decision (GH-610).
+                byOthers = false;
+                bySame = true;
+            }
+            if (byOthers) {
+                blockedByOthers.add(id);
+            }
+            if (bySame) {
+                blockedBySame.add(id);
+            }
+            if (byOthers || bySame) {
+                blockedNow.add(id);
             }
         }
 
@@ -225,8 +246,21 @@ public class AdHocSubProcessTool {
         result.put("stillRunning", new ArrayList<>(pending.values()));
         if (!blockedNow.isEmpty()) {
             result.put("blockedNow", blockedNow);
-            result.put("blockedBecause", "These depend on work still in flight: " + othersRunning
-                    + ". Starting them will be refused; you will get another turn when that finishes.");
+            List<String> reasons = new ArrayList<>();
+            if (!blockedByOthers.isEmpty()) {
+                // Named as the note names running work, by its tool (GH-610).
+                reasons.add((blockedBySame.isEmpty() ? "These" : blockedByOthers.toString())
+                        + " depend on work still in flight: "
+                        + allRunningToolIds(scope) + ".");
+            }
+            if (!blockedBySame.isEmpty()) {
+                reasons.add((blockedByOthers.isEmpty() ? "These" : blockedBySame.toString())
+                        + " have an earlier instance or its flow still running, or share running"
+                        + " work with another tool's flow.");
+            }
+            reasons.add("Starting them will be refused; you will get another turn when that"
+                    + " finishes.");
+            result.put("blockedBecause", String.join(" ", reasons));
         }
         List<String> processVariables = scope.getActivity().getProperties()
                 .get(AgenticAdHocParseListener.DECLARED_PROCESS_VARIABLES);
@@ -260,13 +294,40 @@ public class AdHocSubProcessTool {
                     .append("oldest first, and their results came back to you as tool results. ")
                     .append("Continue from there; do not start the task again.");
         }
-        if (pending.isEmpty()) {
+        if (!pending.isEmpty()) {
+            // Every step while something the agent started runs (GH-610): the hint that keeps a
+            // model from starting it again, for a tool not marked adHocBlockedWhileSameRuns too.
+            note.append(" The activities in stillRunning are still doing the work you started them")
+                    .append(" for. Do not start them again for that work; you will get another turn")
+                    .append(" when one finishes. For one whose result said a boundary event")
+                    .append(" interrupted it and that it did not complete, that result says whether")
+                    .append(" you may start it again.");
+        }
+        if (pending.isEmpty() && childExecutionIds(scope).isEmpty()) {
             // Said out loud, because a further turn is only ever scheduled by a child
             // ending: a turn that starts nothing leaves nothing that could bring another
             // one, so the scope ends with it whether or not that was intended.
             note.append(" Nothing you started is still running. If you end this turn without ")
                     .append("starting an activity that waits for a person or another system, the ")
                     .append("ad hoc sub process ends here and the process moves on. Decide now.");
+        } else if (pending.isEmpty() || hasUntrackedChild(scope, pending)) {
+            // Work runs in the scope that no pending entry tracks: started over REST, say, or a
+            // branch of a tool that forked, of which only one is tracked (GH-610). Which of the
+            // two cannot be told here, so the note says only that it runs, named by its tool, so
+            // that what blockedNow cites is not missing from the state. A tool stillRunning names
+            // is named again when such work runs for it: a second instance started over REST is
+            // one, and the wording holds for a branch of the tracked one too. The scope stands
+            // while such work runs, as the turn runner's endOfTurn decides, and its end brings the
+            // next turn; saying the scope ends here would contradict blockedBecause.
+            List<String> running = runningToolIds(scope, pending.keySet());
+            note.append(pending.isEmpty() ? " Work is still running in the ad hoc sub process"
+                    : " Besides what stillRunning lists, work is still running in the ad hoc sub"
+                            + " process");
+            if (!running.isEmpty()) {
+                note.append(pending.isEmpty() ? ": " : " for: ").append(running);
+            }
+            note.append(". It stays open while that runs, and you will get another turn when it ")
+                    .append("finishes.");
         }
         result.put("note", note.toString());
         return result;
@@ -306,12 +367,35 @@ public class AdHocSubProcessTool {
 
         List<String> othersRunning = otherRunningActivityIds(scope);
         if (!othersRunning.isEmpty() && entry != null && entry.isBlockedWhileOthersRun()) {
+            if (onlyItselfRuns(scope, activityId)) {
+                // Its own earlier instance is all that runs (GH-610): said so, not that it waits
+                // for someone else's decision. "Or its flow" covers what follows it, the path a
+                // boundary event on it took included, without claiming there was one.
+                throw new AdHocToolRefusedException("Cannot start '" + activityId + "': an earlier"
+                        + " instance of '" + activityId + "' or its flow is still running, and this"
+                        + " activity is marked to start only while nothing else in the ad hoc sub"
+                        + " process runs, its own earlier instance included. Do not call it again"
+                        + " now. Start something else, or end your turn: you will get another turn"
+                        + " when that work finishes.");
+            }
+            // Named as the note names running work, by its tool (GH-610).
+            List<String> busy = allRunningToolIds(scope);
             throw new AdHocToolRefusedException("Cannot start '" + activityId + "' while "
-                    + othersRunning + " " + (othersRunning.size() == 1 ? "is" : "are")
+                    + busy + " " + (busy.size() == 1 ? "is" : "are")
                     + " still running. This activity is marked as depending on work that is still"
                     + " in flight — a decision someone else has to make first. Start something"
                     + " else, or end your turn: you will get another turn when that work"
                     + " finishes.");
+        }
+
+        if (entry != null && entry.isBlockedWhileSameRuns()
+                && sameRunning(scope, activityId)) {
+            throw new AdHocToolRefusedException("Cannot start '" + activityId + "': an earlier"
+                    + " instance of '" + activityId + "' or its flow is still running, or work its"
+                    + " flow shares with another tool, and this activity is marked to run once at a"
+                    + " time."
+                    + " Do not call it again now. Start something else, or end your turn: you will"
+                    + " get another turn when that work finishes.");
         }
 
         // Snapshot first: a queued asyncBefore child has no activity instance, so its
@@ -367,12 +451,45 @@ public class AdHocSubProcessTool {
             result.put("status", "waiting");
             // A boundary event may have interrupted the tool already, within this call, and its
             // path is what still runs: said now, not only when that path ends (CIB7-2166).
-            String interrupted = interruptedWhileRunning(scope, trackingId, activityId, result);
+            AdHocResults.Interruption interrupted =
+                    interruptedWhileRunning(scope, trackingId, activityId, result);
             result.put("results", Collections.emptyMap());
+            // Said with every waiting result (GH-610): the next step of the turn follows at once,
+            // and a model that takes "waiting" for "not done" calls the tool again. Not for a tool
+            // a boundary event on the tool itself interrupted: it did not complete, and its result
+            // says whether it may be started again. Unmarked, that is the agent's call. Marked, it
+            // stays held back while the event's path runs: the path is the tool's work, as its
+            // result says (CIB7-2166). Marked means either marking: adHocBlockedWhileOthersRun
+            // counts the tool's own earlier instance too, and holds it back while any other work
+            // runs as well. A tool interrupted further along its flow did its work, and is told
+            // not to start again like any other.
+            boolean whileOthersRun = entry != null && entry.isBlockedWhileOthersRun();
+            boolean whileSameRuns = entry != null && entry.isBlockedWhileSameRuns();
+            // As the interruption's own note decides it, not worked out again.
+            boolean didNotComplete = interrupted != null && interrupted.onTheTool;
+            String again;
+            if (didNotComplete) {
+                again = whileOthersRun
+                        ? "Starting '" + activityId + "' again is refused while its path or any"
+                                + " other work in the sub process runs."
+                        : whileSameRuns
+                                ? "Starting '" + activityId + "' again is refused until its path"
+                                        + " has finished."
+                                : "Starting '" + activityId + "' again is your call: it would"
+                                        + " start a new instance beside its path.";
+            } else {
+                again = "Do not start '" + activityId + "' again for this work while it runs: "
+                        + (whileOthersRun
+                                ? "that is refused while it or any other work in the sub process"
+                                        + " runs."
+                                : whileSameRuns
+                                        ? "that is refused until it has finished."
+                                        : "that would start a second instance of it.");
+            }
             result.put("resultsNote", interrupted != null
-                    ? interrupted
-                            + " Its path still runs. You will get another turn when it finishes."
-                    : "Still running. You will get another turn when it finishes.");
+                    ? interrupted.note + " Its path still runs. You will get another turn when it"
+                            + " finishes. " + again
+                    : "Still running. You will get another turn when it finishes. " + again);
         } else {
             // Not recorded as pending: there is nothing to wait for, and an entry that
             // is already finished would refuse completeScope until a later turn
@@ -570,11 +687,12 @@ public class AdHocSubProcessTool {
 
     /**
      * For a performance still running after its call: if a boundary event interrupted it within
-     * the call, puts {@code interruptedBy} into {@code result} and returns what to tell the model,
-     * else null (CIB7-2166). Its status stays waiting, since the event's path still runs; the
+     * the call, puts {@code interruptedBy} into {@code result} and returns what to tell the model
+     * and whether the tool itself did not complete, else null (CIB7-2166, GH-610). Its status stays waiting, since the event's path still runs; the
      * entry gathered when that path ends carries the same {@code interruptedBy}.
      */
-    private static String interruptedWhileRunning(ExecutionEntity scope, String trackingId,
+    private static AdHocResults.Interruption interruptedWhileRunning(ExecutionEntity scope,
+                                                  String trackingId,
                                                   String activityId, Map<String, Object> result) {
         for (PvmExecutionImpl child : ((PvmExecutionImpl) scope).getNonEventScopeExecutions()) {
             if (child.getId().equals(trackingId)) {
@@ -606,6 +724,216 @@ public class AdHocSubProcessTool {
             collectRunningActivityIds(child, ids);
         }
         return new ArrayList<>(ids);
+    }
+
+    /** Whether an instance of the tool {@code activityId} still runs in the scope (GH-610). */
+    private static boolean sameRunning(ExecutionEntity scope, String activityId) {
+        return toolsRunning(scope).contains(activityId);
+    }
+
+    /**
+     * The tools an instance of which still runs in the scope (GH-610), whoever started it, read
+     * per child execution of the scope:
+     *
+     * <ul>
+     * <li>A child the agent started a tool on is that tool's, wherever its flow has gone: the
+     * pending entry says so. It is read, not harvested, so no result is gathered before its turn.
+     * <li>Any other child, one started over REST or a branch a tool forked into, of which only
+     * one is tracked, is the tool's whose activity runs on it, or runs around what does: the inner
+     * task of an embedded sub process belongs to the sub process. An activity further along a
+     * chain belongs to the tool whose flow reaches it, as the model says
+     * ({@link AdHocToolDescriptor#REACHED_FROM}). Where the flows of several tools reach it and
+     * nothing tracks which one it came from, it counts for each of them: a second instance is
+     * refused rather than risked. A tool among them a parse again left out counts too, since the
+     * work may be its: the set may name tools the agent does not have, so it serves the checks
+     * against the catalogue only, and the agent is shown names from {@link #allRunningToolIds}.
+     * </ul>
+     */
+    private static Set<String> toolsRunning(ExecutionEntity scope) {
+        Set<String> running = new LinkedHashSet<>();
+        for (Set<String> tools : toolsPerChild(scope)) {
+            running.addAll(tools);
+        }
+        return running;
+    }
+
+    /**
+     * Whether everything that runs in the scope is an instance of {@code activityId} (GH-610):
+     * then adHocBlockedWhileOthersRun holds the activity back for its own earlier
+     * instance only, and the agent is told that, not that it waits for someone else's decision.
+     */
+    private static boolean onlyItselfRuns(ExecutionEntity scope, String activityId) {
+        List<Set<String>> perChild = toolsPerChild(scope);
+        if (perChild.isEmpty()) {
+            return false;
+        }
+        for (Set<String> tools : perChild) {
+            if (!tools.equals(Collections.singleton(activityId))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** The tools each child execution of the scope runs an instance of, as {@link #toolsRunning}. */
+    private static List<Set<String>> toolsPerChild(ExecutionEntity scope) {
+        Map<String, String> pending = AdHocLoopState.pending(scope);
+        Set<String> tools = catalogIds(scope);
+        Map<String, Set<String>> reachedFrom = reachedFrom(scope);
+        List<Set<String>> perChild = new ArrayList<>();
+        for (PvmExecutionImpl child : ((PvmExecutionImpl) scope).getNonEventScopeExecutions()) {
+            Set<String> running = new LinkedHashSet<>();
+            perChild.add(running);
+            String tracked = pending.get(child.getId());
+            if (tracked != null) {
+                running.add(tracked);
+                continue;
+            }
+            Set<String> leaves = new LinkedHashSet<>();
+            collectRunningActivityIds(child, leaves);
+            for (String leafId : leaves) {
+                for (String id : enclosingActivityIds(scope, leafId)) {
+                    if (tools.contains(id)) {
+                        running.add(id);
+                    }
+                    Set<String> reaching = reachedFrom.get(id);
+                    if (reaching != null) {
+                        // A tool a parse again left out counts too: the work may be its, so a
+                        // marked tool sharing it is told it waits for work in flight, not for its
+                        // own earlier instance, and runningToolIds names it by its own id.
+                        running.addAll(reaching);
+                    }
+                }
+            }
+        }
+        return perChild;
+    }
+
+    /** The ids of the scope's tools. */
+    private static Set<String> catalogIds(ExecutionEntity scope) {
+        Set<String> ids = new LinkedHashSet<>();
+        for (AdHocToolDescriptor descriptor : catalog(scope)) {
+            ids.add(descriptor.getActivityId());
+        }
+        return ids;
+    }
+
+    /** Which tools' flows reach each element of the scope, as stored at parse time. */
+    private static Map<String, Set<String>> reachedFrom(ExecutionEntity scope) {
+        Map<String, Set<String>> reachedFrom = ((ScopeImpl) scope.getActivity())
+                .getProperties().get(AdHocToolDescriptor.REACHED_FROM);
+        return (reachedFrom == null) ? Collections.<String, Set<String>>emptyMap() : reachedFrom;
+    }
+
+    /**
+     * {@code leafId} and the activities enclosing it inside the scope, innermost first, the
+     * scope's own activity excluded: an embedded sub process or a multi-instance body around it.
+     *
+     * <p>A multi-instance body also stands for the activity it repeats (GH-610): queued
+     * by {@code camunda:asyncBefore}, or between its instances, its execution carries only the
+     * body, whose id the engine generates as {@code <activityId>#multiInstanceBody}, and an
+     * activation over REST leaves nothing else that names the activity.
+     */
+    private static List<String> enclosingActivityIds(ExecutionEntity scope, String leafId) {
+        List<String> ids = new ArrayList<>();
+        ScopeImpl current = ((ScopeImpl) scope.getActivity()).findActivity(leafId);
+        while (current instanceof PvmActivity && current != scope.getActivity()) {
+            PvmActivity activity = (PvmActivity) current;
+            if (activity.getActivityBehavior() instanceof MultiInstanceActivityBehavior) {
+                for (PvmActivity repeated : activity.getActivities()) {
+                    if (!ids.contains(repeated.getId())) {
+                        ids.add(repeated.getId());
+                    }
+                }
+            }
+            ids.add(current.getId());
+            current = current.getFlowScope();
+        }
+        if (ids.isEmpty()) {
+            // Not found under the scope's activity: still the running activity itself, rather than
+            // nothing, so that running work is never left out.
+            LOG.warn("Running activity '{}' was not found in ad hoc sub process '{}'; it is taken"
+                    + " as running work of its own id.", leafId, scope.getActivity().getId());
+            ids.add(leafId);
+        }
+        return ids;
+    }
+
+    /**
+     * What runs in the scope, named as stillRunning and the note name it (GH-610): a child the
+     * agent started a tool on by that tool, as its pending entry says, wherever its flow went; any
+     * other child as {@link #runningToolIds} names it.
+     */
+    private static List<String> allRunningToolIds(ExecutionEntity scope) {
+        Map<String, String> pending = AdHocLoopState.pending(scope);
+        Set<String> named = new LinkedHashSet<>();
+        for (PvmExecutionImpl child : ((PvmExecutionImpl) scope).getNonEventScopeExecutions()) {
+            String tracked = pending.get(child.getId());
+            if (tracked != null) {
+                named.add(tracked);
+            }
+        }
+        named.addAll(runningToolIds(scope, pending.keySet()));
+        return new ArrayList<>(named);
+    }
+
+    /**
+     * What runs on the scope's children other than {@code tracked}, named as the agent knows it
+     * (GH-610): for each running activity the outermost tool around it, so the inner task of an
+     * embedded sub process is named by the sub process, and a multi-instance body by its activity;
+     * else the one tool whose flow reaches it, outermost first, when that tool is in the catalogue;
+     * else, where the flows of several tools reach it, or none, or only one a parse again left
+     * out, the outermost activity around it inside the scope, which is what the model shows at
+     * that level.
+     *
+     * @param tracked the child executions pending entries track, which stillRunning already names
+     */
+    private static List<String> runningToolIds(ExecutionEntity scope, Set<String> tracked) {
+        Set<String> tools = catalogIds(scope);
+        Map<String, Set<String>> reachedFrom = reachedFrom(scope);
+        Set<String> named = new LinkedHashSet<>();
+        for (PvmExecutionImpl child : ((PvmExecutionImpl) scope).getNonEventScopeExecutions()) {
+            if (tracked.contains(child.getId())) {
+                continue;
+            }
+            Set<String> leaves = new LinkedHashSet<>();
+            collectRunningActivityIds(child, leaves);
+            for (String leafId : leaves) {
+                String tool = null;
+                String reachedBy = null;
+                String outermost = leafId;
+                for (String enclosing : enclosingActivityIds(scope, leafId)) {
+                    Set<String> reaching = reachedFrom.get(enclosing);
+                    if (tools.contains(enclosing)) {
+                        tool = enclosing;
+                    } else if (reaching != null && reaching.size() == 1
+                            && tools.contains(reaching.iterator().next())) {
+                        // Only a tool the agent has: one a parse again left out is none to it.
+                        reachedBy = reaching.iterator().next();
+                    }
+                    if (enclosing.indexOf('#') < 0) {
+                        // Not a generated id, such as a multi-instance body's.
+                        outermost = enclosing;
+                    }
+                }
+                if (outermost.indexOf('#') >= 0) {
+                    // A generated id the leaf itself carries, as <activityId>#multiInstanceBody.
+                    outermost = outermost.substring(0, outermost.indexOf('#'));
+                }
+                named.add(tool != null ? tool : reachedBy != null ? reachedBy : outermost);
+            }
+        }
+        return new ArrayList<>(named);
+    }
+
+    /** Whether a child of the scope runs that no pending entry tracks. */
+    private static boolean hasUntrackedChild(ExecutionEntity scope, Map<String, String> pending) {
+        for (String id : childExecutionIds(scope)) {
+            if (!pending.containsKey(id)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

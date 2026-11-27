@@ -529,7 +529,7 @@ public final class AdHocResults {
      * a performance that ended, and returns what to tell the model, else null (CIB7-2166). The
      * status is left as it is: the event's path still runs.
      */
-    static String describeInterruption(ExecutionEntity handle, String toolId,
+    static Interruption describeInterruption(ExecutionEntity handle, String toolId,
             Map<String, Object> into) {
         List<Map<String, Object>> interrupted = interruptions(handle);
         // The event waiting for its job is the newest interruption of its activity, and replaces
@@ -540,6 +540,15 @@ public final class AdHocResults {
             removeOf(interrupted, (String) waiting.get(ATTACHED_TO));
             interrupted.add(waiting);
         }
+        return describeInterruptions(toolId, interrupted, into);
+    }
+
+    /**
+     * What {@link #describeInterruption} tells of the interruptions {@code interrupted} of
+     * {@code toolId}, as {@link #describeEnd} words and decides it, or null when there are none.
+     */
+    static Interruption describeInterruptions(String toolId, List<?> interrupted,
+            Map<String, Object> into) {
         if (interrupted.isEmpty()) {
             return null;
         }
@@ -549,7 +558,26 @@ public final class AdHocResults {
         Map<String, Object> described = new LinkedHashMap<String, Object>();
         String note = describeEnd(gathered, described);
         into.put(INTERRUPTED_BY, described.get(INTERRUPTED_BY));
-        return note;
+        if (note == null) {
+            return null;
+        }
+        // describeEnd's own decision, taken over rather than worked out again (GH-610).
+        return new Interruption(note, "interrupted".equals(described.get("status")));
+    }
+
+    /**
+     * An interruption of a performance still running, as told to the model (GH-610): the note,
+     * and whether a boundary event on the tool itself interrupted it, so it did not complete. One
+     * further along its flow leaves the tool's own work done.
+     */
+    static final class Interruption {
+        final String note;
+        final boolean onTheTool;
+
+        Interruption(String note, boolean onTheTool) {
+            this.note = note;
+            this.onTheTool = onTheTool;
+        }
     }
 
     /**
