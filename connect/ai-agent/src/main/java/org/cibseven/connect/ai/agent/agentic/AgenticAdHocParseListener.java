@@ -150,7 +150,7 @@ public class AgenticAdHocParseListener extends AbstractBpmnParseListener {
 
   /** What the element template for an agentic scope writes into {@code camunda:modelerTemplate}. */
   public static final String AD_HOC_TEMPLATE_ID = "org.cibseven.connect.ai.agent.AdHocSubProcess";
-  public static final String AD_HOC_TEMPLATE_NAME = "CIB seven AI Agent (ad hoc sub process)";
+  public static final String AD_HOC_TEMPLATE_NAME = "CIB seven - AI Agent Ad Hoc Sub Process";
 
   /** Input parameters the agentic loop sets itself: each scope keeps its own conversation. */
   protected static final List<String> LOOP_PARAMETERS = Arrays.asList("useChatMemory", "memoryId");

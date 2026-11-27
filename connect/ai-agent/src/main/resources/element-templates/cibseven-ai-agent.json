@@ -233,7 +233,7 @@
           "label": "Tool classes",
           "type": "Text",
           "group": "tools",
-          "description": "Comma-separated fully-qualified class names of @Tool-annotated beans to register with the agent. Built-in: org.cibseven.connect.ai.agent.impl.ProcessStarterTool — starts a CIB seven process by definition key, polls until it ends (or the retry budget is exhausted) and returns its output variables, so the LLM can launch a process and react to its result without orchestrating its own polling loop. Naming org.cibseven.connect.ai.agent.impl.AdHocSubProcessTool here has no effect: an agent configured with this connector on an adHocSubProcess element instead of a service task (template \"CIB seven AI Agent (ad hoc sub process)\") is given one tool per activity of that scope, plus completeScope, automatically.",
+          "description": "Comma-separated fully-qualified class names of @Tool-annotated beans to register with the agent. Built-in: org.cibseven.connect.ai.agent.impl.ProcessStarterTool — starts a CIB seven process by definition key, polls until it ends (or the retry budget is exhausted) and returns its output variables, so the LLM can launch a process and react to its result without orchestrating its own polling loop. Naming org.cibseven.connect.ai.agent.impl.AdHocSubProcessTool here has no effect: an agent configured with this connector on an adHocSubProcess element instead of a service task (template \"CIB seven - AI Agent Ad Hoc Sub Process\") is given one tool per activity of that scope, plus completeScope, automatically.",
           "placeholder": "org.cibseven.connect.ai.agent.impl.ProcessStarterTool,com.example.MyTool,com.example.AnotherTool",
           "binding": {
             "type": "camunda:inputParameter",

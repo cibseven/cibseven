@@ -289,6 +289,22 @@ public class AdHocElementTemplateTest {
         .isEmpty();
   }
 
+  /**
+   * Every template CIB seven ships is named "CIB seven - " and its own name in title case
+   * ("CIB seven - AI Agent", "CIB seven - HTTP Connector"), and the Modeler's list shows them
+   * by that name. Every template in the folder is read, so a new one is checked as well.
+   */
+  @Test
+  public void everyTemplateIsNamedLikeTheOtherCibSevenTemplates() throws IOException {
+    List<String> templates = templates();
+    assertThat(templates).contains(STANDARD, AD_HOC);
+
+    for (String resource : templates) {
+      assertThat(read(resource).get("name").asText()).as(resource)
+          .matches("CIB seven - [A-Z][A-Za-z]*(?: [A-Z][A-Za-z]*)*");
+    }
+  }
+
   @Test
   public void theCredentialCheckFindsKeysAndPassesProse() {
     for (String credential : new String[] { "${apiKey}", "${ apiKey }", "#{apiKey}",
