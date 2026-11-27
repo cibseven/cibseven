@@ -6,7 +6,13 @@
    * `mariadb.container.image`
    * `mysql.container.image`
    * `mssql.container.image`
+   * `db2.container.image`
+   * `oracle.container.image` (Oracle XE), `oraclefree.container.image` (Oracle Free / 26ai), `oracle19.container.image` (Oracle 19c EE, requires a login to container-registry.oracle.com)
+   * The defaults pull via the proxy projects of harbor.cib.de (`docker login harbor.cib.de`); without a Harbor account override them with the public images noted in [testcontainers.properties](./src/main/resources/testcontainers.properties), e.g. `TESTCONTAINERS_POSTGRESQL_CONTAINER_IMAGE=postgres`
 1. If using MS-SQL, add a `container-license-acceptance.txt` file to the root of your test resources directory [example file](./testing/src/test/resources/container-license-acceptance.txt). 
    * Add the repository names of the MS-SQL Docker images your are planning to use.
-1. Modify your JDBC url to contain the `tc:cam[DB_NAME]:[DB_VERSION]` segment. E.g. `jdbc:tc:campostgresql:13.2:///process-engine` 
+1. Modify your JDBC url to contain the `tc:cib[DB_NAME]:[DB_VERSION]` segment. E.g. `jdbc:tc:cibpostgresql:17:///process-engine` 
    More details [here](https://www.testcontainers.org/modules/databases/jdbc/).
+1. Optionally, set `cibseven.container.label` (e.g. environment variable `TESTCONTAINERS_CIBSEVEN_CONTAINER_LABEL`): the containers
+   get the label `org.cibseven.testcontainers.label` with this value. Reusable containers (`TC_REUSABLE=true` in the JDBC URL)
+   are not removed by Testcontainers; the label lets a test run find and remove its own containers.

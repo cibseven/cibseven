@@ -16,10 +16,13 @@
  */
 package org.cibseven.impl.test.utils.testcontainers;
 
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
 public class TestcontainersHelper {
+
+  public static final String LABEL = "org.cibseven.testcontainers.label";
 
   public static String resolveImageName(String imageProperty, String defaultImage) {
     String image = TestcontainersConfiguration.getInstance().getEnvVarOrProperty(imageProperty, defaultImage);
@@ -36,6 +39,20 @@ public class TestcontainersHelper {
     String imageProperty = dbLabel + ".container.image";
     String dockerImageString = resolveImageName(imageProperty, defaultDbImage) + ":" + tag;
     return DockerImageName.parse(dockerImageString).asCompatibleSubstituteFor(defaultDbImage);
+  }
+
+  /**
+   * Labels the container with the value of the property cibseven.container.label (e.g. environment variable
+   * TESTCONTAINERS_CIBSEVEN_CONTAINER_LABEL), if set. Reusable containers (TC_REUSABLE=true in the JDBC URL, see qa/pom.xml)
+   * survive the JVM: the label identifies the containers of one test run, so that parallel runs with different labels
+   * never share a container and each run can remove its own ones (docker ps --filter label=...).
+   */
+  public static <T extends GenericContainer<?>> T withLabel(T container) {
+    String label = TestcontainersConfiguration.getInstance().getEnvVarOrProperty("cibseven.container.label", null);
+    if (label != null && !label.isEmpty()) {
+      container.withLabel(LABEL, label);
+    }
+    return container;
   }
 
 }

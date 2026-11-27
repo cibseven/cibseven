@@ -339,9 +339,12 @@ public class RemovalTimeStrategyEndTest extends AbstractRemovalTimeTest {
   /**
    * Test excluded on MariaDB and MySQL for now since it is failing randomly there.
    * See CAM-13291 for details.
+   * DB2 added when the database tests started running there: 30 process instances started in
+   * parallel make it deadlock, the same way as on MariaDB and MySQL.
    */
   @Test
-  @RequiredDatabase(excludes = {DbSqlSessionFactory.MARIADB, DbSqlSessionFactory.MYSQL})
+  @RequiredDatabase(excludes = {DbSqlSessionFactory.MARIADB, DbSqlSessionFactory.MYSQL,
+      DbSqlSessionFactory.DB2})
   public void shouldResolveHistoricActivityInstanceInConcurrentEnvironment() {
     // given
     int degreeOfParallelism = 30;

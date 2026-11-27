@@ -23,7 +23,7 @@ import org.testcontainers.utility.DockerImageName;
 
 public class CamundaPostgreSQLContainerProvider extends PostgreSQLContainerProvider {
 
-  protected static final String NAME = "campostgresql";
+  protected static final String NAME = "cibpostgresql";
 
   @Override
   public boolean supports(String databaseType) {
@@ -34,6 +34,6 @@ public class CamundaPostgreSQLContainerProvider extends PostgreSQLContainerProvi
   public JdbcDatabaseContainer newInstance(String tag) {
     DockerImageName dockerImageName = TestcontainersHelper
       .resolveDockerImageName("postgresql", tag, "postgres");
-    return new PostgreSQLContainer(dockerImageName);
+    return TestcontainersHelper.withLabel(new PostgreSQLContainer(dockerImageName));
   }
 }

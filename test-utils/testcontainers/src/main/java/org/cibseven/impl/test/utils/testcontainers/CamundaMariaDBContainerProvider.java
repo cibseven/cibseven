@@ -23,7 +23,7 @@ import org.testcontainers.utility.DockerImageName;
 
 public class CamundaMariaDBContainerProvider extends MariaDBContainerProvider {
 
-  private static final String NAME = "cammariadb";
+  private static final String NAME = "cibmariadb";
 
   @Override
   public boolean supports(String databaseType) {
@@ -38,6 +38,6 @@ public class CamundaMariaDBContainerProvider extends MariaDBContainerProvider {
     MariaDBContainer mariaDbContainer = new MariaDBContainer(dockerImageName);
     mariaDbContainer.setCommand("--transaction-isolation=READ-COMMITTED");
     
-    return mariaDbContainer;
+    return TestcontainersHelper.withLabel(mariaDbContainer);
   }
 }

@@ -23,7 +23,7 @@ import org.testcontainers.utility.DockerImageName;
 
 public class CamundaMySqlContainerProvider extends MySQLContainerProvider {
 
-  private static final String NAME = "cammysql";
+  private static final String NAME = "cibmysql";
 
   @Override
   public boolean supports(String databaseType) {
@@ -37,6 +37,6 @@ public class CamundaMySqlContainerProvider extends MySQLContainerProvider {
 
     MySQLContainer mySqlContainer = new MySQLContainer(dockerImageName);
     mySqlContainer.setCommand("--transaction-isolation=READ-COMMITTED");
-    return mySqlContainer;
+    return TestcontainersHelper.withLabel(mySqlContainer);
   }
 }
