@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,8 +32,10 @@ import java.util.stream.Collectors;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.cibseven.bpm.engine.impl.bpmn.parser.BpmnParse;
+import org.cibseven.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.cibseven.bpm.engine.impl.util.IoUtil;
 import org.cibseven.bpm.engine.impl.util.JsonUtil;
+import org.cibseven.bpm.engine.runtime.Execution;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;
 import org.cibseven.bpm.engine.task.Task;
 import org.cibseven.bpm.engine.test.Deployment;
@@ -108,36 +111,49 @@ public class AdHocElementTemplateTest extends PluggableProcessEngineTest {
         Pattern.UNICODE_CHARACTER_CLASS);
 
     List<String> accepted = Arrays.asList("", " ", "callCustomer", "callCustomer,checkLogs",
-        " callCustomer , checkLogs ", "[\"callCustomer\",\"checkLogs\"]", "${firstSteps}", "#{firstSteps}");
+        " callCustomer , checkLogs ", "[\"callCustomer\",\"checkLogs\"]", "[]", "${firstSteps}", "#{firstSteps}",
+        "${firstStep},checkLogs");
     for (String value : accepted) {
       assertThat(pattern.matcher(value).find()).as("'" + value + "'").isTrue();
     }
     List<String> refused = Arrays.asList("callCustomer,", ",checkLogs", "call customer",
-        "callCustomer,,checkLogs");
+        "callCustomer,,checkLogs", "[1]", "[\"call customer\"]");
     for (String value : refused) {
       assertThat(pattern.matcher(value).find()).as("'" + value + "'").isFalse();
     }
   }
 
-  /** The model as the template writes it deploys and runs: entry, gathering, completion. */
+  /**
+   * The model as the template writes it deploys and runs: entry, gathering only what the result expression
+   * selects, and a completion condition that leaves the scope while another activity is still active.
+   */
   @Deployment
   @Test
   public void theModelAsTheTemplateWritesItRuns() {
     ProcessInstance pi = runtimeService.startProcessInstanceByKey("adHocTemplate");
-
     assertThat(taskKeys(pi)).containsExactlyInAnyOrder("callCustomer", "checkLogs");
 
-    Map<String, Object> first = new HashMap<>();
-    first.put("finding", "cable fault");
-    taskService.complete(task(pi, "callCustomer").getId(), first);
-    Map<String, Object> second = new HashMap<>();
-    second.put("finding", "link down");
-    second.put("resolved", true);
-    taskService.complete(task(pi, "checkLogs").getId(), second);
+    // the value 'callCustomer' leaves in 'finding' is not what the expression gathers
+    taskService.complete(task(pi, "callCustomer").getId(), Collections.singletonMap("finding", "cable fault"));
+    runtimeService.activateAdHocSubProcessActivities(scopeExecutionId(pi), Collections.singletonList("orderSparePart"));
 
-    assertThat(runtimeService.getVariable(pi.getId(), "findings"))
-        .isEqualTo(Arrays.asList("cable fault", "link down"));
-    assertThat(taskKeys(pi)).as("the completion condition left the scope").containsExactly("closeIncident");
+    Map<String, Object> logs = new HashMap<>();
+    logs.put("finding", "link down");
+    logs.put("resolved", true);
+    taskService.complete(task(pi, "checkLogs").getId(), logs);
+
+    assertThat(runtimeService.getVariable(pi.getId(), "findings")).isEqualTo(Arrays.asList("link down"));
+    assertThat(taskKeys(pi)).as("the completion condition left the scope and cancelled orderSparePart")
+        .containsExactly("closeIncident");
+  }
+
+  protected String scopeExecutionId(ProcessInstance pi) {
+    for (Execution execution : runtimeService.createExecutionQuery().processInstanceId(pi.getId()).list()) {
+      if ("handleIncident".equals(((ExecutionEntity) execution).getActivityId())) {
+        return execution.getId();
+      }
+    }
+    throw new AssertionError("no execution sitting on the ad hoc scope");
   }
 
   protected List<String> taskKeys(ProcessInstance pi) {

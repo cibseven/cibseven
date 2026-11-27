@@ -33,7 +33,7 @@
       },
       "constraints": {
         "pattern": {
-          "value": "^(\\s*|\\s*[$#]\\{.*\\}\\s*|\\s*\\[.*\\]\\s*|\\s*[^\\s,\\[$#][^\\s,]*(\\s*,\\s*[^\\s,]+)*\\s*)$",
+          "value": "^(\\s*|.*[$#]\\{.*|\\s*\\[\\s*(\"[^\"\\s,]+\"\\s*(,\\s*\"[^\"\\s,]+\"\\s*)*)?\\]\\s*|\\s*[^\\s,\\[$#][^\\s,]*(\\s*,\\s*[^\\s,]+)*\\s*)$",
           "message": "Enter activity ids separated by commas, a JSON array or an expression."
         }
       }
@@ -42,7 +42,7 @@
       "label": "Collect results in variable",
       "type": "String",
       "group": "output",
-      "description": "Name of the list variable, e.g. findings: one value per completed activity. Needs 'Result per activity'.",
+      "description": "Name of the list variable, e.g. findings: one value per completed activity. Needs the field below.",
       "binding": {
         "type": "camunda:property",
         "name": "outputCollection"
@@ -52,7 +52,7 @@
       "label": "Result per activity",
       "type": "String",
       "group": "output",
-      "description": "Evaluated when an activity completes; the value is added to the list, null is skipped. Example: ${execution.hasVariable('finding') ? finding : null}",
+      "description": "Evaluated when an activity completes; the value is added to the list, null is skipped. Needs the field above.",
       "binding": {
         "type": "camunda:property",
         "name": "outputElement"

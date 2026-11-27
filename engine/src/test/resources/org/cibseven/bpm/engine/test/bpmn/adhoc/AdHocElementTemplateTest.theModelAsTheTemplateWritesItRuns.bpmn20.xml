@@ -14,7 +14,7 @@
         <camunda:properties>
           <camunda:property name="activitiesToActivate" value="callCustomer, checkLogs" />
           <camunda:property name="outputCollection" value="findings" />
-          <camunda:property name="outputElement" value="${execution.hasVariable('finding') ? finding : null}" />
+          <camunda:property name="outputElement" value="${execution.currentActivityId == 'checkLogs' ? finding : null}" />
         </camunda:properties>
       </extensionElements>
       <userTask id="callCustomer" />
