@@ -22,6 +22,7 @@ import static org.cibseven.bpm.engine.impl.scripting.engine.GraalJsNumberNarrowi
 import static org.cibseven.bpm.engine.impl.scripting.engine.GraalJsNumberNarrowing.NONE;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
@@ -370,6 +371,131 @@ public class GraalJsNumberNarrowingTest {
 
     // then
     assertThat(longValueOf).isEqualTo(5);
+  }
+
+  static Stream<Arguments> modesAndPaths() {
+    return Stream.of(
+        Arguments.of(LONG, false),
+        Arguments.of(LONG, true),
+        Arguments.of(NONE, false),
+        Arguments.of(NONE, true));
+  }
+
+  @ParameterizedTest(name = "mode {0}, useCibSevenNamespaceInScripting={1}")
+  @MethodSource("modesAndPaths")
+  public void shouldRunTheFirstScriptFromADeploymentThatDoesNotSeeGraalJs(String mode, boolean useCibSevenNamespace)
+      throws Exception {
+    // given: a new resolver, whose polyglot engines are not built yet, and a thread whose context class loader sees no
+    // GraalJS, as that of a WAR on WildFly that does not import it (CIB7-2871); in mode none the scripts run on the
+    // polyglot engine of the factory
+    DefaultScriptEngineResolver resolver = sharedResolver();
+    ProcessEngineConfigurationImpl configuration = configuration(mode);
+    configuration.setUseCibSevenNamespaceInScripting(useCibSevenNamespace);
+    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+    try (URLClassLoader deployment = new URLClassLoader(new URL[0], ClassLoader.getPlatformClassLoader())) {
+      Thread.currentThread().setContextClassLoader(deployment);
+
+      // when: the first JavaScript script, then a second one
+      Object first = evaluate(resolver, configuration, false, "sink.set(java.lang.Long.valueOf(5))");
+      Object second = evaluate(resolver, configuration, false, "sink.set(java.lang.Long.valueOf(6))");
+
+      // then: both ran, and the deployment's context class loader is back
+      assertThat(first).isEqualTo(LONG.equals(mode) ? (Object) 5 : (Object) 5L);
+      assertThat(second).isEqualTo(LONG.equals(mode) ? (Object) 6 : (Object) 6L);
+      assertThat(Thread.currentThread().getContextClassLoader()).isSameAs(deployment);
+    } finally {
+      Thread.currentThread().setContextClassLoader(contextClassLoader);
+    }
+  }
+
+  @Test
+  public void shouldLookUpHostClassesThroughTheContextClassLoaderOfTheCaller() throws Exception {
+    // given: a class of the application, which the class loader of GraalJS sees as well on this class path
+    String script = "Java.type('" + Sink.class.getName() + "')";
+    ProcessEngineConfigurationImpl configuration = configuration(LONG);
+    assertThat(evaluate(sharedResolver(), configuration, false, script)).isNotNull();
+
+    // when: a script runs on a thread whose context class loader does not see the class
+    DefaultScriptEngineResolver resolver = sharedResolver();
+    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+    try (URLClassLoader deployment = new URLClassLoader(new URL[0], ClassLoader.getPlatformClassLoader())) {
+      Thread.currentThread().setContextClassLoader(deployment);
+
+      // then: not found; the class loader of GraalJS is only for creating GraalJS objects (CIB7-2871), host classes
+      // come from the deployment that runs the script
+      assertThatThrownBy(() -> evaluate(resolver, configuration, false, script))
+          .isInstanceOf(ScriptException.class);
+    } finally {
+      Thread.currentThread().setContextClassLoader(contextClassLoader);
+    }
+  }
+
+  @ParameterizedTest(name = "mode {0}, useCibSevenNamespaceInScripting={1}")
+  @MethodSource("modesAndPaths")
+  public void shouldLookUpTheClassesOfAProcessApplicationThroughItsContextClassLoader(String mode,
+      boolean useCibSevenNamespace) throws Exception {
+    // given: two copies of ApplicationClass with the same name. One is on the class path of the test, which the class
+    // loaders of GraalJS and of the engine also see. The other one is defined by the class loader of a process
+    // application, the context class loader of the thread that runs the script. Their class loaders tell them apart.
+    ProcessEngineConfigurationImpl configuration = configuration(mode);
+    configuration.setUseCibSevenNamespaceInScripting(useCibSevenNamespace);
+    String script = "sink.set(Java.type('" + ApplicationClass.class.getName() + "').class)";
+    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+    ProcessApplicationClassLoader processApplication = new ProcessApplicationClassLoader(ApplicationClass.class);
+    try {
+      Thread.currentThread().setContextClassLoader(processApplication);
+
+      // when
+      Object type = evaluate(sharedResolver(), configuration, false, script);
+
+      // then: the script got the copy of the process application. Had it looked the class up through the class loader
+      // of GraalJS or of the engine, it would have got the copy of the class path. CIB7-2871 sets the class loader of
+      // GraalJS as the context class loader only while GraalJS is created; host classes still come from the caller.
+      assertThat(type).isInstanceOf(Class.class).isNotSameAs(ApplicationClass.class);
+      assertThat(((Class<?>) type).getClassLoader()).isSameAs(processApplication);
+    } finally {
+      Thread.currentThread().setContextClassLoader(contextClassLoader);
+    }
+  }
+
+  /**
+   * A class of a process application, which scripts look up with {@code Java.type}. {@link
+   * ProcessApplicationClassLoader} defines a second copy of it.
+   */
+  public static class ApplicationClass {
+  }
+
+  /**
+   * The class loader of a process application. It defines its own copy of one class from the same class file, without
+   * asking its parent first, so that a class with that name exists twice: the copy of this class loader and that of the
+   * class path. Every other class comes from the class loader of the test.
+   */
+  protected static class ProcessApplicationClassLoader extends ClassLoader {
+    protected final String className;
+
+    protected ProcessApplicationClassLoader(Class<?> type) {
+      super(type.getClassLoader());
+      this.className = type.getName();
+    }
+
+    @Override
+    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+      if (!className.equals(name)) {
+        return super.loadClass(name, resolve);
+      }
+      synchronized (getClassLoadingLock(name)) {
+        Class<?> type = findLoadedClass(name);
+        if (type == null) {
+          try (InputStream bytes = getParent().getResourceAsStream(name.replace('.', '/') + ".class")) {
+            byte[] classFile = bytes.readAllBytes();
+            type = defineClass(name, classFile, 0, classFile.length);
+          } catch (IOException e) {
+            throw new ClassNotFoundException(name, e);
+          }
+        }
+        return type;
+      }
+    }
   }
 
   /**
