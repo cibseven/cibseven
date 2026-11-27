@@ -143,16 +143,16 @@
 
   <build>
     <plugins>
-      <!-- Extract the ai-agent connector's element-templates from the connector jar
-           so the WildFly-deployed modeler can find them via the file: path in
-           application-wildfly.yaml. classpath*: discovery is unreliable across JBoss
-           module boundaries, so we ship the JSONs onto the filesystem instead. -->
+      <!-- Extract the element-templates of the engine jar (the plain ad hoc sub process)
+           and of the ai-agent connector jar so the WildFly-deployed modeler can find them
+           via the file: path in application-wildfly.yaml. classpath*: discovery is unreliable
+           across JBoss module boundaries, so we ship the JSONs onto the filesystem instead. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
-            <id>extract-ai-agent-element-templates</id>
+            <id>extract-element-templates</id>
             <phase>prepare-package</phase>
             <goals>
               <goal>unpack</goal>
@@ -160,12 +160,21 @@
             <configuration>
               <artifactItems>
                 <artifactItem>
+                  <groupId>org.cibseven.bpm</groupId>
+                  <artifactId>cibseven-engine</artifactId>
+                  <version>${project.version}</version>
+                  <type>jar</type>
+                  <includes>element-templates/*.json</includes>
+                  <outputDirectory>${project.build.directory}/extracted-element-templates</outputDirectory>
+                  <overWrite>true</overWrite>
+                </artifactItem>
+                <artifactItem>
                   <groupId>org.cibseven.connect</groupId>
                   <artifactId>cibseven-connect-ai-agent</artifactId>
                   <version>${project.version}</version>
                   <type>jar</type>
                   <includes>element-templates/*.json</includes>
-                  <outputDirectory>${project.build.directory}/ai-agent-templates</outputDirectory>
+                  <outputDirectory>${project.build.directory}/extracted-element-templates</outputDirectory>
                   <overWrite>true</overWrite>
                 </artifactItem>
               </artifactItems>
