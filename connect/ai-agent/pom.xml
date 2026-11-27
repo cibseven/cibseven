@@ -14,6 +14,15 @@
   <properties>
     <version.langchain4j>1.16.3</version.langchain4j>
     <version.langchain4j-beta>1.16.3-beta26</version.langchain4j-beta>
+    <!-- CVE overrides of what LangChain4j ${version.langchain4j} brings (CIB7-2948):
+         - opennlp-tools 2.5.9 -> 2.5.12: CVE-2026-82617 (ReDoS in the built-in EMAIL/URL patterns of
+           RegexNameFinderFactory, affects 2.0.0 to 2.5.11).
+         - pdfbox 3.0.7 -> 3.0.8: CVE-2026-33929 (path traversal in the ExtractEmbeddedFiles example,
+           affects 3.0.0 to 3.0.7; the NVD entry covers the whole pdfbox artifact).
+         Remove both pins once LangChain4j is upgraded to a release that ships these versions or
+         newer (LangChain4j 1.24.0 does). -->
+    <version.opennlp>2.5.12</version.opennlp>
+    <version.pdfbox>3.0.8</version.pdfbox>
   </properties>
 
   <dependencyManagement>
@@ -75,6 +84,21 @@
       <groupId>dev.langchain4j</groupId>
       <artifactId>langchain4j-document-parser-apache-pdfbox</artifactId>
       <version>${version.langchain4j-beta}</version>
+    </dependency>
+
+    <!-- CVE fixes CVE-2026-82617 (opennlp-tools) and CVE-2026-33929 (pdfbox), see version.opennlp and
+         version.pdfbox. Declared directly, not in dependencyManagement, so the fixed versions also
+         reach the distributions that package this connector (Run, Tomcat, WildFly).
+         pdfbox brings pdfbox-io and fontbox in the same version. -->
+    <dependency>
+      <groupId>org.apache.opennlp</groupId>
+      <artifactId>opennlp-tools</artifactId>
+      <version>${version.opennlp}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>${version.pdfbox}</version>
     </dependency>
 
     <!-- Engine variable API — provided: available at runtime inside the engine, not bundled -->
