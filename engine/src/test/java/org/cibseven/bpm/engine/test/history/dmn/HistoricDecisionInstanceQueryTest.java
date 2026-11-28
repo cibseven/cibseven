@@ -25,9 +25,11 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.util.Date;
 import java.util.List;
 
+import org.assertj.core.api.SoftAssertions;
 import org.cibseven.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
 import org.cibseven.bpm.engine.ProcessEngineConfiguration;
 import org.cibseven.bpm.engine.ProcessEngineException;
+import org.cibseven.bpm.engine.batch.Batch;
 import org.cibseven.bpm.engine.exception.NotValidException;
 import org.cibseven.bpm.engine.history.HistoricDecisionInstance;
 import org.cibseven.bpm.engine.history.HistoricDecisionInstanceQuery;
@@ -233,6 +235,54 @@ public class HistoricDecisionInstanceQueryTest extends PluggableProcessEngineTes
     assertThat(query.decisionInstanceIdIn(decisionInstanceId1).count()).isEqualTo(1L);
     assertThat(query.decisionInstanceIdIn(decisionInstanceId2).count()).isEqualTo(1L);
     assertThat(query.decisionInstanceIdIn(decisionInstanceId1, decisionInstanceId2).count()).isEqualTo(2L);
+  }
+
+  @Deployment(resources = { DECISION_PROCESS, DECISION_SINGLE_OUTPUT_DMN })
+  @Test
+  public void testQueryByDecisionInstanceIdAndDecisionInstanceIdsReturnsOnlyTheMatchingInstance() {
+    // given
+    ProcessInstance pi1 = startProcessInstanceAndEvaluateDecision();
+    ProcessInstance pi2 = startProcessInstanceAndEvaluateDecision();
+
+    String decisionInstanceId1 = historyService.createHistoricDecisionInstanceQuery().processInstanceId(pi1.getId()).singleResult().getId();
+    String decisionInstanceId2 = historyService.createHistoricDecisionInstanceQuery().processInstanceId(pi2.getId()).singleResult().getId();
+
+    // when
+    HistoricDecisionInstanceQuery query = historyService.createHistoricDecisionInstanceQuery()
+        .decisionInstanceId(decisionInstanceId1)
+        .decisionInstanceIdIn(decisionInstanceId1, decisionInstanceId2);
+
+    // then
+    List<HistoricDecisionInstance> decisionInstances = query.list();
+    SoftAssertions softly = new SoftAssertions();
+    softly.assertThat(decisionInstances).extracting(HistoricDecisionInstance::getId).containsExactly(decisionInstanceId1);
+    softly.assertThat(query.count()).isEqualTo(1L);
+    softly.assertAll();
+  }
+
+  @Deployment(resources = { DECISION_PROCESS, DECISION_SINGLE_OUTPUT_DMN })
+  @Test
+  public void testDeleteAsyncByDecisionInstanceIdAndDecisionInstanceIdsBatchesOnlyTheMatchingInstance() {
+    // given
+    ProcessInstance pi1 = startProcessInstanceAndEvaluateDecision();
+    ProcessInstance pi2 = startProcessInstanceAndEvaluateDecision();
+
+    String decisionInstanceId1 = historyService.createHistoricDecisionInstanceQuery().processInstanceId(pi1.getId()).singleResult().getId();
+    String decisionInstanceId2 = historyService.createHistoricDecisionInstanceQuery().processInstanceId(pi2.getId()).singleResult().getId();
+
+    HistoricDecisionInstanceQuery query = historyService.createHistoricDecisionInstanceQuery()
+        .decisionInstanceId(decisionInstanceId1)
+        .decisionInstanceIdIn(decisionInstanceId1, decisionInstanceId2);
+
+    // when
+    Batch batch = historyService.deleteHistoricDecisionInstancesAsync(query, null);
+
+    // then
+    try {
+      assertThat(batch.getTotalJobs()).isEqualTo(1);
+    } finally {
+      managementService.deleteBatch(batch.getId(), true);
+    }
   }
 
   @Deployment(resources = { DECISION_PROCESS, DECISION_SINGLE_OUTPUT_DMN })

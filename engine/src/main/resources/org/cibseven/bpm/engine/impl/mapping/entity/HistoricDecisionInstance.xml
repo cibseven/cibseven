@@ -409,6 +409,7 @@
         RES.ID_ = #{decisionInstanceId}
       </if>
       <if test="decisionInstanceIdIn != null and decisionInstanceIdIn.length > 0">
+        and
         <bind name="listOfIds" value="decisionInstanceIdIn" />
         <bind name="fieldName" value="'RES.ID_'" />
         <include refid="org.cibseven.bpm.engine.impl.persistence.entity.Commons.applyInForPaginatedArray" />

@@ -120,10 +120,10 @@
       PROC_INST_ID_ = #{parameter.processInstanceId, jdbcType=VARCHAR}
     </if>
     <if test="parameter.processDefinitionId != null">
-      PROC_DEF_ID_ = #{parameter.processDefinitionId, jdbcType=VARCHAR}
+      and PROC_DEF_ID_ = #{parameter.processDefinitionId, jdbcType=VARCHAR}
     </if>
     <if test="parameter.processDefinitionKey != null">
-      PROC_DEF_ID_ IN (
+      and PROC_DEF_ID_ IN (
       SELECT ID_
       FROM ${prefix}ACT_RE_PROCDEF PD
       WHERE PD.KEY_ = #{parameter.processDefinitionKey, jdbcType=VARCHAR}
@@ -140,7 +140,7 @@
       <include refid="org.cibseven.bpm.engine.impl.persistence.entity.TenantEntity.queryTenantCheckWithPrefix" />
     </if>
     <if test="parameter.caseExecutionId != null">
-      CASE_EXECUTION_ID_ = #{parameter.caseExecutionId, jdbcType=VARCHAR}
+      and CASE_EXECUTION_ID_ = #{parameter.caseExecutionId, jdbcType=VARCHAR}
     </if>
   </sql>
 
