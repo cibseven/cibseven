@@ -61,8 +61,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.assertj.core.api.SoftAssertions;
 import org.cibseven.bpm.engine.EntityTypes;
 import org.cibseven.bpm.engine.ProcessEngineException;
 import org.cibseven.bpm.engine.externaltask.ExternalTask;
@@ -1712,6 +1714,118 @@ public class UserOperationLogQueryTest extends AbstractUserOperationLogTest {
     verifyQueryResults(query, 1);
 
     repositoryService.deleteDeployment(deploymentId, true);
+  }
+
+  @Test
+  public void testQueryByDeploymentIdAndProcessDefinitionIdReturnsOnlyEntriesMatchingBoth() {
+    String deploymentOne = deployOneTaskProcess();
+    String deploymentTwo = deployOneTaskProcess();
+    try {
+      // given
+      ProcessDefinition definitionOne = suspendProcessDefinitionOf(deploymentOne);
+      suspendProcessDefinitionOf(deploymentTwo);
+
+      // when
+      UserOperationLogQuery query = query()
+          .deploymentId(deploymentOne)
+          .processDefinitionId(definitionOne.getId());
+
+      // then
+      assertQueryMatchesBothCriteria(query,
+          entry -> deploymentOne.equals(entry.getDeploymentId()),
+          entry -> definitionOne.getId().equals(entry.getProcessDefinitionId()));
+    } finally {
+      repositoryService.deleteDeployment(deploymentOne, true);
+      repositoryService.deleteDeployment(deploymentTwo, true);
+    }
+  }
+
+  @Test
+  public void testQueryByDeploymentIdAndProcessDefinitionKeyReturnsOnlyEntriesMatchingBoth() {
+    String deploymentOne = deployOneTaskProcess();
+    String deploymentTwo = deployOneTaskProcess();
+    try {
+      // given
+      ProcessDefinition definitionOne = suspendProcessDefinitionOf(deploymentOne);
+      suspendProcessDefinitionOf(deploymentTwo);
+
+      // when
+      UserOperationLogQuery query = query()
+          .deploymentId(deploymentOne)
+          .processDefinitionKey(definitionOne.getKey());
+
+      // then
+      assertQueryMatchesBothCriteria(query,
+          entry -> deploymentOne.equals(entry.getDeploymentId()),
+          entry -> definitionOne.getKey().equals(entry.getProcessDefinitionKey()));
+    } finally {
+      repositoryService.deleteDeployment(deploymentOne, true);
+      repositoryService.deleteDeployment(deploymentTwo, true);
+    }
+  }
+
+  @Test
+  public void testQueryByProcessDefinitionIdAndProcessDefinitionKeyReturnsOnlyEntriesMatchingBoth() {
+    String deploymentOne = deployOneTaskProcess();
+    String deploymentTwo = deployOneTaskProcess();
+    try {
+      // given
+      ProcessDefinition definitionOne = suspendProcessDefinitionOf(deploymentOne);
+      ProcessDefinition definitionTwo = suspendProcessDefinitionOf(deploymentTwo);
+
+      // when
+      UserOperationLogQuery query = query()
+          .processDefinitionId(definitionTwo.getId())
+          .processDefinitionKey(definitionOne.getKey());
+
+      // then
+      assertQueryMatchesBothCriteria(query,
+          entry -> definitionTwo.getId().equals(entry.getProcessDefinitionId()),
+          entry -> definitionOne.getKey().equals(entry.getProcessDefinitionKey()));
+    } finally {
+      repositoryService.deleteDeployment(deploymentOne, true);
+      repositoryService.deleteDeployment(deploymentTwo, true);
+    }
+  }
+
+  private String deployOneTaskProcess() {
+    return repositoryService
+        .createDeployment()
+        .addClasspathResource(ONE_TASK_PROCESS)
+        .deploy()
+        .getId();
+  }
+
+  private ProcessDefinition suspendProcessDefinitionOf(String deploymentId) {
+    ProcessDefinition definition = repositoryService.createProcessDefinitionQuery()
+        .deploymentId(deploymentId)
+        .singleResult();
+    repositoryService.suspendProcessDefinitionById(definition.getId());
+    return definition;
+  }
+
+  /**
+   * The query must return exactly the entries that match both criteria, and the
+   * data must hold entries that match only one of them, so that "or" would differ.
+   */
+  private void assertQueryMatchesBothCriteria(UserOperationLogQuery query,
+      Predicate<UserOperationLogEntry> first, Predicate<UserOperationLogEntry> second) {
+    List<UserOperationLogEntry> all = query().list();
+    Set<String> expected = all.stream()
+        .filter(first.and(second))
+        .map(UserOperationLogEntry::getId)
+        .collect(Collectors.toSet());
+    long matchingEither = all.stream().filter(first.or(second)).count();
+
+    List<UserOperationLogEntry> result = query.list();
+
+    SoftAssertions softly = new SoftAssertions();
+    softly.assertThat(expected).isNotEmpty();
+    softly.assertThat(matchingEither).isGreaterThan(expected.size());
+    softly.assertThat(result).extracting(UserOperationLogEntry::getId)
+        .containsExactlyInAnyOrder(expected.toArray(new String[0]));
+    softly.assertThat(query.count()).isEqualTo(expected.size());
+    softly.assertAll();
   }
 
   @Test
