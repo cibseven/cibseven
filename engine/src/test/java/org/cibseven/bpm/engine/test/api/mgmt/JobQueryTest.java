@@ -38,8 +38,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.assertj.core.api.SoftAssertions;
 import org.cibseven.bpm.engine.ManagementService;
 import org.cibseven.bpm.engine.ProcessEngineException;
+import org.cibseven.bpm.engine.batch.Batch;
 import org.cibseven.bpm.engine.RepositoryService;
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.history.HistoricIncident;
@@ -742,6 +744,119 @@ public class JobQueryTest {
     JobQuery query = managementService.createJobQuery().jobIds(ids);
     // then
     verifyQueryResults(query, 0);
+  }
+
+  @Test
+  public void testQueryByActivityIdAndProcessInstanceIdsReturnsOnlyJobsMatchingBoth() {
+    // given
+    JobDefinition jobDefinition = managementService.createJobDefinitionQuery().singleResult();
+    Set<String> ids = new HashSet<>();
+    Collections.addAll(ids, processInstanceIdOne);
+    // when
+    JobQuery query = managementService.createJobQuery()
+        .activityId(jobDefinition.getActivityId())
+        .processInstanceIds(ids);
+    // then
+    List<Job> jobs = query.list();
+    SoftAssertions softly = new SoftAssertions();
+    softly.assertThat(jobs).extracting(Job::getProcessInstanceId).containsExactly(processInstanceIdOne);
+    softly.assertThat(query.count()).isEqualTo(1L);
+    softly.assertAll();
+  }
+
+  @Test
+  public void testQueryByJobDefinitionIdAndActivityIdReturnsTheJobsOfThatDefinition() {
+    // given
+    JobDefinition jobDefinition = managementService.createJobDefinitionQuery().singleResult();
+    // when
+    JobQuery query = managementService.createJobQuery()
+        .jobDefinitionId(jobDefinition.getId())
+        .activityId(jobDefinition.getActivityId());
+    // then
+    List<Job> jobs = query.list();
+    SoftAssertions softly = new SoftAssertions();
+    softly.assertThat(jobs).extracting(Job::getProcessInstanceId)
+        .containsExactlyInAnyOrder(processInstanceIdOne, processInstanceIdTwo, processInstanceIdThree);
+    softly.assertThat(jobs).extracting(Job::getJobDefinitionId).containsOnly(jobDefinition.getId());
+    softly.assertThat(query.count()).isEqualTo(3L);
+    softly.assertAll();
+  }
+
+  @Test
+  public void testQueryByJobIdAndProcessInstanceIdsReturnsOnlyJobsMatchingBoth() {
+    // given
+    Job timerOne = managementService.createJobQuery().processInstanceId(processInstanceIdOne).singleResult();
+    Set<String> ids = new HashSet<>();
+    Collections.addAll(ids, processInstanceIdOne, processInstanceIdTwo);
+    // when
+    JobQuery query = managementService.createJobQuery()
+        .jobId(timerOne.getId())
+        .processInstanceIds(ids);
+    // then
+    List<Job> jobs = query.list();
+    SoftAssertions softly = new SoftAssertions();
+    softly.assertThat(jobs).extracting(Job::getId).containsExactly(timerOne.getId());
+    softly.assertThat(query.count()).isEqualTo(1L);
+    softly.assertAll();
+  }
+
+  @Test
+  public void testQueryByJobIdsAndJobDefinitionIdReturnsOnlyJobsMatchingBoth() {
+    // given
+    JobDefinition jobDefinition = managementService.createJobDefinitionQuery().singleResult();
+    Job timerOne = managementService.createJobQuery().processInstanceId(processInstanceIdOne).singleResult();
+    Set<String> ids = new HashSet<>();
+    Collections.addAll(ids, timerOne.getId(), messageId);
+    // when
+    JobQuery query = managementService.createJobQuery()
+        .jobIds(ids)
+        .jobDefinitionId(jobDefinition.getId());
+    // then
+    List<Job> jobs = query.list();
+    SoftAssertions softly = new SoftAssertions();
+    softly.assertThat(jobs).extracting(Job::getId).containsExactly(timerOne.getId());
+    softly.assertThat(query.count()).isEqualTo(1L);
+    softly.assertAll();
+  }
+
+  @Test
+  public void testQueryByJobIdsAndProcessInstanceIdsReturnsOnlyJobsInBothLists() {
+    // given
+    Job timerOne = managementService.createJobQuery().processInstanceId(processInstanceIdOne).singleResult();
+    Job timerTwo = managementService.createJobQuery().processInstanceId(processInstanceIdTwo).singleResult();
+    Set<String> jobIds = new HashSet<>();
+    Collections.addAll(jobIds, timerOne.getId(), timerTwo.getId(), messageId);
+    Set<String> processInstanceIds = new HashSet<>();
+    Collections.addAll(processInstanceIds, processInstanceIdOne, processInstanceIdThree);
+    // when
+    JobQuery query = managementService.createJobQuery()
+        .jobIds(jobIds)
+        .processInstanceIds(processInstanceIds);
+    // then
+    List<Job> jobs = query.list();
+    SoftAssertions softly = new SoftAssertions();
+    softly.assertThat(jobs).extracting(Job::getId).containsExactly(timerOne.getId());
+    softly.assertThat(query.count()).isEqualTo(1L);
+    softly.assertAll();
+  }
+
+  @Test
+  public void testSetJobRetriesAsyncByActivityIdAndProcessInstanceIdsCoversOnlyMatchingJobs() {
+    // given
+    JobDefinition jobDefinition = managementService.createJobDefinitionQuery().singleResult();
+    Set<String> ids = new HashSet<>();
+    Collections.addAll(ids, processInstanceIdOne, processInstanceIdTwo);
+    JobQuery query = managementService.createJobQuery()
+        .activityId(jobDefinition.getActivityId())
+        .processInstanceIds(ids);
+    // when
+    Batch batch = managementService.setJobRetriesAsync(query, 5);
+    // then
+    try {
+      assertThat(batch.getTotalJobs()).isEqualTo(2);
+    } finally {
+      managementService.deleteBatch(batch.getId(), true);
+    }
   }
 
   @Test
